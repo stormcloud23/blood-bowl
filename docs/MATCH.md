@@ -13,7 +13,7 @@ Select **Exhibition match — pre-game**. The match panel guides both hotseat co
 | Setup | Kicking coach first; field all available players up to 11; own half; three central LOS players or all if fewer; two per Wide Zone; suggested formation and manual relocation | Setup order, LOS, Wide Zones, short roster, change of ends |
 | Kick | Legal backfield central kicker; target in receiving half; D6 distance and D8 direction; ball remains airborne during event | Kicker eligibility, legal aim, deviation, event-before-touchback |
 | Landing / touchback | Unmodified direct catch, bounce penalty, bounce across LOS/off pitch creates touchback; receiving coach allocates ball; empty square fallback when no standing players | Catch without team re-roll, deviation/bounce touchbacks, empty fallback |
-| Get the Ref | Records one Bribe for each team; spending it awaits Foul actions | Event before touchback |
+| Get the Ref | Records one Bribe for each team; Bribe decisions are available after send-off / Argue the Call | Event before touchback |
 | TIME-OUT | Moves both turn markers forwards early, backwards when kicking marker is 6–8 | Early and late cases |
 | Solid Defence | Up to D3+3 Open kicking players; manual redeployment; legal final formation required | Cap, eligible players, final constraints |
 | High Kick | Optional Open receiver moves beneath an unoccupied valid landing square | Choice and successful catch |
@@ -31,7 +31,7 @@ Select **Exhibition match — pre-game**. The match panel guides both hotseat co
 
 ## Boundaries
 
-This is the match sequence around the implemented actions, not complete standalone rules coverage. Foul, Throw Team-mate, Kick Team-mate, Projectile Vomit, and other special actions remain unavailable; the Charge panel says so. Bribes are recorded but cannot yet be spent. The supplied demo rosters have no Secret Weapons and no purchased apothecary or staff; related choices are not implemented. League preparation/progression, roster management, extra time, penalties, concessions, and save/resume remain future work. Reloading resets the match. Physical passing-ruler interception geometry remains the documented approximation in MOVEMENT.md.
+This is the match sequence around the implemented actions, not complete standalone rules coverage. Foul and several direct special actions are now available in v0.0.10. Throw Team-mate, Kick Team-mate, and other deferred actions remain unavailable. Available Bribes can now prevent a send-off. See SKILLS.md for all 108 ability statuses. The supplied demo rosters have no Secret Weapons and no purchased apothecary or staff. End-of-drive Secret Weapon handling is now available for future rosters; apothecaries and purchased staff remain outside this prototype. League preparation/progression, roster management, extra time, penalties, concessions, and save/resume remain future work. Reloading resets the match. Physical passing-ruler interception geometry remains the documented approximation in MOVEMENT.md.
 
 The sequence review also corrected Block activation traits and Wrestle: both wrestlers are Placed Prone before resolving a loose ball; this only causes a turnover if an active-team ball carrier was placed prone. A Player Down result credits the defender with the knockdown, allowing their applicable Mighty Blow.
 

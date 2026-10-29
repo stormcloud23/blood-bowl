@@ -67,3 +67,7 @@ The inactive coach may nominate one eligible standing, non-distracted opponent w
 Direct pass and hand-off catches use AG without the bounce/throw-in penalty. A failed catch bouncing directly to a teammate who catches it can avoid turnover; ground landings, fumbles, and opposition possession cause the applicable turnover. Pass, Catch, Pro, and team re-rolls remain explicit. Give and Go preserves the thrower's remaining movement after a Hand-off or Quick Pass that resolves without turnover, without allowing a second transfer. The receiver keeps their activation eligibility.
 
 Validation: 61 automated tests pass, including 16 new tests for action limits, receiver eligibility, direct and bounced catches, range boundaries, interception eligibility/resolution, accurate and inaccurate passes, natural and modified fumbles, scatter into crowd, Pass skill, pickup before passing, and Give and Go.
+## v0.0.10 skill audit
+
+The skill-aware engine now extends this engine; match.cjs and the practice UI use SkillGame. See SKILLS.md for the complete 108-entry inventory, status, and deferred dependencies. The skill audit also fixes Tackle's movement effect, Stunty's interception penalty, and three standard straight push squares. Modified pass results are not clamped below one under the current 2025 rules: only a modified result of exactly one or natural one fumbles; negative failed results are inaccurate.
+

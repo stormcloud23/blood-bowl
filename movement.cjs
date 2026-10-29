@@ -44,6 +44,13 @@ class MovementGame {
  }
  profile(p){return this.teams[p.team].positions[p.role];}
  has(p,skill){return this.profile(p).skills.includes(skill);}
+ rushLimit(p){return 2;}
+ standCost(p){return Math.min(3,this.profile(p).ma);}
+ armourBroken(p,roll,bonus=0,by=null){return roll+bonus>=Number.parseInt(this.profile(p).av);}
+ canMighty(by,p){return by&&this.has(by,"Mighty Blow");}
+ activationExtra(p,action,ready,failed){ready();}
+ afterFollow(a,d,knock,done){done();}
+ onBlockRolled(p){}
  onPitch(p){return Number.isInteger(p.x)&&Number.isInteger(p.y);}
  at(x,y){return this.players.find(p=>this.onPitch(p)&&p.x===x&&p.y===y);}
  inside(x,y){return Number.isInteger(x)&&Number.isInteger(y)&&x>=0&&x<26&&y>=0&&y<15;}
@@ -58,7 +65,7 @@ class MovementGame {
  canSecure(p){
   if(!this.canStart(p)||this.secureUsed[this.active]||this.bigGuy(p)||this.ball.carrier||!this.inside(this.ball.x,this.ball.y))return false;
   if(this.players.some(q=>q.team!==this.active&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&this.distance(q,this.ball)<=2))return false;
-  const spent=p.status==="prone"?Math.min(3,this.profile(p).ma):0;
+  const spent=p.status==="prone"?this.standCost(p):0;
   return p.x===this.ball.x&&p.y===this.ball.y||this.search(p,p.x,p.y,spent).has(this.ball.x+","+this.ball.y);
  }
  canBlock(attacker,target){
@@ -88,10 +95,13 @@ class MovementGame {
   const preview=this.passPreview(x,y);if(!preview)return false;
   const p=this.ballActor("pass");this.ballActionDone=true;
   this.note("#"+p.number+" attempts a "+preview.name+" to "+(x+1)+", "+(y+1)+"; PA "+preview.target+"+.");
+  this.passContext={p,preview};
   const modifier=preview.target-Number.parseInt(this.profile(p).pa),target=Number.parseInt(this.profile(p).pa),resolve=n=>{
-   this.pending=null;this.ball={x:p.x,y:p.y,carrier:null};
-   if(n===1||n-modifier<=1&&n!==6){this.note("Fumbled Pass: ball bounces from the thrower; turnover.");this.bounce(p.x,p.y,()=>this.endTurn(true));return;}
-   const accurate=n===6||n-modifier>=target;
+   this.pending=null;
+   if(n===1&&this.has(p,"Safe Pass")){this.note("Safe Pass: possession retained; activation ends.");this.mover=null;this.action=null;this.passContext=null;return;}
+   this.ball={x:p.x,y:p.y,carrier:null};
+   if(n===1||n-modifier===1&&n!==6){this.note("Fumbled Pass: ball bounces from the thrower; turnover.");this.bounce(p.x,p.y,()=>this.endTurn(true));return;}
+   const accurate=!preview.hail&&(n===6||n-modifier>=target);
    this.note(accurate?"Accurate Pass.":"Inaccurate Pass: Scatter (3).");
    const land=(lx,ly)=>this.interceptPass(p,{x:lx,y:ly},accurate,()=>{const ground=!this.at(lx,ly);this.landBall(lx,ly,false,()=>this.finishBallAction(p,preview.band===0,ground),true);});
    if(accurate)land(x,y);else this.scatterPass(x,y,land,()=>this.throwIn(this.ball.x,this.ball.y,()=>this.finishBallAction(p,preview.band===0)));
@@ -131,8 +141,8 @@ class MovementGame {
  }
  canBlitz(p,target){
   if(!this.canStart(p)||this.blitzUsed[this.active]||!target||target.team===p.team||!this.onPitch(target)||target.status!=="standing")return false;
-  const spent=p.status==="prone"?Math.min(3,this.profile(p).ma):0;
-  return [...this.search(p,p.x,p.y,spent).values()].some(n=>this.distance(n,target)===1&&n.spent<this.profile(p).ma+2);
+  const spent=p.status==="prone"?this.standCost(p):0;
+  return [...this.search(p,p.x,p.y,spent).values()].some(n=>this.distance(n,target)===1&&n.spent<this.profile(p).ma+this.rushLimit(p));
  }
  startBlitz(id,targetId){
   const p=this.players.find(p=>p.id===id),target=this.players.find(p=>p.id===targetId);
@@ -143,7 +153,7 @@ class MovementGame {
  }
  canBlitzBlock(){
   const p=this.players.find(p=>p.id===this.mover),target=this.players.find(p=>p.id===this.blitzTarget);
-  return this.action==="blitz"&&!this.blitzBlocked&&!this.pending&&!this.finished&&p?.status==="standing"&&!p.distracted&&target?.status==="standing"&&this.onPitch(target)&&this.distance(p,target)===1&&p.spent<this.profile(p).ma+2;
+  return this.action==="blitz"&&!this.blitzBlocked&&!this.pending&&!this.finished&&p?.status==="standing"&&!p.distracted&&target?.status==="standing"&&this.onPitch(target)&&this.distance(p,target)===1&&p.spent<this.profile(p).ma+this.rushLimit(p);
  }
  blitzBlock(){
   if(!this.canBlitzBlock())return false;
@@ -167,7 +177,7 @@ class MovementGame {
   const attacker=this.players.find(p=>p.id===attackerId),target=this.players.find(p=>p.id===targetId);
   if(!this.canBlock(attacker,target))return false;
   attacker.used=true;attacker.proUsed=false;attacker.distracted=false;this.action="block";this.mover=attacker.id;
-  const ready=()=>{this.mover=null;this.rollBlock(attacker,target,false);},failed=()=>{attacker.distracted=true;this.mover=null;this.action=null;this.note("Block activation trait failed; activation ends without turnover.");};
+  const perform=()=>{this.mover=null;this.rollBlock(attacker,target,false);},failed=()=>{attacker.distracted=true;this.mover=null;this.action=null;this.note("Block activation trait failed; activation ends without turnover.");},ready=()=>this.activationExtra(attacker,"block",perform,failed);
   if(this.has(attacker,"Bone Head"))this.test(attacker,"Bone Head",2,ready,failed);
   else if(this.has(attacker,"Really Stupid")){const helper=this.players.some(q=>q.id!==attacker.id&&q.team===attacker.team&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&!this.has(q,"Really Stupid")&&this.distance(q,attacker)===1);this.test(attacker,"Really Stupid",helper?2:4,ready,failed);}
   else ready();return true;
@@ -180,6 +190,7 @@ class MovementGame {
   this.blockAction={attacker,target,assists,aStrength,dStrength,count,chooserTeam,dice:[],poolLocked:false,brawlerUsed:false,blitz};
   this.note("#"+attacker.number+" declares Block against "+this.teams[target.team].name+" #"+target.number+". Strength "+aStrength+" vs "+dStrength+" after "+assists.offensive+" offensive and "+assists.defensive+" defensive assist(s); roll "+count+" Block Dice.");
   this.blockAction.dice=Array.from({length:count},(_,i)=>this.roll("Block die "+(i+1)));
+  this.onBlockRolled(attacker);
   this.pending={type:"blockSelect"};return true;
  }
  blockFace(n){return ["","Player Down","Both Down","Push Back","Push Back","Stumble","POW"][n];}
@@ -263,7 +274,7 @@ class MovementGame {
  pushSquares(attacker,target,grab=false){
   const dx=Math.sign(target.x-attacker.x),dy=Math.sign(target.y-attacker.y);
   const around=[[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1]];
-  let coords=grab?around.map(([x,y])=>({x:target.x+x,y:target.y+y})):[{x:target.x+dx,y:target.y+dy},{x:target.x+dx,y:target.y},{x:target.x,y:target.y+dy}];
+  let coords=grab?around.map(([x,y])=>({x:target.x+x,y:target.y+y})):!dy?[-1,0,1].map(y=>({x:target.x+dx,y:target.y+y})):!dx?[-1,0,1].map(x=>({x:target.x+x,y:target.y+dy})):[{x:target.x+dx,y:target.y+dy},{x:target.x+dx,y:target.y},{x:target.x,y:target.y+dy}];
   coords=coords.filter((v,i,a)=>a.findIndex(q=>q.x===v.x&&q.y===v.y)===i);
   if(grab){const open=coords.filter(v=>this.inside(v.x,v.y)&&!this.at(v.x,v.y));if(open.length)return open;return this.pushSquares(attacker,target,false);}
   const open=coords.filter(v=>this.inside(v.x,v.y)&&!this.at(v.x,v.y));return open.length?open:coords;
@@ -313,7 +324,7 @@ class MovementGame {
   const mayFollow=!this.has(d,"Fend")||d.distracted;
   const continueBlock=follow=>{
    if(follow){a.x=origin.x;a.y=origin.y;this.note("#"+a.number+" follows up.");}
-   if(knockTarget&&d.x!==null)this.fall(d,{turnover:false,mightyBlowBy:a,after:()=>this.finishBlock()});else this.finishBlock();
+   this.afterFollow(a,d,knockTarget,()=>{if(knockTarget&&d.x!==null)this.fall(d,{turnover:false,mightyBlowBy:a,after:()=>this.finishBlock()});else this.finishBlock();});
   };
   if(mayFollow)this.pending={type:"custom",kind:"Follow-up",options:["Follow up","Stay"],resolve:choice=>{this.pending=null;continueBlock(choice==="Follow up");}};else continueBlock(false);
  }
@@ -326,8 +337,9 @@ class MovementGame {
   this.ballActionDone=false;if(action==="pass")this.passUsed[p.team]=true;if(action==="handoff")this.handoffUsed[p.team]=true;
   if(action==="secure")this.secureUsed[p.team]=true;
   this.note(this.teams[p.team].name+" #"+p.number+" declares "+(action==="secure"?"Secure the Ball":action==="blitz"?"Blitz":action==="pass"?"Pass":action==="handoff"?"Hand-off":"Move")+".");
-  const ready=()=>{const afterStand=()=>{if(action==="secure"&&p.x===this.ball.x&&p.y===this.ball.y)this.secureBall(p,p.x,p.y);};if(p.status==="prone")this.stand(p,afterStand);else afterStand();};
+  const perform=()=>{const afterStand=()=>{if(action==="secure"&&p.x===this.ball.x&&p.y===this.ball.y)this.secureBall(p,p.x,p.y);};if(p.status==="prone")this.stand(p,afterStand);else afterStand();};
   const failed=()=>{p.distracted=true;this.note("#"+p.number+" is Distracted; activation ends (no turnover).");this.mover=null;this.action=null;};
+  const ready=()=>this.activationExtra(p,action,perform,failed);
   if(this.has(p,"Bone Head"))this.test(p,"Bone Head",2,ready,failed);
   else if(this.has(p,"Really Stupid")){
    const help=this.players.some(q=>q.id!==p.id&&q.team===p.team&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&!this.has(q,"Really Stupid")&&this.distance(p,q)===1);
@@ -337,7 +349,7 @@ class MovementGame {
  }
  stand(p,after=null){
   const ma=this.profile(p).ma;
-  const ok=()=>{p.status="standing";p.spent=Math.min(3,ma);this.note("#"+p.number+" stands up: "+p.spent+" movement spent.");if(after)after();};
+  const ok=()=>{p.status="standing";p.spent=this.standCost(p);this.note("#"+p.number+" stands up: "+p.spent+" movement spent.");if(after)after();};
   if(ma<=2)this.test(p,"Stand up",4,ok,()=>{this.note("Stand-up failed; activation ends.");this.mover=null;this.action=null;});
   else ok();
  }
@@ -389,7 +401,7 @@ class MovementGame {
    jump=true;cost=2;
   }
   const ma=this.profile(p).ma;
-  if(spent+cost>ma+2)return null;
+  if(spent+cost>ma+this.rushLimit(p))return null;
   const rushes=Math.max(0,spent+cost-ma)-Math.max(0,spent-ma);
   const originMarks=this.markingAt(p,fromX,fromY),targetMarks=this.markingAt(p,x,y);
   const dodge=!jump&&originMarks>0;
@@ -486,13 +498,13 @@ class MovementGame {
   };
   const armour=this.roll("Armour")+this.roll("Armour");
   const continueAfterArmour=bonus=>{
-   if(armour+bonus>=av)injury(0);
+   if(this.armourBroken(p,armour,bonus,mightyBlowBy))injury(0);
    else {this.note("Armour holds; player remains prone.");complete();}
   };
-  if(armour>=av){
+  if(this.armourBroken(p,armour,0,mightyBlowBy)){
    this.note("Armour broken.");
    const dice=this.roll("Injury")+this.roll("Injury");
-   if(mightyBlowBy&&this.has(mightyBlowBy,"Mighty Blow")){
+   if(this.canMighty(mightyBlowBy,p)){
     this.pending={type:"custom",kind:"Mighty Blow",options:["Add +1 to Injury","No modifier"],resolve:choice=>{
      this.pending=null;const stunty=this.has(p,"Stunty"),thick=this.has(p,"Thick Skull"),result=dice+(choice==="Add +1 to Injury"?1:0);
      const stunMax=stunty?(thick?7:6):(thick?8:7),koMax=stunty?8:9;
@@ -504,10 +516,10 @@ class MovementGame {
     if(dice<=stunMax)p.status="stunned";else if(dice<=koMax)p.status="knocked-out";else if(this.has(p,"Regeneration")&&this.roll("Regeneration needs 4+")>=4)p.status="reserve";else p.status="casualty";
     this.note("#"+p.number+" injury result: "+p.status+".");if(["knocked-out","casualty","reserve"].includes(p.status)){p.x=null;p.y=null;}complete();
    }
-  }else if(mightyBlowBy&&this.has(mightyBlowBy,"Mighty Blow")){
+  }else if(this.canMighty(mightyBlowBy,p)){
    this.pending={type:"custom",kind:"Mighty Blow",options:["Add +1 to Armour","No modifier"],resolve:choice=>{
     this.pending=null;const bonus=choice==="Add +1 to Armour"?1:0;
-    if(armour+bonus>=av){this.note("Armour broken with Mighty Blow.");injury(0);}else continueAfterArmour(0);
+    if(this.armourBroken(p,armour,bonus,mightyBlowBy)){this.note("Armour broken with Mighty Blow.");injury(0);}else continueAfterArmour(0);
    }};
   }else continueAfterArmour(0);
  }
