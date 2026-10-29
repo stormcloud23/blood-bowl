@@ -1,4 +1,4 @@
-# Move, Block & Secure the Ball actions — v0.0.7
+# Move, Block & Secure the Ball actions — v0.0.8
 
 ## Sources reviewed October 28, 2026
 
@@ -38,7 +38,7 @@ The action is available once per team turn to a non-Big-Guy player only when the
 
 - Perfect Conditions only; no weather roll or weather modifiers.
 - No full match clock, halves, kickoff, drive restart, KO recovery, or re-roll replenishment. Touchdown stops the drill.
-- No passes, hand-offs, or AI. Move, Block, Blitz, and Secure the Ball work as practice actions; no full turn or match sequencing is implemented.
+- No AI. Move, Block, Blitz, Pass, Hand-off, and Secure the Ball work as practice actions; no full turn or match sequencing is implemented.
 - No apothecaries or permanent casualty/league outcomes. Casualties leave the pitch; regeneration can place a Troll in reserves.
 - Beneficial Thick Skull and Regeneration effects are applied automatically. Dice re-roll choices remain explicit.
 - Only starting skills relevant to the implemented practice actions for the two supported rosters are implemented. Other skill effects remain future work.
@@ -56,3 +56,14 @@ Reviewed the 2025 Blitz section: https://bloodbowlbase.ru/bb2025/core_rules/the_
 
 Validation: 45 tests pass, including Blitz movement before/after blocking, block cost, rush failure, activation failure, target eligibility, skipping the block, and allowance reset.
 
+## Pass and Hand-off — v0.0.8
+
+Sources: the 2025 Pass and Hand-off sections on https://bloodbowlbase.ru/bb2025/core_rules/the_game_of_blood_bowl/ , the Passing Range Chart image https://bloodbowlbase.ru/bb2025/media/core_rules/test_for_accurancy_1.jpg , the turnover rules at https://bloodbowlbase.ru/bb2025/core_rules/rules_and_regulations/#the-turnover , and Pass / Give and Go at https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/ .
+
+A team may declare one Pass and one Hand-off per turn. Either action permits movement and pickup before the transfer; declaration consumes the allowance even if the attempt is skipped. Hand-off requires an adjacent standing non-distracted teammate and an AG catch without the bounced-ball penalty. Pass targets may be occupied or empty squares within the published chart. PA tests apply range and marking penalties; natural six succeeds, natural one or modified one-or-less fumbles, and other failures scatter three squares before interception and landing resolution.
+
+The inactive coach may nominate one eligible standing, non-distracted opponent whose square overlaps the passing ruler to attempt interception. Interception uses AG with -3 for an accurate pass or -2 for inaccurate, plus marking; it does not use Catch skill. The board models ruler overlap as a one-square-wide rectangle, excluding edge-only contact. This physical-template geometry remains a prototype approximation to review against tabletop placement. Scatter leaving the pitch triggers throw-in from the last in-bounds square.
+
+Direct pass and hand-off catches use AG without the bounce/throw-in penalty. A failed catch bouncing directly to a teammate who catches it can avoid turnover; ground landings, fumbles, and opposition possession cause the applicable turnover. Pass, Catch, Pro, and team re-rolls remain explicit. Give and Go preserves the thrower's remaining movement after a Hand-off or Quick Pass that resolves without turnover, without allowing a second transfer. The receiver keeps their activation eligibility.
+
+Validation: 61 automated tests pass, including 16 new tests for action limits, receiver eligibility, direct and bounced catches, range boundaries, interception eligibility/resolution, accurate and inaccurate passes, natural and modified fumbles, scatter into crowd, Pass skill, pickup before passing, and Give and Go.
