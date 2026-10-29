@@ -5,24 +5,283 @@
 <title>Blood Bowl · Development pitch</title>
 <style>
 :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101b20;color:#e7eeeb}*{box-sizing:border-box}body{margin:0;padding:28px;max-width:1500px;margin-inline:auto}header{display:flex;justify-content:space-between;gap:20px;align-items:center}h1{font-size:32px;margin:8px 0}h2{font-size:18px}p{line-height:1.6;color:#b8c9c7}.eyebrow{color:#e9bb69;font-size:12px;letter-spacing:2px;text-transform:uppercase}.badge{padding:8px 12px;border:1px solid #45595e;border-radius:20px;font-size:12px}.notice{border-left:3px solid #e9bb69;padding:12px 18px;background:#202d30;margin:24px 0}main{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:24px}.pitch-wrap{overflow:auto;border:1px solid #526a61;border-radius:8px}.pitch{display:grid;grid-template-columns:repeat(26,1fr);min-width:650px;background:#284f40;padding:8px}.square{aspect-ratio:1;border:1px solid #ffffff16;background:transparent;padding:0;min-width:0;font-size:12px;cursor:pointer;color:white;position:relative}.square:nth-child(52n+1){background:#ffffff08}.square.endzone{background:#142f2b}.square.middle{border-right:2px solid #ffffff80}.square.wide{border-bottom:2px dashed #ffffff70}.square:hover{background:#ffffff25}.square:focus-visible{outline:3px solid #ffe0a0;z-index:2}.token{display:grid;place-items:center;width:85%;height:85%;margin:auto;border-radius:50%;background:#dbac60;color:#17242a;font-weight:bold;border:2px solid #ffdfaa}.token.blue{background:#8abacb;border-color:#c4e5ed}.selected{outline:3px solid white;outline-offset:-3px}.panel{background:#19282e;border:1px solid #34474d;border-radius:8px;padding:20px}button.control{padding:11px 16px;background:#e9bb69;border:0;border-radius:5px;color:#17242a;font-weight:650;cursor:pointer;margin:4px 4px 4px 0}button.secondary{background:#31474f;color:#e7eeeb}#log{padding-left:20px;font-size:13px;line-height:1.7;max-height:220px;overflow:auto}a{color:#b5d9df}footer{font-size:13px;margin-top:24px;color:#9aafae}.muted{font-size:13px}@media(max-width:950px){main{grid-template-columns:1fr}body{padding:16px}header{align-items:flex-start}h1{font-size:25px}}
+
+#rosters{margin-top:30px;display:grid;gap:24px}.table-scroll{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:12px 9px;text-align:left;border-bottom:1px solid #34474d}th{color:#e9bb69}td.skills{min-width:180px}td:first-child{min-width:150px}.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}.stat{background:#101b20;text-align:center;padding:8px 2px;border-radius:4px}.stat small{display:block;color:#b8c9c7}.profile-skills{font-size:13px;line-height:1.7}#profile{border-block:1px solid #34474d;padding:14px 0;margin:14px 0}.role-button{color:#b5d9df;background:none;border:0;padding:0;text-align:left;font:inherit;cursor:pointer;text-decoration:underline}.roster-heading{display:flex;justify-content:space-between;align-items:center;gap:16px}.team-summary{font-size:13px}.token{font-size:11px}.token small{font-size:8px;display:block}.token{line-height:1;display:flex;flex-direction:column;justify-content:center}
 </style>
 </head>
 <body>
-<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>The development pitch</h1></div><span class="badge">v0.0.1 · Sandbox</span></header>
-<div class="notice"><strong>First deployment checkpoint</strong><br><span class="muted">Free movement sandbox. Dice, legal movement, activations, scoring, AI, and leagues are not implemented. Sample counters are not team rosters.</span></div>
-<main><section><div class="pitch-wrap"><div id="pitch" class="pitch" role="group" aria-label="Development pitch"></div></div><p class="muted">Select a counter belonging to the active coach, then choose an empty square. Keyboard: Tab to a square and Enter to select it. Passing control changes the active coach.</p><button class="control" id="end">Pass control</button><button class="control secondary" id="reset">Reset sandbox</button></section>
-<aside class="panel"><div class="eyebrow">Hotseat sandbox</div><h2 id="coach"></h2><p id="selection" role="status" aria-live="polite"></p><h2>Session log</h2><ol id="log"></ol><p class="muted">This sandbox resets on reload. Save/resume will be added with match state.</p></aside></main>
-<footer>Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.1 with feedback.</footer>
+<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>The development pitch</h1></div><span class="badge">v0.0.2 · Sandbox</span></header>
+<div class="notice"><strong>Two teams, ready to inspect</strong><br><span class="muted">Free movement sandbox. Dice, legal movement, activations, scoring, AI, and leagues are not implemented. Player profiles match the 2025 source. Skill effects are not yet enforced.</span></div>
+<main><section><div class="pitch-wrap"><div id="pitch" class="pitch" role="group" aria-label="Development pitch"></div></div><p class="muted">Select any player to inspect their profile. Move an active coach’s player by choosing an empty square. Keyboard: Tab to a square and Enter to select it. Passing control changes the active coach.</p><button class="control" id="end">Pass control</button><button class="control secondary" id="reset">Reset sandbox</button></section>
+<aside class="panel"><div class="eyebrow">Hotseat sandbox</div><h2 id="coach"></h2><p id="selection" role="status" aria-live="polite"></p><div id="profile"></div><h2>Session log</h2><ol id="log"></ol><p class="muted">This sandbox resets on reload. Save/resume will be added with match state.</p></aside></main><section id="rosters" aria-label="Team rosters"></section>
+<footer>Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.2 with feedback.</footer>
+<script id="team-data" type="application/json">[
+  {
+    "id": "imperial-nobility",
+    "name": "Imperial Nobility",
+    "tier": 2,
+    "league": "Old World Classic",
+    "special": [],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Imperial_Nobility/",
+    "reroll": 60000,
+    "positions": [
+      {
+        "id": "retainer",
+        "name": "Imperial Retainer",
+        "traits": "Lineman, Human",
+        "max": 16,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Fend"
+        ],
+        "primary": "G",
+        "secondary": "A S",
+        "cost": 45000
+      },
+      {
+        "id": "thrower",
+        "name": "Imperial Thrower",
+        "traits": "Thrower, Human",
+        "max": 2,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "2+",
+        "av": "9+",
+        "skills": [
+          "Give and Go",
+          "Pass",
+          "Pro"
+        ],
+        "primary": "G P",
+        "secondary": "A S",
+        "cost": 75000
+      },
+      {
+        "id": "bodyguard",
+        "name": "Bodyguard",
+        "traits": "Blocker, Human",
+        "max": 4,
+        "ma": 5,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "9+",
+        "skills": [
+          "Stand Firm",
+          "Wrestle"
+        ],
+        "primary": "G S",
+        "secondary": "A",
+        "cost": 85000
+      },
+      {
+        "id": "blitzer",
+        "name": "Noble Blitzer",
+        "traits": "Blitzer, Human",
+        "max": 2,
+        "ma": 7,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "9+",
+        "skills": [
+          "Block",
+          "Catch",
+          "Pro"
+        ],
+        "primary": "A G",
+        "secondary": "P S",
+        "cost": 90000
+      },
+      {
+        "id": "ogre",
+        "name": "Ogre",
+        "traits": "Big Guy, Ogre",
+        "max": 1,
+        "ma": 5,
+        "st": 5,
+        "ag": "4+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Bone Head",
+          "Loner (3+)",
+          "Mighty Blow",
+          "Thick Skull",
+          "Throw Team-mate"
+        ],
+        "primary": "S",
+        "secondary": "A G",
+        "cost": 140000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      1,
+      2,
+      2,
+      2,
+      3,
+      3,
+      4
+    ],
+    "reviewed": "2026-10-28",
+    "staff": {
+      "cheerleader": 10000,
+      "assistantCoach": 10000,
+      "apothecary": 50000
+    }
+  },
+  {
+    "id": "black-orc",
+    "name": "Black Orcs",
+    "tier": 3,
+    "league": "Badlands Brawl",
+    "special": [
+      "Bribery and Corruption",
+      "Brawlin' Brutes"
+    ],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Black_Orc/",
+    "reroll": 60000,
+    "positions": [
+      {
+        "id": "goblin",
+        "name": "Goblin Bruiser",
+        "traits": "Lineman, Goblin",
+        "max": 16,
+        "ma": 6,
+        "st": 2,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Dodge",
+          "Right Stuff",
+          "Stunty",
+          "Thick Skull"
+        ],
+        "primary": "A D",
+        "secondary": "G P S",
+        "cost": 45000
+      },
+      {
+        "id": "black-orc",
+        "name": "Black Orc",
+        "traits": "Blocker, Orc",
+        "max": 6,
+        "ma": 4,
+        "st": 4,
+        "ag": "4+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Brawler",
+          "Grab"
+        ],
+        "primary": "G S",
+        "secondary": "A D",
+        "cost": 90000
+      },
+      {
+        "id": "troll",
+        "name": "Trained Troll",
+        "traits": "Big Guy, Troll",
+        "max": 1,
+        "ma": 4,
+        "st": 5,
+        "ag": "5+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Always Hungry",
+          "Mighty Blow",
+          "Projectile Vomit",
+          "Really Stupid",
+          "Regeneration",
+          "Throw Team-mate"
+        ],
+        "primary": "S",
+        "secondary": "A G P",
+        "cost": 115000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2
+    ],
+    "reviewed": "2026-10-28",
+    "staff": {
+      "cheerleader": 10000,
+      "assistantCoach": 10000,
+      "apothecary": 50000
+    }
+  }
+]</script>
 <script>
 "use strict";
+const teams=JSON.parse(document.getElementById("team-data").textContent);
 const pitch=document.getElementById("pitch"),coach=document.getElementById("coach"),selection=document.getElementById("selection"),log=document.getElementById("log");
+const money=n=>n.toLocaleString("en-US")+" gp";
 let players,active,selected,entries;
-function reset(){players=[{id:1,team:0,x:10,y:6},{id:2,team:0,x:10,y:8},{id:3,team:1,x:15,y:6},{id:4,team:1,x:15,y:8}];active=0;selected=null;entries=["Sandbox started."];render();}
+function reset(){
+ players=teams.flatMap((t,team)=>t.lineup.map((role,i)=>({id:team+"-"+(i+1),number:i+1,team,role,x:team?16+(i%3):9-(i%3),y:2+Math.floor(i/3)*3})));
+ active=0;selected=null;entries=["Demonstration lineups loaded."];render();showProfile(0,0,null);
+}
 function record(message){entries.unshift(message);entries=entries.slice(0,20);}
-function choose(x,y){const occupant=players.find(p=>p.x===x&&p.y===y);if(occupant){if(occupant.team!==active){selection.textContent="That counter belongs to the other coach.";return;}selected=occupant.id;render();return;}if(selected===null){selection.textContent="Select one of your counters first.";return;}const player=players.find(p=>p.id===selected);player.x=x;player.y=y;record("Counter "+player.id+" moved to "+(x+1)+", "+(y+1)+".");render();pitch.children[y*26+x].focus();}
-function render(){pitch.replaceChildren();for(let y=0;y<15;y++)for(let x=0;x<26;x++){const player=players.find(p=>p.x===x&&p.y===y),cell=document.createElement("button");cell.type="button";cell.className="square"+(x===0||x===25?" endzone":"")+(x===12?" middle":"")+(y===3||y===10?" wide":"")+(player&&player.id===selected?" selected":"");cell.setAttribute("aria-label","Square "+(x+1)+", "+(y+1)+(player?", "+(player.team?"Blue":"Gold")+" counter "+player.id:", empty"));if(player){const token=document.createElement("span");token.className="token"+(player.team?" blue":"");token.textContent=player.id;cell.append(token);}cell.addEventListener("click",()=>choose(x,y));pitch.append(cell);}coach.textContent=(active?"Blue":"Gold")+" coach";selection.textContent=selected===null?"Select a counter to explore the pitch.":"Counter "+selected+" selected. Choose an empty square.";log.replaceChildren(...entries.map(e=>{const li=document.createElement("li");li.textContent=e;return li;}));}
-document.getElementById("end").addEventListener("click",()=>{active=1-active;selected=null;record("Control passed to "+(active?"Blue":"Gold")+".");render();});
-document.getElementById("reset").addEventListener("click",reset);reset();
+function showProfile(team,role,number){
+ const t=teams[team],p=t.positions[role];
+ document.getElementById("profile").innerHTML='<div class="eyebrow">'+t.name+'</div><h2>'+(number?'#'+number+' · ':'')+p.name+'</h2><p class="muted">'+p.traits+'</p><div class="stats">'+["ma","st","ag","pa","av"].map(k=>'<div class="stat"><small>'+k.toUpperCase()+'</small>'+p[k]+'</div>').join("")+'</div><p class="profile-skills">'+p.skills.join(" · ")+'</p><p class="muted">Cost: '+money(p.cost)+' · Limit: 0–'+p.max+'<br>Primary: '+p.primary+' · Secondary: '+p.secondary+'</p><a class="muted" href="'+t.source+'">2025 roster source</a>';
+}
+function choose(x,y){
+ const occupant=players.find(p=>p.x===x&&p.y===y);
+ if(occupant){selected=occupant.id;render();showProfile(occupant.team,occupant.role,occupant.number);pitch.children[y*26+x].focus();return;}
+ if(selected===null){selection.textContent="Select one of your players first.";return;}
+ const player=players.find(p=>p.id===selected);
+ if(player.team!==active){selection.textContent="Opponent profile only. Pass control to move this team.";return;}
+ player.x=x;player.y=y;record(teams[player.team].name+" #"+player.number+" moved to "+(x+1)+", "+(y+1)+".");render();pitch.children[y*26+x].focus();
+}
+function render(){
+ pitch.replaceChildren();
+ for(let y=0;y<15;y++)for(let x=0;x<26;x++){
+ const player=players.find(p=>p.x===x&&p.y===y),cell=document.createElement("button");
+ cell.type="button";cell.className="square"+(x===0||x===25?" endzone":"")+(x===12?" middle":"")+(y===3||y===10?" wide":"")+(player&&player.id===selected?" selected":"");
+ const label=player?teams[player.team].name+" #"+player.number+" "+teams[player.team].positions[player.role].name:"empty";
+ cell.setAttribute("aria-label","Square "+(x+1)+", "+(y+1)+", "+label);cell.title=label;
+ if(player){const token=document.createElement("span");token.className="token"+(player.team?" blue":"");token.textContent=player.number;cell.append(token);}
+ cell.addEventListener("click",()=>choose(x,y));pitch.append(cell);
+ }
+ coach.textContent=teams[active].name+" coach";
+ const p=players.find(p=>p.id===selected);
+ selection.textContent=!p?"Select a player to inspect their profile.":p.team===active?"#"+p.number+" selected. Choose an empty square.":"Inspecting opponent #"+p.number+". Pass control to move their team.";
+ log.replaceChildren(...entries.map(e=>{const li=document.createElement("li");li.textContent=e;return li;}));
+}
+function renderRosters(){
+ document.getElementById("rosters").innerHTML=teams.map((t,team)=>{
+ const total=t.lineup.reduce((n,r)=>n+t.positions[r].cost,0);
+ return '<article class="panel"><div class="roster-heading"><h2>'+t.name+'</h2><span class="badge">Tier '+t.tier+'</span></div><p class="team-summary">'+t.league+' · '+(t.special.length?t.special.join(" · "):"No team special rules listed")+'</p><div class="table-scroll"><table><caption>Available positions · click a position to inspect</caption><thead><tr>'+["Position","Limit","MA","ST","AG","PA","AV","Skills & traits","Primary","Secondary","Cost"].map(h=>'<th scope="col">'+h+'</th>').join("")+'</tr></thead><tbody>'+t.positions.map((p,r)=>'<tr><td><button class="role-button" data-team="'+team+'" data-role="'+r+'">'+p.name+'</button><br><small>'+p.traits+'</small></td><td>0–'+p.max+'</td>'+["ma","st","ag","pa","av"].map(k=>'<td>'+p[k]+'</td>').join("")+'<td class="skills">'+p.skills.join(", ")+'</td><td>'+p.primary+'</td><td>'+p.secondary+'</td><td>'+money(p.cost)+'</td></tr>').join("")+'</tbody></table></div><p class="team-summary"><strong>Demo lineup:</strong> '+t.positions.map((p,r)=>({p,count:t.lineup.filter(v=>v===r).length})).filter(v=>v.count).map(v=>v.count+" × "+v.p.name).join(" · ")+'<br>11 players: '+money(total)+'. With 2 re-rolls: '+money(total+2*t.reroll)+'. These are demonstration selections, not a roster builder.</p><p class="muted">Re-roll: '+money(t.reroll)+' · Apothecary: '+money(t.staff.apothecary)+' · Assistant coach: '+money(t.staff.assistantCoach)+' · Cheerleader: '+money(t.staff.cheerleader)+'</p><p class="muted">Advancement categories: A = Agility · D = Devious · G = General · P = Passing · S = Strength. Profiles only; advancement, staff, special rules, star players, and inducements are not implemented.</p><a class="muted" href="'+t.source+'">Source of truth · reviewed '+t.reviewed+'</a></article>';
+ }).join("");
+ document.querySelectorAll(".role-button").forEach(button=>button.addEventListener("click",()=>{showProfile(Number(button.dataset.team),Number(button.dataset.role),null);document.getElementById("profile").scrollIntoView({behavior:"smooth",block:"center"});}));
+}
+document.getElementById("end").addEventListener("click",()=>{active=1-active;selected=null;record("Control passed to "+teams[active].name+".");render();showProfile(active,0,null);});
+document.getElementById("reset").addEventListener("click",reset);
+renderRosters();reset();
 </script>
 </body>
 </html>
