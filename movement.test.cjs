@@ -9,6 +9,42 @@ function fixture(rolls=[],scenario="dodge"){
  g.rerolls=[0,0];return g;
 }
 function choose(g,option="Accept"){assert.ok(g.pending);g.decide(option);}
+
+test("Block counts assists and gives the stronger coach result selection",()=>{
+ const g=fixture([3,6],"block"),a=g.players[15],d=g.players[5];
+ assert.ok(g.block(a.id,d.id));assert.equal(g.blockAction.aStrength,5);assert.equal(g.blockAction.dStrength,3);
+ assert.equal(g.blockAction.count,2);assert.equal(g.blockAction.chooserTeam,1);assert.ok(a.used);
+});
+test("Block Player Down causes a turnover after armour",()=>{
+ const g=fixture([1,1,1,1],"block"),a=g.players[15];g.block(a.id,g.players[5].id);g.selectBlockDie(0);
+ assert.equal(a.status,"prone");assert.equal(g.active,0);assert.equal(g.blockAction,null);
+});
+test("Wrestle places both players prone without armour and causes a turnover",()=>{
+ const g=fixture([2,2],"block"),a=g.players[15],d=g.players[5];g.block(a.id,d.id);g.selectBlockDie(0);choose(g,"Defender uses Wrestle");
+ assert.equal(a.status,"prone");assert.equal(d.status,"prone");assert.equal(g.active,0);
+});
+test("Stand Firm can stop a push and end the Block",()=>{
+ const g=fixture([3,3],"block"),a=g.players[15],d=g.players[5];g.block(a.id,d.id);g.selectBlockDie(0);choose(g,"Stand Firm");
+ assert.deepEqual([d.x,d.y],[11,7]);assert.equal(g.blockAction,null);assert.equal(g.active,1);
+});
+test("Secure the Ball uses 2+ and ends activation on success",()=>{
+ const g=fixture([2],"secure"),p=g.players[0];assert.ok(g.start(p.id,"secure"));
+ for(let x=10;x<=15;x++)assert.ok(g.step(x,7));
+ assert.equal(g.ball.carrier,p.id);assert.equal(g.mover,null);assert.equal(g.active,0);assert.ok(g.secureUsed[0]);
+});
+test("Secure failure bounces and turns over; ending short also turns over",()=>{
+ const g=fixture([1,2],"secure"),p=g.players[0];g.start(p.id,"secure");for(let x=10;x<=15;x++)g.step(x,7);
+ assert.equal(g.active,1);assert.equal(g.ball.carrier,null);assert.deepEqual([g.ball.x,g.ball.y],[15,6]);
+ const h=fixture([],"secure");h.start(h.players[0].id,"secure");h.finish();assert.equal(h.active,1);
+});
+test("Secure excludes nearby standing opponents and Big Guys",()=>{
+ const g=fixture([],"secure"),p=g.players[0],enemy=g.players[11];enemy.x=17;enemy.y=7;enemy.status="standing";
+ assert.equal(g.canSecure(p),false);enemy.distracted=true;assert.ok(g.canSecure(p));p.role=4;assert.equal(g.canSecure(p),false);
+});
+test("Secure rolls immediately when already on the loose ball",()=>{
+ const g=fixture([2],"secure"),p=g.players[0];p.x=g.ball.x;p.y=g.ball.y;g.start(p.id,"secure");
+ assert.equal(g.ball.carrier,p.id);assert.equal(g.mover,null);
+});
 test("published engine equals tested source and scripts compile",()=>{
  assert.equal(html.match(/id="movement-engine">\n([\s\S]*?)<\/script>/)[1].trimEnd(),fs.readFileSync("movement.cjs","utf8").trimEnd());
  for(const m of html.matchAll(/<script(?: id="movement-engine")?>([\s\S]*?)<\/script>/g))new vm.Script(m[1]);
@@ -156,5 +192,6 @@ test("failed jump can use Pro and final die determines landing square",()=>{
  const g=fixture([1,3,2,1,1],"jump"),p=g.players[0];p.role=1;g.start(p.id);g.step(12,7);choose(g,"Pro");
  assert.equal(p.x,12);assert.equal(p.status,"prone");
 });
+
 
 
