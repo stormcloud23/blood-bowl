@@ -1,4 +1,3 @@
-Attempting to perform the InitializeDefaultDrives operation on the 'FileSystem' provider failed.
 "use strict";
 // Movement practice engine. Sources and boundaries: docs/MOVEMENT.md.
 class MovementGame {
@@ -20,8 +19,9 @@ class MovementGame {
    if(scenario==="jump"){b.status="prone";c.status="prone";}
    if(scenario==="pickup"){b.x=18;this.ball={x:11,y:7,carrier:null};}
    if(scenario==="traits"){a.role=4;b.role=2;b.x=13;c.x=12;c.team=1;c.role=0;}
-   if(scenario==="secure"){this.players[0].x=9;this.players[0].y=7;this.ball={x:15,y:7,carrier:null};this.practicePlayer=this.players[0].id;}
+   if(scenario==="secure"){this.players.forEach(p=>{p.x=null;p.y=null;p.status="reserve";});Object.assign(a,{x:9,y:7,status:"standing"});this.ball={x:15,y:7,carrier:null};this.practicePlayer=a.id;}
    if(scenario==="block"){
+    this.players.forEach(p=>{p.x=null;p.y=null;p.status="reserve";});
     const attacker=this.players[15],target=this.players[5],helper=this.players[11];
     [attacker,target,helper].forEach(p=>{p.status="standing";});
     Object.assign(attacker,{x:10,y:7});Object.assign(target,{x:11,y:7});Object.assign(helper,{x:10,y:6});
@@ -42,7 +42,7 @@ class MovementGame {
  note(s){this.events.unshift(s);this.events=this.events.slice(0,150);}
  roll(label,sides=6){const n=this.dice(sides);if(!Number.isInteger(n)||n<1||n>sides)throw Error("Invalid die");this.note(label+": "+n+" (D"+sides+").");return n;}
  success(n,target){return n===6||(n!==1&&n>=target);}
- canStart(p){return p&&this.onPitch(p)&&p.team===this.active&&!p.used&&!p.distracted&&["standing","prone"].includes(p.status)&&!this.mover&&!this.pending&&!this.finished;}
+ canStart(p){return p&&this.onPitch(p)&&p.team===this.active&&!p.used&&["standing","prone"].includes(p.status)&&!this.mover&&!this.pending&&!this.finished;}
  canSecure(p){
   if(!this.canStart(p)||this.secureUsed[this.active]||this.bigGuy(p)||this.ball.carrier||!this.inside(this.ball.x,this.ball.y))return false;
   if(this.players.some(q=>q.team!==this.active&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&this.distance(q,this.ball)<=2))return false;
