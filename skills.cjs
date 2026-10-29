@@ -86,8 +86,7 @@ class SkillGame extends SkillBase {
   if((this.mover===p.id||this.attackRoller===p.id)&&this.skill(p,"Pro")&&!result.includes("Pro"))result.push("Pro");if(p.team===this.active&&this.rerollsAvailable(p.team)>0&&!result.includes("Team"))result.push("Team");return result;
  }
  departureMarkers(p){const o=this.departureOrigin||p;return this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&this.distance(q,o)===1);}
- test(p,kind,target,yes,no){
-  if(["Catch","Pick up","Secure the Ball","Intercept"].includes(kind)&&this.has(p,"No Ball")){no(1);return;}
+ checkTarget(p,kind,target){
   if(["Catch","Pick up","Intercept"].includes(kind)&&this.skill(p,"Extra Arms"))target--;
   if(["Catch","Intercept"].includes(kind))target+=this.disturbance(p);
   if(kind==="Catch"&&this.skill(p,"Nerves of Steel"))target-=this.marking(p);
@@ -95,6 +94,12 @@ class SkillGame extends SkillBase {
   if(kind==="Intercept"){if(this.has(p,"Stunty"))target++;if(this.skill(p,"Very Long Legs"))target-=2;}
   if(kind==="Rush"&&this.has(p,"Drunkard"))target++;
   if(kind==="Stand up"&&this.has(p,"Timmm-ber!"))target-=this.players.filter(q=>q.team===p.team&&q.id!==p.id&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&this.distance(q,p)===1&&!this.marking(q)).length;
+  return target;
+ }
+ forecastTarget(p,kind,target){if(this.weather==="Blizzard"&&kind==="Rush"||this.weather==="Pouring Rain"&&["Pick up","Catch","Intercept"].includes(kind))target++;return this.checkTarget(p,kind,target);}
+ test(p,kind,target,yes,no){
+  if(["Catch","Pick up","Secure the Ball","Intercept"].includes(kind)&&this.has(p,"No Ball")){no(1);return;}
+  target=this.checkTarget(p,kind,target);
   const resolve=n=>{let required=target;if(kind==="Dodge"&&this.skill(p,"Break Tackle")&&!this.used(p,"Break Tackle")&&!this.success(n,required)){
     const bonus=+this.profile(p).st<=3?1:+this.profile(p).st===4?2:3;if(this.success(n,required-bonus)){this.use(p,"Break Tackle");required-=bonus;}}
    if(this.success(n,required))yes(n);else no(n);};
@@ -127,7 +132,7 @@ class SkillGame extends SkillBase {
   if(!p||!this.skill(p,"Leap")&&!this.skill(p,"Pogo"))return super.search(p,sx,sy,spent);
   const map=new Map(),queue=[{x:sx,y:sy,spent,path:[]}];map.set(sx+","+sy,queue[0]);while(queue.length){queue.sort((a,b)=>a.spent-b.spent);const n=queue.shift();if(map.get(n.x+","+n.y)!==n)continue;for(let dx=-2;dx<=2;dx++)for(let dy=-2;dy<=2;dy++)if(dx||dy){const x=n.x+dx,y=n.y+dy,plan=this.planFrom(p,x,y,n.x,n.y,n.spent);if(!plan)continue;const next={x,y,spent:n.spent+plan.cost,path:n.path.concat({x,y,plan})},key=x+","+y;if(map.has(key)&&map.get(key).spent<=next.spent)continue;map.set(key,next);queue.push(next);}}return map;
  }
- step(x,y){const p=this.players.find(q=>q.id===this.mover);this.departureOrigin=p?{x:p.x,y:p.y}:null;if(p?.dropOnExit&&this.plan(x,y)&&this.ball.carrier===p.id){this.ball={x:p.x,y:p.y,carrier:null};p.dropOnExit=false;this.note("Fumblerooski: ball left on the ground without turnover.");}return super.step(x,y);}
+ step(x,y){const p=this.players.find(q=>q.id===this.mover);this.departureOrigin=p?{x:p.x,y:p.y}:null;if(p?.dropOnExit&&this.skill(p,"Fumblerooski")&&!this.has(p,"My Ball")&&this.plan(x,y)&&this.ball.carrier===p.id){this.ball={x:p.x,y:p.y,carrier:null};p.dropOnExit=false;this.note("Fumblerooski: ball left on the ground without turnover.");}return super.step(x,y);}
  dropBall(){const p=this.players.find(q=>q.id===this.mover);if(!p||this.pending||this.ball.carrier!==p.id||!this.skill(p,"Fumblerooski")||this.has(p,"My Ball"))return false;p.dropOnExit=!p.dropOnExit;return true;}
  passPreview(x,y){const value=super.passPreview(x,y),p=this.players.find(q=>q.id===this.mover);if(!value)return null;value.target+=this.disturbance(p);if(this.skill(p,"Nerves of Steel"))value.target-=this.marking(p);if(value.band<2&&this.skill(p,"Accurate")||value.band>=2&&this.skill(p,"Cannoneer"))value.target--;return value;}
  passRange(from,to){const normal=super.passRange(from,to),hail=this.skill(from,"Hail Mary Pass")&&this.inside(to.x,to.y)&&(from.x!==to.x||from.y!==to.y);return hail&&(from.hailMary||!normal)?{band:3,name:"Hail Mary Pass",hail:true}:normal;}

@@ -5,6 +5,13 @@ function fixture(rolls=[],scenario="pickup"){const queue=[...rolls];const g=new 
 function grant(p,...names){p.extraSkills=[...(p.extraSkills||[]),...names];}
 function choose(g,name="Accept"){assert.ok(g.pending);assert.ok(g.decide(name));}
 
+test("disabling an armed Fumblerooski prevents the planned voluntary drop",()=>{
+ const g=fixture(),p=g.players[0];grant(p,"Fumblerooski");g.ball.carrier=p.id;g.start(p.id);g.dropBall();g.toggleSkill(p.id,"Fumblerooski");g.step(10,6);assert.equal(g.ball.carrier,p.id);
+});
+test("forecast includes weather and skills without rolling dice",()=>{
+ const g=fixture(),p=g.players[0];grant(p,"Big Hand","Extra Arms","Drunkard");g.weather="Pouring Rain";assert.equal(g.forecastTarget(p,"Pick up",6),2);g.weather="Blizzard";assert.equal(g.forecastTarget(p,"Rush",2),4);
+});
+
 test("Taunt offers defender-forced follow-up and Eye Gouge prevents later assists",()=>{
  const g=fixture([3,3],"block"),a=g.players[15],d=g.players[5];grant(a,"Eye Gouge");grant(d,"Taunt");d.disabledSkills=["Stand Firm"];g.block(a.id,d.id);g.selectBlockDie(0);g.pending.resolve({x:12,y:7});assert.ok(d.gouged);choose(g,"Defender uses Taunt");assert.equal(a.x,11);
 });
