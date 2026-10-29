@@ -1,4 +1,3 @@
-Attempting to perform the InitializeDefaultDrives operation on the 'FileSystem' provider failed.
 # Move, Block & Secure the Ball actions — v0.0.6
 
 ## Sources reviewed October 28, 2026
@@ -49,5 +48,5 @@ The action is available once per team turn to a non-Big-Guy player only when the
 
 movement.cjs is the UI-independent engine; movement.test.cjs exercises it with injected dice. index.html contains a generated copy so root-of-main Pages hosting requires no runtime build.
 
-After editing movement.cjs, run `node build.cjs`, then `node --test movement.test.cjs` when doing a requested verification pass. The tests verify that the embedded engine matches the source. Publish index.html with the supporting source and tests. The earlier movement-only validation had 33 passing tests; the new Block and Secure the Ball work has not yet been tested.
+After editing movement.cjs, run `node build.cjs`, then `node --test movement.test.cjs` when doing a requested verification pass. The tests verify that the embedded engine matches the source. Publish index.html with the supporting source and tests. Validation: 41 passing tests, including eight Block and Secure the Ball tests covering assists, result selection, turnovers, Wrestle, Stand Firm, eligibility, and pickup resolution.
 
