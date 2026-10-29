@@ -446,25 +446,33 @@ class MovementGame {
   if(!p||this.pending||this.finished||p.status!=="standing")return null;
   return this.planFrom(p,x,y,p.x,p.y,p.spent);
  }
+ searchOffsets(p,node){
+  const offsets=[];
+  for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)if(dx||dy)offsets.push([node.x+dx,node.y+dy]);
+  return offsets;
+ }
  search(p,startX=p?.x,startY=p?.y,startSpent=p?.spent||0){
   const reached=new Map();
   if(!p||!this.onPitch(p)||!this.inside(startX,startY))return reached;
-  const key=(x,y)=>x+","+y,origin={x:startX,y:startY,spent:startSpent,path:[]};
+  const key=(x,y)=>x+","+y,origin={x:startX,y:startY,spent:startSpent,checks:0,path:[]};
+  const compare=(a,b)=>a.checks-b.checks||a.spent-b.spent;
+  // Keep each movement-budget state: a shorter risky prefix may be the
+  // only way to reach a distant square even when a safe prefix exists.
+  const states=new Map([[key(startX,startY)+","+startSpent,origin]]);
   reached.set(key(startX,startY),origin);
   const queue=[origin];
   while(queue.length){
-   queue.sort((a,b)=>a.spent-b.spent);const node=queue.shift();
-   if(reached.get(key(node.x,node.y))!==node)continue;
-   const candidates=[];
-   for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(dx||dy)candidates.push([node.x+dx,node.y+dy]);
-   for(const obstacle of this.players){
-    if(!this.onPitch(obstacle)||!["prone","stunned"].includes(obstacle.status)||this.distance(obstacle,node)!==1)continue;
-    for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)if(Math.max(Math.abs(dx),Math.abs(dy))===2&&this.distance(obstacle,{x:node.x+dx,y:node.y+dy})===1)candidates.push([node.x+dx,node.y+dy]);
-   }
+   queue.sort(compare);const node=queue.shift();
+   if(states.get(key(node.x,node.y)+","+node.spent)!==node)continue;
+   const candidates=this.searchOffsets(p,node);
    for(const [x,y] of candidates){
     const plan=this.planFrom(p,x,y,node.x,node.y,node.spent);if(!plan)continue;
-    const spent=node.spent+plan.cost,k=key(x,y),old=reached.get(k);if(old&&old.spent<=spent)continue;
-    const next={x,y,spent,path:node.path.concat({x,y,plan})};reached.set(k,next);queue.push(next);
+    const spent=node.spent+plan.cost,k=key(x,y),stateKey=k+","+spent;
+    const checks=node.checks+plan.rushes+Number(plan.dodge||plan.jump)+Number(plan.pickup);
+    const next={x,y,spent,checks,path:node.path.concat({x,y,plan})};
+    if(states.has(stateKey)&&compare(states.get(stateKey),next)<=0)continue;
+    states.set(stateKey,next);queue.push(next);
+    if(!reached.has(k)||compare(next,reached.get(k))<0)reached.set(k,next);
    }
   }
   return reached;
