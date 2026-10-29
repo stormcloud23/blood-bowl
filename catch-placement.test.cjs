@@ -107,7 +107,7 @@ test('a placement does not trigger adjacent Diving Catch or any catch roll',()=>
  const {g,p,r,queue}=carrierFixture([1,1]);grant(r,'Diving Catch');g.fall(p);select(g);assert.equal(g.pending,null);assert.equal(g.ball.carrier,null);assert.equal(queue.length,0);
 });
 test('a removed casualty still leaves its placed ball undisturbed',()=>{
- const {g,p,queue}=carrierFixture([6,6,6,6]);g.fall(p,{turnover:false});select(g);const ball={...g.ball};assert.equal(p.status,'casualty');assert.equal(p.x,null);assert.deepEqual(g.ball,ball);assert.equal(queue.length,0);
+ const {g,p,queue}=carrierFixture([6,6,6,6,1,1]);g.fall(p,{turnover:false});select(g);const ball={...g.ball};assert.equal(p.status,'casualty');assert.equal(p.x,null);assert.deepEqual(g.ball,ball);assert.equal(queue.length,0);
 });
 test('Safe Pair of Hands works on Wrestle and cancels only the active carrier drop turnover',()=>{
  const {g,p,d,queue}=carrierFixture();d.x=11;d.y=7;g.blockAction={attacker:p,target:d,blitz:false};g.resolveBothDownChoice('Defender uses Wrestle');assert.equal(g.pending.kind,'Safe Pair of Hands');assert.equal(p.status,'standing');select(g);assert.equal(p.status,'prone');assert.equal(d.status,'prone');assert.equal(g.active,0);assert.equal(queue.length,0);
@@ -129,7 +129,7 @@ test('Breathe Fire prone placement lets the opposing coach place the ball',()=>{
 });
 test('Stab holds armour: no prone placement; broken armour permits placement before injury',()=>{
  const a=carrierFixture([1,1]);a.g.armourOnly(a.p,()=>{});assert.equal(a.g.pending,null);assert.equal(a.g.ball.carrier,a.p.id);
- const b=carrierFixture([6,6,6,6]);b.g.armourOnly(b.p,()=>{});assert.equal(b.g.pending.kind,'Safe Pair of Hands');assert.equal(b.queue.length,2);select(b.g);assert.equal(b.p.status,'casualty');assert.equal(b.g.active,1);assert.equal(b.queue.length,0);
+ const b=carrierFixture([6,6,6,6,1,1]);b.g.armourOnly(b.p,()=>{});assert.equal(b.g.pending.kind,'Safe Pair of Hands');assert.equal(b.queue.length,4);select(b.g);assert.equal(b.p.status,'casualty');assert.equal(b.g.active,1);assert.equal(b.queue.length,0);
 });
 test('placing the ball does not suppress pickup-failure or actual knockdown turnovers',()=>{
  const {g,p,queue}=carrierFixture([1,1]);g.fall(p,{turnover:true});select(g);assert.equal(g.active,1);assert.equal(queue.length,0);

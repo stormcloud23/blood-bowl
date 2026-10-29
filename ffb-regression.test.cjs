@@ -80,14 +80,14 @@ test('Strong Arm and Bullseye require Throw Team-mate when added in the laborato
  assert.equal(g.addSkill(p.id,'Throw Team-mate'),true);assert.equal(g.addSkill(p.id,'Strong Arm'),true);assert.equal(g.addSkill(p.id,'Bullseye'),true);
 });
 test('Iron Hard Skin blocks Mighty Blow armour changes but leaves the injury choice available',()=>{
- const {g}=fixture([6,4,4,5]),a=g.players[0],d=g.players[11];grant(a,'Mighty Blow');grant(d,'Iron Hard Skin');g.fall(d,{turnover:false,mightyBlowBy:a});
+ const {g}=fixture([6,4,4,5,1,1]),a=g.players[0],d=g.players[11];grant(a,'Mighty Blow');grant(d,'Iron Hard Skin');g.fall(d,{turnover:false,mightyBlowBy:a});
  assert.equal(g.pending.kind,'Mighty Blow');assert.ok(g.pending.options.includes('Add +1 to Injury'));choose(g,'Add +1 to Injury');assert.equal(d.status,'casualty');
 });
 test('Iron Hard Skin armour that holds never offers Mighty Blow on armour',()=>{
  const {g}=fixture([3,4]),a=g.players[0],d=g.players[11];grant(a,'Mighty Blow');grant(d,'Iron Hard Skin');g.fall(d,{turnover:false,mightyBlowBy:a});assert.equal(d.status,'prone');assert.equal(g.pending,null);
 });
 test('Dirty Player can modify foul injury against Iron Hard Skin',()=>{
- const {g,a,d}=fouler([6,4,4,5]);grant(a,'Dirty Player');grant(d,'Iron Hard Skin');g.performSpecial(d.id);assert.equal(g.pending.kind,'Dirty Player');choose(g,'Add +1 to Injury');assert.equal(d.status,'casualty');
+ const {g,a,d}=fouler([6,4,4,5,1,1]);grant(a,'Dirty Player');grant(d,'Iron Hard Skin');g.performSpecial(d.id);assert.equal(g.pending.kind,'Dirty Player');choose(g,'Add +1 to Injury');assert.equal(d.status,'casualty');
 });
 test('Lone Fouler offers a broken-armour double before rolling injury and can erase the send-off',()=>{
  const {g,a,d,queue}=fouler([6,6,6,4,1,2]);grant(a,'Lone Fouler');g.performSpecial(d.id);

@@ -7,6 +7,10 @@ class MatchGame extends MatchBase {
   this.players.forEach(p=>Object.assign(p,{x:null,y:null,status:"reserve"}));this.note("Exhibition match: 11 demo players, 1 Dedicated Fan, 2 team re-rolls, no purchased staff per team. League-only Journeymen and Inducements do not apply.");
  }
  profile(p){const base=super.profile(p);return p.snack?{...base,ma:Math.max(1,base.ma-1),av:Math.max(3,parseInt(base.av)-1)+"+"}:base;}
+ setApothecary(team,enabled){
+  if(this.phase!=="fans"||this.pending||![0,1].includes(team)||!this.teams[team].staff?.apothecary)return false;
+  this.apothecaries[team]=enabled?1:0;return true;
+ }
  right(team){return (team===0)===(this.half===1);}
  ownHalf(team,x){return this.inside(x,7)&&(this.right(team)?x<=12:x>=13);}
  line(team){return this.right(team)?12:13;}

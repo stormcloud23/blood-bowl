@@ -3,6 +3,7 @@
 class MovementGame {
  constructor(teams, {dice=null, scenario="teams"}={}) {
   this.teams=teams; this.dice=dice || (s=>1+Math.floor(Math.random()*s));
+  this.apothecaries=teams.map(t=>t.apothecaries||0);this.injuryRecords=[];this.plagueUsed=[false,false];
   this.active=scenario==="block"?1:0; this.turns=[1,0]; this.rerolls=[2,2]; this.mover=null;
   this.pending=null; this.interruptions=[]; this.finished=false; this.events=[]; this.ball={x:12,y:7,carrier:null};
   this.action=null;this.blockAction=null;this.secureUsed=[false,false];this.blitzUsed=[false,false];this.blitzTarget=null;this.blitzBlocked=false;this.practicePlayer=null;
@@ -42,7 +43,68 @@ class MovementGame {
   }
   this.note((scenario==="block"?"Block practice started.":scenario==="secure"?"Secure the Ball practice started.":"Movement practice started.")+" Perfect Conditions; two team re-rolls each.");
  }
- profile(p){return this.teams[p.team].positions[p.role];}
+ profile(p){return p.profileOverride||this.teams[p.team].positions[p.role];}
+ treatmentChoice(kind,p,options,resolve){
+  const q={type:"custom",kind,team:p.team,options,resolve:choice=>{
+   if(this.pending!==q||!options.includes(choice))return false;
+   this.pending=null;resolve(choice);return true;
+  }};this.pending=q;
+ }
+ casualtyRoll(p){
+  const die=this.roll("Casualty",16),detail=this.roll("Casualty detail"),modifier=(this.has(p,"Decay")?1:0)+(p.nigglingInjuries||0),total=die+modifier;
+  let result=total>=15?"Dead":total>=13?["Head injury","Head injury","Smashed knee","Broken arm","Dislocated hip","Dislocated shoulder"][detail-1]:total>=11?"Serious injury":total>=9?"Seriously hurt":"Badly hurt";
+  // Casualty reduction limits use the permanent position, excluding temporary
+  // Horns, Block strength and Pick-me-up changes.
+  const attribute={"Head injury":"av","Smashed knee":"ma","Broken arm":"pa","Dislocated hip":"ag","Dislocated shoulder":"st"}[result],profile=p.profileOverride||this.teams[p.team].positions[p.role];
+  if(attribute){const value=parseInt(profile[attribute]),limit={ma:1,st:1,ag:6,pa:6,av:3}[attribute];if(!value||value===limit)result="Seriously hurt";}
+  this.note("#"+p.number+" casualty: "+result+" ("+die+(modifier?" + "+modifier:"")+").");
+  return {die,detail,modifier,total,result,missNext:!["Badly hurt","Dead"].includes(result),niggling:result==="Serious injury",attribute:result==="Seriously hurt"?null:attribute||null,dead:result==="Dead"};
+ }
+ // Treatment owns the continuation: no bounce, send-off or turn cleanup until
+ // every medical decision for this injury has completed.
+ resolveInjury(p,total,done=()=>{},{crowd=false,stunIsKo=false,stunty=true,source=null,plague=false}={}){
+  const origin={x:p.x,y:p.y},small=stunty&&!this.has(p,"Iron Hard Skin")&&this.has(p,"Stunty"),thick=this.has(p,"Thick Skull"),stunMax=small?(thick?7:6):(thick?8:7),koMax=small?8:9;
+  let state=total<=stunMax?(crowd?"reserve":stunIsKo?"knocked-out":"stunned"):total<=koMax?"knocked-out":"casualty";
+  const record={playerId:p.id,team:p.team,injury:total,source:source?{...source}:null,original:null,selected:null,treatment:null};
+  if(state==="casualty")record.original=record.selected=small&&total===9?{result:"Badly hurt",automatic:true}:this.casualtyRoll(p);
+  p.status=state;if(["knocked-out","casualty","reserve"].includes(state)){p.x=null;p.y=null;}
+  const finish=()=>{
+   p.status=state;p.rooted=false;this.onProne(p);
+   if(state==="stunned"){p.x=origin.x;p.y=origin.y;}
+   if(["knocked-out","casualty","reserve"].includes(state)){p.x=null;p.y=null;}
+   if(record.original){p.casualty=state==="casualty"?record.selected:null;if(source)p.casualtySource={...source};}
+   record.status=state;this.injuryRecords.push(record);this.note("#"+p.number+" injury result: "+state+(p.casualty?" — "+p.casualty.result:"")+".");
+   if(state==="casualty"&&record.selected.result==="Dead"&&plague&&this.raisePlaguePlayer){this.raisePlaguePlayer(p,source,done);return;}
+   done();
+  };
+  const medical=()=>{
+   if(!["casualty","knocked-out"].includes(state)||!this.apothecaries[p.team]){finish();return;}
+   this.treatmentChoice("Apothecary — #"+p.number+(record.selected?": "+record.selected.result:" knocked out"),p,["Use Apothecary","Decline treatment"],choice=>{
+    if(choice!=="Use Apothecary"){finish();return;}
+    this.apothecaries[p.team]--;record.treatment="Apothecary";
+    if(state==="knocked-out"||record.selected.result==="Badly hurt"){
+     state=state==="knocked-out"&&!crowd&&!stunIsKo?"stunned":"reserve";finish();return;
+    }
+    const second=this.casualtyRoll(p);record.alternative=second;
+    if(second.result==="Badly hurt"){record.selected=second;state="reserve";finish();return;}
+    this.treatmentChoice("Apothecary result — #"+p.number,p,["Keep original: "+record.original.result,"Use new: "+second.result],option=>{record.selected=option.startsWith("Use new:")?second:record.original;finish();});
+   });
+  };
+  if(state==="casualty"&&this.has(p,"Regeneration")){
+   record.regeneration=this.roll("Regeneration needs 4+");
+   if(record.regeneration>=4){state="reserve";record.treatment="Regeneration";finish();return;}
+   if(this.canTeamReroll(p)){
+    this.treatmentChoice("Regeneration — #"+p.number,p,["Team re-roll Regeneration","Accept Regeneration failure"],choice=>{
+     if(choice==="Team re-roll Regeneration"&&this.useTeamReroll(p)){
+      record.regenerationReroll=this.roll("Regeneration re-roll needs 4+");
+      if(record.regenerationReroll>=4){state="reserve";record.treatment="Regeneration";finish();return;}
+     }
+     medical();
+    });return;
+   }
+  }
+  medical();
+ }
  has(p,skill){return this.profile(p).skills.includes(skill);}
  rushLimit(p){return 2;}
  standCost(p){return Math.min(3,this.profile(p).ma);}
@@ -338,10 +400,8 @@ class MovementGame {
   if(!this.inside(destination.x,destination.y)){
    const carrying=this.ball.carrier===victim.id;this.note("#"+victim.number+" is pushed into the Crowd.");victim.x=null;victim.y=null;
    if(victim.team===this.active&&this.blockAction)this.blockAction.turnover=true;
-   const injury=this.roll("Crowd injury")+this.roll("Crowd injury"),stunty=this.has(victim,"Stunty"),thick=this.has(victim,"Thick Skull"),stunMax=stunty?(thick?7:6):(thick?8:7),koMax=stunty?8:9;
-   if(injury<=stunMax)victim.status="reserve";else if(injury<=koMax)victim.status="knocked-out";else if(this.has(victim,"Regeneration")&&this.roll("Regeneration needs 4+")>=4)victim.status="reserve";else victim.status="casualty";
-   this.note("Crowd injury: #"+victim.number+" is "+victim.status+".");
-   const after=()=>done(true);if(carrying){this.ball={x:from.x,y:from.y,carrier:null};this.throwIn(from.x,from.y,after);}else after();return;
+   const injury=this.roll("Crowd injury")+this.roll("Crowd injury");
+   this.resolveInjury(victim,injury,()=>{const after=()=>done(true);if(carrying){this.ball={x:from.x,y:from.y,carrier:null};this.throwIn(from.x,from.y,after);}else after();},{crowd:true});return;
   }
   const occupant=this.at(destination.x,destination.y);
   if(occupant){
@@ -548,7 +608,7 @@ class MovementGame {
   const resolve=()=>{if(options.skipPlacement)this.resolveFall(p,options);else this.beforeProne(p,{x:p.x,y:p.y},()=>this.resolveFall(p,options));};
   if(options.skipPrevention)resolve();else this.preventFall(p,()=>{if(options.prevented)options.prevented();else if(options.after)options.after();},resolve);
  }
- resolveFall(p,{turnover=true,after=null,mightyBlowBy=null,armBarBy=null,impactBy=null,savageryBy=null,blockBlast=false}={}){
+ resolveFall(p,{turnover=true,after=null,mightyBlowBy=null,armBarBy=null,impactBy=null,savageryBy=null,blockBlast=false,injurySource=null,plagueEligible=false}={}){
   const modifierKind=impactBy?"Lethal Flight":armBarBy?"Arm Bar":"Mighty Blow",modifierBy=impactBy||armBarBy||mightyBlowBy;
   const injuryBonus=savageryBy?false:impactBy?true:armBarBy?!this.has(p,"Iron Hard Skin"):this.canMighty(mightyBlowBy,p);
   const armourBonus=savageryBy?false:impactBy?!this.has(p,"Iron Hard Skin"):armBarBy?injuryBonus:this.canMightyArmour(mightyBlowBy,p);
@@ -569,17 +629,9 @@ class MovementGame {
    if(carrying||(!this.ball.carrier&&this.ball.x===x&&this.ball.y===y)){this.ball={x,y,carrier:null};this.bounce(x,y,finish);}
    else finish();
   };
-  const injury=modifier=>{
-   const total=this.roll("Injury")+this.roll("Injury")+modifier,stunty=!blockBlast&&this.has(p,"Stunty"),thick=this.has(p,"Thick Skull");
-   const stunMax=stunty?(thick?7:6):(thick?8:7),koMax=stunty?8:9;
-   if(total<=stunMax)p.status="stunned";
-   else if(total<=koMax)p.status="knocked-out";
-   else if(this.has(p,"Regeneration")&&this.roll("Regeneration needs 4+")>=4)p.status="reserve";
-   else p.status="casualty";
-   this.note("#"+p.number+" injury result: "+p.status+".");
-   if(["knocked-out","casualty","reserve"].includes(p.status)){p.x=null;p.y=null;}
-   complete();
-  };
+  const source=injurySource||(armBarBy?{playerId:armBarBy.id,cause:"Arm Bar"}:impactBy?{playerId:impactBy.id,cause:"Lethal Flight"}:savageryBy?{playerId:savageryBy.id,cause:"Animal Savagery"}:mightyBlowBy?{playerId:mightyBlowBy.id,cause:"Block"}:null);
+  const applyInjury=total=>this.resolveInjury(p,total,complete,{stunty:!blockBlast,source,plague:plagueEligible||source?.cause==="Block"&&!!this.blockAction});
+  const injury=modifier=>applyInjury(this.roll("Injury")+this.roll("Injury")+modifier);
   const armour=this.roll("Armour")+this.roll("Armour")+(savageryBy&&!this.has(p,"Iron Hard Skin")&&this.has(mightyBlowBy,"Mighty Blow")?1:0);
   const continueAfterArmour=bonus=>{
    if(broken(armour,bonus))injury(0);
@@ -590,15 +642,10 @@ class MovementGame {
    const dice=this.roll("Injury")+this.roll("Injury");
    if(injuryBonus){
     modifierChoice(["Add +1 to Injury","No modifier"],choice=>{
-     const stunty=this.has(p,"Stunty"),thick=this.has(p,"Thick Skull"),result=dice+(choice==="Add +1 to Injury"?1:0);
-     const stunMax=stunty?(thick?7:6):(thick?8:7),koMax=stunty?8:9;
-     if(result<=stunMax)p.status="stunned";else if(result<=koMax)p.status="knocked-out";else if(this.has(p,"Regeneration")&&this.roll("Regeneration needs 4+")>=4)p.status="reserve";else p.status="casualty";
-     this.note("#"+p.number+" injury result: "+p.status+".");if(["knocked-out","casualty","reserve"].includes(p.status)){p.x=null;p.y=null;}complete();
+     applyInjury(dice+(choice==="Add +1 to Injury"?1:0));
     });
    }else{
-    const stunty=!blockBlast&&this.has(p,"Stunty"),thick=this.has(p,"Thick Skull"),stunMax=stunty?(thick?7:6):(thick?8:7),koMax=stunty?8:9;
-    if(dice<=stunMax)p.status="stunned";else if(dice<=koMax)p.status="knocked-out";else if(this.has(p,"Regeneration")&&this.roll("Regeneration needs 4+")>=4)p.status="reserve";else p.status="casualty";
-    this.note("#"+p.number+" injury result: "+p.status+".");if(["knocked-out","casualty","reserve"].includes(p.status)){p.x=null;p.y=null;}complete();
+    applyInjury(dice);
    }
   }else if(armourBonus){
    modifierChoice(["Add +1 to Armour","No modifier"],choice=>{
