@@ -1,3 +1,4 @@
+Attempting to perform the InitializeDefaultDrives operation on the 'FileSystem' provider failed.
 # Blood Bowl browser game
 
 A browser implementation targeting the Blood Bowl 2025 ruleset.
@@ -9,7 +10,7 @@ A browser implementation targeting the Blood Bowl 2025 ruleset.
 - Complete standalone matches first, followed by persistent league progression.
 - Simple, readable visuals; rules completeness takes priority over animation.
 
-Version 0.0.5 adds a simple two-click movement flow. Select a player to see reachable squares; click a destination once to preview its route and required checks, then click it again to commit movement through that square. After arrival, choose another destination if movement remains. Dice are rolled only when movement is committed. The practice drive still supports the Imperial Nobility and Black Orc profiles; it is not a complete match. See [movement coverage and limitations](docs/MOVEMENT.md) and [roster coverage](docs/ROSTERS.md).
+Version 0.0.6 adds Block and Secure the Ball practice. Block resolves eligible assists, Strength-based Block Dice, supported re-rolls, knockdowns, pushes, and follow-ups. Secure the Ball permits a free move to a safe loose ball and uses the special 2+ pickup roll. The two-click movement preview remains available. The practice drive still supports the Imperial Nobility and Black Orc profiles; it is not a complete match. See [action coverage and limitations](docs/MOVEMENT.md) and [roster coverage](docs/ROSTERS.md).
 
 Open https://stormcloud23.github.io/blood-bowl/ to test published versions. GitHub Pages publishes from the root of main. The self-contained index.html needs no build step and can also be opened locally. Each published prototype shows its version number.
 
