@@ -25,6 +25,25 @@ test('throw practice UI declares, selects, previews and commits a throw',()=>{
  vm.runInContext('choose(12,7)',context);assert.equal(vm.runInContext('game.mover',context),null);
  assert.ok(vm.runInContext('game.events.some(e=>e.includes("lands on their feet"))',context));
 });
+
+test('Break Tackle modifier decision is exposed by the bundled browser UI',()=>{
+ const {get,run}=uiFixture('dodge');run('game.players[0].extraSkills=["Break Tackle"];game.dice=()=>2;game.start(game.players[0].id);game.step(9,6);render()');
+ const choice=get('choices').children.find(e=>e.textContent==='Use Break Tackle');assert.ok(choice);assert.equal(run('game.used(game.players[0],"Break Tackle")'),false);
+ choice.listeners.click();assert.equal(run('game.used(game.players[0],"Break Tackle")'),true);assert.equal(run('game.pending'),null);
+});
+
+test('Bullseye choice in the bundled UI resumes landing without scatter',()=>{
+ const {get,run}=uiFixture();run('game.players.find(p=>p.id===game.practicePlayer).extraSkills=["Bullseye"];game.dice=()=>6');get('throw-mate').listeners.click();
+ get('choices').children.find(c=>c.textContent.startsWith('Throw team-mate #')).listeners.click();
+ run('choose(12,7);choose(12,7)');const choice=get('choices').children.find(e=>e.textContent==='Use Bullseye');assert.ok(choice);choice.listeners.click();
+ assert.equal(run('game.events.some(e=>e.startsWith("Thrown player scatter:"))'),false);assert.equal(run('game.mover'),null);
+});
+
+test('Pro fallback is reachable through browser buttons and resumes the original check',()=>{
+ const {get,run}=uiFixture('pickup');run('game.players[0].extraSkills=["Pro"];game.rerolls[0]=1;globalThis.rolls=[1,1,3,6];game.dice=()=>rolls.shift();game.start(game.players[0].id);game.test(game.players[0],"Rush",2,()=>game.note("Original check passed"),()=>{});render()');
+ get('choices').children.find(e=>e.textContent==='Use Pro').listeners.click();get('choices').children.find(e=>e.textContent==='Team re-roll Pro').listeners.click();
+ assert.equal(run('game.events.includes("Original check passed")'),true);assert.equal(run('game.rerolls[0]'),0);assert.equal(run('game.pending'),null);
+});
 test('movement tiles mark only their arrival check, with route-specific dodge and rush highlights',()=>{
  const {get,run}=uiFixture('dodge');run('selected=game.players[0].id;render()');
  const square=(x,y)=>get('pitch').children[y*26+x];

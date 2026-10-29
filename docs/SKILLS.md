@@ -1,8 +1,14 @@
-# Skills and traits coverage — v0.0.11
+# Skills and traits coverage — v0.0.14
+
+Updated October 29, 2026 using the owner's requested FFB BB2025 baseline. FFB code takes priority where it conflicts with earlier browser behavior. See [the comparison and remaining gaps](FFB-AUDIT.md), [all 108 FFB skill definitions](FFB-SKILL-MAP.md), and [FFB attribution](../THIRD_PARTY_NOTICES.md). This is a targeted port, not a claim of complete FFB parity.
+
+New decisions include optional Break Tackle, Bullseye after a Superb Throw, and a team re-roll of a failed Pro check. Pro is once per player per turn; multiple team re-rolls on separate tests in one turn remain legal. Strong Arm modifies Throw Team-mate accuracy when enabled. Strong Arm and Bullseye require Throw Team-mate in the laboratory. Iron Hard Skin blocks armour bonuses but permits injury bonuses. Lone Fouler may re-roll broken-armour doubles before injury. Argue the Call one forbids a Bribe for that send-off; other failed Bribes may be followed by further available Bribes.
+
+Build with `node build.cjs` and verify all suites with `node --test *.test.cjs`. This includes FFB-derived regression scenarios and tests that execute the actual inline browser UI against a small DOM harness.
 
 Reviewed October 28, 2026 against the full [Blood Bowl 2025 Skills & Traits list](https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/), [current FAQ](https://bloodbowlbase.ru/bb2025/core_rules/latest_faq/), [Foul / Argue the Call rules](https://bloodbowlbase.ru/bb2025/core_rules/the_game_of_blood_bowl/#foul-actions), and [Bribes](https://bloodbowlbase.ru/bb2025/core_rules/inducements/#0-3-bribes-0-6-for-teams-with-the-bribery-and-corruption-special-rule).
 
-All 108 entries are accounted for: **76 implemented**, **3 partial**, **29 deferred**. Implemented describes support within the available actions and exhibition sequence, not missing league or inducement systems. Deferred abilities are not offered as laboratory additions. Each deferred row records the missing dependency for a future pass. This table and the app inventory share the same registry in skills.cjs.
+All 108 entries are accounted for: **78 implemented**, **3 partial**, **27 deferred**. Implemented describes support within the available actions and exhibition sequence, not missing league or inducement systems. Deferred abilities are not offered as laboratory additions. Each deferred row records the missing dependency for a future pass. This table and the app inventory share the same registry in skills.cjs.
 
 ## How to try them
 
@@ -83,14 +89,14 @@ Sources: [Throw Team-mate and landing](https://bloodbowlbase.ru/bb2025/core_rule
 | Arm Bar | Strength | Active | Deferred | Needs one defender-selected injury modifier window following a failed departure. |
 | Brawler | Strength | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Break Tackle | Strength | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
-| Bullseye | Strength | Active | Deferred | Throw Team-mate exists; the optional Superb Throw scatter replacement is not wired in yet. |
+| Bullseye | Strength | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Grab | Strength | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Guard | Strength | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Juggernaut | Strength | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Mighty Blow | Strength | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Multiple Block | Strength | Active | Deferred | Needs two simultaneous Block resolutions, both completed even if one causes a turnover. |
 | Stand Firm | Strength | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
-| Strong Arm | Strength | Active | Deferred | Throw Team-mate exists; its optional accuracy modifier is not wired in yet. |
+| Strong Arm | Strength | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Thick Skull | Strength | Passive | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Always Hungry | Traits | Active * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Animal Savagery | Traits | Passive * | Deferred | Needs activation interruption, forced teammate selection, mandatory damage modifiers and continuation. |
