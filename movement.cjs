@@ -5,7 +5,7 @@ class MovementGame {
   this.teams=teams; this.dice=dice || (s=>1+Math.floor(Math.random()*s));
   this.active=scenario==="block"?1:0; this.turns=[1,0]; this.rerolls=[2,2]; this.mover=null;
   this.pending=null; this.finished=false; this.events=[]; this.ball={x:12,y:7,carrier:null};
-  this.action=null;this.blockAction=null;this.secureUsed=[false,false];this.practicePlayer=null;
+  this.action=null;this.blockAction=null;this.secureUsed=[false,false];this.blitzUsed=[false,false];this.blitzTarget=null;this.blitzBlocked=false;this.practicePlayer=null;
   this.players=teams.flatMap((t,team)=>t.lineup.map((role,i)=>({
    id:team+"-"+(i+1),number:i+1,team,role,x:team?16+i%3:9-i%3,y:2+Math.floor(i/3)*3,
    status:"standing",distracted:false,used:false,spent:0,dodgeUsed:false,proUsed:false,stunnedAtStart:false
@@ -20,6 +20,11 @@ class MovementGame {
    if(scenario==="pickup"){b.x=18;this.ball={x:11,y:7,carrier:null};}
    if(scenario==="traits"){a.role=4;b.role=2;b.x=13;c.x=12;c.team=1;c.role=0;}
    if(scenario==="secure"){this.players.forEach(p=>{p.x=null;p.y=null;p.status="reserve";});Object.assign(a,{x:9,y:7,status:"standing"});this.ball={x:15,y:7,carrier:null};this.practicePlayer=a.id;}
+   if(scenario==="blitz"){
+    this.players.forEach(p=>{p.x=null;p.y=null;p.status="reserve";});
+    Object.assign(a,{x:8,y:7,status:"standing",role:3});Object.assign(b,{x:12,y:7,status:"standing"});
+    this.ball={x:20,y:7,carrier:null};this.practicePlayer=a.id;
+   }
    if(scenario==="block"){
     this.players.forEach(p=>{p.x=null;p.y=null;p.status="reserve";});
     const attacker=this.players[15],target=this.players[5],helper=this.players[11];
@@ -54,6 +59,30 @@ class MovementGame {
   const d=typeof target==="string"?this.players.find(p=>p.id===target):target;
   return this.canStart(a)&&a.status==="standing"&&!a.distracted&&d&&d.team!==this.active&&this.onPitch(d)&&d.status==="standing"&&this.distance(a,d)===1;
  }
+ canBlitz(p,target){
+  if(!this.canStart(p)||this.blitzUsed[this.active]||!target||target.team===p.team||!this.onPitch(target)||target.status!=="standing")return false;
+  const spent=p.status==="prone"?Math.min(3,this.profile(p).ma):0;
+  return [...this.search(p,p.x,p.y,spent).values()].some(n=>this.distance(n,target)===1&&n.spent<this.profile(p).ma+2);
+ }
+ startBlitz(id,targetId){
+  const p=this.players.find(p=>p.id===id),target=this.players.find(p=>p.id===targetId);
+  if(!this.canBlitz(p,target))return false;
+  this.blitzUsed[this.active]=true;this.blitzTarget=targetId;this.blitzBlocked=false;
+  this.note("Blitz target: "+this.teams[target.team].name+" #"+target.number+".");
+  return this.start(id,"blitz");
+ }
+ canBlitzBlock(){
+  const p=this.players.find(p=>p.id===this.mover),target=this.players.find(p=>p.id===this.blitzTarget);
+  return this.action==="blitz"&&!this.blitzBlocked&&!this.pending&&!this.finished&&p?.status==="standing"&&!p.distracted&&target?.status==="standing"&&this.onPitch(target)&&this.distance(p,target)===1&&p.spent<this.profile(p).ma+2;
+ }
+ blitzBlock(){
+  if(!this.canBlitzBlock())return false;
+  const p=this.players.find(p=>p.id===this.mover),target=this.players.find(p=>p.id===this.blitzTarget);
+  p.spent++;this.blitzBlocked=true;
+  const hit=()=>this.rollBlock(p,target,true);
+  if(p.spent>this.profile(p).ma)this.test(p,"Rush",2,hit,()=>this.fall(p));else hit();
+  return true;
+ }
  markedByExcept(player,excludedIds=[]){
   const excluded=new Set(excludedIds);
   return this.players.filter(q=>q.id!==player.id&&!excluded.has(q.id)&&q.team!==player.team&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&this.distance(q,player)===1).length;
@@ -68,11 +97,14 @@ class MovementGame {
   const attacker=this.players.find(p=>p.id===attackerId),target=this.players.find(p=>p.id===targetId);
   if(!this.canBlock(attacker,target))return false;
   attacker.used=true;attacker.proUsed=false;this.action="block";
+  this.rollBlock(attacker,target,false);return true;
+ }
+ rollBlock(attacker,target,blitz=false){
   const assists=this.assists(attacker,target),aStrength=Number(this.profile(attacker).st)+assists.offensive,dStrength=Number(this.profile(target).st)+assists.defensive;
   const higher=Math.max(aStrength,dStrength),lower=Math.min(aStrength,dStrength);
   const count=aStrength===dStrength?1:higher>2*lower?3:2;
   const chooserTeam=aStrength===dStrength?this.active:aStrength>dStrength?attacker.team:target.team;
-  this.blockAction={attacker,target,assists,aStrength,dStrength,count,chooserTeam,dice:[],poolLocked:false,brawlerUsed:false};
+  this.blockAction={attacker,target,assists,aStrength,dStrength,count,chooserTeam,dice:[],poolLocked:false,brawlerUsed:false,blitz};
   this.note("#"+attacker.number+" declares Block against "+this.teams[target.team].name+" #"+target.number+". Strength "+aStrength+" vs "+dStrength+" after "+assists.offensive+" offensive and "+assists.defensive+" defensive assist(s); roll "+count+" Block Dice.");
   this.blockAction.dice=Array.from({length:count},(_,i)=>this.roll("Block die "+(i+1)));
   this.pending={type:"blockSelect"};return true;
@@ -89,7 +121,7 @@ class MovementGame {
    this.pending={type:"blockSelect"};this.note("Team re-roll: re-rolled the Block Dice pool.");return true;
   }
   if(source==="Brawler"){
-   const a=b.attacker;if(!this.has(a,"Brawler")||b.brawlerUsed||index===null||this.blockFace(b.dice[index])!=="Both Down")return false;
+   const a=b.attacker;if(b.blitz||!this.has(a,"Brawler")||b.brawlerUsed||index===null||this.blockFace(b.dice[index])!=="Both Down")return false;
    b.brawlerUsed=true;b.poolLocked=true;b.dice[index]=this.roll("Brawler re-roll for Block die "+(index+1));this.pending={type:"blockSelect"};return true;
   }
   if(source==="Pro"){
@@ -153,7 +185,7 @@ class MovementGame {
  finishBlock(){
   const b=this.blockAction;if(this.finished)return;
   if(b?.turnover){this.blockAction=null;this.action=null;this.endTurn(true);return;}
-  this.note("Block action resolved.");this.blockAction=null;this.action=null;
+  this.note("Block action resolved.");this.blockAction=null;if(b?.blitz){this.action="blitz";this.checkScore();}else this.action=null;
  }
  pushSquares(attacker,target,grab=false){
   const dx=Math.sign(target.x-attacker.x),dy=Math.sign(target.y-attacker.y);
@@ -166,7 +198,7 @@ class MovementGame {
  resolvePush(knockTarget){
   const b=this.blockAction,a=b.attacker,d=b.target;
   const proceed=()=>{
-   const options=this.pushSquares(a,d,this.has(a,"Grab")&&!a.distracted);
+   const options=this.pushSquares(a,d,!b.blitz&&this.has(a,"Grab")&&!a.distracted);
    if(!options.length){if(knockTarget)this.fall(d,{turnover:false,mightyBlowBy:a,after:()=>this.finishBlock()});else this.finishBlock();return;}
    this.pending={type:"pushChoice",kind:"Push back",target:d,options,resolve:pos=>{
     this.pending=null;const origin={x:d.x,y:d.y};this.pushPlayer(d,pos,ok=>this.afterPush(origin,knockTarget,ok));
@@ -218,7 +250,7 @@ class MovementGame {
   this.mover=id;p.used=true;p.spent=0;p.distracted=false;
   p.proUsed=false;this.action=action;
   if(action==="secure")this.secureUsed[p.team]=true;
-  this.note(this.teams[p.team].name+" #"+p.number+" declares "+(action==="secure"?"Secure the Ball":"Move")+".");
+  this.note(this.teams[p.team].name+" #"+p.number+" declares "+(action==="secure"?"Secure the Ball":action==="blitz"?"Blitz":"Move")+".");
   const ready=()=>{const afterStand=()=>{if(action==="secure"&&p.x===this.ball.x&&p.y===this.ball.y)this.secureBall(p,p.x,p.y);};if(p.status==="prone")this.stand(p,afterStand);else afterStand();};
   const failed=()=>{p.distracted=true;this.note("#"+p.number+" is Distracted; activation ends (no turnover).");this.mover=null;this.action=null;};
   if(this.has(p,"Bone Head"))this.test(p,"Bone Head",2,ready,failed);
@@ -352,7 +384,7 @@ class MovementGame {
   if(this.pending||this.finished)return false;
   this.note(turnover?"TURNOVER.":"Turn ended.");
   for(const p of this.players)if(p.team===this.active&&p.status==="stunned"&&p.stunnedAtStart)p.status="prone";
-  this.mover=null;this.action=null;this.blockAction=null;this.active=1-this.active;this.turns[this.active]++;this.secureUsed[this.active]=false;
+  this.mover=null;this.action=null;this.blockAction=null;this.blitzTarget=null;this.active=1-this.active;this.turns[this.active]++;this.secureUsed[this.active]=false;this.blitzUsed[this.active]=false;
   for(const p of this.players){p.dodgeUsed=false;p.proUsed=false;if(p.team===this.active){p.used=false;p.spent=0;p.stunnedAtStart=p.status==="stunned";}}
   this.note(this.teams[this.active].name+" turn "+this.turns[this.active]+".");return true;
  }
