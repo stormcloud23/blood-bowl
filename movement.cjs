@@ -28,6 +28,7 @@ class MovementGame {
  inside(x,y){return Number.isInteger(x)&&Number.isInteger(y)&&x>=0&&x<26&&y>=0&&y<15;}
  distance(a,b){return Math.max(Math.abs(a.x-b.x),Math.abs(a.y-b.y));}
  marking(p,x=p.x,y=p.y){return this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&this.distance(q,{x,y})===1).length;}
+ markingAt(p,x,y){return this.marking(p,x,y);}
  note(s){this.events.unshift(s);this.events=this.events.slice(0,150);}
  roll(label,sides=6){const n=this.dice(sides);if(!Number.isInteger(n)||n<1||n>sides)throw Error("Invalid die");this.note(label+": "+n+" (D"+sides+").");return n;}
  success(n,target){return n===6||(n!==1&&n>=target);}
@@ -85,21 +86,49 @@ class MovementGame {
   // A re-rolled die is resolved directly; no further re-roll is offered.
   q.resolve(this.roll(q.kind+" re-roll ("+choice+")"));return true;
  }
- plan(x,y){
-  const p=this.players.find(p=>p.id===this.mover);
-  if(!p||this.pending||this.finished||p.status!=="standing"||!this.inside(x,y)||this.at(x,y))return null;
-  const distance=this.distance(p,{x,y});let cost=1,jump=false;
+ planFrom(p,x,y,fromX,fromY,spent){
+  if(!p||this.pending||this.finished||!this.inside(x,y)||this.at(x,y))return null;
+  const from={x:fromX,y:fromY};
+  const distance=this.distance(from,{x,y});let cost=1,jump=false;
   if(distance!==1){
-   if(distance!==2||!this.players.some(q=>this.onPitch(q)&&["prone","stunned"].includes(q.status)&&this.distance(p,q)===1&&this.distance(q,{x,y})===1))return null;
+   if(distance!==2||!this.players.some(q=>this.onPitch(q)&&["prone","stunned"].includes(q.status)&&this.distance(from,q)===1&&this.distance(q,{x,y})===1))return null;
    jump=true;cost=2;
   }
   const ma=this.profile(p).ma;
-  if(p.spent+cost>ma+2)return null;
-  const rushes=Math.max(0,p.spent+cost-ma)-Math.max(0,p.spent-ma);
-  const originMarks=this.marking(p),targetMarks=this.marking(p,x,y);
+  if(spent+cost>ma+2)return null;
+  const rushes=Math.max(0,spent+cost-ma)-Math.max(0,spent-ma);
+  const originMarks=this.markingAt(p,fromX,fromY),targetMarks=this.markingAt(p,x,y);
   const dodge=!jump&&originMarks>0;
   const target=Number.parseInt(this.profile(p).ag)+(jump?Math.max(originMarks,targetMarks):this.has(p,"Stunty")?0:targetMarks);
   return {x,y,cost,jump,rushes,dodge,target,pickup:!this.ball.carrier&&this.ball.x===x&&this.ball.y===y};
+ }
+ plan(x,y){
+  const p=this.players.find(p=>p.id===this.mover);
+  if(!p||this.pending||this.finished||p.status!=="standing")return null;
+  return this.planFrom(p,x,y,p.x,p.y,p.spent);
+ }
+ search(p,startX=p?.x,startY=p?.y,startSpent=p?.spent||0){
+  const reached=new Map();
+  if(!p||!this.onPitch(p)||!this.inside(startX,startY))return reached;
+  const key=(x,y)=>x+","+y,origin={x:startX,y:startY,spent:startSpent,path:[]};
+  reached.set(key(startX,startY),origin);
+  const queue=[origin];
+  while(queue.length){
+   queue.sort((a,b)=>a.spent-b.spent);const node=queue.shift();
+   if(reached.get(key(node.x,node.y))!==node)continue;
+   const candidates=[];
+   for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(dx||dy)candidates.push([node.x+dx,node.y+dy]);
+   for(const obstacle of this.players){
+    if(!this.onPitch(obstacle)||!["prone","stunned"].includes(obstacle.status)||this.distance(obstacle,node)!==1)continue;
+    for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)if(Math.max(Math.abs(dx),Math.abs(dy))===2&&this.distance(obstacle,{x:node.x+dx,y:node.y+dy})===1)candidates.push([node.x+dx,node.y+dy]);
+   }
+   for(const [x,y] of candidates){
+    const plan=this.planFrom(p,x,y,node.x,node.y,node.spent);if(!plan)continue;
+    const spent=node.spent+plan.cost,k=key(x,y),old=reached.get(k);if(old&&old.spent<=spent)continue;
+    const next={x,y,spent,path:node.path.concat({x,y,plan})};reached.set(k,next);queue.push(next);
+   }
+  }
+  return reached;
  }
  step(x,y){
   const plan=this.plan(x,y);if(!plan)return false;
@@ -184,4 +213,5 @@ class MovementGame {
  }
 }
 if(typeof module!=="undefined")module.exports={MovementGame};
+
 
