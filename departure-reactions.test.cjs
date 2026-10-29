@@ -50,7 +50,7 @@ test('Arm Bar selection suspends armour and permits a post-roll armour bonus onl
  g.decide('Add +1 to Armour');assert.equal(p.status,'knocked-out');assert.equal(g.active,1);assert.equal(queue.length,0);assert.equal(old.resolve('Add +1 to Armour'),false);
 });
 test('Arm Bar can modify injury after natural armour break and records casualty attribution',()=>{
- const {g,p,d}=fixture([1,6,6,4,5],['Arm Bar']);g.step(9,6);select(g);assert.deepEqual(g.pending.options,['Add +1 to Injury','No modifier']);
+ const {g,p,d}=fixture([1,6,6,4,5,1,1],['Arm Bar']);g.step(9,6);select(g);assert.deepEqual(g.pending.options,['Add +1 to Injury','No modifier']);
  g.decide('Add +1 to Injury');assert.equal(p.status,'casualty');assert.deepEqual(p.casualtySource,{playerId:d.id,cause:'Arm Bar'});assert.equal(g.active,1);
 });
 test('Arm Bar does not borrow Claws or Mighty Blow from its owner',()=>{

@@ -8,8 +8,10 @@ and Safe Pair of Hands on merged main `c2138fc` (PR #4).
 The [special-action and reaction-context batch](SPECIAL-ACTIONS.md), based on
 merged main `7b48803` (PR #5), adds twelve skills/traits and completes Chainsaw
 foul use. It is stacked above the separately reviewed route-preference PR #6.
-Current catalogue totals: **98 implemented,
-2 partial, 8 deferred**. These are feature inventory labels, not certification
+The [casualty/treatment increment](CASUALTY-TREATMENT.md), based on merged
+main `35117f8`, adds casualty results, team apothecaries, Decay and Plague Ridden.
+Current catalogue totals: **100 implemented,
+2 partial, 6 deferred**. These are feature inventory labels, not certification
 of complete FFB parity. GitHub Pages continues to serve the committed standalone
 HTML; no backend, runtime package, or external rules request is required.
 
@@ -51,7 +53,7 @@ Use executable BB2025 behavior, not the outdated Shadowing JavaDoc.
 
 ## Remaining exhibition skill dependencies
 
-All 8 deferred catalogue entries remain accounted for below. **6 have match
+All 6 deferred catalogue entries remain accounted for below. **4 have match
 effects that still block skill-complete exhibition play.** The other two chiefly
 depend on the deferred roster/progression systems.
 
@@ -59,7 +61,6 @@ depend on the deferred roster/progression systems.
 | --- | --- | --- |
 | Simultaneous Blocks | Multiple Block | Two committed attacks, ST reduction, no follow-up, both fully resolved even after turnover or attacker injury. |
 | Special movement/actions | Ball & Chain, Bloodlust (X+), Bombardier | Random movement and friendly Blocks, feeding before scoring/passing, a separate bomb object with recursive caught-bomb throws and group damage. |
-| Casualty-dependent match effects | Decay, Plague Ridden | Actual casualty results, Regeneration/apothecary ordering, eligible death attribution, once-per-game creation of a predefined reserve lineman. Plague Ridden's in-match reserve addition must not wait for league hiring. |
 | Later roster/progression features | Insignificant, Violent Innovator | Draft-list counting and SPP from special-action casualties; retain match attribution where useful, postpone roster editing and advancement. |
 
 Partial entries: Leader and Secret Weapon still
@@ -74,11 +75,11 @@ Hands, are recorded in the ball-handling audit.
 
 The current reaction/action batch includes parent-state restoration and bounded
 movement and per-Block knockdown outcomes for Saboteur, but it does not supply
-a general committed dual-attack transaction or a casualty/treatment sequence.
-Those are the next foundations. Catalogue skill
+a general committed dual-attack transaction. The medical increment now supplies
+a casualty/treatment continuation; committed dual attacks are the next foundation. Catalogue skill
 completion alone will not finish the wider exhibition milestone.
 
-Other exhibition blockers remain: casualty/treatment resources, staff and
+Other exhibition blockers remain: medical inducement/team/star exceptions, other staff and
 applicable inducements, star abilities and team rules, full kickoff/drive audit,
 interception ruler geometry, and competition-specific end-of-match options.
 The Rush-before-Tentacles discrepancy identified during PR #3 is now corrected,

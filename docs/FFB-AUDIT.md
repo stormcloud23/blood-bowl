@@ -1,3 +1,7 @@
+Latest continuation: [casualties and treatment](CASUALTY-TREATMENT.md) adds team
+apothecaries, Decay and Plague Ridden on main `35117f8`. Current catalogue: 100
+implemented, 2 partial, 6 deferred. Older counts below describe prior increments.
+
 # FFB comparison — v0.0.14
 
 Follow-on work: [reaction continuations and Tentacles](REACTIONS.md) adds an

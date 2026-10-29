@@ -30,10 +30,10 @@ test('Swoop direction may use a team re-roll with no second direction window',()
  const {g,p,queue}=flight([6,1,3,1,6],{swoop:true});g.rerolls[0]=1;g.throwTeamMate(12,7);g.decide('East');assert.equal(g.pending.kind,'Swoop direction');g.decide('Team re-roll');assert.deepEqual([p.x,p.y],[13,7]);assert.equal(g.rerolls[0],0);assert.equal(queue.length,0);
 });
 test('Lethal Flight modifies an opponent injury and attributes the casualty to the passenger',()=>{
- const {g,p,d,queue}=flight([6,5,5,5,6,6,4,5,5,1,1],{lethal:true});Object.assign(d,{x:15,y:7});g.throwTeamMate(12,7);assert.equal(g.pending.kind,'Lethal Flight');g.decide('Add +1 to Injury');assert.equal(d.status,'casualty');assert.deepEqual(d.casualtySource,{playerId:p.id,cause:'Lethal Flight'});assert.equal(queue.length,0);
+ const {g,p,d,queue}=flight([6,5,5,5,6,6,4,5,1,1,5,1,1],{lethal:true});Object.assign(d,{x:15,y:7});g.throwTeamMate(12,7);assert.equal(g.pending.kind,'Lethal Flight');g.decide('Add +1 to Injury');assert.equal(d.status,'casualty');assert.deepEqual(d.casualtySource,{playerId:p.id,cause:'Lethal Flight'});assert.equal(queue.length,0);
 });
 test('Iron Hard Skin blocks Lethal Flight armour but permits its injury bonus',()=>{
- const {g,d,queue}=flight([6,5,5,5,6,6,4,5,5,1,1],{lethal:true});Object.assign(d,{x:15,y:7,extraSkills:['Iron Hard Skin']});g.throwTeamMate(12,7);assert.equal(g.pending.kind,'Lethal Flight');g.decide('Add +1 to Injury');assert.equal(d.status,'casualty');assert.equal(queue.length,0);
+ const {g,d,queue}=flight([6,5,5,5,6,6,4,5,1,1,5,1,1],{lethal:true});Object.assign(d,{x:15,y:7,extraSkills:['Iron Hard Skin']});g.throwTeamMate(12,7);assert.equal(g.pending.kind,'Lethal Flight');g.decide('Add +1 to Injury');assert.equal(d.status,'casualty');assert.equal(queue.length,0);
 });
 test('Lethal Flight cannot modify friendly collision damage',()=>{
  const {g,p,queue}=flight([6,5,5,5,1,1,5,1,1],{lethal:true});Object.assign(g.players[2],{x:15,y:7,status:'standing'});g.throwTeamMate(12,7);assert.equal(g.pending,null);assert.equal(g.active,1);assert.equal(queue.length,0);

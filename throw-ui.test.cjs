@@ -16,6 +16,26 @@ function uiFixture(scenario='throw-team-mate'){
  return {get,context,run:code=>vm.runInContext(code,context)};
 }
 
+test('exhibition pregame buttons add and remove one apothecary per team',()=>{
+ const {get,run}=uiFixture('match');
+ const add=get('matchflow').children.find(e=>e.textContent==='Add apothecary — '+run('teams[0].name'));assert.ok(add);add.listeners.click();assert.equal(run('game.apothecaries[0]'),1);
+ const remove=get('matchflow').children.find(e=>e.textContent==='Remove apothecary — '+run('teams[0].name'));assert.ok(remove);remove.listeners.click();assert.equal(run('game.apothecaries[0]'),0);
+});
+test('apothecary UI preserves the defending coach and resumes the suspended action once',()=>{
+ const {get,run}=uiFixture('dodge');run('game.apothecaries=[0,1];game.players[11].role=1;globalThis.rolls=[16,1,9,1];game.dice=()=>rolls.shift();globalThis.medicalCalls=0;game.injuryResult(game.players[11],10,()=>medicalCalls++);render()');
+ assert.equal(run('game.pending.team'),1);assert.ok(get('choices').children.some(e=>e.textContent.includes(run('teams[1].name')+' — Apothecary')));
+ const old=get('choices').children.find(e=>e.textContent==='Use Apothecary');old.listeners.click();assert.equal(run('medicalCalls'),0);old.listeners.click();assert.equal(run('game.apothecaries[1]'),0);
+ get('choices').children.find(e=>e.textContent==='Use new: Seriously hurt').listeners.click();assert.equal(run('medicalCalls'),1);assert.equal(run('game.players[11].casualty.result'),'Seriously hurt');assert.match(get('dugout').textContent,/Seriously hurt/);
+});
+test('apothecary cure button cannot erase a fall turnover in the bundled UI',()=>{
+ const {get,run}=uiFixture('dodge');run('game.apothecaries=[1,0];globalThis.rolls=[6,6,6,6,1,1];game.dice=()=>rolls.shift();game.fall(game.players[0]);render()');assert.equal(run('game.active'),0);
+ get('choices').children.find(e=>e.textContent==='Use Apothecary').listeners.click();assert.equal(run('game.active'),1);assert.equal(run('game.players[0].status'),'reserve');
+});
+test('Plague Ridden choice buttons create the selected team lineman and reject double clicks',()=>{
+ const {get,run}=uiFixture('dodge');run('teams[0].positions.push({...teams[0].positions[0],name:"Alternate Lineman"});game.players[0].extraSkills=["Plague Ridden"];game.players[11].role=1;globalThis.rolls=[16,1];game.dice=()=>rolls.shift();game.resolveInjury(game.players[11],10,()=>{},{source:{playerId:game.players[0].id,cause:"Block"},plague:true});render()');
+ assert.equal(run('game.pending.team'),0);const button=get('choices').children.find(e=>e.textContent.startsWith('Raise Alternate Lineman'));assert.ok(button);button.listeners.click();button.listeners.click();assert.equal(run('game.players.length'),23);assert.equal(run('game.profile(game.players.at(-1)).name'),'Alternate Lineman');
+});
+
 test('Tentacles defending coach choice in the bundled UI suspends a committed route',()=>{
  const {get,run}=uiFixture('dodge');
  run('game.players[11].extraSkills=["Tentacles"];game.dice=()=>6;game.start(game.players[0].id);selected=game.players[0].id;choose(9,6);choose(9,6);render()');
@@ -33,7 +53,7 @@ test('Shadowing defending coach button resumes a dodge in the bundled UI',()=>{
 });
 test('Arm Bar owner and injury modifier are both reachable through browser buttons',()=>{
  const {get,run}=uiFixture('dodge');
- run('game.players[11].extraSkills=["Arm Bar"];game.rerolls=[0,0];globalThis.rolls=[1,6,6,4,5];game.dice=()=>rolls.shift();game.start(game.players[0].id);selected=game.players[0].id;choose(9,6);choose(9,6);render()');
+ run('game.players[11].extraSkills=["Arm Bar"];game.rerolls=[0,0];globalThis.rolls=[1,6,6,4,5,1,1];game.dice=()=>rolls.shift();game.start(game.players[0].id);selected=game.players[0].id;choose(9,6);choose(9,6);render()');
  get('choices').children.find(e=>e.textContent.includes('(1-1)')).listeners.click();assert.equal(run('game.pending.team'),1);
  assert.ok(get('choices').children.some(e=>e.textContent===run('teams[1].name')+' — Arm Bar — choose:'));
  get('choices').children.find(e=>e.textContent==='Add +1 to Injury').listeners.click();

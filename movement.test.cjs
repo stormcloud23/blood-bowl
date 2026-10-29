@@ -281,7 +281,7 @@ test("opposition Catch reroll available but no opposing team reroll",()=>{
  assert.deepEqual(g.pending.options,["Catch"]);choose(g,"Catch");assert.equal(g.ball.carrier,p.id);
 });
 test("Regeneration removes casualty to reserves",()=>{
- const g=fixture([2,1,6,6,6,6,4],"traits"),p=g.players[11];g.endTurn();g.start(p.id);p.spent=4;g.step(13,6);
+ const g=fixture([2,1,6,6,6,6,1,1,4],"traits"),p=g.players[11];g.endTurn();g.start(p.id);p.spent=4;g.step(13,6);
  assert.equal(p.status,"reserve");assert.equal(g.onPitch(p),false);
 });
 test("prone and distracted opponents do not mark",()=>{

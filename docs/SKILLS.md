@@ -16,7 +16,7 @@ Build with `node build.cjs` and verify all suites with `node --test *.test.cjs`.
 
 Reviewed October 28, 2026 against the full [Blood Bowl 2025 Skills & Traits list](https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/), [current FAQ](https://bloodbowlbase.ru/bb2025/core_rules/latest_faq/), [Foul / Argue the Call rules](https://bloodbowlbase.ru/bb2025/core_rules/the_game_of_blood_bowl/#foul-actions), and [Bribes](https://bloodbowlbase.ru/bb2025/core_rules/inducements/#0-3-bribes-0-6-for-teams-with-the-bribery-and-corruption-special-rule).
 
-All 108 entries are accounted for: **98 implemented**, **2 partial**, **8 deferred**. Implemented describes support within the available actions and exhibition sequence, not missing league or inducement systems. Deferred abilities are not offered as laboratory additions. Each deferred row records the missing dependency for a future pass. This table and the app inventory share the same registry in skills.cjs.
+All 108 entries are accounted for: **100 implemented**, **2 partial**, **6 deferred**. Implemented describes support within the available actions and exhibition sequence, not missing league or inducement systems. Deferred abilities are not offered as laboratory additions. Each deferred row records the missing dependency for a future pass. This table and the app inventory share the same registry in skills.cjs.
 
 ## How to try them
 
@@ -117,7 +117,7 @@ Sources: [Throw Team-mate and landing](https://bloodbowlbase.ru/bb2025/core_rule
 | Bone Head | Traits | Passive * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Breathe Fire | Traits | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Chainsaw | Traits | Active * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
-| Decay | Traits | Passive * | Deferred | Requires actual Casualty Table rolls; current casualties remove players without persistent injury results. |
+| Decay | Traits | Passive * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Drunkard | Traits | Passive * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Hatred (X) | Traits | Passive * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Hypnotic Gaze | Traits | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
@@ -127,7 +127,7 @@ Sources: [Throw Team-mate and landing](https://bloodbowlbase.ru/bb2025/core_rule
 | My Ball | Traits | Passive * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | No Ball | Traits | Passive * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Pick-me-up | Traits | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
-| Plague Ridden | Traits | Passive | Deferred | Requires death results, apothecary timing, roster additions and post-game hiring. |
+| Plague Ridden | Traits | Passive | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Pogo | Traits | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Projectile Vomit | Traits | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Really Stupid | Traits | Passive * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |

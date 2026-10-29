@@ -272,6 +272,7 @@ SOFTWARE.
 class MovementGame {
  constructor(teams, {dice=null, scenario="teams"}={}) {
   this.teams=teams; this.dice=dice || (s=>1+Math.floor(Math.random()*s));
+  this.apothecaries=teams.map(t=>t.apothecaries||0);this.injuryRecords=[];this.plagueUsed=[false,false];
   this.active=scenario==="block"?1:0; this.turns=[1,0]; this.rerolls=[2,2]; this.mover=null;
   this.pending=null; this.interruptions=[]; this.finished=false; this.events=[]; this.ball={x:12,y:7,carrier:null};
   this.action=null;this.blockAction=null;this.secureUsed=[false,false];this.blitzUsed=[false,false];this.blitzTarget=null;this.blitzBlocked=false;this.practicePlayer=null;
@@ -311,7 +312,68 @@ class MovementGame {
   }
   this.note((scenario==="block"?"Block practice started.":scenario==="secure"?"Secure the Ball practice started.":"Movement practice started.")+" Perfect Conditions; two team re-rolls each.");
  }
- profile(p){return this.teams[p.team].positions[p.role];}
+ profile(p){return p.profileOverride||this.teams[p.team].positions[p.role];}
+ treatmentChoice(kind,p,options,resolve){
+  const q={type:"custom",kind,team:p.team,options,resolve:choice=>{
+   if(this.pending!==q||!options.includes(choice))return false;
+   this.pending=null;resolve(choice);return true;
+  }};this.pending=q;
+ }
+ casualtyRoll(p){
+  const die=this.roll("Casualty",16),detail=this.roll("Casualty detail"),modifier=(this.has(p,"Decay")?1:0)+(p.nigglingInjuries||0),total=die+modifier;
+  let result=total>=15?"Dead":total>=13?["Head injury","Head injury","Smashed knee","Broken arm","Dislocated hip","Dislocated shoulder"][detail-1]:total>=11?"Serious injury":total>=9?"Seriously hurt":"Badly hurt";
+  // Casualty reduction limits use the permanent position, excluding temporary
+  // Horns, Block strength and Pick-me-up changes.
+  const attribute={"Head injury":"av","Smashed knee":"ma","Broken arm":"pa","Dislocated hip":"ag","Dislocated shoulder":"st"}[result],profile=p.profileOverride||this.teams[p.team].positions[p.role];
+  if(attribute){const value=parseInt(profile[attribute]),limit={ma:1,st:1,ag:6,pa:6,av:3}[attribute];if(!value||value===limit)result="Seriously hurt";}
+  this.note("#"+p.number+" casualty: "+result+" ("+die+(modifier?" + "+modifier:"")+").");
+  return {die,detail,modifier,total,result,missNext:!["Badly hurt","Dead"].includes(result),niggling:result==="Serious injury",attribute:result==="Seriously hurt"?null:attribute||null,dead:result==="Dead"};
+ }
+ // Treatment owns the continuation: no bounce, send-off or turn cleanup until
+ // every medical decision for this injury has completed.
+ resolveInjury(p,total,done=()=>{},{crowd=false,stunIsKo=false,stunty=true,source=null,plague=false}={}){
+  const origin={x:p.x,y:p.y},small=stunty&&!this.has(p,"Iron Hard Skin")&&this.has(p,"Stunty"),thick=this.has(p,"Thick Skull"),stunMax=small?(thick?7:6):(thick?8:7),koMax=small?8:9;
+  let state=total<=stunMax?(crowd?"reserve":stunIsKo?"knocked-out":"stunned"):total<=koMax?"knocked-out":"casualty";
+  const record={playerId:p.id,team:p.team,injury:total,source:source?{...source}:null,original:null,selected:null,treatment:null};
+  if(state==="casualty")record.original=record.selected=small&&total===9?{result:"Badly hurt",automatic:true}:this.casualtyRoll(p);
+  p.status=state;if(["knocked-out","casualty","reserve"].includes(state)){p.x=null;p.y=null;}
+  const finish=()=>{
+   p.status=state;p.rooted=false;this.onProne(p);
+   if(state==="stunned"){p.x=origin.x;p.y=origin.y;}
+   if(["knocked-out","casualty","reserve"].includes(state)){p.x=null;p.y=null;}
+   if(record.original){p.casualty=state==="casualty"?record.selected:null;if(source)p.casualtySource={...source};}
+   record.status=state;this.injuryRecords.push(record);this.note("#"+p.number+" injury result: "+state+(p.casualty?" — "+p.casualty.result:"")+".");
+   if(state==="casualty"&&record.selected.result==="Dead"&&plague&&this.raisePlaguePlayer){this.raisePlaguePlayer(p,source,done);return;}
+   done();
+  };
+  const medical=()=>{
+   if(!["casualty","knocked-out"].includes(state)||!this.apothecaries[p.team]){finish();return;}
+   this.treatmentChoice("Apothecary — #"+p.number+(record.selected?": "+record.selected.result:" knocked out"),p,["Use Apothecary","Decline treatment"],choice=>{
+    if(choice!=="Use Apothecary"){finish();return;}
+    this.apothecaries[p.team]--;record.treatment="Apothecary";
+    if(state==="knocked-out"||record.selected.result==="Badly hurt"){
+     state=state==="knocked-out"&&!crowd&&!stunIsKo?"stunned":"reserve";finish();return;
+    }
+    const second=this.casualtyRoll(p);record.alternative=second;
+    if(second.result==="Badly hurt"){record.selected=second;state="reserve";finish();return;}
+    this.treatmentChoice("Apothecary result — #"+p.number,p,["Keep original: "+record.original.result,"Use new: "+second.result],option=>{record.selected=option.startsWith("Use new:")?second:record.original;finish();});
+   });
+  };
+  if(state==="casualty"&&this.has(p,"Regeneration")){
+   record.regeneration=this.roll("Regeneration needs 4+");
+   if(record.regeneration>=4){state="reserve";record.treatment="Regeneration";finish();return;}
+   if(this.canTeamReroll(p)){
+    this.treatmentChoice("Regeneration — #"+p.number,p,["Team re-roll Regeneration","Accept Regeneration failure"],choice=>{
+     if(choice==="Team re-roll Regeneration"&&this.useTeamReroll(p)){
+      record.regenerationReroll=this.roll("Regeneration re-roll needs 4+");
+      if(record.regenerationReroll>=4){state="reserve";record.treatment="Regeneration";finish();return;}
+     }
+     medical();
+    });return;
+   }
+  }
+  medical();
+ }
  has(p,skill){return this.profile(p).skills.includes(skill);}
  rushLimit(p){return 2;}
  standCost(p){return Math.min(3,this.profile(p).ma);}
@@ -607,10 +669,8 @@ class MovementGame {
   if(!this.inside(destination.x,destination.y)){
    const carrying=this.ball.carrier===victim.id;this.note("#"+victim.number+" is pushed into the Crowd.");victim.x=null;victim.y=null;
    if(victim.team===this.active&&this.blockAction)this.blockAction.turnover=true;
-   const injury=this.roll("Crowd injury")+this.roll("Crowd injury"),stunty=this.has(victim,"Stunty"),thick=this.has(victim,"Thick Skull"),stunMax=stunty?(thick?7:6):(thick?8:7),koMax=stunty?8:9;
-   if(injury<=stunMax)victim.status="reserve";else if(injury<=koMax)victim.status="knocked-out";else if(this.has(victim,"Regeneration")&&this.roll("Regeneration needs 4+")>=4)victim.status="reserve";else victim.status="casualty";
-   this.note("Crowd injury: #"+victim.number+" is "+victim.status+".");
-   const after=()=>done(true);if(carrying){this.ball={x:from.x,y:from.y,carrier:null};this.throwIn(from.x,from.y,after);}else after();return;
+   const injury=this.roll("Crowd injury")+this.roll("Crowd injury");
+   this.resolveInjury(victim,injury,()=>{const after=()=>done(true);if(carrying){this.ball={x:from.x,y:from.y,carrier:null};this.throwIn(from.x,from.y,after);}else after();},{crowd:true});return;
   }
   const occupant=this.at(destination.x,destination.y);
   if(occupant){
@@ -817,7 +877,7 @@ class MovementGame {
   const resolve=()=>{if(options.skipPlacement)this.resolveFall(p,options);else this.beforeProne(p,{x:p.x,y:p.y},()=>this.resolveFall(p,options));};
   if(options.skipPrevention)resolve();else this.preventFall(p,()=>{if(options.prevented)options.prevented();else if(options.after)options.after();},resolve);
  }
- resolveFall(p,{turnover=true,after=null,mightyBlowBy=null,armBarBy=null,impactBy=null,savageryBy=null,blockBlast=false}={}){
+ resolveFall(p,{turnover=true,after=null,mightyBlowBy=null,armBarBy=null,impactBy=null,savageryBy=null,blockBlast=false,injurySource=null,plagueEligible=false}={}){
   const modifierKind=impactBy?"Lethal Flight":armBarBy?"Arm Bar":"Mighty Blow",modifierBy=impactBy||armBarBy||mightyBlowBy;
   const injuryBonus=savageryBy?false:impactBy?true:armBarBy?!this.has(p,"Iron Hard Skin"):this.canMighty(mightyBlowBy,p);
   const armourBonus=savageryBy?false:impactBy?!this.has(p,"Iron Hard Skin"):armBarBy?injuryBonus:this.canMightyArmour(mightyBlowBy,p);
@@ -838,17 +898,9 @@ class MovementGame {
    if(carrying||(!this.ball.carrier&&this.ball.x===x&&this.ball.y===y)){this.ball={x,y,carrier:null};this.bounce(x,y,finish);}
    else finish();
   };
-  const injury=modifier=>{
-   const total=this.roll("Injury")+this.roll("Injury")+modifier,stunty=!blockBlast&&this.has(p,"Stunty"),thick=this.has(p,"Thick Skull");
-   const stunMax=stunty?(thick?7:6):(thick?8:7),koMax=stunty?8:9;
-   if(total<=stunMax)p.status="stunned";
-   else if(total<=koMax)p.status="knocked-out";
-   else if(this.has(p,"Regeneration")&&this.roll("Regeneration needs 4+")>=4)p.status="reserve";
-   else p.status="casualty";
-   this.note("#"+p.number+" injury result: "+p.status+".");
-   if(["knocked-out","casualty","reserve"].includes(p.status)){p.x=null;p.y=null;}
-   complete();
-  };
+  const source=injurySource||(armBarBy?{playerId:armBarBy.id,cause:"Arm Bar"}:impactBy?{playerId:impactBy.id,cause:"Lethal Flight"}:savageryBy?{playerId:savageryBy.id,cause:"Animal Savagery"}:mightyBlowBy?{playerId:mightyBlowBy.id,cause:"Block"}:null);
+  const applyInjury=total=>this.resolveInjury(p,total,complete,{stunty:!blockBlast,source,plague:plagueEligible||source?.cause==="Block"&&!!this.blockAction});
+  const injury=modifier=>applyInjury(this.roll("Injury")+this.roll("Injury")+modifier);
   const armour=this.roll("Armour")+this.roll("Armour")+(savageryBy&&!this.has(p,"Iron Hard Skin")&&this.has(mightyBlowBy,"Mighty Blow")?1:0);
   const continueAfterArmour=bonus=>{
    if(broken(armour,bonus))injury(0);
@@ -859,15 +911,10 @@ class MovementGame {
    const dice=this.roll("Injury")+this.roll("Injury");
    if(injuryBonus){
     modifierChoice(["Add +1 to Injury","No modifier"],choice=>{
-     const stunty=this.has(p,"Stunty"),thick=this.has(p,"Thick Skull"),result=dice+(choice==="Add +1 to Injury"?1:0);
-     const stunMax=stunty?(thick?7:6):(thick?8:7),koMax=stunty?8:9;
-     if(result<=stunMax)p.status="stunned";else if(result<=koMax)p.status="knocked-out";else if(this.has(p,"Regeneration")&&this.roll("Regeneration needs 4+")>=4)p.status="reserve";else p.status="casualty";
-     this.note("#"+p.number+" injury result: "+p.status+".");if(["knocked-out","casualty","reserve"].includes(p.status)){p.x=null;p.y=null;}complete();
+     applyInjury(dice+(choice==="Add +1 to Injury"?1:0));
     });
    }else{
-    const stunty=!blockBlast&&this.has(p,"Stunty"),thick=this.has(p,"Thick Skull"),stunMax=stunty?(thick?7:6):(thick?8:7),koMax=stunty?8:9;
-    if(dice<=stunMax)p.status="stunned";else if(dice<=koMax)p.status="knocked-out";else if(this.has(p,"Regeneration")&&this.roll("Regeneration needs 4+")>=4)p.status="reserve";else p.status="casualty";
-    this.note("#"+p.number+" injury result: "+p.status+".");if(["knocked-out","casualty","reserve"].includes(p.status)){p.x=null;p.y=null;}complete();
+    applyInjury(dice);
    }
   }else if(armourBonus){
    modifierChoice(["Add +1 to Armour","No modifier"],choice=>{
@@ -938,15 +985,26 @@ const SKILL_DEFERRED={
  "Ball & Chain":"Needs directional random movement, collision Blocks against either team and special injury handling.",
  "Bloodlust (X+)":"Needs Thrall selection, bite injury, action replacement and feeding before passing or scoring.",
  "Bombardier":"Needs a separate bomb object, explosions, recursive caught-bomb throws and simultaneous injuries.",
- "Decay":"Requires actual Casualty Table rolls; current casualties remove players without persistent injury results.",
  "Insignificant":"Requires the Team Draft List / roster builder.",
- "Plague Ridden":"Requires death results, apothecary timing, roster additions and post-game hiring.",
 };
 const SKILL_PARTIAL={"Leader":"Exhibition re-roll and missing-Leader eligibility are supported; Halfling Master Chef interactions await inducements.","Secret Weapon":"End-of-drive send-off, Argue the Call and available Bribes are supported; bribe-related roster special rules await inducements."};
 const PASSIVES=new Set(["Claws","Disturbing Presence","Foul Appearance","Iron Hard Skin","Leader","Thick Skull","Animal Savagery","Bloodlust (X+)","Bone Head","Decay","Drunkard","Hatred (X)","Insignificant","Kick Team-mate","Loner (X+)","My Ball","No Ball","Plague Ridden","Really Stupid","Regeneration","Right Stuff","Secret Weapon","Stunty","Take Root","Timmm-ber!","Titchy","Unchannelled Fury","Unsteady"]);
 const MANDATORY=new Set(["Frenzy","Disturbing Presence","Foul Appearance","Always Hungry","Animal Savagery","Animosity (X)","Ball & Chain","Bloodlust (X+)","Bone Head","Chainsaw","Decay","Drunkard","Hatred (X)","Insignificant","Loner (X+)","My Ball","No Ball","Really Stupid","Right Stuff","Secret Weapon","Stunty","Take Root","Titchy","Unchannelled Fury","Unsteady"]);
 const SKILL_CATALOG=Object.entries(SKILL_GROUPS).flatMap(([category,names])=>names.map(name=>({name,category,kind:PASSIVES.has(name)?"Passive":"Active",mandatory:MANDATORY.has(name),status:SKILL_DEFERRED[name]?"Deferred":SKILL_PARTIAL[name]?"Partial":"Implemented",notes:SKILL_DEFERRED[name]||SKILL_PARTIAL[name]||"Supported in the available actions. Optional abilities may be disabled before action resolution.",source:"https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/#"+name.toLowerCase().replace(/[^a-z0-9 ]/g,"").replaceAll(" ","-")})));
 class SkillGame extends SkillBase {
+ raisePlaguePlayer(victim,source,done){
+  const attacker=this.players.find(p=>p.id===source?.playerId),team=attacker?.team;
+  if(!attacker||attacker.team===victim.team||!this.has(attacker,"Plague Ridden")||this.plagueUsed[team]||["Decay","Regeneration","Stunty"].some(s=>this.has(victim,s))||this.keywords(victim).includes("big guy")){done();return;}
+  const roles=this.teams[team].positions.map((profile,role)=>({profile,role})).filter(({profile})=>profile.traits.split(",").some(k=>k.trim().toLowerCase()==="lineman")&&!/star|irregular|infamous staff/i.test(profile.traits));
+  const create=({profile,role})=>{
+   const number=Math.max(...this.players.filter(p=>p.team===team).map(p=>p.number))+1;this.plagueUsed[team]=true;
+   this.players.push({id:team+"-"+number,number,team,role,x:null,y:null,status:"reserve",used:false,spent:0,raisedFrom:victim.id});
+   this.note("Plague Ridden: #"+number+" "+profile.name+" joins "+this.teams[team].name+" in reserves.");done();
+  };
+  if(!roles.length){done();return;}if(roles.length===1){create(roles[0]);return;}
+  const options=roles.map(({profile,role})=>"Raise "+profile.name+" ("+role+")");
+  this.treatmentChoice("Plague Ridden lineman",attacker,options,choice=>create(roles[options.indexOf(choice)]));
+ }
  // A separate declaration allowance: throwing a player does not consume the Pass.
  canThrowTeamMate(p){return !!(this.canStart(p)&&this.has(p,"Throw Team-mate")&&!this.throwUsed?.[p.team]);}
  canKickTeamMate(p){return !!(this.canStart(p)&&this.has(p,"Kick Team-mate")&&!this.kickUsed?.[p.team]);}
@@ -980,7 +1038,7 @@ class SkillGame extends SkillBase {
   };
   const carrying=this.ball.carrier===p.id;
   const fumble=()=>{
-   if(kicked){this.note("Fumbled Kick Team-mate: injury without armour.");p.x=origin.x;p.y=origin.y;this.injuryResult(p,this.roll("Kicked player Injury")+this.roll("Kicked player Injury"));if(p.status==="stunned"){p.status="knocked-out";p.x=null;p.y=null;}if(carrying){this.ball={...origin,carrier:null};this.bounce(origin.x,origin.y,()=>end(true));}else end(false);return;}
+   if(kicked){this.note("Fumbled Kick Team-mate: injury without armour.");p.x=origin.x;p.y=origin.y;this.injuryResult(p,this.roll("Kicked player Injury")+this.roll("Kicked player Injury"),()=>{if(carrying){this.ball={...origin,carrier:null};this.bounce(origin.x,origin.y,()=>end(true));}else end(false);},{stunIsKo:true,stunty:false});return;}
    this.note("Fumbled Throw: bounce from the throwing player.");airborne();land(drift(a,"Fumbled player bounce"),true,false,a);
   };
   const resolve=n=>{
@@ -1288,12 +1346,13 @@ class SkillGame extends SkillBase {
   const finish=()=>{const cleanup=()=>{if(name!=="Chomp"||this.action!=="blitz"){this.mover=null;this.action=null;}this.checkScore();};if(name==="Stab")this.hitAndRun(p,cleanup);else cleanup();},perform=()=>{
    if(name==="Chomp"){this.test(p,"Chomp",3,()=>{target.chompers=[...new Set([...(target.chompers||[]),p.id])];this.note("#"+target.number+" is Chomped.");finish();},finish);return;}
    if(name==="Hypnotic Gaze"){this.test(p,"Hypnotic Gaze",3,()=>{target.distracted=true;this.refreshChomps();finish();},finish);return;}
-   if(name==="Stab"){this.armourOnly(target,finish);return;}
-   if(name==="Projectile Vomit"){this.test(p,name,2,()=>this.armourOnly(target,finish),()=>this.armourOnly(p,finish));return;}
-   if(name==="Chainsaw"){this.test(p,"Chainsaw kick-back",2,()=>this.armourOnly(target,finish,{bonus:this.has(target,"Iron Hard Skin")?0:3}),()=>this.fall(p,{prevented:finish}));return;}
+   const medical={source:{playerId:p.id,cause:name},plague:this.action==="blitz"};
+   if(name==="Stab"){this.armourOnly(target,finish,medical);return;}
+   if(name==="Projectile Vomit"){this.test(p,name,2,()=>this.armourOnly(target,finish,medical),()=>this.armourOnly(p,finish,medical));return;}
+   if(name==="Chainsaw"){this.test(p,"Chainsaw kick-back",2,()=>this.armourOnly(target,finish,{...medical,bonus:this.has(target,"Iron Hard Skin")?0:3}),()=>this.fall(p,{prevented:finish}));return;}
    if(name==="Breathe Fire"){
     const penalty=+this.profile(target).st>=5?1:0;this.test(p,"Breathe Fire",4+penalty,n=>{
-     if(n===6){this.fall(target,{turnover:false,after:finish});return;}this.placeProne(target,finish);
+     if(n===6){this.fall(target,{turnover:false,after:finish,injurySource:medical.source,plagueEligible:medical.plague});return;}this.placeProne(target,finish);
     },n=>{if(n===1||n-penalty===1)this.fall(p,{prevented:finish});else finish();});
    }
   };
@@ -1385,16 +1444,12 @@ class SkillGame extends SkillBase {
   const options=squares.map(pos=>"Move free to "+(pos.x+1)+", "+(pos.y+1)).concat("Stay");
   this.skillChoice("Hit and Run",p.team,options,choice=>{const pos=squares[options.indexOf(choice)];if(pos){this.use(p,"Hit and Run");this.reactionMove(p,pos,done);}else done();});
  }
- injuryResult(p,total){const stunty=this.has(p,"Stunty"),thick=this.has(p,"Thick Skull"),stunMax=stunty?(thick?7:6):(thick?8:7),koMax=stunty?8:9;
-  if(total<=stunMax)p.status="stunned";else if(total<=koMax)p.status="knocked-out";else if(this.has(p,"Regeneration")&&this.roll("Regeneration needs 4+")>=4)p.status="reserve";else p.status="casualty";
-  if(["knocked-out","casualty","reserve"].includes(p.status)){p.x=null;p.y=null;}p.rooted=false;this.onProne(p);this.note("#"+p.number+" injury result: "+p.status+".");
- }
- armourOnly(p,done,{bonus=0,injuryBonus=0,onDice=null}={}){
+ injuryResult(p,total,done=()=>{},options={}){this.resolveInjury(p,total,done,options);}
+ armourOnly(p,done,{bonus=0,injuryBonus=0,onDice=null,source=null,plague=false}={}){
   const a=this.roll("Armour"),b=this.roll("Armour");if(onDice)onDice("Armour",a,b);if(a+b+bonus<parseInt(this.profile(p).av)){this.note("Armour holds.");done();return;}
   const x=p.x,y=p.y,carrying=this.ball.carrier===p.id;
   this.beforeProne(p,{x,y},()=>{
-   const c=this.roll("Injury"),d=this.roll("Injury");if(onDice)onDice("Injury",c,d);this.injuryResult(p,c+d+injuryBonus);
-   const finish=()=>{this.syncLeader?.();if(carrying&&p.team===this.active)this.endTurn(true);else done();};this.releaseProneBall(p,{x,y},finish);
+   const c=this.roll("Injury"),d=this.roll("Injury");if(onDice)onDice("Injury",c,d);const finish=()=>{this.syncLeader?.();if(carrying&&p.team===this.active)this.endTurn(true);else done();};this.injuryResult(p,c+d+injuryBonus,()=>this.releaseProneBall(p,{x,y},finish),{source,plague});
   });
  }
  foul(p,target,{chainsaw=false,chosen=false,after=null}={}){
@@ -1416,7 +1471,7 @@ class SkillGame extends SkillBase {
     const keep=()=>{if(a===b&&(!this.skill(p,"Sneaky Git")||broken))sent=true;
      if(!broken){finish();return;}
      const c=this.roll("Foul Injury"),d=this.roll("Foul Injury");if(c===d)sent=true;
-     const apply=add=>{this.injuryResult(target,c+d+add);finish();};if(dirty&&!bonus)this.pending={type:"custom",kind:"Dirty Player",options:["Add +1 to Injury","No modifier"],resolve:choice=>{this.pending=null;apply(choice==="Add +1 to Injury"?1:0);}};else apply(0);
+     const apply=add=>this.injuryResult(target,c+d+add,finish,{source:{playerId:p.id,cause:"Foul"}});if(dirty&&!bonus)this.pending={type:"custom",kind:"Dirty Player",options:["Add +1 to Injury","No modifier"],resolve:choice=>{this.pending=null;apply(choice==="Add +1 to Injury"?1:0);}};else apply(0);
     };
     const stalling=this.wouldEndTurnTriggerStalling?.(p);
     if(!rerolled&&!offense&&!defense&&this.skill(p,"Lone Fouler")&&(!broken||a===b||stalling))this.pending={type:"custom",kind:"Lone Fouler",options:["Re-roll Armour","Keep result"],resolve:choice=>{this.pending=null;if(choice==="Re-roll Armour"){sent=false;rollArmour(true);}else keep();}};
@@ -1518,6 +1573,10 @@ class MatchGame extends MatchBase {
   this.players.forEach(p=>Object.assign(p,{x:null,y:null,status:"reserve"}));this.note("Exhibition match: 11 demo players, 1 Dedicated Fan, 2 team re-rolls, no purchased staff per team. League-only Journeymen and Inducements do not apply.");
  }
  profile(p){const base=super.profile(p);return p.snack?{...base,ma:Math.max(1,base.ma-1),av:Math.max(3,parseInt(base.av)-1)+"+"}:base;}
+ setApothecary(team,enabled){
+  if(this.phase!=="fans"||this.pending||![0,1].includes(team)||!this.teams[team].staff?.apothecary)return false;
+  this.apothecaries[team]=enabled?1:0;return true;
+ }
  right(team){return (team===0)===(this.half===1);}
  ownHalf(team,x){return this.inside(x,7)&&(this.right(team)?x<=12:x>=13);}
  line(team){return this.right(team)?12:13;}
@@ -1903,7 +1962,7 @@ function render(){
  document.getElementById("mode-notice").textContent=game.match?"Exhibition match: play through pre-game, setup, kickoff, turns, drive recovery, and two halves. League progression and additional player actions remain in development.":"Practice actions with Perfect Conditions. Select a drill to try individual rules.";
  if(game.match)renderMatch();else document.getElementById("matchflow").hidden=true;
  renderSkillControls();
- document.getElementById("dugout").textContent=game.players.filter(p=>!game.onPitch(p)&&p.status!=="reserve").map(p=>teams[p.team].name+" #"+p.number+": "+p.status).join(" · ");
+ document.getElementById("dugout").textContent=game.players.filter(p=>!game.onPitch(p)&&p.status!=="reserve").map(p=>teams[p.team].name+" #"+p.number+": "+p.status+(p.casualty?" — "+p.casualty.result:"")).join(" · ");
 }
 function skillEntry(name){return SKILL_CATALOG.find(s=>s.name===name||s.name.includes("(X")&&name.startsWith(s.name.split(" (")[0]+" ("));}
 function renderSkillControls(){
@@ -1937,11 +1996,12 @@ function matchRun(fn){fn();destination=null;blockMode=false;ballMode=false;throw
 function renderMatch(){
  const panel=document.getElementById("matchflow");panel.hidden=false;panel.replaceChildren();
  const title=document.createElement("h2");title.textContent=teams[0].name+" "+game.scores[0]+" – "+game.scores[1]+" "+teams[1].name;panel.append(title);
- const info=document.createElement("p");info.textContent="Half "+game.half+" · Drive "+game.drive+" · Turn markers "+game.turns.join(" / ")+" · "+game.weather+" · Fan Factors "+game.fans.join(" / ")+(game.learning?" · Learning rules: equal fans, Perfect Conditions, no Kick-off Event.":"");panel.append(info);
+ const info=document.createElement("p");info.textContent="Half "+game.half+" · Drive "+game.drive+" · Turn markers "+game.turns.join(" / ")+" · "+game.weather+" · Fan Factors "+game.fans.join(" / ")+" · Apothecaries "+game.apothecaries.join(" / ")+(game.learning?" · Learning rules: equal fans, Perfect Conditions, no Kick-off Event.":"");panel.append(info);
  const say=text=>{const p=document.createElement("p");p.textContent=text;panel.append(p);};
  const add=(label,fn)=>panel.append(button(label,()=>matchRun(fn)));
  if(["fans","weather","leagueSteps","rolloff"].includes(game.phase)){
   say(game.phase==="fans"?"Pre-game 1: determine the fans in attendance.":game.phase==="weather"?"Pre-game 2: determine the weather.":game.phase==="leagueSteps"?"Pre-game 3–4: Journeymen and Inducements apply to League Play. This match uses the existing exhibition rosters.":"Pre-game 5: roll off. The winning coach chooses which team kicks.");
+  if(game.phase==="fans")for(const team of [0,1])if(teams[team].staff?.apothecary){say(teams[team].name+" apothecary: "+(game.apothecaries[team]?"available":"none"));add((game.apothecaries[team]?"Remove":"Add")+" apothecary — "+teams[team].name,()=>game.setApothecary(team,!game.apothecaries[team]));}
   add(game.phase==="fans"?"Determine fans":game.phase==="weather"?"Determine weather":game.phase==="leagueSteps"?"Continue exhibition pre-game":"Roll for kick or receive",()=>game.advancePregame());
  }else if(game.phase==="kickChoice"){
   say(teams[game.rolloffWinner].name+" won the roll-off. Choose who kicks first.");for(const t of [0,1])add(teams[t].name+" kicks",()=>game.chooseKicking(t));
@@ -1970,7 +2030,7 @@ function renderMatch(){
 function renderRosters(){
  document.getElementById("rosters").innerHTML=teams.map((t,team)=>{
  const total=t.lineup.reduce((n,r)=>n+t.positions[r].cost,0);
- return '<article class="panel"><div class="roster-heading"><h2>'+t.name+'</h2><span class="badge">Tier '+t.tier+'</span></div><p class="team-summary">'+t.league+' · '+(t.special.length?t.special.join(" · "):"No team special rules listed")+'</p><div class="table-scroll"><table><caption>Available positions · click a position to inspect</caption><thead><tr>'+["Position","Limit","MA","ST","AG","PA","AV","Skills & traits","Primary","Secondary","Cost"].map(h=>'<th scope="col">'+h+'</th>').join("")+'</tr></thead><tbody>'+t.positions.map((p,r)=>'<tr><td><button class="role-button" data-team="'+team+'" data-role="'+r+'">'+p.name+'</button><br><small>'+p.traits+'</small></td><td>0–'+p.max+'</td>'+["ma","st","ag","pa","av"].map(k=>'<td>'+p[k]+'</td>').join("")+'<td class="skills">'+p.skills.join(", ")+'</td><td>'+p.primary+'</td><td>'+p.secondary+'</td><td>'+money(p.cost)+'</td></tr>').join("")+'</tbody></table></div><p class="team-summary"><strong>Demo lineup:</strong> '+t.positions.map((p,r)=>({p,count:t.lineup.filter(v=>v===r).length})).filter(v=>v.count).map(v=>v.count+" × "+v.p.name).join(" · ")+'<br>11 players: '+money(total)+'. With 2 re-rolls: '+money(total+2*t.reroll)+'. These are demonstration selections, not a roster builder.</p><p class="muted">Re-roll: '+money(t.reroll)+' · Apothecary: '+money(t.staff.apothecary)+' · Assistant coach: '+money(t.staff.assistantCoach)+' · Cheerleader: '+money(t.staff.cheerleader)+'</p><p class="muted">Advancement categories: A = Agility · D = Devious · G = General · P = Passing · S = Strength. Profiles only; advancement, staff, special rules, star players, and inducements are not implemented.</p><a class="muted" href="'+t.source+'">Source of truth · reviewed '+t.reviewed+'</a></article>';
+ return '<article class="panel"><div class="roster-heading"><h2>'+t.name+'</h2><span class="badge">Tier '+t.tier+'</span></div><p class="team-summary">'+t.league+' · '+(t.special.length?t.special.join(" · "):"No team special rules listed")+'</p><div class="table-scroll"><table><caption>Available positions · click a position to inspect</caption><thead><tr>'+["Position","Limit","MA","ST","AG","PA","AV","Skills & traits","Primary","Secondary","Cost"].map(h=>'<th scope="col">'+h+'</th>').join("")+'</tr></thead><tbody>'+t.positions.map((p,r)=>'<tr><td><button class="role-button" data-team="'+team+'" data-role="'+r+'">'+p.name+'</button><br><small>'+p.traits+'</small></td><td>0–'+p.max+'</td>'+["ma","st","ag","pa","av"].map(k=>'<td>'+p[k]+'</td>').join("")+'<td class="skills">'+p.skills.join(", ")+'</td><td>'+p.primary+'</td><td>'+p.secondary+'</td><td>'+money(p.cost)+'</td></tr>').join("")+'</tbody></table></div><p class="team-summary"><strong>Demo lineup:</strong> '+t.positions.map((p,r)=>({p,count:t.lineup.filter(v=>v===r).length})).filter(v=>v.count).map(v=>v.count+" × "+v.p.name).join(" · ")+'<br>11 players: '+money(total)+'. With 2 re-rolls: '+money(total+2*t.reroll)+'. These are demonstration selections, not a roster builder.</p><p class="muted">Re-roll: '+money(t.reroll)+' · Apothecary: '+money(t.staff.apothecary)+' · Assistant coach: '+money(t.staff.assistantCoach)+' · Cheerleader: '+money(t.staff.cheerleader)+'</p><p class="muted">Advancement categories: A = Agility · D = Devious · G = General · P = Passing · S = Strength. Exhibitions can include one team apothecary. Advancement, other purchased staff, special rules, star players, and inducements remain incomplete.</p><a class="muted" href="'+t.source+'">Source of truth · reviewed '+t.reviewed+'</a></article>';
  }).join("");
  document.querySelectorAll(".role-button").forEach(button=>button.addEventListener("click",()=>{showProfile(Number(button.dataset.team),Number(button.dataset.role),null);document.getElementById("profile").scrollIntoView({behavior:"smooth",block:"center"});}));
 }

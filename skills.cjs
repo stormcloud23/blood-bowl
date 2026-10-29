@@ -15,15 +15,26 @@ const SKILL_DEFERRED={
  "Ball & Chain":"Needs directional random movement, collision Blocks against either team and special injury handling.",
  "Bloodlust (X+)":"Needs Thrall selection, bite injury, action replacement and feeding before passing or scoring.",
  "Bombardier":"Needs a separate bomb object, explosions, recursive caught-bomb throws and simultaneous injuries.",
- "Decay":"Requires actual Casualty Table rolls; current casualties remove players without persistent injury results.",
  "Insignificant":"Requires the Team Draft List / roster builder.",
- "Plague Ridden":"Requires death results, apothecary timing, roster additions and post-game hiring.",
 };
 const SKILL_PARTIAL={"Leader":"Exhibition re-roll and missing-Leader eligibility are supported; Halfling Master Chef interactions await inducements.","Secret Weapon":"End-of-drive send-off, Argue the Call and available Bribes are supported; bribe-related roster special rules await inducements."};
 const PASSIVES=new Set(["Claws","Disturbing Presence","Foul Appearance","Iron Hard Skin","Leader","Thick Skull","Animal Savagery","Bloodlust (X+)","Bone Head","Decay","Drunkard","Hatred (X)","Insignificant","Kick Team-mate","Loner (X+)","My Ball","No Ball","Plague Ridden","Really Stupid","Regeneration","Right Stuff","Secret Weapon","Stunty","Take Root","Timmm-ber!","Titchy","Unchannelled Fury","Unsteady"]);
 const MANDATORY=new Set(["Frenzy","Disturbing Presence","Foul Appearance","Always Hungry","Animal Savagery","Animosity (X)","Ball & Chain","Bloodlust (X+)","Bone Head","Chainsaw","Decay","Drunkard","Hatred (X)","Insignificant","Loner (X+)","My Ball","No Ball","Really Stupid","Right Stuff","Secret Weapon","Stunty","Take Root","Titchy","Unchannelled Fury","Unsteady"]);
 const SKILL_CATALOG=Object.entries(SKILL_GROUPS).flatMap(([category,names])=>names.map(name=>({name,category,kind:PASSIVES.has(name)?"Passive":"Active",mandatory:MANDATORY.has(name),status:SKILL_DEFERRED[name]?"Deferred":SKILL_PARTIAL[name]?"Partial":"Implemented",notes:SKILL_DEFERRED[name]||SKILL_PARTIAL[name]||"Supported in the available actions. Optional abilities may be disabled before action resolution.",source:"https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/#"+name.toLowerCase().replace(/[^a-z0-9 ]/g,"").replaceAll(" ","-")})));
 class SkillGame extends SkillBase {
+ raisePlaguePlayer(victim,source,done){
+  const attacker=this.players.find(p=>p.id===source?.playerId),team=attacker?.team;
+  if(!attacker||attacker.team===victim.team||!this.has(attacker,"Plague Ridden")||this.plagueUsed[team]||["Decay","Regeneration","Stunty"].some(s=>this.has(victim,s))||this.keywords(victim).includes("big guy")){done();return;}
+  const roles=this.teams[team].positions.map((profile,role)=>({profile,role})).filter(({profile})=>profile.traits.split(",").some(k=>k.trim().toLowerCase()==="lineman")&&!/star|irregular|infamous staff/i.test(profile.traits));
+  const create=({profile,role})=>{
+   const number=Math.max(...this.players.filter(p=>p.team===team).map(p=>p.number))+1;this.plagueUsed[team]=true;
+   this.players.push({id:team+"-"+number,number,team,role,x:null,y:null,status:"reserve",used:false,spent:0,raisedFrom:victim.id});
+   this.note("Plague Ridden: #"+number+" "+profile.name+" joins "+this.teams[team].name+" in reserves.");done();
+  };
+  if(!roles.length){done();return;}if(roles.length===1){create(roles[0]);return;}
+  const options=roles.map(({profile,role})=>"Raise "+profile.name+" ("+role+")");
+  this.treatmentChoice("Plague Ridden lineman",attacker,options,choice=>create(roles[options.indexOf(choice)]));
+ }
  // A separate declaration allowance: throwing a player does not consume the Pass.
  canThrowTeamMate(p){return !!(this.canStart(p)&&this.has(p,"Throw Team-mate")&&!this.throwUsed?.[p.team]);}
  canKickTeamMate(p){return !!(this.canStart(p)&&this.has(p,"Kick Team-mate")&&!this.kickUsed?.[p.team]);}
@@ -57,7 +68,7 @@ class SkillGame extends SkillBase {
   };
   const carrying=this.ball.carrier===p.id;
   const fumble=()=>{
-   if(kicked){this.note("Fumbled Kick Team-mate: injury without armour.");p.x=origin.x;p.y=origin.y;this.injuryResult(p,this.roll("Kicked player Injury")+this.roll("Kicked player Injury"));if(p.status==="stunned"){p.status="knocked-out";p.x=null;p.y=null;}if(carrying){this.ball={...origin,carrier:null};this.bounce(origin.x,origin.y,()=>end(true));}else end(false);return;}
+   if(kicked){this.note("Fumbled Kick Team-mate: injury without armour.");p.x=origin.x;p.y=origin.y;this.injuryResult(p,this.roll("Kicked player Injury")+this.roll("Kicked player Injury"),()=>{if(carrying){this.ball={...origin,carrier:null};this.bounce(origin.x,origin.y,()=>end(true));}else end(false);},{stunIsKo:true,stunty:false});return;}
    this.note("Fumbled Throw: bounce from the throwing player.");airborne();land(drift(a,"Fumbled player bounce"),true,false,a);
   };
   const resolve=n=>{
@@ -365,12 +376,13 @@ class SkillGame extends SkillBase {
   const finish=()=>{const cleanup=()=>{if(name!=="Chomp"||this.action!=="blitz"){this.mover=null;this.action=null;}this.checkScore();};if(name==="Stab")this.hitAndRun(p,cleanup);else cleanup();},perform=()=>{
    if(name==="Chomp"){this.test(p,"Chomp",3,()=>{target.chompers=[...new Set([...(target.chompers||[]),p.id])];this.note("#"+target.number+" is Chomped.");finish();},finish);return;}
    if(name==="Hypnotic Gaze"){this.test(p,"Hypnotic Gaze",3,()=>{target.distracted=true;this.refreshChomps();finish();},finish);return;}
-   if(name==="Stab"){this.armourOnly(target,finish);return;}
-   if(name==="Projectile Vomit"){this.test(p,name,2,()=>this.armourOnly(target,finish),()=>this.armourOnly(p,finish));return;}
-   if(name==="Chainsaw"){this.test(p,"Chainsaw kick-back",2,()=>this.armourOnly(target,finish,{bonus:this.has(target,"Iron Hard Skin")?0:3}),()=>this.fall(p,{prevented:finish}));return;}
+   const medical={source:{playerId:p.id,cause:name},plague:this.action==="blitz"};
+   if(name==="Stab"){this.armourOnly(target,finish,medical);return;}
+   if(name==="Projectile Vomit"){this.test(p,name,2,()=>this.armourOnly(target,finish,medical),()=>this.armourOnly(p,finish,medical));return;}
+   if(name==="Chainsaw"){this.test(p,"Chainsaw kick-back",2,()=>this.armourOnly(target,finish,{...medical,bonus:this.has(target,"Iron Hard Skin")?0:3}),()=>this.fall(p,{prevented:finish}));return;}
    if(name==="Breathe Fire"){
     const penalty=+this.profile(target).st>=5?1:0;this.test(p,"Breathe Fire",4+penalty,n=>{
-     if(n===6){this.fall(target,{turnover:false,after:finish});return;}this.placeProne(target,finish);
+     if(n===6){this.fall(target,{turnover:false,after:finish,injurySource:medical.source,plagueEligible:medical.plague});return;}this.placeProne(target,finish);
     },n=>{if(n===1||n-penalty===1)this.fall(p,{prevented:finish});else finish();});
    }
   };
@@ -462,16 +474,12 @@ class SkillGame extends SkillBase {
   const options=squares.map(pos=>"Move free to "+(pos.x+1)+", "+(pos.y+1)).concat("Stay");
   this.skillChoice("Hit and Run",p.team,options,choice=>{const pos=squares[options.indexOf(choice)];if(pos){this.use(p,"Hit and Run");this.reactionMove(p,pos,done);}else done();});
  }
- injuryResult(p,total){const stunty=this.has(p,"Stunty"),thick=this.has(p,"Thick Skull"),stunMax=stunty?(thick?7:6):(thick?8:7),koMax=stunty?8:9;
-  if(total<=stunMax)p.status="stunned";else if(total<=koMax)p.status="knocked-out";else if(this.has(p,"Regeneration")&&this.roll("Regeneration needs 4+")>=4)p.status="reserve";else p.status="casualty";
-  if(["knocked-out","casualty","reserve"].includes(p.status)){p.x=null;p.y=null;}p.rooted=false;this.onProne(p);this.note("#"+p.number+" injury result: "+p.status+".");
- }
- armourOnly(p,done,{bonus=0,injuryBonus=0,onDice=null}={}){
+ injuryResult(p,total,done=()=>{},options={}){this.resolveInjury(p,total,done,options);}
+ armourOnly(p,done,{bonus=0,injuryBonus=0,onDice=null,source=null,plague=false}={}){
   const a=this.roll("Armour"),b=this.roll("Armour");if(onDice)onDice("Armour",a,b);if(a+b+bonus<parseInt(this.profile(p).av)){this.note("Armour holds.");done();return;}
   const x=p.x,y=p.y,carrying=this.ball.carrier===p.id;
   this.beforeProne(p,{x,y},()=>{
-   const c=this.roll("Injury"),d=this.roll("Injury");if(onDice)onDice("Injury",c,d);this.injuryResult(p,c+d+injuryBonus);
-   const finish=()=>{this.syncLeader?.();if(carrying&&p.team===this.active)this.endTurn(true);else done();};this.releaseProneBall(p,{x,y},finish);
+   const c=this.roll("Injury"),d=this.roll("Injury");if(onDice)onDice("Injury",c,d);const finish=()=>{this.syncLeader?.();if(carrying&&p.team===this.active)this.endTurn(true);else done();};this.injuryResult(p,c+d+injuryBonus,()=>this.releaseProneBall(p,{x,y},finish),{source,plague});
   });
  }
  foul(p,target,{chainsaw=false,chosen=false,after=null}={}){
@@ -493,7 +501,7 @@ class SkillGame extends SkillBase {
     const keep=()=>{if(a===b&&(!this.skill(p,"Sneaky Git")||broken))sent=true;
      if(!broken){finish();return;}
      const c=this.roll("Foul Injury"),d=this.roll("Foul Injury");if(c===d)sent=true;
-     const apply=add=>{this.injuryResult(target,c+d+add);finish();};if(dirty&&!bonus)this.pending={type:"custom",kind:"Dirty Player",options:["Add +1 to Injury","No modifier"],resolve:choice=>{this.pending=null;apply(choice==="Add +1 to Injury"?1:0);}};else apply(0);
+     const apply=add=>this.injuryResult(target,c+d+add,finish,{source:{playerId:p.id,cause:"Foul"}});if(dirty&&!bonus)this.pending={type:"custom",kind:"Dirty Player",options:["Add +1 to Injury","No modifier"],resolve:choice=>{this.pending=null;apply(choice==="Add +1 to Injury"?1:0);}};else apply(0);
     };
     const stalling=this.wouldEndTurnTriggerStalling?.(p);
     if(!rerolled&&!offense&&!defense&&this.skill(p,"Lone Fouler")&&(!broken||a===b||stalling))this.pending={type:"custom",kind:"Lone Fouler",options:["Re-roll Armour","Keep result"],resolve:choice=>{this.pending=null;if(choice==="Re-roll Armour"){sent=false;rollArmour(true);}else keep();}};
