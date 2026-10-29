@@ -21,7 +21,6 @@ const SKILL_DEFERRED={
  "Violent Innovator":"Requires Star Player Point attribution and league progression.",
  "Steady Footing":"Needs failed movement continuation callbacks for every remaining check after preventing a fall.",
  "Monstrous Mouth":"Needs Chomp constraints on all forced and voluntary movement, including incoming Ball & Chain support.",
- "Tentacles":"Needs defender-selected departure reactions and skill/team rerolls before movement is spent.",
  "Dump-off":"Needs a nested out-of-turn Quick Pass before the targeted attack resumes.",
  "On the Ball":"Needs interrupting, multi-player out-of-turn movement before passing and kickoff events.",
  "Punt":"Needs directional kick target and direction/distance re-roll choices separate from normal passing.",
@@ -197,7 +196,26 @@ class SkillGame extends SkillBase {
   if(!p||!this.skill(p,"Leap")&&!this.skill(p,"Pogo"))return super.search(p,sx,sy,spent);
   const map=new Map(),queue=[{x:sx,y:sy,spent,path:[]}];map.set(sx+","+sy,queue[0]);while(queue.length){queue.sort((a,b)=>a.spent-b.spent);const n=queue.shift();if(map.get(n.x+","+n.y)!==n)continue;for(let dx=-2;dx<=2;dx++)for(let dy=-2;dy<=2;dy++)if(dx||dy){const x=n.x+dx,y=n.y+dy,plan=this.planFrom(p,x,y,n.x,n.y,n.spent);if(!plan)continue;const next={x,y,spent:n.spent+plan.cost,path:n.path.concat({x,y,plan})},key=x+","+y;if(map.has(key)&&map.get(key).spent<=next.spent)continue;map.set(key,next);queue.push(next);}}return map;
  }
- step(x,y){const p=this.players.find(q=>q.id===this.mover);this.departureOrigin=p?{x:p.x,y:p.y}:null;if(p?.dropOnExit&&this.skill(p,"Fumblerooski")&&!this.has(p,"My Ball")&&this.plan(x,y)&&this.ball.carrier===p.id){this.ball={x:p.x,y:p.y,carrier:null};p.dropOnExit=false;this.note("Fumblerooski: ball left on the ground without turnover.");}return super.step(x,y);}
+ step(x,y){
+  const plan=this.plan(x,y);if(!plan)return false;
+  const p=this.players.find(q=>q.id===this.mover);this.departureOrigin={x:p.x,y:p.y};
+  const move=()=>{
+   if(p.dropOnExit&&this.skill(p,"Fumblerooski")&&!this.has(p,"My Ball")&&this.ball.carrier===p.id){this.ball={x:p.x,y:p.y,carrier:null};p.dropOnExit=false;this.note("Fumblerooski: ball left on the ground without turnover.");}
+   return super.step(x,y);
+  };
+  const holders=(plan.dodge||plan.jump)?this.departureMarkers(p).filter(q=>this.skill(q,"Tentacles")):[];
+  if(!holders.length)return move();
+  this.interrupt("Tentacles",done=>this.reactionChoice("Tentacles",1-p.team,holders,holder=>{
+   if(!holder){done(false);return;}
+   // BB2025 TentaclesBehaviour: defender rolls; neither an opposing team
+   // re-roll nor Pro (restricted to the acting player) is available here.
+   const target=Math.max(2,6-Number(this.profile(holder).st)+Number(this.profile(p).st));
+   done(this.success(this.roll("Tentacles #"+holder.number+" needs "+Math.min(6,target)+"+"),target));
+  }),held=>{
+   if(held){this.note("Tentacles: #"+p.number+" is held in place; activation ends.");this.mover=null;this.action=null;}
+   else move();
+  });return true;
+ }
  dropBall(){const p=this.players.find(q=>q.id===this.mover);if(!p||this.pending||this.ball.carrier!==p.id||!this.skill(p,"Fumblerooski")||this.has(p,"My Ball"))return false;p.dropOnExit=!p.dropOnExit;return true;}
  passPreview(x,y){const value=super.passPreview(x,y),p=this.players.find(q=>q.id===this.mover);if(!value)return null;value.target+=this.disturbance(p);if(this.skill(p,"Nerves of Steel"))value.target-=this.marking(p);if(value.band<2&&this.skill(p,"Accurate")||value.band>=2&&this.skill(p,"Cannoneer"))value.target--;return value;}
  passRange(from,to){const normal=super.passRange(from,to),hail=this.skill(from,"Hail Mary Pass")&&this.inside(to.x,to.y)&&(from.x!==to.x||from.y!==to.y);return hail&&(from.hailMary||!normal)?{band:3,name:"Hail Mary Pass",hail:true}:normal;}

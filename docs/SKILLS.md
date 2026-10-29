@@ -8,7 +8,7 @@ Build with `node build.cjs` and verify all suites with `node --test *.test.cjs`.
 
 Reviewed October 28, 2026 against the full [Blood Bowl 2025 Skills & Traits list](https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/), [current FAQ](https://bloodbowlbase.ru/bb2025/core_rules/latest_faq/), [Foul / Argue the Call rules](https://bloodbowlbase.ru/bb2025/core_rules/the_game_of_blood_bowl/#foul-actions), and [Bribes](https://bloodbowlbase.ru/bb2025/core_rules/inducements/#0-3-bribes-0-6-for-teams-with-the-bribery-and-corruption-special-rule).
 
-All 108 entries are accounted for: **78 implemented**, **3 partial**, **27 deferred**. Implemented describes support within the available actions and exhibition sequence, not missing league or inducement systems. Deferred abilities are not offered as laboratory additions. Each deferred row records the missing dependency for a future pass. This table and the app inventory share the same registry in skills.cjs.
+All 108 entries are accounted for: **79 implemented**, **3 partial**, **26 deferred**. Implemented describes support within the available actions and exhibition sequence, not missing league or inducement systems. Deferred abilities are not offered as laboratory additions. Each deferred row records the missing dependency for a future pass. This table and the app inventory share the same registry in skills.cjs.
 
 ## How to try them
 
@@ -71,7 +71,7 @@ Sources: [Throw Team-mate and landing](https://bloodbowlbase.ru/bb2025/core_rule
 | Iron Hard Skin | Mutation | Passive | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Monstrous Mouth | Mutation | Active | Deferred | Needs Chomp constraints on all forced and voluntary movement, including incoming Ball & Chain support. |
 | Prehensile Tail | Mutation | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
-| Tentacles | Mutation | Active | Deferred | Needs defender-selected departure reactions and skill/team rerolls before movement is spent. |
+| Tentacles | Mutation | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Two Heads | Mutation | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Very Long Legs | Mutation | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Accurate | Passing | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |

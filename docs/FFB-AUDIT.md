@@ -1,5 +1,10 @@
 # FFB comparison — v0.0.14
 
+Follow-on work: [reaction continuations and Tentacles](REACTIONS.md) adds an
+in-memory interruption stack and the first departure reaction. Current coverage
+is 79 implemented, 3 partial and 26 deferred; the historical comparison below
+describes the preceding increment.
+
 Compared October 29, 2026. Browser baseline: `stormcloud23/blood-bowl` commit `d0f1fbfc2241efd2ffe5865740b3a4adf663ac81`. Java reference: [`christerk/ffb` at bf3f89d](https://github.com/christerk/ffb/tree/bf3f89d96b5143a8730910a841e7430791094492).
 
 The owner's current instruction is to prefer FFB's executable **BB2025** behavior when it conflicts with the existing browser implementation. This supersedes earlier project decisions favoring the linked rulebook interpretation for those conflicts. Shared `common` and `mixed` classes are considered only when selected by BB2025. Old Java comments are not reliable edition identifiers: for example, the Pro comment describes a 4+ test, while the BB2025 roll mechanic actually uses 3+.
