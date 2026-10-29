@@ -48,6 +48,22 @@ class MovementGame {
  standCost(p){return Math.min(3,this.profile(p).ma);}
  armourBroken(p,roll,bonus=0,by=null){return roll+bonus>=Number.parseInt(this.profile(p).av);}
  canMighty(by,p){return by&&this.has(by,"Mighty Blow");}
+ canMightyArmour(by,p){return this.canMighty(by,p);}
+ canTeamReroll(p){return p.team===this.active&&this.rerolls[p.team]>0;}
+ useTeamReroll(p){
+  if(!this.canTeamReroll(p))return false;
+  this.rerolls[p.team]--;
+  const loner=this.profile(p).skills.find(s=>s.startsWith("Loner ("));
+  return !loner||this.roll("Loner needs "+loner.match(/\d+/)[0]+"+")>=Number(loner.match(/\d+/)[0]);
+ }
+ attemptPro(p,yes,no){
+  p.proUsed=true;
+  if(this.roll("Pro needs 3+")>=3){yes();return;}
+  if(!this.canTeamReroll(p)){no();return;}
+  this.pending={type:"custom",kind:"Pro",options:["Team re-roll Pro","Accept Pro failure"],resolve:choice=>{
+   this.pending=null;if(choice==="Team re-roll Pro"&&this.useTeamReroll(p)&&this.roll("Pro re-roll needs 3+")>=3)yes();else no();
+  }};
+ }
  activationExtra(p,action,ready,failed){ready();}
  afterFollow(a,d,knock,done){done();}
  onBlockRolled(p){}
@@ -176,7 +192,7 @@ class MovementGame {
  block(attackerId,targetId){
   const attacker=this.players.find(p=>p.id===attackerId),target=this.players.find(p=>p.id===targetId);
   if(!this.canBlock(attacker,target))return false;
-  attacker.used=true;attacker.proUsed=false;attacker.distracted=false;this.action="block";this.mover=attacker.id;
+  attacker.used=true;attacker.distracted=false;this.action="block";this.mover=attacker.id;
   const perform=()=>{this.mover=null;this.rollBlock(attacker,target,false);},failed=()=>{attacker.distracted=true;this.mover=null;this.action=null;this.note("Block activation trait failed; activation ends without turnover.");},ready=()=>this.activationExtra(attacker,"block",perform,failed);
   if(this.has(attacker,"Bone Head"))this.test(attacker,"Bone Head",2,ready,failed);
   else if(this.has(attacker,"Really Stupid")){const helper=this.players.some(q=>q.id!==attacker.id&&q.team===attacker.team&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&!this.has(q,"Really Stupid")&&this.distance(q,attacker)===1);this.test(attacker,"Really Stupid",helper?2:4,ready,failed);}
@@ -195,12 +211,10 @@ class MovementGame {
  }
  blockFace(n){return ["","Player Down","Both Down","Push Back","Push Back","Stumble","POW"][n];}
  rerollBlock(source,index=null){
-  const b=this.blockAction;if(!b||!this.pending||b.poolLocked)return false;
+  const b=this.blockAction;if(!b||this.pending?.type!=="blockSelect"||b.poolLocked)return false;
   if(source==="Team"){
-   if(this.rerolls[this.active]<1)return false;
-   this.rerolls[this.active]--;
-   const loner=this.profile(b.attacker).skills.find(s=>s.startsWith("Loner ("));
-   if(loner&&this.roll("Loner needs "+loner.match(/\d+/)[0]+"+")<Number(loner.match(/\d+/)[0])){b.poolLocked=true;this.pending={type:"blockSelect"};this.note("Loner failed; the team re-roll is lost.");return true;}
+   if(!this.canTeamReroll(b.attacker))return false;
+   if(!this.useTeamReroll(b.attacker)){b.poolLocked=true;this.pending={type:"blockSelect"};this.note("Loner failed; the team re-roll is lost.");return true;}
    b.poolLocked=true;b.dice=b.dice.map((_,i)=>this.roll("Block die "+(i+1)+" team re-roll"));
    this.pending={type:"blockSelect"};this.note("Team re-roll: re-rolled the Block Dice pool.");return true;
   }
@@ -210,9 +224,8 @@ class MovementGame {
   }
   if(source==="Pro"){
    const a=b.attacker;if(!this.has(a,"Pro")||a.proUsed)return false;
-   a.proUsed=true;b.poolLocked=true;
-   if(this.roll("Pro needs 3+")<3){this.note("Pro failed; no re-roll.");this.pending={type:"blockSelect"};return true;}
-   this.pending={type:"blockProChoose"};return true;
+   b.poolLocked=true;this.pending=null;
+   this.attemptPro(a,()=>{this.pending={type:"blockProChoose"};},()=>{this.note("Pro failed; no re-roll.");this.pending={type:"blockSelect"};});return true;
   }
   return false;
  }
@@ -333,7 +346,7 @@ class MovementGame {
   if(action==="secure"&&!this.canSecure(p))return false;
   if(["pass","handoff"].includes(action)&&!this.canBallAction(p,action))return false;
   this.mover=id;p.used=true;p.spent=0;p.distracted=false;
-  p.proUsed=false;this.action=action;
+  this.action=action;
   this.ballActionDone=false;if(action==="pass")this.passUsed[p.team]=true;if(action==="handoff")this.handoffUsed[p.team]=true;
   if(action==="secure")this.secureUsed[p.team]=true;
   this.note(this.teams[p.team].name+" #"+p.number+" declares "+(action==="secure"?"Secure the Ball":action==="blitz"?"Blitz":action==="pass"?"Pass":action==="handoff"?"Hand-off":"Move")+".");
@@ -361,7 +374,7 @@ class MovementGame {
    if(kind==="Pass"&&this.has(p,"Pass"))options.push("Pass");
    if(this.mover===p.id&&this.has(p,"Pro")&&!p.proUsed)options.push("Pro");
   }
-  if(p.team===this.active&&this.rerolls[p.team]>0)options.push("Team");
+  if(this.canTeamReroll(p))options.push("Team");
   return options;
  }
  test(p,kind,target,yes,no){
@@ -381,13 +394,11 @@ class MovementGame {
   }
   if(choice!=="Accept"&&!q.options.includes(choice))return false;
   this.pending=null;
-  if(choice==="Accept"){q.resolve(q.roll);return true;}
+  if(choice==="Accept"){if(q.accept)q.accept();else q.resolve(q.roll);return true;}
   if(choice==="Dodge")q.p.dodgeUsed=true;
-  if(choice==="Pro"){q.p.proUsed=true;if(this.roll("Pro needs 3+")<3){q.resolve(q.roll);return true;}}
+  if(choice==="Pro"){this.attemptPro(q.p,()=>q.resolve(this.roll(q.kind+" re-roll (Pro)")),()=>{if(q.accept)q.accept();else q.resolve(q.roll);});return true;}
   if(choice==="Team"){
-   this.rerolls[q.p.team]--;
-   const loner=this.profile(q.p).skills.find(s=>s.startsWith("Loner ("));
-   if(loner&&this.roll("Loner needs "+loner.match(/\d+/)[0]+"+")<Number(loner.match(/\d+/)[0])){q.resolve(q.roll);return true;}
+   if(!this.useTeamReroll(q.p)){q.resolve(q.roll);return true;}
   }
   // A re-rolled die is resolved directly; no further re-roll is offered.
   q.resolve(this.roll(q.kind+" re-roll ("+choice+")"));return true;
@@ -516,7 +527,7 @@ class MovementGame {
     if(dice<=stunMax)p.status="stunned";else if(dice<=koMax)p.status="knocked-out";else if(this.has(p,"Regeneration")&&this.roll("Regeneration needs 4+")>=4)p.status="reserve";else p.status="casualty";
     this.note("#"+p.number+" injury result: "+p.status+".");if(["knocked-out","casualty","reserve"].includes(p.status)){p.x=null;p.y=null;}complete();
    }
-  }else if(this.canMighty(mightyBlowBy,p)){
+  }else if(this.canMightyArmour(mightyBlowBy,p)){
    this.pending={type:"custom",kind:"Mighty Blow",options:["Add +1 to Armour","No modifier"],resolve:choice=>{
     this.pending=null;const bonus=choice==="Add +1 to Armour"?1:0;
     if(this.armourBroken(p,armour,bonus,mightyBlowBy)){this.note("Armour broken with Mighty Blow.");injury(0);}else continueAfterArmour(0);

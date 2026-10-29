@@ -2,6 +2,10 @@
 
 A browser implementation targeting the Blood Bowl 2025 ruleset.
 
+**v0.0.14** ports selected FFB BB2025 rules into the existing browser engine. It corrects Pro usage and failed-Pro re-rolls, optional Break Tackle decisions, Iron Hard Skin injury interactions, Lone Fouler/send-off/Bribe sequencing, re-roll pool priority, and stalling when ending a turn without activating the carrier. Strong Arm and Bullseye are newly available in the skill laboratory. The game remains self-contained for GitHub Pages: no Java, backend or external runtime is needed. See [the FFB comparison](docs/FFB-AUDIT.md), [the 108-skill source map](docs/FFB-SKILL-MAP.md), and [third-party notices](THIRD_PARTY_NOTICES.md).
+
+Build with `node build.cjs` and verify with `node --test *.test.cjs`. Skill coverage is now **78 implemented, 3 partial, 27 deferred** within the available actions. This release does not complete all match rules, saved games, AI or leagues.
+
 ## Agreed scope
 
 - Two human players taking turns in the same browser (hotseat).

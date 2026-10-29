@@ -1,4 +1,34 @@
 <!doctype html>
+<!--
+# Third-party notices
+
+The BB2025 corrections and translated skill behavior described in [the FFB comparison](docs/FFB-AUDIT.md) are derived from [Fantasy Football Server/Client (FFB)](https://github.com/christerk/ffb), commit `bf3f89d96b5143a8730910a841e7430791094492`.
+
+FFB's license follows. This notice covers reused FFB software; it does not grant rights to unrelated game trademarks or artwork.
+
+MIT License
+
+Copyright (c) 2024 Christer Kaivo-oja
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+-->
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -12,11 +42,11 @@
 </style>
 </head>
 <body>
-<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>The development pitch</h1></div><span class="badge">v0.0.13 · Sandbox</span></header>
+<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>The development pitch</h1></div><span class="badge">v0.0.14 · Sandbox</span></header>
 <div class="notice" id="mode-notice"><strong>Movement and ball action practice</strong><br><span class="muted">Preview movement and its checks, resolve Block dice, pushes, and follow-ups, or secure a loose ball. Perfect Conditions. This remains a practice drive, not a complete match.</span></div>
 <label for="scenario">Game mode </label><select id="scenario"><option value="match">Exhibition match — pre-game</option><option value="match-learning">Learning match — simplified kickoff</option><option value="skills">Skills laboratory</option><option value="teams">Both teams</option><option value="dodge">Dodge practice</option><option value="jump">Jump & stand up</option><option value="pickup">Ball pickup</option><option value="throw-team-mate">Throw Team-mate practice</option><option value="traits">Ogre & Troll traits</option><option value="handoff">Hand-off practice</option><option value="pass">Pass & interception practice</option><option value="blitz">Blitz practice</option><option value="block">Block practice</option><option value="secure">Secure the Ball practice</option></select><p class="muted">Changing the mode starts a new game or practice. Direction template: 1 NW · 2 N · 3 NE · 4 W · 5 E · 6 SW · 7 S · 8 SE.</p><div id="matchflow" class="notice" aria-live="polite"></div><main><section><div class="pitch-wrap"><div id="pitch" class="pitch" role="group" aria-label="Development pitch"></div></div><p class="muted">Select a player and choose an action. For movement, click a destination to preview the remaining range from there. Click another highlighted tile to extend the route. Declare the action, then click the selected destination again to commit; Cancel movement preview restores the current range. For Pass or Hand-off, declare the action, move as needed, then choose a ball target. For Blitz, choose Declare Blitz and a highlighted target, move adjacent, then choose Blitz Block (1 MA). During Block, click a highlighted target. Green = no roll on that step; amber = a check on that step or an action target; purple border = jump. Earlier route steps may still require rolls.</p><button class="control" id="start">Declare Move</button><button class="control secondary" id="handoff">Declare Hand-off</button><button class="control secondary" id="pass">Declare Pass</button><button class="control secondary" id="throw-mate">Declare Throw Team-mate</button><button class="control secondary" id="transfer">Choose ball target</button><button class="control secondary" id="blitz">Declare Blitz</button><button class="control secondary" id="block">Block</button><button class="control secondary" id="special">Foul / special action</button><button class="control secondary" id="secure">Secure the Ball</button><button class="control secondary" id="finish">End Move</button><button class="control secondary" id="end">End team turn</button><button class="control secondary" id="reset">Reset practice</button></section>
 <aside class="panel"><div class="eyebrow">Movement & action practice</div><h2 id="coach"></h2><p id="selection" role="status" aria-live="polite"></p><div id="movement" aria-live="polite"></div><div id="choices"></div><div id="profile"></div><div id="dugout"></div><h2>Session log</h2><ol id="log"></ol><p class="muted">Games reset on reload. Two team re-rolls each; match re-rolls replenish at half-time.</p></aside></main><section id="rosters" aria-label="Team rosters"></section>
-<footer>Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.13 with feedback.</footer>
+<footer>FFB-derived corrections: <a href="docs/FFB-AUDIT.md">comparison and scope</a> · <a href="THIRD_PARTY_NOTICES.md">MIT attribution</a> · Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.14 with feedback.</footer>
 <script id="team-data" type="application/json">[
   {
     "id": "imperial-nobility",
@@ -287,6 +317,22 @@ class MovementGame {
  standCost(p){return Math.min(3,this.profile(p).ma);}
  armourBroken(p,roll,bonus=0,by=null){return roll+bonus>=Number.parseInt(this.profile(p).av);}
  canMighty(by,p){return by&&this.has(by,"Mighty Blow");}
+ canMightyArmour(by,p){return this.canMighty(by,p);}
+ canTeamReroll(p){return p.team===this.active&&this.rerolls[p.team]>0;}
+ useTeamReroll(p){
+  if(!this.canTeamReroll(p))return false;
+  this.rerolls[p.team]--;
+  const loner=this.profile(p).skills.find(s=>s.startsWith("Loner ("));
+  return !loner||this.roll("Loner needs "+loner.match(/\d+/)[0]+"+")>=Number(loner.match(/\d+/)[0]);
+ }
+ attemptPro(p,yes,no){
+  p.proUsed=true;
+  if(this.roll("Pro needs 3+")>=3){yes();return;}
+  if(!this.canTeamReroll(p)){no();return;}
+  this.pending={type:"custom",kind:"Pro",options:["Team re-roll Pro","Accept Pro failure"],resolve:choice=>{
+   this.pending=null;if(choice==="Team re-roll Pro"&&this.useTeamReroll(p)&&this.roll("Pro re-roll needs 3+")>=3)yes();else no();
+  }};
+ }
  activationExtra(p,action,ready,failed){ready();}
  afterFollow(a,d,knock,done){done();}
  onBlockRolled(p){}
@@ -415,7 +461,7 @@ class MovementGame {
  block(attackerId,targetId){
   const attacker=this.players.find(p=>p.id===attackerId),target=this.players.find(p=>p.id===targetId);
   if(!this.canBlock(attacker,target))return false;
-  attacker.used=true;attacker.proUsed=false;attacker.distracted=false;this.action="block";this.mover=attacker.id;
+  attacker.used=true;attacker.distracted=false;this.action="block";this.mover=attacker.id;
   const perform=()=>{this.mover=null;this.rollBlock(attacker,target,false);},failed=()=>{attacker.distracted=true;this.mover=null;this.action=null;this.note("Block activation trait failed; activation ends without turnover.");},ready=()=>this.activationExtra(attacker,"block",perform,failed);
   if(this.has(attacker,"Bone Head"))this.test(attacker,"Bone Head",2,ready,failed);
   else if(this.has(attacker,"Really Stupid")){const helper=this.players.some(q=>q.id!==attacker.id&&q.team===attacker.team&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&!this.has(q,"Really Stupid")&&this.distance(q,attacker)===1);this.test(attacker,"Really Stupid",helper?2:4,ready,failed);}
@@ -434,12 +480,10 @@ class MovementGame {
  }
  blockFace(n){return ["","Player Down","Both Down","Push Back","Push Back","Stumble","POW"][n];}
  rerollBlock(source,index=null){
-  const b=this.blockAction;if(!b||!this.pending||b.poolLocked)return false;
+  const b=this.blockAction;if(!b||this.pending?.type!=="blockSelect"||b.poolLocked)return false;
   if(source==="Team"){
-   if(this.rerolls[this.active]<1)return false;
-   this.rerolls[this.active]--;
-   const loner=this.profile(b.attacker).skills.find(s=>s.startsWith("Loner ("));
-   if(loner&&this.roll("Loner needs "+loner.match(/\d+/)[0]+"+")<Number(loner.match(/\d+/)[0])){b.poolLocked=true;this.pending={type:"blockSelect"};this.note("Loner failed; the team re-roll is lost.");return true;}
+   if(!this.canTeamReroll(b.attacker))return false;
+   if(!this.useTeamReroll(b.attacker)){b.poolLocked=true;this.pending={type:"blockSelect"};this.note("Loner failed; the team re-roll is lost.");return true;}
    b.poolLocked=true;b.dice=b.dice.map((_,i)=>this.roll("Block die "+(i+1)+" team re-roll"));
    this.pending={type:"blockSelect"};this.note("Team re-roll: re-rolled the Block Dice pool.");return true;
   }
@@ -449,9 +493,8 @@ class MovementGame {
   }
   if(source==="Pro"){
    const a=b.attacker;if(!this.has(a,"Pro")||a.proUsed)return false;
-   a.proUsed=true;b.poolLocked=true;
-   if(this.roll("Pro needs 3+")<3){this.note("Pro failed; no re-roll.");this.pending={type:"blockSelect"};return true;}
-   this.pending={type:"blockProChoose"};return true;
+   b.poolLocked=true;this.pending=null;
+   this.attemptPro(a,()=>{this.pending={type:"blockProChoose"};},()=>{this.note("Pro failed; no re-roll.");this.pending={type:"blockSelect"};});return true;
   }
   return false;
  }
@@ -572,7 +615,7 @@ class MovementGame {
   if(action==="secure"&&!this.canSecure(p))return false;
   if(["pass","handoff"].includes(action)&&!this.canBallAction(p,action))return false;
   this.mover=id;p.used=true;p.spent=0;p.distracted=false;
-  p.proUsed=false;this.action=action;
+  this.action=action;
   this.ballActionDone=false;if(action==="pass")this.passUsed[p.team]=true;if(action==="handoff")this.handoffUsed[p.team]=true;
   if(action==="secure")this.secureUsed[p.team]=true;
   this.note(this.teams[p.team].name+" #"+p.number+" declares "+(action==="secure"?"Secure the Ball":action==="blitz"?"Blitz":action==="pass"?"Pass":action==="handoff"?"Hand-off":"Move")+".");
@@ -600,7 +643,7 @@ class MovementGame {
    if(kind==="Pass"&&this.has(p,"Pass"))options.push("Pass");
    if(this.mover===p.id&&this.has(p,"Pro")&&!p.proUsed)options.push("Pro");
   }
-  if(p.team===this.active&&this.rerolls[p.team]>0)options.push("Team");
+  if(this.canTeamReroll(p))options.push("Team");
   return options;
  }
  test(p,kind,target,yes,no){
@@ -620,13 +663,11 @@ class MovementGame {
   }
   if(choice!=="Accept"&&!q.options.includes(choice))return false;
   this.pending=null;
-  if(choice==="Accept"){q.resolve(q.roll);return true;}
+  if(choice==="Accept"){if(q.accept)q.accept();else q.resolve(q.roll);return true;}
   if(choice==="Dodge")q.p.dodgeUsed=true;
-  if(choice==="Pro"){q.p.proUsed=true;if(this.roll("Pro needs 3+")<3){q.resolve(q.roll);return true;}}
+  if(choice==="Pro"){this.attemptPro(q.p,()=>q.resolve(this.roll(q.kind+" re-roll (Pro)")),()=>{if(q.accept)q.accept();else q.resolve(q.roll);});return true;}
   if(choice==="Team"){
-   this.rerolls[q.p.team]--;
-   const loner=this.profile(q.p).skills.find(s=>s.startsWith("Loner ("));
-   if(loner&&this.roll("Loner needs "+loner.match(/\d+/)[0]+"+")<Number(loner.match(/\d+/)[0])){q.resolve(q.roll);return true;}
+   if(!this.useTeamReroll(q.p)){q.resolve(q.roll);return true;}
   }
   // A re-rolled die is resolved directly; no further re-roll is offered.
   q.resolve(this.roll(q.kind+" re-roll ("+choice+")"));return true;
@@ -755,7 +796,7 @@ class MovementGame {
     if(dice<=stunMax)p.status="stunned";else if(dice<=koMax)p.status="knocked-out";else if(this.has(p,"Regeneration")&&this.roll("Regeneration needs 4+")>=4)p.status="reserve";else p.status="casualty";
     this.note("#"+p.number+" injury result: "+p.status+".");if(["knocked-out","casualty","reserve"].includes(p.status)){p.x=null;p.y=null;}complete();
    }
-  }else if(this.canMighty(mightyBlowBy,p)){
+  }else if(this.canMightyArmour(mightyBlowBy,p)){
    this.pending={type:"custom",kind:"Mighty Blow",options:["Add +1 to Armour","No modifier"],resolve:choice=>{
     this.pending=null;const bonus=choice==="Add +1 to Armour"?1:0;
     if(this.armourBroken(p,armour,bonus,mightyBlowBy)){this.note("Armour broken with Mighty Blow.");injury(0);}else continueAfterArmour(0);
@@ -826,9 +867,7 @@ const SKILL_DEFERRED={
  "On the Ball":"Needs interrupting, multi-player out-of-turn movement before passing and kickoff events.",
  "Punt":"Needs directional kick target and direction/distance re-roll choices separate from normal passing.",
  "Arm Bar":"Needs one defender-selected injury modifier window following a failed departure.",
- "Bullseye":"Throw Team-mate exists; the optional Superb Throw scatter replacement is not wired in yet.",
  "Multiple Block":"Needs two simultaneous Block resolutions, both completed even if one causes a turnover.",
- "Strong Arm":"Throw Team-mate exists; its optional accuracy modifier is not wired in yet.",
  "Animal Savagery":"Needs activation interruption, forced teammate selection, mandatory damage modifiers and continuation.",
  "Ball & Chain":"Needs directional random movement, collision Blocks against either team and special injury handling.",
  "Bloodlust (X+)":"Needs Thrall selection, bite injury, action replacement and feeding before passing or scoring.",
@@ -850,7 +889,7 @@ class SkillGame extends SkillBase {
  throwActor(){const p=this.players.find(q=>q.id===this.mover);return this.action==="throw-team-mate"&&!this.pending&&!this.finished&&!this.ballActionDone&&p?.status==="standing"&&!p.distracted?p:null;}
  throwCandidates(){const a=this.throwActor();return a?this.players.filter(p=>p.id!==a.id&&p.team===a.team&&this.onPitch(p)&&this.distance(a,p)===1&&this.has(p,"Right Stuff")&&!p.rooted&&["standing","prone","stunned"].includes(p.status)):[];}
  selectThrowMate(id){if(!this.throwCandidates().some(p=>p.id===id))return false;this.throwMate=id;return true;}
- throwPreview(x,y){const a=this.throwActor(),p=this.throwCandidates().find(q=>q.id===this.throwMate),range=a&&super.passRange(a,{x,y});if(!a||!p||!range||range.band>1)return null;return {...range,name:range.band?"Short Throw":"Quick Throw",target:parseInt(this.profile(a).pa)+range.band+this.marking(a)+this.disturbance(a),mate:p};}
+ throwPreview(x,y){const a=this.throwActor(),p=this.throwCandidates().find(q=>q.id===this.throwMate),range=a&&super.passRange(a,{x,y});if(!a||!p||!range||range.band>1)return null;return {...range,name:range.band?"Short Throw":"Quick Throw",target:parseInt(this.profile(a).pa)+range.band+this.marking(a)+this.disturbance(a)-(this.skill(a,"Strong Arm")?1:0),mate:p};}
  throwTeamMate(x,y){
   const preview=this.throwPreview(x,y);if(!preview)return false;
   const a=this.throwActor(),p=preview.mate,origin={x:p.x,y:p.y},unable=p.status!=="standing"||p.distracted;
@@ -880,9 +919,13 @@ class SkillGame extends SkillBase {
   const resolve=n=>{
    const modifier=preview.target-parseInt(this.profile(a).pa);
    if(n===1||n!==6&&n-modifier===1){fumble();return;}
-   const superb=this.success(n,preview.target);this.note(superb?"Superb Throw.":"Subpar Throw.");airborne();let pos={x,y};
-   for(let i=0;i<3;i++){const from=pos;pos=drift(pos,"Thrown player scatter");if(!this.inside(pos.x,pos.y)){crowd(from,pos);return;}}
-   land(pos,!superb);
+   const superb=this.success(n,preview.target);this.note(superb?"Superb Throw.":"Subpar Throw.");
+   const flight=skipScatter=>{airborne();let pos={x,y};
+    if(!skipScatter)for(let i=0;i<3;i++){const from=pos;pos=drift(pos,"Thrown player scatter");if(!this.inside(pos.x,pos.y)){crowd(from,pos);return;}}
+    land(pos,!superb);
+   };
+   if(superb&&this.skill(a,"Bullseye"))this.pending={type:"custom",kind:"Bullseye",options:["Use Bullseye","Scatter normally"],resolve:choice=>{this.pending=null;if(choice==="Use Bullseye")this.note("Bullseye: land in the target square without scatter.");flight(choice==="Use Bullseye");}};
+   else flight(false);
   };
   const accuracy=()=>{
    const n=this.roll("Throw Team-mate accuracy #"+a.number);
@@ -912,7 +955,7 @@ class SkillGame extends SkillBase {
  keywords(p){return this.profile(p).traits.split(",").map(s=>s.trim().toLowerCase());}
  toggleSkill(id,name){const p=this.players.find(q=>q.id===id),entry=SKILL_CATALOG.find(s=>s.name===name||name.startsWith(s.name.split(" (")[0]+" ("));if(!p||!entry||entry.mandatory||this.pending)return false;p.disabledSkills||=[];p.disabledSkills=p.disabledSkills.includes(name)?p.disabledSkills.filter(s=>s!==name):p.disabledSkills.concat(name);return true;}
  addSkill(id,name){const p=this.players.find(q=>q.id===id),entry=SKILL_CATALOG.find(s=>s.name===name||s.name.includes("(X")&&name.startsWith(s.name.split(" (")[0]+" ("));if(!this.lab||!p||!entry||entry.status==="Deferred"||name.includes("(X"))return false;
-  const conflicts={Frenzy:["Grab","Hit and Run","Multiple Block"],Grab:["Frenzy"],Leap:["Pogo"],Pogo:["Leap"]},owned=[...super.profile(p).skills,...(p.extraSkills||[])];if((conflicts[name]||[]).some(s=>owned.includes(s)))return false;p.extraSkills=[...new Set([...(p.extraSkills||[]),name])];return true;}
+  const conflicts={Frenzy:["Grab","Hit and Run","Multiple Block"],Grab:["Frenzy"],Leap:["Pogo"],Pogo:["Leap"]},owned=[...super.profile(p).skills,...(p.extraSkills||[])];if((conflicts[name]||[]).some(s=>owned.includes(s))||["Bullseye","Strong Arm"].includes(name)&&!owned.includes("Throw Team-mate"))return false;p.extraSkills=[...new Set([...(p.extraSkills||[]),name])];return true;}
  used(p,name){return p.skillUses?.[name]===this.skillTurn;}
  use(p,name){p.skillUses||={};p.skillUses[name]=this.skillTurn;this.note("#"+p.number+" uses "+name+".");}
  resetSkillTurn(){this.skillTurn++;this.throwUsed||=[false,false];this.throwUsed[this.active]=false;this.throwMate=null;}
@@ -940,7 +983,7 @@ class SkillGame extends SkillBase {
  }
  options(p,kind){let result=super.options(p,kind);if(kind==="Dodge"&&this.departureMarkers(p).some(q=>this.skill(q,"Tackle")))result=result.filter(s=>s!=="Dodge");
   if(kind==="Rush"&&this.skill(p,"Sure Feet")&&!this.used(p,"Sure Feet"))result.push("Sure Feet");if(kind==="Pick up"&&this.skill(p,"Sure Hands"))result.push("Sure Hands");
-  if((this.mover===p.id||this.attackRoller===p.id)&&this.skill(p,"Pro")&&!result.includes("Pro"))result.push("Pro");if(p.team===this.active&&this.rerollsAvailable(p.team)>0&&!result.includes("Team"))result.push("Team");return result;
+  if((this.mover===p.id||this.attackRoller===p.id)&&this.skill(p,"Pro")&&!p.proUsed&&!result.includes("Pro"))result.push("Pro");if(this.canTeamReroll(p)&&!result.includes("Team"))result.push("Team");return result;
  }
  departureMarkers(p){const o=this.departureOrigin||p;return this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&this.distance(q,o)===1);}
  checkTarget(p,kind,target){
@@ -957,21 +1000,27 @@ class SkillGame extends SkillBase {
  test(p,kind,target,yes,no){
   if(["Catch","Pick up","Secure the Ball","Intercept"].includes(kind)&&this.has(p,"No Ball")){no(1);return;}
   target=this.checkTarget(p,kind,target);
-  const resolve=n=>{let required=target;if(kind==="Dodge"&&this.skill(p,"Break Tackle")&&!this.used(p,"Break Tackle")&&!this.success(n,required)){
-    const bonus=+this.profile(p).st<=3?1:+this.profile(p).st===4?2:3;if(this.success(n,required-bonus)){this.use(p,"Break Tackle");required-=bonus;}}
-   if(this.success(n,required))yes(n);else no(n);};
-  const n=this.roll(kind+" #"+p.number+" needs "+Math.min(6,Math.max(2,target))+"+");
-  if(this.success(n,target)){yes(n);return;}
-  if(kind==="Dodge"&&this.skill(p,"Break Tackle")&&!this.used(p,"Break Tackle")){const bonus=+this.profile(p).st<=3?1:+this.profile(p).st===4?2:3;if(this.success(n,target-bonus)){resolve(n);return;}}
-  const options=this.options(p,kind);if(!options.length){no(n);return;}this.pending={p,kind,target,roll:n,options,resolve};this.note(kind+" failed. Choose a re-roll or accept the result.");
+  // Like FFB's modifier-choice step, keep the failed roll suspended until the coach decides.
+  // A modifier can still rescue the re-rolled die, but never opens another re-roll window.
+  const resolve=(n,mayReroll)=>{
+   if(this.success(n,target)){yes(n);return;}
+   const bonus=+this.profile(p).st<=3?1:+this.profile(p).st===4?2:3;
+   const breakTackle=kind==="Dodge"&&this.skill(p,"Break Tackle")&&!this.used(p,"Break Tackle")&&this.success(n,target-bonus);
+   const options=mayReroll?this.options(p,kind):[];if(breakTackle)options.unshift("Break Tackle");
+   if(!options.length){no(n);return;}
+   this.pending={p,kind,target,roll:n,options,resolve:value=>resolve(value,false),accept:()=>no(n),useModifier:()=>{this.use(p,"Break Tackle");yes(n);}};
+   this.note(kind+" failed. Choose a modifier, re-roll or accept the result.");
+  };
+  resolve(this.roll(kind+" #"+p.number+" needs "+Math.min(6,Math.max(2,target))+"+"),true);
  }
- decide(option){const q=this.pending;if(q&&["Sure Feet","Sure Hands"].includes(option)){if(!q.options.includes(option))return false;this.pending=null;this.use(q.p,option);q.resolve(this.roll(q.kind+" re-roll ("+option+")"));return true;}if(option==="Team"&&q?.options?.includes("Team"))this.spendLeader(q.p.team);const result=super.decide(option);if(q?.p)q.p.proUsed=false;return result;}
+ decide(option){const q=this.pending;if(q&&option==="Break Tackle"&&q.options?.includes(option)&&q.useModifier){this.pending=null;q.useModifier();return true;}if(q&&["Sure Feet","Sure Hands"].includes(option)){if(!q.options.includes(option))return false;this.pending=null;this.use(q.p,option);q.resolve(this.roll(q.kind+" re-roll ("+option+")"));return true;}return super.decide(option);}
  leaderOnPitch(team){return this.players.some(p=>p.team===team&&this.onPitch(p)&&this.has(p,"Leader"));}
  grantLeader(half){for(const t of [0,1])if(this.leaderHalf[t]!==half){this.leaderHalf[t]=half;if(this.leaderOnPitch(t)){this.leaderPool[t]=true;this.note("Leader: one additional re-roll for this half.");}}}
  syncLeader(){for(const t of [0,1])if(!this.leaderOnPitch(t))this.leaderPool[t]=false;}
  rerollsAvailable(team){return this.rerolls[team]+(this.leaderPool[team]&&this.leaderOnPitch(team)?1:0);}
- spendLeader(team){if(this.leaderPool[team]&&this.leaderOnPitch(team)){this.leaderPool[team]=false;this.rerolls[team]++;this.note("Leader re-roll used.");}}
- rerollBlock(source,index=null){if(source==="Team"&&this.blockAction&&!this.blockAction.poolLocked)this.spendLeader(this.active);return super.rerollBlock(source,index);}
+ spendLeader(team){if(!this.driveBonus?.[team]&&this.leaderPool[team]&&this.leaderOnPitch(team)){this.leaderPool[team]=false;this.rerolls[team]++;this.note("Leader re-roll used.");}}
+ canTeamReroll(p){return p.team===this.active&&this.rerollsAvailable(p.team)>0&&(!this.match||this.phase==="play");}
+ useTeamReroll(p){if(!this.canTeamReroll(p))return false;this.spendLeader(p.team);return super.useTeamReroll(p);}
  disturbance(p){return this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&this.has(q,"Disturbing Presence")&&this.distance(q,p)<=3).length;}
  planFrom(p,x,y,fx,fy,spent){
   if(p?.rooted||this.action?.startsWith("special:")&&this.action!=="special:Hypnotic Gaze")return null;let plan=super.planFrom(p,x,y,fx,fy,spent);const jump=Math.max(Math.abs(x-fx),Math.abs(y-fy))===2,leap=this.skill(p,"Leap"),pogo=this.skill(p,"Pogo");
@@ -1000,7 +1049,8 @@ class SkillGame extends SkillBase {
  handoff(id){const p=this.ballActor("handoff"),target=this.players.find(q=>q.id===id);if(!this.canHandoff(target))return false;return this.animosity(p,target,()=>super.handoff(id));}
  animosity(p,target,act){const trait=this.parameter(p,"Animosity");if(!trait||!target||target.team!==p.team)return act();const word=trait.slice(trait.indexOf("(")+1,-1).toLowerCase();if(word!=="all"&&!this.keywords(target).includes(word))return act();this.test(p,"Animosity",2,act,()=>{this.note("Animosity: player refuses the transfer.");this.mover=null;this.action=null;});return true;}
  armourBroken(p,n,bonus=0,by=null){if(this.has(p,"Iron Hard Skin"))return n>=parseInt(this.profile(p).av);if(by&&this.has(by,"Claws")&&n>=8)return true;return n+bonus+(this.has(p,"Chainsaw")?3:0)>=parseInt(this.profile(p).av);}
- canMighty(by,p){return by&&!by.distracted&&!this.has(p,"Iron Hard Skin")&&this.has(by,"Mighty Blow");}
+ canMighty(by,p){return by&&!by.distracted&&this.has(by,"Mighty Blow");}
+ canMightyArmour(by,p){return !this.has(p,"Iron Hard Skin")&&this.canMighty(by,p);}
  assists(a,d){
   const guard=p=>this.skill(p,"Guard")&&!this.players.some(q=>q.team!==p.team&&q.team!==this.active&&this.onPitch(q)&&this.skill(q,"Defensive")&&this.distance(p,q)===1);
   const eligible=(p,target,excluded)=>p.id!==a.id&&p.id!==d.id&&this.onPitch(p)&&p.status==="standing"&&!p.distracted&&!p.gouged&&this.distance(p,target)===1&&(this.markedByExcept(p,[excluded.id])===0||guard(p));
@@ -1074,22 +1124,29 @@ class SkillGame extends SkillBase {
   const offense=helpers(p.team,target,target,true),defense=helpers(target.team,p,p,false),modifier=this.has(target,"Iron Hard Skin")?0:offense-defense;
   this.note("Foul: "+offense+" offensive and "+defense+" defensive assist(s).");let sent=false;
   const finishNormal=()=>{if(this.skill(p,"Quick Foul")){this.note("Quick Foul: remaining movement is available.");}else{this.mover=null;this.action=null;}},finish=()=>{if(sent)this.sendOff(p,turnover=>turnover?this.endTurn(true):finishNormal());else finishNormal();},rollArmour=(rerolled=false)=>{
-   const a=this.roll("Foul Armour"),b=this.roll("Foul Armour"),raw=a+b;const dirty=this.skill(p,"Dirty Player")&&!this.has(target,"Iron Hard Skin");
-   const afterArmour=bonus=>{const broken=raw+modifier+bonus>=parseInt(this.profile(target).av);if(a===b&&(!this.skill(p,"Sneaky Git")||broken))sent=true;
-    if(!broken){if(!rerolled&&!offense&&!defense&&this.skill(p,"Lone Fouler")){this.pending={type:"custom",kind:"Lone Fouler",options:["Re-roll Armour","Keep result"],resolve:choice=>{this.pending=null;if(choice==="Re-roll Armour"){sent=false;rollArmour(true);}else finish();}};}else finish();return;}
-    const c=this.roll("Foul Injury"),d=this.roll("Foul Injury");if(c===d)sent=true;
-    const apply=add=>{this.injuryResult(target,c+d+add);finish();};if(dirty&&!bonus)this.pending={type:"custom",kind:"Dirty Player",options:["Add +1 to Injury","No modifier"],resolve:choice=>{this.pending=null;apply(choice==="Add +1 to Injury"?1:0);}};else apply(0);
+   const a=this.roll("Foul Armour"),b=this.roll("Foul Armour"),raw=a+b,dirty=this.skill(p,"Dirty Player"),skin=this.has(target,"Iron Hard Skin");
+   const afterArmour=bonus=>{const broken=raw+modifier+bonus>=parseInt(this.profile(target).av);
+    const keep=()=>{if(a===b&&(!this.skill(p,"Sneaky Git")||broken))sent=true;
+     if(!broken){finish();return;}
+     const c=this.roll("Foul Injury"),d=this.roll("Foul Injury");if(c===d)sent=true;
+     const apply=add=>{this.injuryResult(target,c+d+add);finish();};if(dirty&&!bonus)this.pending={type:"custom",kind:"Dirty Player",options:["Add +1 to Injury","No modifier"],resolve:choice=>{this.pending=null;apply(choice==="Add +1 to Injury"?1:0);}};else apply(0);
+    };
+    const stalling=this.wouldEndTurnTriggerStalling?.(p);
+    if(!rerolled&&!offense&&!defense&&this.skill(p,"Lone Fouler")&&(!broken||a===b||stalling))this.pending={type:"custom",kind:"Lone Fouler",options:["Re-roll Armour","Keep result"],resolve:choice=>{this.pending=null;if(choice==="Re-roll Armour"){sent=false;rollArmour(true);}else keep();}};
+    else keep();
    };
-   if(dirty&&raw+modifier<parseInt(this.profile(target).av))this.pending={type:"custom",kind:"Dirty Player",options:["Add +1 to Armour","No modifier"],resolve:choice=>{this.pending=null;afterArmour(choice==="Add +1 to Armour"?1:0);}};else afterArmour(0);
+   if(dirty&&!skin&&raw+modifier<parseInt(this.profile(target).av))this.pending={type:"custom",kind:"Dirty Player",options:["Add +1 to Armour","No modifier"],resolve:choice=>{this.pending=null;afterArmour(choice==="Add +1 to Armour"?1:0);}};else afterArmour(0);
   };rollArmour();
  }
  sendOff(p,done){
   this.argueBanned||=[false,false];const options=["Accept send-off"];if(!this.argueBanned[p.team])options.unshift("Argue the Call");
   this.pending={type:"custom",kind:"Sent-off — "+this.teams[p.team].name+" #"+p.number,options,resolve:choice=>{
-   this.pending=null;let saved=false;if(choice==="Argue the Call"){const n=this.roll("Argue the Call");saved=n===6;if(n===1)this.argueBanned[p.team]=true;}
+   this.pending=null;let saved=false,rolledOne=false;if(choice==="Argue the Call"){const n=this.roll("Argue the Call");saved=n===6;if(n===1){rolledOne=true;this.argueBanned[p.team]=true;}}
    if(saved){this.note("Argue the Call succeeds; player remains, turnover still applies.");done(true);return;}
    const remove=()=>{const x=p.x,y=p.y,carrying=this.ball.carrier===p.id;Object.assign(p,{x:null,y:null,status:"sent-off"});this.note("Player is Sent-off.");if(carrying){this.ball={x,y,carrier:null};this.bounce(x,y,()=>done(true));}else done(true);};
-   if((this.bribes?.[p.team]||0)>0)this.pending={type:"custom",kind:"Bribe",options:["Use Bribe","Accept send-off"],resolve:option=>{this.pending=null;if(option==="Use Bribe"){this.bribes[p.team]--;if(this.roll("Bribe needs 2+")>=2){this.note("Bribe succeeds: no send-off or turnover.");done(false);return;}}remove();}};else remove();
+   const bribe=()=>{if(rolledOne||(this.bribes?.[p.team]||0)<1){remove();return;}
+    this.pending={type:"custom",kind:"Bribe",options:["Use Bribe","Accept send-off"],resolve:option=>{this.pending=null;if(option==="Use Bribe"){this.bribes[p.team]--;if(this.roll("Bribe needs 2+")>=2){this.note("Bribe succeeds: no send-off or turnover.");done(false);return;}bribe();}else remove();}};
+   };bribe();
   }};
  }
  fall(p,options={}){p.rooted=false;const old=options.after;return super.fall(p,{...options,after:()=>{this.syncLeader();if(old)old();}});}
@@ -1223,7 +1280,7 @@ class MatchGame extends MatchBase {
   const options=list.map(p=>"Give ball to #"+p.number);this.choice("Touchback — "+this.teams[this.receiving].name,options,option=>{const p=list[options.indexOf(option)];this.ball={x:p.x,y:p.y,carrier:p.id};this.startReceivingTurn();});
  }
  placeTouchback(x,y){if(this.phase!=="touchback"||this.pending||!this.inside(x,y)||!this.ownHalf(this.receiving,x)||this.at(x,y))return false;this.ball={x,y,carrier:null};this.startReceivingTurn();return true;}
- resetTeam(team){this.resetSkillTurn();this.syncLeader();this.foulUsed[team]=false;this.secureUsed[team]=false;this.blitzUsed[team]=false;this.passUsed[team]=false;this.handoffUsed[team]=false;for(const p of this.players)if(p.team===team)Object.assign(p,{used:false,spent:0,dodgeUsed:false,proUsed:false,stunnedAtStart:p.status==="stunned"});}
+ resetTeam(team){this.resetSkillTurn();this.syncLeader();this.foulUsed[team]=false;this.secureUsed[team]=false;this.blitzUsed[team]=false;this.passUsed[team]=false;this.handoffUsed[team]=false;for(const p of this.players)if(p.team===team)Object.assign(p,{used:false,spent:0,dodgeUsed:false,proUsed:false,stallingChecked:false,stunnedAtStart:p.status==="stunned"});}
  startReceivingTurn(){this.phase="play";this.eventState=null;this.finished=false;this.pending=null;this.beginTurn(this.receiving);}
  beginTurn(team){
   if(this.skip[team]){this.skip[team]=false;this.turns[team]++;this.note(this.teams[team].name+" skips a turn celebrating an opposition-turn Touchdown.");}
@@ -1254,20 +1311,27 @@ class MatchGame extends MatchBase {
   if(this.phase==="charge"){this.note("Charge ends.");this.mover=null;this.action=null;this.blockAction=null;this.eventState=null;this.landKick();return true;}
   const current=this.active,phase=this.phase;
   if(this.mover&&this.stallCandidate){this.checkStalling(this.players.find(p=>p.id===this.mover));if(this.pending||this.active!==current||this.phase!==phase)return true;}
+  // FFB's forgone-activation step also checks a carrier whose coach ends the turn without activating them.
+  if(this.wouldEndTurnTriggerStalling()){
+   const carrier=this.players.find(p=>p.id===this.ball.carrier);this.stallCandidate=carrier.id;this.checkStalling(carrier);
+   if(this.pending||this.active!==current||this.phase!==phase)return true;
+  }
   this.note(turnover?"TURNOVER.":"Turn ended.");for(const p of this.players)if(p.team===this.active&&p.status==="stunned"&&p.stunnedAtStart)p.status="prone";
   this.cheer[this.active]=false;this.pickMeUp(this.active);this.mover=null;this.action=null;this.blockAction=null;this.blitzTarget=null;
   if(this.turns.every(n=>n>=8))this.endDrive(null);else this.beginTurn(1-this.active);return true;
  }
  finishBlock(){const b=this.blockAction;super.finishBlock();if(this.phase==="play"||this.phase==="charge")this.checkScore();if(b&&!b.blitz)this.checkStalling(b.attacker);}
  canScoreWithoutDice(p){
-  if(!p||this.ball.carrier!==p.id||p.status!=="standing"||this.has(p,"Bone Head")||this.has(p,"Really Stupid"))return false;
+  if(!p||this.ball.carrier!==p.id||!this.onPitch(p)||p.status!=="standing"||p.distracted||["Bone Head","Really Stupid","Unchannelled Fury","Animal Savagery","Take Root"].some(s=>this.has(p,s)))return false;
   const goal=this.right(p.team)?25:0,queue=[{x:p.x,y:p.y,spent:0}],seen=new Set([p.x+","+p.y]);
   while(queue.length){const n=queue.shift();if(n.x===goal)return true;for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)if(dx||dy){const x=n.x+dx,y=n.y+dy,key=x+","+y;if(seen.has(key))continue;const plan=this.planFrom(p,x,y,n.x,n.y,n.spent);if(!plan||plan.rushes||plan.dodge||plan.jump)continue;seen.add(key);queue.push({x,y,spent:n.spent+1});}}
   return false;
  }
+ wouldEndTurnTriggerStalling(excluded=null){const p=this.players.find(q=>q.id===this.ball.carrier);return this.phase==="play"&&this.turns[this.active]<=6&&p&&p!==excluded&&p.team===this.active&&!p.used&&!p.stallingChecked&&this.canScoreWithoutDice(p);}
  checkStalling(p){
-  if(this.phase!=="play"||this.finished||this.pending||p?.team!==this.active||this.stallCandidate!==p.id||this.ball.carrier!==p.id)return;
-  this.stallCandidate=null;this.note("Stalling: the crowd may take action.");if(this.roll("Crowd Takes Action")>=this.turns[this.active])this.fall(p);
+  if(this.phase!=="play"||this.finished||this.pending||p?.team!==this.active||p.stallingChecked||this.stallCandidate!==p.id||this.ball.carrier!==p.id)return;
+  this.stallCandidate=null;p.stallingChecked=true;if(this.turns[this.active]>6){this.note("Stalling: no crowd roll in turns 7–8.");return;}
+  this.note("Stalling: the crowd may take action.");if(this.roll("Crowd Takes Action")>=this.turns[this.active])this.fall(p);
  }
  finish(){const p=this.players.find(q=>q.id===this.mover),result=super.finish();if(result&&p)this.checkStalling(p);return result;}
  checkScore(){

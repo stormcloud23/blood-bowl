@@ -237,7 +237,7 @@ test("multiple team rerolls allowed in same turn",()=>{
 });
 test("Pro failure blocks other sources; successful Pro rerolls original die",()=>{
  const g=fixture([1,2,1,1]);g.players[0].role=1;g.rerolls[0]=2;g.start(g.players[0].id);g.step(9,6);choose(g,"Pro");
- assert.equal(g.rerolls[0],2);assert.equal(g.pending,null);assert.equal(g.active,1);
+ assert.equal(g.rerolls[0],2);assert.equal(g.pending.kind,"Pro");choose(g,"Accept Pro failure");assert.equal(g.pending,null);assert.equal(g.active,1);
  const h=fixture([1,3,6]);h.players[0].role=1;h.start(h.players[0].id);h.step(9,6);choose(h,"Pro");assert.equal(h.active,0);
 });
 test("Loner failure loses team reroll without rerolling activation",()=>{

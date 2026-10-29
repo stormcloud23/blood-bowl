@@ -106,8 +106,8 @@ test("Put the Boot In permits marked offensive Foul assists while Guard does not
 test("Sure Hands prevents Strip Ball from dropping possession",()=>{
  const g=fixture([3,3],"block"),a=g.players[15],d=g.players[5];grant(a,"Strip Ball");grant(d,"Sure Hands");d.disabledSkills=["Stand Firm"];g.ball.carrier=d.id;g.block(a.id,d.id);g.selectBlockDie(0);g.pending.resolve({x:12,y:7});choose(g,"Stay");assert.equal(g.ball.carrier,d.id);
 });
-test("Pro may be attempted on different dice in one activation but never twice on the same die",()=>{
- const g=fixture([1,3,2,1,3,2]),p=g.players[0];grant(p,"Pro");g.start(p.id);let count=0;g.test(p,"Rush",2,()=>count++,()=>{});choose(g,"Pro");g.test(p,"Rush",2,()=>count++,()=>{});choose(g,"Pro");assert.equal(count,2);
+test("FFB Pro is limited to once per turn, including across different dice",()=>{
+ const g=fixture([1,3,2,1]),p=g.players[0];grant(p,"Pro");g.start(p.id);let count=0;g.test(p,"Rush",2,()=>count++,()=>{});choose(g,"Pro");g.test(p,"Rush",2,()=>count++,()=>{});assert.equal(g.pending,null);assert.equal(count,1);assert.equal(p.proUsed,true);
 });
 test("negative modified pass is inaccurate, not modified-one fumble, under 2025 unclamped modifiers",()=>{
  const g=fixture([2,2,2,2,2],"pass"),p=g.players[0];p.role=0;g.start(p.id,"pass");g.pass(21,7);if(g.pending)choose(g,"Decline interception");assert.ok(g.events.some(s=>s.startsWith("Inaccurate Pass")));assert.equal(g.active,1);
@@ -120,7 +120,7 @@ test("all 108 source entries have an explicit coverage status and dependency not
  assert.equal(SKILL_CATALOG.length,108);assert.equal(new Set(SKILL_CATALOG.map(s=>s.name)).size,108);
  for(const [category,names] of Object.entries(SKILL_GROUPS))assert.equal(names.length,category==="Traits"?36:12);
  for(const s of SKILL_CATALOG){assert.ok(["Implemented","Partial","Deferred"].includes(s.status));assert.ok(s.notes.length>15);}
- assert.equal(SKILL_CATALOG.filter(s=>s.status==="Deferred").length,29);
+ assert.equal(SKILL_CATALOG.filter(s=>s.status==="Deferred").length,27);
 });
 test("all browser scripts compile together and the skill bundle equals source",()=>{
  assert.equal(html.match(/id="skills-engine">\n([\s\S]*?)<\/script>/)[1].trimEnd(),fs.readFileSync("skills.cjs","utf8").trimEnd());
@@ -155,7 +155,7 @@ test("Tackle suppresses Dodge reroll when leaving that player's tackle zone",()=
  const g=fixture([1,1,1],"dodge"),p=g.players[0],d=g.players[11];grant(p,"Dodge");grant(d,"Tackle");g.start(p.id);g.step(9,6);assert.equal(g.pending,null);assert.equal(p.status,"prone");
 });
 test("Break Tackle spends its once-turn modifier only when it changes failure to success",()=>{
- const g=fixture([2],"dodge"),p=g.players[0];grant(p,"Break Tackle");g.start(p.id);g.step(9,6);assert.ok(g.used(p,"Break Tackle"));assert.equal(p.status,"standing");
+ const g=fixture([2],"dodge"),p=g.players[0];grant(p,"Break Tackle");g.start(p.id);g.step(9,6);assert.equal(g.used(p,"Break Tackle"),false);choose(g,"Break Tackle");assert.ok(g.used(p,"Break Tackle"));assert.equal(p.status,"standing");
 });
 test("Sure Hands offers pickup reroll but cannot reroll Secure the Ball",()=>{
  const g=fixture([1,3]),p=g.players[0];grant(p,"Sure Hands");g.start(p.id);g.step(11,7);choose(g,"Sure Hands");assert.equal(g.ball.carrier,p.id);
@@ -230,7 +230,7 @@ test("Hatred rerolls a Player Down once and locks the pool against further rerol
  const g=fixture([1,3,6],"block"),a=g.players[15];grant(a,"Hatred (Human)");g.block(a.id,g.players[5].id);assert.deepEqual(g.blockAction.dice,[6,3]);assert.ok(g.blockAction.poolLocked);
 });
 test("Claws breaks natural eight; Iron Hard Skin prevents Claws and all armour bonuses",()=>{
- const g=fixture(),a=g.players[0],d=g.players[11];d.role=1;grant(a,"Claws","Mighty Blow");assert.ok(g.armourBroken(d,8,0,a));grant(d,"Iron Hard Skin");assert.equal(g.armourBroken(d,8,3,a),false);assert.equal(g.canMighty(a,d),false);
+ const g=fixture(),a=g.players[0],d=g.players[11];d.role=1;grant(a,"Claws","Mighty Blow");assert.ok(g.armourBroken(d,8,0,a));grant(d,"Iron Hard Skin");assert.equal(g.armourBroken(d,8,3,a),false);assert.equal(g.canMightyArmour(a,d),false);assert.equal(g.canMighty(a,d),true);
 });
 test("Stab can break armour without a Block and leaves target standing when armour holds",()=>{
  const g=fixture([1,2],"dodge"),a=g.players[0],d=g.players[11];grant(a,"Stab");g.start(a.id,"special:Stab");assert.equal(g.plan(9,6),null);g.performSpecial(d.id);assert.equal(d.status,"standing");assert.equal(g.mover,null);

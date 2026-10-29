@@ -1,5 +1,7 @@
 # Exhibition match sequence — v0.0.9
 
+Updated in v0.0.14 after the [FFB BB2025 comparison](FFB-AUDIT.md): ending a turn also checks an eligible unactivated stalling carrier; activation-roll traits exclude stalling, and turns 7–8 consume no crowd die. Brilliant Coaching re-rolls are spent before Leader. FFB behavior takes priority over earlier conflicting interpretations in this document. Full FFB match-flow parity is still unverified.
+
 Rules reviewed October 28, 2026. Source: [The Game of Blood Bowl, 2025](https://bloodbowlbase.ru/bb2025/core_rules/the_game_of_blood_bowl/#pre-game-sequence), [general rules and turnover timing](https://bloodbowlbase.ru/bb2025/core_rules/rules_and_regulations/), and [2025 skills](https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/). The existing Imperial Nobility and Black Orc demonstration rosters each have 11 players, 1 Dedicated Fan, 2 purchased team re-rolls, and no purchased coaches, cheerleaders, apothecaries, or inducements.
 
 Select **Exhibition match — pre-game**. The match panel guides both hotseat coaches through each stage. Practice modes remain separate. **Learning match** uses the source's first-few-games option: equal fans, Perfect Conditions, and no Kick-off Event. It still runs setup, deviation, touchbacks, drives, and two halves.
