@@ -1,8 +1,10 @@
 # Exhibition parity — departure reactions
 
-Baseline: merged main `81438b9` (PR #2). This increment adds Shadowing and
-Arm Bar to the static browser engine. Catalogue totals: **81 implemented,
-3 partial, 24 deferred**. These are feature inventory labels, not certification
+The departure reaction increment added Shadowing and Arm Bar in PR #3.
+The [next movement increment](DODGE-FOOTING.md) adds Diving Tackle and Steady
+Footing and corrects Rush-before-Tentacles ordering, based on merged main
+`cc2653f`. Current catalogue totals: **83 implemented,
+3 partial, 22 deferred**. These are feature inventory labels, not certification
 of complete FFB parity. GitHub Pages continues to serve the committed standalone
 HTML; no backend, runtime package, or external rules request is required.
 
@@ -44,13 +46,13 @@ Use executable BB2025 behavior, not the outdated Shadowing JavaDoc.
 
 ## Remaining exhibition skill dependencies
 
-All 24 deferred catalogue entries remain accounted for below. **22 have match
+All 22 deferred catalogue entries remain accounted for below. **20 have match
 effects that still block skill-complete exhibition play.** The other two chiefly
 depend on the deferred roster/progression systems.
 
 | Group | Remaining entries | Required shared work |
 | --- | --- | --- |
-| Reactions | Diving Catch, Diving Tackle, Hit and Run, Safe Pair of Hands, Steady Footing, Dump-off, On the Ball, Trickster | Ball landing/placement windows, retained roll and modifier choices, pre-attack and out-of-turn movement contexts, continuation after a prevented fall. |
+| Reactions | Diving Catch, Hit and Run, Safe Pair of Hands, Dump-off, On the Ball, Trickster | Ball landing/placement windows, pre-attack and out-of-turn movement contexts, and nested special-action continuations. |
 | Special actions and activation traits | Pile Driver, Saboteur, Monstrous Mouth, Punt, Multiple Block, Animal Savagery, Ball & Chain, Bloodlust (X+), Bombardier | Nested actions, movement restrictions across all relocation paths, feeding before scoring/passing, directional movement, simultaneous resolution even after a turnover. |
 | Flight extensions | Lethal Flight, Kick Team-mate, Swoop | Extend the existing thrown-player flight/collision machinery with attribution, a separate kick allowance and fumble injury, directional flight and landing re-rolls. |
 | Casualty-dependent match effects | Decay, Plague Ridden | Actual casualty results, Regeneration/apothecary ordering, eligible death attribution, once-per-game creation of a predefined reserve lineman. Plague Ridden's in-match reserve addition must not wait for league hiring. |
@@ -58,17 +60,18 @@ depend on the deferred roster/progression systems.
 
 Partial entries: Chainsaw still needs foul use; Leader and Secret Weapon still
 need applicable inducement/team-rule interactions. Existing implemented entries
-also need interaction audits as new actions arrive. In particular future Diving
-Tackle must suppress Shadowing when used, preserve re-roll history, and keep
-modifier selection before the defender's decision.
+also need interaction audits as new actions arrive. Diving Tackle now suppresses
+Shadowing when used, preserves re-roll history, and keeps modifier selection
+before the defender's decision. New knockdown actions must route through the
+Steady Footing boundary and supply a continuation for a prevented fall.
 
 Other exhibition blockers remain: casualty/treatment resources, staff and
 applicable inducements, star abilities and team rules, full kickoff/drive audit,
 interception ruler geometry, and competition-specific end-of-match options.
-The existing Tentacles increment also needs a sequencing audit: its pre-move
-hold precedes Rush, whereas the pinned FFB Move/BlitzMove generators put
-Go For It before Tentacles. That earlier behavior is preserved here rather than
-represented as verified parity. See [the earlier reaction increment](REACTIONS.md).
+The Rush-before-Tentacles discrepancy identified during PR #3 is now corrected,
+including failed Rushes, Steady Footing recovery, two-Rush leaps, and held ball
+carriers. See [the movement follow-on](DODGE-FOOTING.md) and
+[the earlier reaction increment](REACTIONS.md) for historical context.
 
 ## Validation
 

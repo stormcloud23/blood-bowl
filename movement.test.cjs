@@ -192,9 +192,9 @@ test("jump failure natural one falls at origin, other failure at target",()=>{
   const g=fixture([roll,1,1],"jump"),p=g.players[0];g.start(p.id);g.step(12,7);assert.equal(p.x,x);assert.equal(g.active,1);
  }
 });
-test("jump rushing twice resolves before jump; failure stays at origin",()=>{
+test("jump rushing twice resolves before jump; Rush failure falls at destination like FFB",()=>{
  const g=fixture([2,1,1,1],"jump"),p=g.players[0];g.start(p.id);p.spent=6;g.step(12,7);
- assert.equal(p.x,10);assert.equal(g.active,1);assert.equal(g.events.some(e=>e.startsWith("Jump #")),false);
+ assert.equal(p.x,12);assert.equal(g.active,1);assert.equal(g.events.some(e=>e.startsWith("Jump #")),false);
 });
 test("jump uses higher endpoint marking count",()=>{
  const g=fixture([],"jump"),p=g.players[0],q=g.players[2];Object.assign(q,{team:1,role:0,status:"standing",x:13,y:7});g.start(p.id);

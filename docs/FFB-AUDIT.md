@@ -2,8 +2,8 @@
 
 Follow-on work: [reaction continuations and Tentacles](REACTIONS.md) adds an
 in-memory interruption stack and the first departure reaction. Current coverage
-is 81 implemented, 3 partial and 24 deferred after the subsequent
-[Shadowing/Arm Bar increment and exhibition dependency review](EXHIBITION-PARITY.md); the historical comparison below
+is 83 implemented, 3 partial and 22 deferred after the subsequent
+[movement reactions and exhibition dependency review](EXHIBITION-PARITY.md); the historical comparison below
 describes the preceding increment.
 
 Compared October 29, 2026. Browser baseline: `stormcloud23/blood-bowl` commit `d0f1fbfc2241efd2ffe5865740b3a4adf663ac81`. Java reference: [`christerk/ffb` at bf3f89d](https://github.com/christerk/ffb/tree/bf3f89d96b5143a8730910a841e7430791094492).

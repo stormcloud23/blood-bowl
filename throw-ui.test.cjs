@@ -39,6 +39,27 @@ test('Arm Bar owner and injury modifier are both reachable through browser butto
  get('choices').children.find(e=>e.textContent==='Add +1 to Injury').listeners.click();
  assert.equal(run('game.pending'),null);assert.equal(run('game.players[0].status'),'casualty');assert.equal(run('game.active'),1);
 });
+test('Diving Tackle UI gives the moving coach the look-ahead re-roll before defender choice',()=>{
+ const {get,run}=uiFixture('dodge');
+ run('game.players[11].extraSkills=["Diving Tackle"];game.rerolls=[1,0];globalThis.rolls=[3,6];game.dice=()=>rolls.shift();game.start(game.players[0].id);selected=game.players[0].id;choose(9,6);choose(9,6);render()');
+ assert.ok(get('choices').children.some(e=>e.textContent.includes('before the defender decides')));assert.ok(get('choices').children.some(e=>e.textContent==='Keep this result'));
+ get('choices').children.find(e=>e.textContent==='Use team re-roll').listeners.click();assert.equal(run('game.pending.team'),1);
+ get('choices').children.find(e=>e.textContent.includes('(1-1)')).listeners.click();assert.equal(run('game.players[11].status'),'prone');assert.equal(run('game.players[0].status'),'standing');assert.equal(run('game.pending'),null);
+});
+test('Diving Tackle route preview includes the possible defender modifier',()=>{
+ const {get,run}=uiFixture('dodge');run('game.players[11].extraSkills=["Diving Tackle"];selected=game.players[0].id;render()');
+ assert.match(get('pitch').children[6*26+9].title,/Dodge 5\+ \(if Diving Tackle is used\)/);
+});
+test('Steady Footing UI resumes a failed movement check and rejects a double click',()=>{
+ const {get,run}=uiFixture('dodge');run('game.players[0].extraSkills=["Steady Footing"];game.rerolls=[0,0];globalThis.rolls=[1,6];game.dice=()=>rolls.shift();game.start(game.players[0].id);selected=game.players[0].id;choose(9,6);choose(9,6);render()');
+ const choice=get('choices').children.find(e=>e.textContent==='Use Steady Footing');assert.ok(choice);choice.listeners.click();choice.listeners.click();
+ assert.equal(run('game.pending'),null);assert.equal(run('game.players[0].status'),'standing');assert.equal(run('game.active'),0);assert.equal(run('game.interruptions.length'),0);
+});
+test('a stale Steady Footing button cannot answer the next Rush failure decision',()=>{
+ const {get,run}=uiFixture('dodge');run('game.players[0].extraSkills=["Steady Footing","Leap"];game.rerolls=[0,0];globalThis.rolls=[1,6,1,6,6];game.dice=()=>rolls.shift();game.start(game.players[0].id);game.players[0].spent=game.profile(game.players[0]).ma;game.step(8,7);render()');
+ const old=get('choices').children.find(e=>e.textContent==='Use Steady Footing');old.listeners.click();assert.equal(run('rolls.length'),2);old.listeners.click();assert.equal(run('rolls.length'),2);
+ get('choices').children.find(e=>e.textContent==='Use Steady Footing').listeners.click();assert.equal(run('game.pending'),null);assert.equal(run('game.players[0].x'),8);assert.equal(run('rolls.length'),0);
+});
 test('throw practice UI declares, selects, previews and commits a throw',()=>{
  const {get,context}=uiFixture();
  vm.runInContext('game.dice=()=>6',context);
