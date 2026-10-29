@@ -35,6 +35,9 @@ test('an already re-rolled dodge gets one tackle window and no second dodge re-r
 test('an unrescued failed dodge does not offer Diving Tackle',()=>{
  const {g,d,queue}=fixture([1,1,1],[],['Diving Tackle']);g.step(9,6);assert.equal(d.status,'standing');assert.equal(g.active,1);assert.equal(queue.length,0);
 });
+test('FFB default Diving Tackle is ineligible when the mover stays in that tackler tackle zone',()=>{
+ const {g,p,d,queue}=fixture([6],[],['Diving Tackle']);g.step(10,6);assert.equal(g.pending,null);assert.equal(p.status,'standing');assert.equal(d.status,'standing');assert.equal(g.plan(9,6)?.divingTackleTarget,5);assert.equal(queue.length,0);
+});
 test('Break Tackle can rescue a re-rolled dodge against prospective Diving Tackle',()=>{
  const {g,p,queue}=fixture([1,4],['Break Tackle'],['Diving Tackle']);g.rerolls[0]=1;g.step(9,6);g.decide('Team');
  assert.deepEqual(g.pending.options,['Break Tackle']);g.decide('Break Tackle');assert.equal(g.used(p,'Break Tackle'),true);assert.match(g.pending.kind,/will not trip/);select(g);
@@ -44,7 +47,7 @@ test('Break Tackle is not spent on a combination that cannot beat prospective Di
  const {g,p,queue}=fixture([2,1,1],['Break Tackle'],['Diving Tackle']);g.step(9,6);assert.equal(g.used(p,'Break Tackle'),false);assert.equal(p.status,'prone');assert.equal(queue.length,0);
 });
 test('only one eligible Diving Tackle player can be chosen',()=>{
- const {g,d}=fixture([6],[],['Diving Tackle']);const other=g.players[12];Object.assign(other,{x:10,y:6,status:'standing',extraSkills:['Diving Tackle']});g.step(9,6);
+ const {g,d}=fixture([6],[],['Diving Tackle']);const other=g.players[12];Object.assign(other,{x:10,y:8,status:'standing',extraSkills:['Diving Tackle']});g.step(9,6);
  assert.equal(g.pending.options.length,3);g.decide(g.pending.options[1]);assert.equal(other.status,'prone');assert.equal(d.status,'standing');assert.equal(g.pending,null);
 });
 test('prone, distracted, disabled and rooted tacklers are excluded',()=>{

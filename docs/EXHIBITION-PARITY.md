@@ -5,8 +5,11 @@ The [next movement increment](DODGE-FOOTING.md) adds Diving Tackle and Steady
 Footing and corrects Rush-before-Tentacles ordering, based on merged main
 `cc2653f`. [Ball landing and placement](CATCH-PLACEMENT.md) adds Diving Catch
 and Safe Pair of Hands on merged main `c2138fc` (PR #4).
-Current catalogue totals: **85 implemented,
-3 partial, 20 deferred**. These are feature inventory labels, not certification
+The [special-action and reaction-context batch](SPECIAL-ACTIONS.md), based on
+merged main `7b48803` (PR #5), adds twelve skills/traits and completes Chainsaw
+foul use. It is stacked above the separately reviewed route-preference PR #6.
+Current catalogue totals: **98 implemented,
+2 partial, 8 deferred**. These are feature inventory labels, not certification
 of complete FFB parity. GitHub Pages continues to serve the committed standalone
 HTML; no backend, runtime package, or external rules request is required.
 
@@ -48,19 +51,18 @@ Use executable BB2025 behavior, not the outdated Shadowing JavaDoc.
 
 ## Remaining exhibition skill dependencies
 
-All 20 deferred catalogue entries remain accounted for below. **18 have match
+All 8 deferred catalogue entries remain accounted for below. **6 have match
 effects that still block skill-complete exhibition play.** The other two chiefly
 depend on the deferred roster/progression systems.
 
 | Group | Remaining entries | Required shared work |
 | --- | --- | --- |
-| Reactions | Hit and Run, Dump-off, On the Ball, Trickster | Pre-attack and out-of-turn movement contexts, post-action movement, and nested special-action continuations. Ball landing and placement boundaries are now available. |
-| Special actions and activation traits | Pile Driver, Saboteur, Monstrous Mouth, Punt, Multiple Block, Animal Savagery, Ball & Chain, Bloodlust (X+), Bombardier | Nested actions, movement restrictions across all relocation paths, feeding before scoring/passing, directional movement, simultaneous resolution even after a turnover. |
-| Flight extensions | Lethal Flight, Kick Team-mate, Swoop | Extend the existing thrown-player flight/collision machinery with attribution, a separate kick allowance and fumble injury, directional flight and landing re-rolls. |
+| Simultaneous Blocks | Multiple Block | Two committed attacks, ST reduction, no follow-up, both fully resolved even after turnover or attacker injury. |
+| Special movement/actions | Ball & Chain, Bloodlust (X+), Bombardier | Random movement and friendly Blocks, feeding before scoring/passing, a separate bomb object with recursive caught-bomb throws and group damage. |
 | Casualty-dependent match effects | Decay, Plague Ridden | Actual casualty results, Regeneration/apothecary ordering, eligible death attribution, once-per-game creation of a predefined reserve lineman. Plague Ridden's in-match reserve addition must not wait for league hiring. |
 | Later roster/progression features | Insignificant, Violent Innovator | Draft-list counting and SPP from special-action casualties; retain match attribution where useful, postpone roster editing and advancement. |
 
-Partial entries: Chainsaw still needs foul use; Leader and Secret Weapon still
+Partial entries: Leader and Secret Weapon still
 need applicable inducement/team-rule interactions. Existing implemented entries
 also need interaction audits as new actions arrive. Diving Tackle now suppresses
 Shadowing when used, preserves re-roll history, and keeps modifier selection
@@ -69,6 +71,12 @@ Steady Footing boundary and supply a continuation for a prevented fall. Eligible
 prone placements use `beforeProne`; deliveries carry an explicit landing mode.
 Pinned FFB exceptions, including Diving Tackle's exclusion from Safe Pair of
 Hands, are recorded in the ball-handling audit.
+
+The current reaction/action batch includes parent-state restoration and bounded
+movement and per-Block knockdown outcomes for Saboteur, but it does not supply
+a general committed dual-attack transaction or a casualty/treatment sequence.
+Those are the next foundations. Catalogue skill
+completion alone will not finish the wider exhibition milestone.
 
 Other exhibition blockers remain: casualty/treatment resources, staff and
 applicable inducements, star abilities and team rules, full kickoff/drive audit,
