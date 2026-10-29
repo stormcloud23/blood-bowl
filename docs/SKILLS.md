@@ -1,8 +1,8 @@
-# Skills and traits coverage — v0.0.10
+# Skills and traits coverage — v0.0.11
 
 Reviewed October 28, 2026 against the full [Blood Bowl 2025 Skills & Traits list](https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/), [current FAQ](https://bloodbowlbase.ru/bb2025/core_rules/latest_faq/), [Foul / Argue the Call rules](https://bloodbowlbase.ru/bb2025/core_rules/the_game_of_blood_bowl/#foul-actions), and [Bribes](https://bloodbowlbase.ru/bb2025/core_rules/inducements/#0-3-bribes-0-6-for-teams-with-the-bribery-and-corruption-special-rule).
 
-All 108 entries are accounted for: **73 implemented**, **3 partial**, **32 deferred**. Implemented describes support within the available actions and exhibition sequence, not missing league or inducement systems. Deferred abilities are not offered as laboratory additions. Each deferred row records the missing dependency for a future pass. This table and the app inventory share the same registry in skills.cjs.
+All 108 entries are accounted for: **76 implemented**, **3 partial**, **29 deferred**. Implemented describes support within the available actions and exhibition sequence, not missing league or inducement systems. Deferred abilities are not offered as laboratory additions. Each deferred row records the missing dependency for a future pass. This table and the app inventory share the same registry in skills.cjs.
 
 ## How to try them
 
@@ -13,6 +13,10 @@ Optional benefits default on. The owning coach can switch an optional skill off 
 The **Foul / special action** button declares Foul, Stab, Projectile Vomit, Hypnotic Gaze, Breathe Fire or Chainsaw when eligible. Foul and Hypnotic Gaze permit movement first. The other direct special actions do not grant a free Move. Eligible Blitz replacements appear beside the Block choices, cost one MA (with a Rush if needed), and end the activation as their rules require. Quick Foul preserves unused movement but permits no second foul. Fumblerooski can be armed before the next move; Hail Mary can be selected explicitly for an in-range target and is used automatically beyond normal range.
 
 ## Coverage inventory
+
+Throw Team-mate, Right Stuff, and Always Hungry now support declaration, movement before throwing, adjacent passenger selection, Quick/Short range, accuracy re-rolls, three-square scatter, fumbles, landing re-rolls, collision chains, crowd injury, carried balls, touchdowns, and the Troll's eating sequence. Select **Throw Team-mate practice** for a Troll and Goblin drill. Declare the action, choose the passenger in the side panel, then click a highlighted target twice. Throwing uses a separate once-per-turn allowance from Pass. Eaten players remain unavailable on later drives. Permanent league roster deletion awaits league persistence.
+
+Sources: [Throw Team-mate and landing](https://bloodbowlbase.ru/bb2025/core_rules/the_game_of_blood_bowl/#throw-team-mate-actions), the range chart on that page, and the three trait entries in the Skills & Traits list.
 
 | Entry | Category | Use | Status | Coverage / remaining dependency |
 | --- | --- | --- | --- | --- |
@@ -79,16 +83,16 @@ The **Foul / special action** button declares Foul, Stab, Projectile Vomit, Hypn
 | Arm Bar | Strength | Active | Deferred | Needs one defender-selected injury modifier window following a failed departure. |
 | Brawler | Strength | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Break Tackle | Strength | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
-| Bullseye | Strength | Active | Deferred | Requires Throw Team-mate flight and landing resolution. |
+| Bullseye | Strength | Active | Deferred | Throw Team-mate exists; the optional Superb Throw scatter replacement is not wired in yet. |
 | Grab | Strength | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Guard | Strength | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Juggernaut | Strength | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Mighty Blow | Strength | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Multiple Block | Strength | Active | Deferred | Needs two simultaneous Block resolutions, both completed even if one causes a turnover. |
 | Stand Firm | Strength | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
-| Strong Arm | Strength | Active | Deferred | Requires Throw Team-mate accuracy tests. |
+| Strong Arm | Strength | Active | Deferred | Throw Team-mate exists; its optional accuracy modifier is not wired in yet. |
 | Thick Skull | Strength | Passive | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
-| Always Hungry | Traits | Active * | Deferred | Requires Throw Team-mate declaration, eaten-player removal and fumbled flight. |
+| Always Hungry | Traits | Active * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Animal Savagery | Traits | Passive * | Deferred | Needs activation interruption, forced teammate selection, mandatory damage modifiers and continuation. |
 | Animosity (X) | Traits | Active * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Ball & Chain | Traits | Active * | Deferred | Needs directional random movement, collision Blocks against either team and special injury handling. |
@@ -112,13 +116,13 @@ The **Foul / special action** button declares Foul, Stab, Projectile Vomit, Hypn
 | Projectile Vomit | Traits | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Really Stupid | Traits | Passive * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Regeneration | Traits | Passive | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
-| Right Stuff | Traits | Passive * | Deferred | Requires Throw Team-mate selection and airborne player states. |
+| Right Stuff | Traits | Passive * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Secret Weapon | Traits | Passive * | Partial | End-of-drive send-off, Argue the Call and available Bribes are supported; bribe-related roster special rules await inducements. |
 | Stab | Traits | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Stunty | Traits | Passive * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Swoop | Traits | Active | Deferred | Requires thrown-player directional flight and landing re-rolls. |
 | Take Root | Traits | Passive * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
-| Throw Team-mate | Traits | Active | Deferred | Requires airborne players, occupied landings, chain collisions and teammate injury attribution. |
+| Throw Team-mate | Traits | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Timmm-ber! | Traits | Passive | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Titchy | Traits | Passive * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Trickster | Traits | Active | Deferred | Needs defender relocation and optional pickup before attack dice, including other reactions. |
@@ -132,4 +136,3 @@ Run `node build.cjs`, then `node --test movement.test.cjs match.test.cjs skills.
 Deferred reaction skills need a reusable event/interrupt stack rather than more single pending-choice callbacks. Thrown-player and bomb abilities need separate airborne objects and collision resolution. League-dependent abilities need Casualty Table results, SPP attribution and roster changes. These are recorded individually above; no deferred skill is treated as implemented merely because its name appears on a roster.
 
 The source now permits negative modified D6 results: a modified pass result of exactly 1 (or natural 1) fumbles; a negative failed result scatters as inaccurate. This corrects the older engine's one-or-less fumble assumption. Stunty's interception penalty, Tackle's Dodge re-roll restriction, Jump Up standing cost, and the three legal straight push squares were also corrected during this audit.
-

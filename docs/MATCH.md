@@ -21,7 +21,7 @@ Select **Exhibition match — pre-game**. The match panel guides both hotseat co
 | Brilliant Coaching | D6 per coach, no purchased staff; winner/ties receive a free drive re-roll; consumed first and unused bonus expires | Bonus expiration |
 | Changing Weather | New weather; Scatter (3) if Perfect Conditions; touchback on crossing LOS/off pitch | Airborne scatter and landing |
 | Quick Snap | Up to D3+3 initially Open receivers move one square each, including into opposing half | One square, one move per player |
-| Charge | Up to D3+3 initially Open kicking players; free Move or one Blitz; fall/knockdown stops further activations; no normal turn consumed | Free activation, trait limits, failed rush stops event |
+| Charge | Up to D3+3 initially Open kicking players; free Move, one Blitz, or one Throw Team-mate; fall/knockdown stops further activations; no normal turn consumed | Free activation, trait limits, failed rush stops event |
 | Dodgy Snack | Losing coach/ties randomly select player; 2+ loses 1 MA/AV this drive, 1 removes to reserves this drive | Temporary stats expire |
 | Pitch Invasion | D6 plus Fan Factor; losing coach/ties randomly select D3 players; stunned without armor | Contest and random stun |
 | Team turns / halves | Eight turns per team per half; turnovers advance; two halves; change ends and replenish re-rolls at halftime; final score/draw | Full 32-turn match |
@@ -31,7 +31,7 @@ Select **Exhibition match — pre-game**. The match panel guides both hotseat co
 
 ## Boundaries
 
-This is the match sequence around the implemented actions, not complete standalone rules coverage. Foul and several direct special actions are now available in v0.0.10. Throw Team-mate, Kick Team-mate, and other deferred actions remain unavailable. Available Bribes can now prevent a send-off. See SKILLS.md for all 108 ability statuses. The supplied demo rosters have no Secret Weapons and no purchased apothecary or staff. End-of-drive Secret Weapon handling is now available for future rosters; apothecaries and purchased staff remain outside this prototype. League preparation/progression, roster management, extra time, penalties, concessions, and save/resume remain future work. Reloading resets the match. Physical passing-ruler interception geometry remains the documented approximation in MOVEMENT.md.
+This is the match sequence around the implemented actions, not complete standalone rules coverage. Foul and several direct special actions are now available in v0.0.10. v0.0.11 adds Throw Team-mate, including Charge activations. Kick Team-mate and other deferred actions remain unavailable. Available Bribes can now prevent a send-off. See SKILLS.md for all 108 ability statuses. The supplied demo rosters have no Secret Weapons and no purchased apothecary or staff. End-of-drive Secret Weapon handling is now available for future rosters; apothecaries and purchased staff remain outside this prototype. League preparation/progression, roster management, extra time, penalties, concessions, and save/resume remain future work. Reloading resets the match. Physical passing-ruler interception geometry remains the documented approximation in MOVEMENT.md.
 
 The sequence review also corrected Block activation traits and Wrestle: both wrestlers are Placed Prone before resolving a loose ball; this only causes a turnover if an active-team ball carrier was placed prone. A Player Down result credits the defender with the knockdown, allowing their applicable Mighty Blow.
 
@@ -40,4 +40,3 @@ The sequence review also corrected Block activation traits and Wrestle: both wre
 `match.cjs` extends the existing action engine. `build.cjs` embeds both engines in the self-contained Pages document. Run `node build.cjs` and `node --test movement.test.cjs match.test.cjs`. The suites use injected dice and cover both source/bundle equality and browser-script compilation.
 
 Validation: 93 tests pass across movement.test.cjs and match.test.cjs, including 30 match-sequence tests and the complete two-half turn progression.
-

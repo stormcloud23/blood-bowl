@@ -12,11 +12,11 @@
 </style>
 </head>
 <body>
-<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>The development pitch</h1></div><span class="badge">v0.0.10 · Sandbox</span></header>
+<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>The development pitch</h1></div><span class="badge">v0.0.11 · Sandbox</span></header>
 <div class="notice" id="mode-notice"><strong>Movement and ball action practice</strong><br><span class="muted">Preview movement and its checks, resolve Block dice, pushes, and follow-ups, or secure a loose ball. Perfect Conditions. This remains a practice drive, not a complete match.</span></div>
-<label for="scenario">Game mode </label><select id="scenario"><option value="match">Exhibition match — pre-game</option><option value="match-learning">Learning match — simplified kickoff</option><option value="skills">Skills laboratory</option><option value="teams">Both teams</option><option value="dodge">Dodge practice</option><option value="jump">Jump & stand up</option><option value="pickup">Ball pickup</option><option value="traits">Ogre & Troll traits</option><option value="handoff">Hand-off practice</option><option value="pass">Pass & interception practice</option><option value="blitz">Blitz practice</option><option value="block">Block practice</option><option value="secure">Secure the Ball practice</option></select><p class="muted">Changing the mode starts a new game or practice. Direction template: 1 NW · 2 N · 3 NE · 4 W · 5 E · 6 SW · 7 S · 8 SE.</p><div id="matchflow" class="notice" aria-live="polite"></div><main><section><div class="pitch-wrap"><div id="pitch" class="pitch" role="group" aria-label="Development pitch"></div></div><p class="muted">Select a player and choose an action. For movement, click a destination once to preview, then again to commit. For Pass or Hand-off, declare the action, move as needed, then choose a ball target. For Blitz, choose Declare Blitz and a highlighted target, move adjacent, then choose Blitz Block (1 MA). During Block, click a highlighted target. Green = no roll, amber = checks or targets, purple = jump.</p><button class="control" id="start">Declare Move</button><button class="control secondary" id="handoff">Declare Hand-off</button><button class="control secondary" id="pass">Declare Pass</button><button class="control secondary" id="transfer">Choose ball target</button><button class="control secondary" id="blitz">Declare Blitz</button><button class="control secondary" id="block">Block</button><button class="control secondary" id="special">Foul / special action</button><button class="control secondary" id="secure">Secure the Ball</button><button class="control secondary" id="finish">End Move</button><button class="control secondary" id="end">End team turn</button><button class="control secondary" id="reset">Reset practice</button></section>
+<label for="scenario">Game mode </label><select id="scenario"><option value="match">Exhibition match — pre-game</option><option value="match-learning">Learning match — simplified kickoff</option><option value="skills">Skills laboratory</option><option value="teams">Both teams</option><option value="dodge">Dodge practice</option><option value="jump">Jump & stand up</option><option value="pickup">Ball pickup</option><option value="throw-team-mate">Throw Team-mate practice</option><option value="traits">Ogre & Troll traits</option><option value="handoff">Hand-off practice</option><option value="pass">Pass & interception practice</option><option value="blitz">Blitz practice</option><option value="block">Block practice</option><option value="secure">Secure the Ball practice</option></select><p class="muted">Changing the mode starts a new game or practice. Direction template: 1 NW · 2 N · 3 NE · 4 W · 5 E · 6 SW · 7 S · 8 SE.</p><div id="matchflow" class="notice" aria-live="polite"></div><main><section><div class="pitch-wrap"><div id="pitch" class="pitch" role="group" aria-label="Development pitch"></div></div><p class="muted">Select a player and choose an action. For movement, click a destination once to preview, then again to commit. For Pass or Hand-off, declare the action, move as needed, then choose a ball target. For Blitz, choose Declare Blitz and a highlighted target, move adjacent, then choose Blitz Block (1 MA). During Block, click a highlighted target. Green = no roll, amber = checks or targets, purple = jump.</p><button class="control" id="start">Declare Move</button><button class="control secondary" id="handoff">Declare Hand-off</button><button class="control secondary" id="pass">Declare Pass</button><button class="control secondary" id="throw-mate">Declare Throw Team-mate</button><button class="control secondary" id="transfer">Choose ball target</button><button class="control secondary" id="blitz">Declare Blitz</button><button class="control secondary" id="block">Block</button><button class="control secondary" id="special">Foul / special action</button><button class="control secondary" id="secure">Secure the Ball</button><button class="control secondary" id="finish">End Move</button><button class="control secondary" id="end">End team turn</button><button class="control secondary" id="reset">Reset practice</button></section>
 <aside class="panel"><div class="eyebrow">Movement & action practice</div><h2 id="coach"></h2><p id="selection" role="status" aria-live="polite"></p><div id="movement" aria-live="polite"></div><div id="choices"></div><div id="profile"></div><div id="dugout"></div><h2>Session log</h2><ol id="log"></ol><p class="muted">Games reset on reload. Two team re-rolls each; match re-rolls replenish at half-time.</p></aside></main><section id="rosters" aria-label="Team rosters"></section>
-<footer>Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.10 with feedback.</footer>
+<footer>Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.11 with feedback.</footer>
 <script id="team-data" type="application/json">[
   {
     "id": "imperial-nobility",
@@ -826,10 +826,9 @@ const SKILL_DEFERRED={
  "On the Ball":"Needs interrupting, multi-player out-of-turn movement before passing and kickoff events.",
  "Punt":"Needs directional kick target and direction/distance re-roll choices separate from normal passing.",
  "Arm Bar":"Needs one defender-selected injury modifier window following a failed departure.",
- "Bullseye":"Requires Throw Team-mate flight and landing resolution.",
+ "Bullseye":"Throw Team-mate exists; the optional Superb Throw scatter replacement is not wired in yet.",
  "Multiple Block":"Needs two simultaneous Block resolutions, both completed even if one causes a turnover.",
- "Strong Arm":"Requires Throw Team-mate accuracy tests.",
- "Always Hungry":"Requires Throw Team-mate declaration, eaten-player removal and fumbled flight.",
+ "Strong Arm":"Throw Team-mate exists; its optional accuracy modifier is not wired in yet.",
  "Animal Savagery":"Needs activation interruption, forced teammate selection, mandatory damage modifiers and continuation.",
  "Ball & Chain":"Needs directional random movement, collision Blocks against either team and special injury handling.",
  "Bloodlust (X+)":"Needs Thrall selection, bite injury, action replacement and feeding before passing or scoring.",
@@ -838,9 +837,7 @@ const SKILL_DEFERRED={
  "Insignificant":"Requires the Team Draft List / roster builder.",
  "Kick Team-mate":"Requires thrown-player flight, fumbles and crash landings.",
  "Plague Ridden":"Requires death results, apothecary timing, roster additions and post-game hiring.",
- "Right Stuff":"Requires Throw Team-mate selection and airborne player states.",
  "Swoop":"Requires thrown-player directional flight and landing re-rolls.",
- "Throw Team-mate":"Requires airborne players, occupied landings, chain collisions and teammate injury attribution.",
  "Trickster":"Needs defender relocation and optional pickup before attack dice, including other reactions."
 };
 const SKILL_PARTIAL={"Leader":"Exhibition re-roll and missing-Leader eligibility are supported; Halfling Master Chef interactions await inducements.","Secret Weapon":"End-of-drive send-off, Argue the Call and available Bribes are supported; bribe-related roster special rules await inducements.","Chainsaw":"Attack, kick-back and incoming armour penalty work. Optional chainsaw use during a Foul is deferred."};
@@ -848,7 +845,66 @@ const PASSIVES=new Set(["Claws","Disturbing Presence","Foul Appearance","Iron Ha
 const MANDATORY=new Set(["Frenzy","Disturbing Presence","Foul Appearance","Always Hungry","Animal Savagery","Animosity (X)","Ball & Chain","Bloodlust (X+)","Bone Head","Chainsaw","Decay","Drunkard","Hatred (X)","Insignificant","Loner (X+)","My Ball","No Ball","Really Stupid","Right Stuff","Secret Weapon","Stunty","Take Root","Titchy","Unchannelled Fury","Unsteady"]);
 const SKILL_CATALOG=Object.entries(SKILL_GROUPS).flatMap(([category,names])=>names.map(name=>({name,category,kind:PASSIVES.has(name)?"Passive":"Active",mandatory:MANDATORY.has(name),status:SKILL_DEFERRED[name]?"Deferred":SKILL_PARTIAL[name]?"Partial":"Implemented",notes:SKILL_DEFERRED[name]||SKILL_PARTIAL[name]||"Supported in the available actions. Optional abilities may be disabled before action resolution.",source:"https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/#"+name.toLowerCase().replace(/[^a-z0-9 ]/g,"").replaceAll(" ","-")})));
 class SkillGame extends SkillBase {
- constructor(teams,options={}){super(teams,options);this.foulUsed=[false,false];this.leaderPool=[false,false];this.leaderHalf=[0,0];this.lab=options.scenario==="skills";if(this.lab){this.players[0].extraSkills=["Leap","Sprint","Sure Feet","Sure Hands"];this.practicePlayer=this.players[0].id;}this.skillTurn=0;}
+ // A separate declaration allowance: throwing a player does not consume the Pass.
+ canThrowTeamMate(p){return !!(this.canStart(p)&&this.has(p,"Throw Team-mate")&&!this.throwUsed?.[p.team]);}
+ throwActor(){const p=this.players.find(q=>q.id===this.mover);return this.action==="throw-team-mate"&&!this.pending&&!this.finished&&!this.ballActionDone&&p?.status==="standing"&&!p.distracted?p:null;}
+ throwCandidates(){const a=this.throwActor();return a?this.players.filter(p=>p.id!==a.id&&p.team===a.team&&this.onPitch(p)&&this.distance(a,p)===1&&this.has(p,"Right Stuff")&&!p.rooted&&["standing","prone","stunned"].includes(p.status)):[];}
+ selectThrowMate(id){if(!this.throwCandidates().some(p=>p.id===id))return false;this.throwMate=id;return true;}
+ throwPreview(x,y){const a=this.throwActor(),p=this.throwCandidates().find(q=>q.id===this.throwMate),range=a&&super.passRange(a,{x,y});if(!a||!p||!range||range.band>1)return null;return {...range,name:range.band?"Short Throw":"Quick Throw",target:parseInt(this.profile(a).pa)+range.band+this.marking(a)+this.disturbance(a),mate:p};}
+ throwTeamMate(x,y){
+  const preview=this.throwPreview(x,y);if(!preview)return false;
+  const a=this.throwActor(),p=preview.mate,origin={x:p.x,y:p.y},unable=p.status!=="standing"||p.distracted;
+  this.ballActionDone=true;this.throwMate=null;
+  const end=turnover=>{this.mover=null;this.action=null;if(turnover)this.endTurn(true);else this.checkScore();};
+  const airborne=()=>{p.x=null;p.y=null;};
+  const dirs=[[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]];
+  const drift=(pos,label)=>{const [dx,dy]=dirs[this.roll(label,8)-1];return {x:pos.x+dx,y:pos.y+dy};};
+  let forcedTurnover=false;
+  const crowd=(from,to)=>{p.x=from.x;p.y=from.y;this.pushPlayer(p,to,()=>end(true));};
+  const land=(pos,subpar,crashed=false,from=origin)=>{
+   if(!this.inside(pos.x,pos.y)){crowd(from,pos);return;}
+   const victim=this.at(pos.x,pos.y);
+   if(victim){
+    this.note("Thrown #"+p.number+" crashes into #"+victim.number+".");
+    if(victim.team===this.active)forcedTurnover=true;
+    this.fall(victim,{turnover:false,after:()=>land(drift(pos,"Collision bounce"),subpar,true,pos)});return;
+   }
+   p.x=pos.x;p.y=pos.y;if(this.ball.carrier===p.id){this.ball.x=p.x;this.ball.y=p.y;}
+   const fail=()=>this.fall(p,{turnover:false,after:()=>end(forcedTurnover||carrying)});
+   const ok=()=>{this.note("#"+p.number+" lands on their feet.");if(!this.ball.carrier&&this.ball.x===p.x&&this.ball.y===p.y)this.bounce(p.x,p.y,()=>end(forcedTurnover));else end(forcedTurnover);};
+   if(unable||crashed){fail();return;}
+   this.test(p,"Landing",parseInt(this.profile(p).ag)+(subpar?1:0)+this.marking(p),ok,fail);
+  };
+  const carrying=this.ball.carrier===p.id;
+  const fumble=()=>{this.note("Fumbled Throw: bounce from the throwing player.");airborne();land(drift(a,"Fumbled player bounce"),true,false,a);};
+  const resolve=n=>{
+   const modifier=preview.target-parseInt(this.profile(a).pa);
+   if(n===1||n!==6&&n-modifier===1){fumble();return;}
+   const superb=this.success(n,preview.target);this.note(superb?"Superb Throw.":"Subpar Throw.");airborne();let pos={x,y};
+   for(let i=0;i<3;i++){const from=pos;pos=drift(pos,"Thrown player scatter");if(!this.inside(pos.x,pos.y)){crowd(from,pos);return;}}
+   land(pos,!superb);
+  };
+  const accuracy=()=>{
+   const n=this.roll("Throw Team-mate accuracy #"+a.number);
+   // A Subpar result is still a failed PA test; the thrower may re-roll it.
+   if(this.success(n,preview.target)){resolve(n);return;}
+   const options=this.options(a,"Throw Team-mate");if(!options.length){resolve(n);return;}
+   this.pending={p:a,kind:"Throw Team-mate",target:preview.target,roll:n,options,resolve};
+  };
+  if(this.has(a,"Always Hungry"))this.test(a,"Always Hungry",2,accuracy,()=>{
+   this.test(a,"Squirm free",2,fumble,()=>{
+    this.note("Always Hungry: #"+p.number+" is eaten and permanently removed.");p.eaten=true;p.status="eaten";p.x=null;p.y=null;
+    if(carrying){this.ball={...origin,carrier:null};this.bounce(origin.x,origin.y,()=>end(true));}else end(true);
+   });
+  });else accuracy();return true;
+ }
+ constructor(teams,options={}){super(teams,options);this.foulUsed=[false,false];this.leaderPool=[false,false];this.leaderHalf=[0,0];this.lab=options.scenario==="skills";if(this.lab){this.players[0].extraSkills=["Leap","Sprint","Sure Feet","Sure Hands"];this.practicePlayer=this.players[0].id;}this.skillTurn=0;
+  if(options.scenario==="throw-team-mate"){
+   this.players.forEach(p=>Object.assign(p,{x:null,y:null,status:"reserve"}));this.active=1;this.turns=[0,1];
+   const troll=this.players[21],goblin=this.players[11];Object.assign(troll,{x:16,y:7,status:"standing"});Object.assign(goblin,{x:15,y:7,status:"standing"});
+   this.ball={x:goblin.x,y:goblin.y,carrier:goblin.id};this.practicePlayer=troll.id;this.note("Throw Team-mate practice: select the Troll, declare the throw, then choose the Goblin and a target square.");
+  }
+ }
  profile(p){const base=super.profile(p),skills=[...new Set([...base.skills,...(p.extraSkills||[])])].filter(s=>!(p.disabledSkills||[]).includes(s));return {...base,st:+(p.blockST??base.st)+(p.hornsBonus||0),skills};}
  skill(p,name){return !!p&&Number.isInteger(p.team)&&Number.isInteger(p.role)&&this.has(p,name)&&(p.status==="standing"&&!p.distracted||["Jump Up"].includes(name));}
  has(p,name){const b=this.blockAction;if(b&&p.id===b.target.id&&b.blitz&&["Fend","Stand Firm","Wrestle"].includes(name)&&super.has(b.attacker,"Juggernaut"))return false;return super.has(p,name);}
@@ -859,7 +915,7 @@ class SkillGame extends SkillBase {
   const conflicts={Frenzy:["Grab","Hit and Run","Multiple Block"],Grab:["Frenzy"],Leap:["Pogo"],Pogo:["Leap"]},owned=[...super.profile(p).skills,...(p.extraSkills||[])];if((conflicts[name]||[]).some(s=>owned.includes(s)))return false;p.extraSkills=[...new Set([...(p.extraSkills||[]),name])];return true;}
  used(p,name){return p.skillUses?.[name]===this.skillTurn;}
  use(p,name){p.skillUses||={};p.skillUses[name]=this.skillTurn;this.note("#"+p.number+" uses "+name+".");}
- resetSkillTurn(){this.skillTurn++;}
+ resetSkillTurn(){this.skillTurn++;this.throwUsed||=[false,false];this.throwUsed[this.active]=false;this.throwMate=null;}
  rushLimit(p){return this.skill(p,"Sprint")?3:2;}
  standCost(p){return this.has(p,"Jump Up")?0:super.standCost(p);}
  stand(p,after=null){if(this.has(p,"Jump Up")){p.status="standing";p.spent=0;this.note("Jump Up: stands for free.");if(after)after();return;}super.stand(p,after);}
@@ -872,6 +928,7 @@ class SkillGame extends SkillBase {
  }
  start(id,action="move"){
   const p=this.players.find(q=>q.id===id);if(!this.canStart(p))return false;if(action==="foul"&&this.foulUsed[this.active])return false;
+  if(action==="throw-team-mate"){if(!this.canThrowTeamMate(p))return false;this.throwUsed||=[false,false];this.throwUsed[p.team]=true;this.throwMate=null;this.note("#"+p.number+" declares Throw Team-mate.");}
   if(p.rooted&&["move","blitz"].includes(action))return false;
   if(action.startsWith("special:")){const name=action.slice(8);if(!this.skill(p,name)&&!(p.status==="prone"&&name==="Hypnotic Gaze"&&this.has(p,name)))return false;}
   if(action==="foul")this.foulUsed[this.active]=true;p.specialDone=false;
@@ -1070,10 +1127,11 @@ class MatchGame extends MatchBase {
  }
  rollWeather(){const sum=this.roll("Weather team 1")+this.roll("Weather team 2");this.weather=sum===2?"Sweltering Heat":sum===3?"Very Sunny":sum===11?"Pouring Rain":sum===12?"Blizzard":"Perfect Conditions";this.note("Weather: "+this.weather+".");return this.weather;}
  chooseKicking(team){if(this.phase!=="kickChoice"||![0,1].includes(team))return false;this.firstReceiver=1-team;this.prepareDrive(team);return true;}
- available(team){return this.players.filter(p=>p.team===team&&!["casualty","knocked-out","sent-off"].includes(p.status)&&!p.heatOut);}
+ available(team){return this.players.filter(p=>p.team===team&&!p.eaten&&!["casualty","knocked-out","sent-off"].includes(p.status)&&!p.heatOut);}
  prepareDrive(kicking){
+  this.throwUsed=[false,false];this.throwMate=null;
   this.drive++;this.kicking=kicking;this.receiving=1-kicking;this.active=kicking;this.setupTeam=kicking;this.phase="setup";this.finished=false;this.pending=null;this.mover=null;this.action=null;this.blockAction=null;this.ball={x:null,y:null,carrier:null};this.kickTouchback=false;this.eventState=null;
-  this.kickDistanceHalved=false;this.kickChoiceMade=false;for(const p of this.players){p.rooted=false;p.gouged=false;if(!["casualty","knocked-out","sent-off"].includes(p.status))Object.assign(p,{status:"reserve",x:null,y:null,distracted:false,used:false,spent:0});}
+  this.kickDistanceHalved=false;this.kickChoiceMade=false;for(const p of this.players){p.rooted=false;p.gouged=false;if(!p.eaten&&!["casualty","knocked-out","sent-off"].includes(p.status))Object.assign(p,{status:"reserve",x:null,y:null,distracted:false,used:false,spent:0});}
   this.note("Drive "+this.drive+": "+this.teams[kicking].name+" sets up first.");this.autoSetup(kicking);
  }
  setupErrors(team=this.setupTeam){
@@ -1174,7 +1232,7 @@ class MatchGame extends MatchBase {
  }
  canStart(p){if(!super.canStart(p))return false;if(this.phase==="play")return true;const e=this.eventState;return this.phase==="charge"&&e?.eligible.includes(p.id)&&!e.used.includes(p.id)&&e.used.length<e.limit;}
  start(id,action="move"){
-  if(this.phase==="charge"&&!["move","blitz"].includes(action))return false;const valid=this.players.find(p=>p.id===id);if(!this.canStart(valid))return false;
+  if(this.phase==="charge"&&!["move","blitz","throw-team-mate"].includes(action))return false;const valid=this.players.find(p=>p.id===id);if(!this.canStart(valid))return false;
   this.stallCandidate=this.phase==="play"&&this.canScoreWithoutDice(valid)?id:null;
   const result=super.start(id,action);if(result&&this.phase==="charge")this.eventState.used.push(id);return result;
  }
@@ -1184,6 +1242,7 @@ class MatchGame extends MatchBase {
  options(p,kind){const result=super.options(p,kind);return this.phase==="play"?result:result.filter(s=>s!=="Team");}
  test(p,kind,target,yes,no){if(this.weather==="Blizzard"&&kind==="Rush")target++;if(this.weather==="Pouring Rain"&&["Pick up","Catch","Intercept"].includes(kind))target++;super.test(p,kind,target,yes,no);}
  passPreview(x,y){const result=super.passPreview(x,y);if(result&&this.weather==="Very Sunny")result.target++;return result;}
+ throwPreview(x,y){const result=super.throwPreview(x,y);if(result&&this.weather==="Very Sunny")result.target++;return result;}
  passRange(from,to){const result=super.passRange(from,to);return this.weather==="Blizzard"&&result?.band>1?null:result;}
  assists(a,d){const result=super.assists(a,d);if(this.cheer[a.team])result.offensive++;return result;}
  onBlockRolled(a){this.cheer[a.team]=false;}
@@ -1267,6 +1326,10 @@ function choose(x,y){
   }else if(game.phase==="touchback")game.placeTouchback(x,y);
   render();return;
  }
+ if(ballMode&&game.action==="throw-team-mate"){
+  const preview=game.throwPreview(x,y);if(!preview)return;
+  if(throwDestination?.x===x&&throwDestination?.y===y){game.throwTeamMate(x,y);ballMode=false;throwDestination=null;}else throwDestination={x,y};render();return;
+ }
  if(ballMode){
   const valid=game.action==="handoff"?game.canHandoff(p):!!game.passPreview(x,y);
   if(!valid){selection.textContent="Choose a highlighted ball target.";return;}
@@ -1306,7 +1369,7 @@ function commitRoute(){
  destination=null;render();
 }
 function render(){
- if(ballMode&&!game.ballActor(game.action)){ballMode=false;throwDestination=null;}
+ if(ballMode&&!(game.action==="throw-team-mate"?game.throwActor():game.ballActor(game.action))){ballMode=false;throwDestination=null;}
  if(blockMode&&(game.mover||game.pending))blockMode=false;
  const mover=game.players.find(p=>p.id===game.mover),inspected=game.players.find(p=>p.id===selected);
  const planner=planningPlayer(),range=ballMode?new Map():rangeFor(planner),chosen=destination&&range.get(routeKey(destination.x,destination.y));
@@ -1316,7 +1379,7 @@ function render(){
  for(let y=0;y<15;y++)for(let x=0;x<26;x++){
   const p=game.at(x,y),reach=range.get(routeKey(x,y)),first=reach?.path[0],cell=document.createElement("button"),routeIndex=routeIndices.get(routeKey(x,y)),blockTarget=!!(blockAttacker&&p&&(blockMode==="blitz"?game.canBlitz(blockAttacker,p):game.canBlock(blockAttacker,p)));
   cell.type="button";cell.className="square"+(x===0||x===25?" endzone":"")+(x===12?" middle":"")+(y===3||y===10?" wide":"")+(p&&p.id===selected?" selected":"")+(reach&&reach.path.length?" legal":"")+(reach?.path.some(s=>s.plan.rushes||s.plan.dodge||s.plan.jump||s.plan.pickup)?" risk":"")+(first?.plan.jump?" jump":"")+(routeIndex?" route":"")+(destination?.x===x&&destination?.y===y?" destination":"")+(blockTarget?" block-target":"");
-  const ballTarget=ballMode&&(game.action==="handoff"?game.canHandoff(p):!!game.passPreview(x,y));
+  const ballTarget=ballMode&&(game.action==="throw-team-mate"?!!game.throwPreview(x,y):game.action==="handoff"?game.canHandoff(p):!!game.passPreview(x,y));
   if(ballTarget)cell.className+=" legal";
   if(throwDestination?.x===x&&throwDestination?.y===y)cell.className+=" destination";
   const label=p?teams[p.team].name+" #"+p.number+" "+game.profile(p).name+" ("+p.status+(p.distracted?", distracted":"")+(p.used?", activated":"")+")":"empty";
@@ -1333,7 +1396,9 @@ function render(){
  const rangeCount=Math.max(0,range.size-1);
  movement.textContent=(game.blockAction?"Block: ST "+game.blockAction.aStrength+" vs "+game.blockAction.dStrength+" · "+game.blockAction.assists.offensive+" offensive assist(s), "+game.blockAction.assists.defensive+" defensive assist(s). ":mover?"Moving #"+mover.number+": "+mover.spent+" / "+game.profile(mover).ma+" MA used · "+Math.max(0,mover.spent-game.profile(mover).ma)+" / "+game.rushLimit(mover)+" rushes used. ":planner?"Forecast for #"+planner.number+": "+rangeCount+" reachable destinations, including up to "+game.rushLimit(planner)+" rushes. ":"")+"Team re-rolls left: "+game.rerollsAvailable(game.active)+"."+(game.action==="blitz"?" Blitz target: #"+game.players.find(p=>p.id===game.blitzTarget)?.number+(game.blitzBlocked?" · block completed; continue moving.":" · move adjacent, then choose Blitz Block (1 MA).") : "");
  const choices=document.getElementById("choices");choices.replaceChildren();
- if(ballMode){
+ if(ballMode&&game.action==="throw-team-mate"){
+  const p=document.createElement("p"),preview=throwDestination&&game.throwPreview(throwDestination.x,throwDestination.y);p.textContent=preview?preview.name+" · Superb Throw "+Math.min(6,preview.target)+"+. Click again to throw #"+preview.mate.number+". Both Superb and Subpar throws scatter before landing.":"Choose a highlighted square, then click it again to throw your team-mate.";choices.append(p);
+ }else if(ballMode){
   const p=document.createElement("p"),target=throwDestination&&game.at(throwDestination.x,throwDestination.y),preview=throwDestination&&game.passPreview(throwDestination.x,throwDestination.y);
   p.textContent=throwDestination?(game.action==="handoff"?"Hand-off to #"+target.number+" · Catch "+Math.min(6,game.forecastTarget(target,"Catch",Number.parseInt(game.profile(target).ag)+game.marking(target)))+"+":preview.name+" · Pass "+Math.min(6,preview.target)+"+"+(target?" · Catch "+Math.min(6,game.forecastTarget(target,"Catch",Number.parseInt(game.profile(target).ag)+game.marking(target)))+"+":" · ball will bounce"))+". Click the same square again to commit.":"Click a highlighted ball target to preview, then click it again to commit. Click Choose ball target again to return to movement.";choices.append(p);
  }
@@ -1372,7 +1437,7 @@ function render(){
  }
  document.getElementById("pass").disabled=!game.canBallAction(inspected,"pass");
  document.getElementById("handoff").disabled=!game.canBallAction(inspected,"handoff");
- document.getElementById("transfer").disabled=!game.ballActor(game.action)||!["pass","handoff"].includes(game.action);
+ document.getElementById("transfer").disabled=game.action==="throw-team-mate"?!game.throwActor()||!game.throwCandidates().some(p=>p.id===game.throwMate):!game.ballActor(game.action)||!["pass","handoff"].includes(game.action);
  document.getElementById("transfer").textContent=ballMode?"Return to movement":"Choose ball target";
  document.getElementById("special").disabled=!game.specialActions(mover||inspected).length;
  document.getElementById("start").disabled=!game.canStart(inspected);
@@ -1402,7 +1467,9 @@ function renderSkillControls(){
     const name=entry.name==="Loner (X+)"?"Loner (3+)":entry.name==="Animosity (X)"?"Animosity (Human)":entry.name==="Hatred (X)"?"Hatred (Human)":entry.name;const option=document.createElement("option");option.value=name;option.textContent=name;select.append(option);
    }panel.append(select,button("Add skill to selected lab player",()=>{if(!game.addSkill(p.id,select.value))selection.textContent="This combination is not permitted.";else{showProfile(p.team,p.role,p.number);render();}}));}
  }
+ document.getElementById("throw-mate").disabled=!game.canThrowTeamMate(p);
  if(!game.pending&&mover){
+  if(game.throwActor())for(const mate of game.throwCandidates())choices.append(button("Throw team-mate #"+mate.number+" · "+mate.status,()=>{game.selectThrowMate(mate.id);ballMode=true;throwDestination=null;destination=null;render();}));
   for(const target of game.specialTargets())choices.append(button((game.action==="foul"?"Foul":game.action.slice(8))+" · "+teams[target.team].name+" #"+target.number,()=>{game.performSpecial(target.id);destination=null;render();}));
   if(game.action==="blitz"&&game.canBlitzBlock())for(const name of game.specialActions(mover).filter(s=>["Stab","Projectile Vomit","Breathe Fire","Chainsaw"].includes(s)))choices.append(button("Blitz: "+name+" (1 MA, ends activation)",()=>{game.performSpecial(game.blitzTarget,name);destination=null;render();}));
   if(game.skill(mover,"Fumblerooski")&&game.ball.carrier===mover.id)choices.append(button(mover.dropOnExit?"Cancel ball drop":"Fumblerooski: leave ball when moving out",()=>{game.dropBall();render();}));
@@ -1437,7 +1504,7 @@ function renderMatch(){
   say(teams[game.kicking].name+": nominate a kicker outside the Wide Zones and away from the LOS when possible.");for(const p of game.eligibleKickers())add("Kicker #"+p.number+" · "+game.profile(p).name,()=>game.nominateKicker(p.id));
  }else if(game.phase==="kickAim")say("Click any square in the receiving half to aim the kick; click the same square again to kick. Deviation and the Kick-off Event resolve before the ball lands.");
  else if(game.phase==="eventMove"||game.phase==="charge"){
-  const e=game.eventState;say(e.kind+": "+teams[e.team].name+" · "+e.used.length+" / "+e.limit+" players used. "+(e.kind==="charge"?"Select an eligible Open player and declare Move or Blitz. End their activation before selecting the next. Throw Team-mate and Kick Team-mate are not implemented.":"Select an eligible player below, then click an empty square. "+(e.kind==="snap"?"Each player moves at most one square.":"Finish with a legal formation.")));
+  const e=game.eventState;say(e.kind+": "+teams[e.team].name+" · "+e.used.length+" / "+e.limit+" players used. "+(e.kind==="charge"?"Select an eligible Open player and declare Move or Blitz. End their activation before selecting the next. One player may declare Throw Team-mate. Kick Team-mate remains deferred.":"Select an eligible player below, then click an empty square. "+(e.kind==="snap"?"Each player moves at most one square.":"Finish with a legal formation.")));
   for(const id of e.eligible){const p=game.players.find(q=>q.id===id);if(!e.used.includes(id)||e.kind==="defence")add("Event player #"+p.number,()=>{selected=id;showProfile(p.team,p.role,p.number);});}
   add("Finish Kick-off Event",()=>game.finishEvent());
  }else if(game.phase==="touchback")say("Touchback: the receiving coach chooses who gets the ball below. If no one is standing, click an empty square in the receiving half.");
@@ -1463,6 +1530,7 @@ document.getElementById("special").addEventListener("click",()=>{
  if(game.action==="blitz"){render();return;}
  game.pending={type:"custom",kind:"Declare Foul / special action",options:[...names,"Cancel"],resolve:name=>{game.pending=null;if(name!=="Cancel")game.start(p.id,name==="Foul"?"foul":"special:"+name);destination=null;render();}};render();
 });
+document.getElementById("throw-mate").addEventListener("click",()=>{game.start(selected,"throw-team-mate");destination=null;ballMode=false;throwDestination=null;render();});
 for(const kind of ["pass","handoff"])document.getElementById(kind).addEventListener("click",()=>{game.start(selected,kind);destination=null;ballMode=false;throwDestination=null;render();});
 document.getElementById("transfer").addEventListener("click",()=>{ballMode=!ballMode;throwDestination=null;destination=null;render();});
 document.getElementById("start").addEventListener("click",()=>{game.start(selected);render();});
@@ -1477,5 +1545,4 @@ renderRosters();renderSkillCoverage();reset();
 </script>
 </body>
 </html>
-
 

@@ -1,7 +1,7 @@
 const fs=require('node:fs');
 const {SKILL_CATALOG}=require('./skills.cjs');
 const counts=SKILL_CATALOG.reduce((r,s)=>(r[s.status]=(r[s.status]||0)+1,r),{});
-const intro=`# Skills and traits coverage — v0.0.10
+const intro=`# Skills and traits coverage — v0.0.11
 
 Reviewed October 28, 2026 against the full [Blood Bowl 2025 Skills & Traits list](https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/), [current FAQ](https://bloodbowlbase.ru/bb2025/core_rules/latest_faq/), [Foul / Argue the Call rules](https://bloodbowlbase.ru/bb2025/core_rules/the_game_of_blood_bowl/#foul-actions), and [Bribes](https://bloodbowlbase.ru/bb2025/core_rules/inducements/#0-3-bribes-0-6-for-teams-with-the-bribery-and-corruption-special-rule).
 
@@ -17,6 +17,10 @@ The **Foul / special action** button declares Foul, Stab, Projectile Vomit, Hypn
 
 ## Coverage inventory
 
+Throw Team-mate, Right Stuff, and Always Hungry now support declaration, movement before throwing, adjacent passenger selection, Quick/Short range, accuracy re-rolls, three-square scatter, fumbles, landing re-rolls, collision chains, crowd injury, carried balls, touchdowns, and the Troll's eating sequence. Select **Throw Team-mate practice** for a Troll and Goblin drill. Declare the action, choose the passenger in the side panel, then click a highlighted target twice. Throwing uses a separate once-per-turn allowance from Pass. Eaten players remain unavailable on later drives. Permanent league roster deletion awaits league persistence.
+
+Sources: [Throw Team-mate and landing](https://bloodbowlbase.ru/bb2025/core_rules/the_game_of_blood_bowl/#throw-team-mate-actions), the range chart on that page, and the three trait entries in the Skills & Traits list.
+
 | Entry | Category | Use | Status | Coverage / remaining dependency |
 | --- | --- | --- | --- | --- |
 `;
@@ -30,4 +34,3 @@ Deferred reaction skills need a reusable event/interrupt stack rather than more 
 
 The source now permits negative modified D6 results: a modified pass result of exactly 1 (or natural 1) fumbles; a negative failed result scatters as inaccurate. This corrects the older engine's one-or-less fumble assumption. Stunty's interception penalty, Tackle's Dodge re-roll restriction, Jump Up standing cost, and the three legal straight push squares were also corrected during this audit.
 `);
-
