@@ -8,7 +8,9 @@
 
 ## Implemented
 
-Declare Move explicitly; one activation per player per team turn, no switching activations mid-action. Inspecting another player does not change the active mover. End Move permits zero movement. Highlight adjacent vacant squares and valid jumps, then preview required dice before confirming one step.
+Declare Move explicitly; one activation per player per team turn, no switching activations mid-action. Inspecting another player does not change the active mover. End Move permits zero movement. Forecast reachable vacant squares and valid jumps, then preview required dice before committing movement.
+
+Version 0.0.4 adds a non-mutating movement forecast. Selecting an eligible player shows the lowest-movement-point route to every reachable square, including rush allowance, dodges, jumps, and pickup checks. Choosing a destination numbers its route as waypoints and lists each required check with its target. Choose an intermediate square to make it the waypoint, then commit one step at a time or commit through the waypoint. A committed route pauses for any re-roll decision; after a result changes the position or ends the activation, select a waypoint again to re-plan from the actual state. Forecasted targets are not dice rolls: dice are generated only on commitment. Alternative paths can be chosen by committing a partial waypoint and selecting a new destination from the resulting square.
 
 Movement spends profile MA; up to two extra movement points require individual 2+ rush rolls. Rushes precede dodge/jump/pickup checks. Leaving an opponent's tackle zone requires an AG test, penalized for destination markers (without the old edition's +1 bonus). Standing, non-distracted opponents mark; Stunty ignores marking penalties on dodges.
 
@@ -35,3 +37,4 @@ Bone Head and Really Stupid tests occur on declaration; failure causes distracti
 movement.cjs is the UI-independent engine; movement.test.cjs exercises it with injected dice. index.html contains a generated copy so root-of-main Pages hosting requires no runtime build.
 
 After editing movement.cjs, run `node build.cjs`, then `node --test movement.test.cjs`. The tests verify that the embedded engine matches the source. Publish index.html with the supporting source and tests. Initial validation: 33 passing tests, including roll ordering, failure placement, re-roll limits, activation restrictions and ball resolution.
+
