@@ -10,6 +10,76 @@ function fixture(rolls=[],scenario="dodge"){
 }
 function choose(g,option="Accept"){assert.ok(g.pending);g.decide(option);}
 
+test("a pass to empty ground still turns over when its bounce is caught",()=>{
+ const g=fixture([6,2,4],"pass"),a=g.players[0],r=g.players[1],d=g.players[11];a.role=0;d.x=null;d.y=null;d.status="reserve";r.x=14;r.y=6;
+ g.start(a.id,"pass");g.pass(14,7);assert.equal(g.ball.carrier,r.id);assert.equal(g.active,1);
+});
+test("scatter leaving the pitch invokes a throw-in from the last square",()=>{
+ const g=fixture([4,5,3,1,1,2],"pass"),a=g.players[0];a.role=0;a.x=15;g.start(a.id,"pass");g.pass(25,7);
+ assert.deepEqual([g.ball.x,g.ball.y],[24,6]);assert.equal(g.active,1);
+});
+test("ruler overlap excludes horizontal adjacent rows that only touch its edge",()=>{
+ const g=fixture([],"pass"),a=g.players[0],d=g.players[11];d.y=8;assert.equal(g.interceptionCandidates(a,{x:14,y:7}).length,0);d.y=7;assert.equal(g.interceptionCandidates(a,{x:14,y:7}).length,1);
+});
+
+test("Hand-off catch has no bounce penalty; Give and Go preserves movement",()=>{
+ const g=fixture([3],"handoff"),a=g.players[0],r=g.players[1];g.start(a.id,"handoff");g.step(9,7);
+ assert.ok(g.handoff(r.id));assert.equal(g.ball.carrier,r.id);assert.equal(g.mover,a.id);assert.ok(g.ballActionDone);
+ assert.equal(g.handoff(r.id),false);assert.ok(g.step(9,6));assert.equal(r.used,false);
+});
+test("ordinary hand-off ends activation and can only be declared once per turn",()=>{
+ const g=fixture([3],"handoff"),a=g.players[0],r=g.players[1];a.role=0;g.start(a.id,"handoff");g.step(9,7);g.handoff(r.id);
+ assert.equal(g.mover,null);assert.equal(g.canBallAction(r,"handoff"),false);g.endTurn();g.endTurn();assert.ok(g.canBallAction(r,"handoff"));
+});
+test("Hand-off failure turns over on ground but a teammate catching the bounce saves it",()=>{
+ const g=fixture([1,2],"handoff"),a=g.players[0],r=g.players[1];g.start(a.id,"handoff");g.step(9,7);g.handoff(r.id);choose(g);assert.equal(g.active,1);
+ const h=fixture([1,4,4],"handoff"),b=h.players[0],s=h.players[1];h.start(b.id,"handoff");h.step(9,7);h.handoff(s.id);choose(h);assert.equal(h.active,0);assert.equal(h.ball.carrier,b.id);
+});
+test("Hand-off rejects nonadjacent, prone, distracted, and opposing receivers",()=>{
+ const g=fixture([],"handoff"),a=g.players[0],r=g.players[1];g.start(a.id,"handoff");assert.equal(g.canHandoff(r),false);g.step(9,7);
+ r.status="prone";assert.equal(g.canHandoff(r),false);r.status="standing";r.distracted=true;assert.equal(g.canHandoff(r),false);r.distracted=false;r.team=1;r.role=0;assert.equal(g.canHandoff(r),false);
+});
+test("passing chart boundaries and symmetry use all four bands",()=>{
+ const g=fixture(),o={x:0,y:0};
+ for(const [x,y,band] of [[3,1,0],[2,2,0],[3,2,1],[6,0,1],[7,0,2],[10,2,2],[10,3,3],[13,2,3]]){
+  assert.equal(g.passRange(o,{x,y}).band,band);assert.equal(g.passRange(o,{x:y,y:x}).band,band);
+ }
+ assert.equal(g.passRange(o,{x:13,y:3}),null);assert.equal(g.passRange(o,o),null);
+});
+test("accurate Short Pass allows interception choice then unpenalized catch",()=>{
+ const g=fixture([3,3],"pass"),a=g.players[0],r=g.players[1];g.start(a.id,"pass");assert.ok(g.pass(14,7));
+ assert.match(g.pending.kind,/interception/);choose(g,"Decline interception");assert.equal(g.ball.carrier,r.id);assert.equal(g.mover,null);assert.equal(g.active,0);
+});
+test("successful interception causes turnover and no catch reroll is offered",()=>{
+ const g=fixture([3,6],"pass"),a=g.players[0],d=g.players[11];g.start(a.id,"pass");g.pass(14,7);choose(g,"Intercept with #"+d.number);
+ assert.equal(g.ball.carrier,d.id);assert.equal(g.active,1);
+});
+test("failed interception continues pass; prone and distracted players cannot intercept",()=>{
+ const g=fixture([3,1,3],"pass"),a=g.players[0],d=g.players[11];g.start(a.id,"pass");g.pass(14,7);choose(g,"Intercept with #"+d.number);assert.equal(g.ball.carrier,g.players[1].id);
+ d.status="prone";assert.equal(g.interceptionCandidates(a,{x:14,y:7}).length,0);d.status="standing";d.distracted=true;assert.equal(g.interceptionCandidates(a,{x:14,y:7}).length,0);
+});
+test("Quick Pass Give and Go resumes movement but prevents another pass",()=>{
+ const g=fixture([2,3],"pass"),a=g.players[0],r=g.players[1];r.x=10;r.y=5;g.players[11].status="reserve";g.players[11].x=null;g.players[11].y=null;
+ g.start(a.id,"pass");g.pass(10,5);assert.equal(g.mover,a.id);assert.equal(g.ball.carrier,r.id);assert.equal(g.pass(10,5),false);assert.ok(g.step(8,6));
+});
+test("fumbles bounce at thrower and turn over, including modified rolls of one",()=>{
+ for(const [roll,x] of [[1,14],[4,21]]){
+  const g=fixture([roll,2],"pass"),a=g.players[0];a.role=0;g.start(a.id,"pass");g.pass(x,7);
+  assert.equal(g.active,1);assert.deepEqual([g.ball.x,g.ball.y],[8,6]);
+ }
+});
+test("inaccurate pass scatters three times before landing and bouncing",()=>{
+ const g=fixture([3,2,2,2,2],"pass"),a=g.players[0];a.role=0;g.start(a.id,"pass");g.pass(14,7);
+ assert.deepEqual([g.ball.x,g.ball.y],[14,3]);assert.equal(g.active,1);assert.equal(g.events.filter(e=>e.startsWith("Pass scatter:")).length,3);
+});
+test("Pass skill rerolls accuracy once; resulting six is accurate",()=>{
+ const g=fixture([1,6,3],"pass"),a=g.players[0];g.start(a.id,"pass");g.pass(14,7);assert.ok(g.pending.options.includes("Pass"));choose(g,"Pass");choose(g,"Decline interception");assert.equal(g.ball.carrier,g.players[1].id);assert.equal(g.active,0);
+});
+test("Pass declaration can precede pickup and consumes only its own team allowance",()=>{
+ const g=fixture([3],"handoff"),a=g.players[0];g.ball={x:9,y:7,carrier:null};assert.ok(g.start(a.id,"pass"));g.step(9,7);assert.equal(g.ball.carrier,a.id);
+ g.finish();assert.ok(g.passUsed[0]);assert.equal(g.handoffUsed[0],false);assert.equal(g.start(g.players[1].id,"pass"),false);
+});
+
 test("Blitz declares a reachable target, costs one MA, and resumes movement",()=>{
  const g=fixture([3,3],"blitz"),a=g.players[0],d=g.players[11];
  assert.ok(g.startBlitz(a.id,d.id));assert.ok(g.blitzUsed[0]);
