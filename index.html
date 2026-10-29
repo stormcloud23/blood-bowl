@@ -12,11 +12,11 @@
 </style>
 </head>
 <body>
-<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>The development pitch</h1></div><span class="badge">v0.0.8 · Sandbox</span></header>
-<div class="notice"><strong>Movement and ball action practice</strong><br><span class="muted">Preview movement and its checks, resolve Block dice, pushes, and follow-ups, or secure a loose ball. Perfect Conditions. This remains a practice drive, not a complete match.</span></div>
-<label for="scenario">Practice setup </label><select id="scenario"><option value="teams">Both teams</option><option value="dodge">Dodge practice</option><option value="jump">Jump & stand up</option><option value="pickup">Ball pickup</option><option value="traits">Ogre & Troll traits</option><option value="handoff">Hand-off practice</option><option value="pass">Pass & interception practice</option><option value="blitz">Blitz practice</option><option value="block">Block practice</option><option value="secure">Secure the Ball practice</option></select><p class="muted">Changing the setup starts a new practice. Direction template: 1 NW · 2 N · 3 NE · 4 W · 5 E · 6 SW · 7 S · 8 SE.</p><main><section><div class="pitch-wrap"><div id="pitch" class="pitch" role="group" aria-label="Development pitch"></div></div><p class="muted">Select a player and choose an action. For movement, click a destination once to preview, then again to commit. For Pass or Hand-off, declare the action, move as needed, then choose a ball target. For Blitz, choose Declare Blitz and a highlighted target, move adjacent, then choose Blitz Block (1 MA). During Block, click a highlighted target. Green = no roll, amber = checks or targets, purple = jump.</p><button class="control" id="start">Declare Move</button><button class="control secondary" id="handoff">Declare Hand-off</button><button class="control secondary" id="pass">Declare Pass</button><button class="control secondary" id="transfer">Choose ball target</button><button class="control secondary" id="blitz">Declare Blitz</button><button class="control secondary" id="block">Block</button><button class="control secondary" id="secure">Secure the Ball</button><button class="control secondary" id="finish">End Move</button><button class="control secondary" id="end">End team turn</button><button class="control secondary" id="reset">Reset practice</button></section>
-<aside class="panel"><div class="eyebrow">Movement & action practice</div><h2 id="coach"></h2><p id="selection" role="status" aria-live="polite"></p><div id="movement" aria-live="polite"></div><div id="choices"></div><div id="profile"></div><div id="dugout"></div><h2>Session log</h2><ol id="log"></ol><p class="muted">Practice resets on reload. Two team re-rolls each; no half-time replenishment in this drill.</p></aside></main><section id="rosters" aria-label="Team rosters"></section>
-<footer>Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.8 with feedback.</footer>
+<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>The development pitch</h1></div><span class="badge">v0.0.9 · Sandbox</span></header>
+<div class="notice" id="mode-notice"><strong>Movement and ball action practice</strong><br><span class="muted">Preview movement and its checks, resolve Block dice, pushes, and follow-ups, or secure a loose ball. Perfect Conditions. This remains a practice drive, not a complete match.</span></div>
+<label for="scenario">Game mode </label><select id="scenario"><option value="match">Exhibition match — pre-game</option><option value="match-learning">Learning match — simplified kickoff</option><option value="teams">Both teams</option><option value="dodge">Dodge practice</option><option value="jump">Jump & stand up</option><option value="pickup">Ball pickup</option><option value="traits">Ogre & Troll traits</option><option value="handoff">Hand-off practice</option><option value="pass">Pass & interception practice</option><option value="blitz">Blitz practice</option><option value="block">Block practice</option><option value="secure">Secure the Ball practice</option></select><p class="muted">Changing the mode starts a new game or practice. Direction template: 1 NW · 2 N · 3 NE · 4 W · 5 E · 6 SW · 7 S · 8 SE.</p><div id="matchflow" class="notice" aria-live="polite"></div><main><section><div class="pitch-wrap"><div id="pitch" class="pitch" role="group" aria-label="Development pitch"></div></div><p class="muted">Select a player and choose an action. For movement, click a destination once to preview, then again to commit. For Pass or Hand-off, declare the action, move as needed, then choose a ball target. For Blitz, choose Declare Blitz and a highlighted target, move adjacent, then choose Blitz Block (1 MA). During Block, click a highlighted target. Green = no roll, amber = checks or targets, purple = jump.</p><button class="control" id="start">Declare Move</button><button class="control secondary" id="handoff">Declare Hand-off</button><button class="control secondary" id="pass">Declare Pass</button><button class="control secondary" id="transfer">Choose ball target</button><button class="control secondary" id="blitz">Declare Blitz</button><button class="control secondary" id="block">Block</button><button class="control secondary" id="secure">Secure the Ball</button><button class="control secondary" id="finish">End Move</button><button class="control secondary" id="end">End team turn</button><button class="control secondary" id="reset">Reset practice</button></section>
+<aside class="panel"><div class="eyebrow">Movement & action practice</div><h2 id="coach"></h2><p id="selection" role="status" aria-live="polite"></p><div id="movement" aria-live="polite"></div><div id="choices"></div><div id="profile"></div><div id="dugout"></div><h2>Session log</h2><ol id="log"></ol><p class="muted">Games reset on reload. Two team re-rolls each; match re-rolls replenish at half-time.</p></aside></main><section id="rosters" aria-label="Team rosters"></section>
+<footer>Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.9 with feedback.</footer>
 <script id="team-data" type="application/json">[
   {
     "id": "imperial-nobility",
@@ -303,7 +303,7 @@ class MovementGame {
  canBlock(attacker,target){
   const a=typeof attacker==="string"?this.players.find(p=>p.id===attacker):attacker;
   const d=typeof target==="string"?this.players.find(p=>p.id===target):target;
-  return this.canStart(a)&&a.status==="standing"&&!a.distracted&&d&&d.team!==this.active&&this.onPitch(d)&&d.status==="standing"&&this.distance(a,d)===1;
+  return this.canStart(a)&&a.status==="standing"&&d&&d.team!==this.active&&this.onPitch(d)&&d.status==="standing"&&this.distance(a,d)===1;
  }
  canBallAction(p,kind){return this.canStart(p)&&["pass","handoff"].includes(kind)&&!(kind==="pass"?this.passUsed:this.handoffUsed)[this.active];}
  ballActor(kind){const p=this.players.find(p=>p.id===this.mover);return this.action===kind&&!this.ballActionDone&&!this.pending&&!this.finished&&p?.status==="standing"&&!p.distracted&&this.ball.carrier===p.id?p:null;}
@@ -327,7 +327,7 @@ class MovementGame {
   const preview=this.passPreview(x,y);if(!preview)return false;
   const p=this.ballActor("pass");this.ballActionDone=true;
   this.note("#"+p.number+" attempts a "+preview.name+" to "+(x+1)+", "+(y+1)+"; PA "+preview.target+"+.");
-  const modifier=preview.band+this.marking(p),target=Number.parseInt(this.profile(p).pa),resolve=n=>{
+  const modifier=preview.target-Number.parseInt(this.profile(p).pa),target=Number.parseInt(this.profile(p).pa),resolve=n=>{
    this.pending=null;this.ball={x:p.x,y:p.y,carrier:null};
    if(n===1||n-modifier<=1&&n!==6){this.note("Fumbled Pass: ball bounces from the thrower; turnover.");this.bounce(p.x,p.y,()=>this.endTurn(true));return;}
    const accurate=n===6||n-modifier>=target;
@@ -405,8 +405,11 @@ class MovementGame {
  block(attackerId,targetId){
   const attacker=this.players.find(p=>p.id===attackerId),target=this.players.find(p=>p.id===targetId);
   if(!this.canBlock(attacker,target))return false;
-  attacker.used=true;attacker.proUsed=false;this.action="block";
-  this.rollBlock(attacker,target,false);return true;
+  attacker.used=true;attacker.proUsed=false;attacker.distracted=false;this.action="block";this.mover=attacker.id;
+  const ready=()=>{this.mover=null;this.rollBlock(attacker,target,false);},failed=()=>{attacker.distracted=true;this.mover=null;this.action=null;this.note("Block activation trait failed; activation ends without turnover.");};
+  if(this.has(attacker,"Bone Head"))this.test(attacker,"Bone Head",2,ready,failed);
+  else if(this.has(attacker,"Really Stupid")){const helper=this.players.some(q=>q.id!==attacker.id&&q.team===attacker.team&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&!this.has(q,"Really Stupid")&&this.distance(q,attacker)===1);this.test(attacker,"Really Stupid",helper?2:4,ready,failed);}
+  else ready();return true;
  }
  rollBlock(attacker,target,blitz=false){
   const assists=this.assists(attacker,target),aStrength=Number(this.profile(attacker).st)+assists.offensive,dStrength=Number(this.profile(target).st)+assists.defensive;
@@ -452,7 +455,7 @@ class MovementGame {
  applyBlockResult(result){
   const b=this.blockAction;if(!b)return;
   const {attacker:a,target:d}=b;
-  if(result==="Player Down"){this.fall(a,{turnover:a.team===this.active,after:()=>this.finishBlock()});return;}
+  if(result==="Player Down"){this.fall(a,{turnover:a.team===this.active,mightyBlowBy:d,after:()=>this.finishBlock()});return;}
   if(result==="Both Down"){this.resolveBothDown();return;}
   if(result==="Stumble")result=this.has(d,"Dodge")&&!d.distracted&&!this.has(a,"Tackle")?"Push Back":"POW";
   if(result==="Push Back"||result==="POW"){this.resolvePush(result==="POW");return;}
@@ -473,9 +476,9 @@ class MovementGame {
   const b=this.blockAction,{attacker:a,target:d}=b;
   if(choice.includes("Wrestle")){
    this.note(choice+": both players are placed prone without Armour Rolls.");
-   let i=0,turnover=false;const prone=[a,d];const next=()=>{
+   let i=0,turnover=false;const prone=[a,d];prone.forEach(p=>p.status="prone");const next=()=>{
     if(i>=prone.length){if(turnover)this.endTurn(true);else this.finishBlock();return;}
-    const p=prone[i++],carrying=this.ball.carrier===p.id;if(p.team===this.active)turnover=true;
+    const p=prone[i++],carrying=this.ball.carrier===p.id;if(p.team===this.active&&carrying)turnover=true;
     p.status="prone";this.note("#"+p.number+" is placed prone by Wrestle.");
     if(carrying){const {x,y}=p;this.ball={x,y,carrier:null};this.bounce(x,y,next);}else next();
    };next();return;
@@ -782,6 +785,194 @@ class MovementGame {
 }
 if(typeof module!=="undefined")module.exports={MovementGame};
 </script>
+<script id="match-engine">
+"use strict";
+const MatchBase=typeof module!=="undefined"?require("./movement.cjs").MovementGame:MovementGame;
+class MatchGame extends MatchBase {
+ constructor(teams,{dice=null,learning=false}={}){
+  super(teams,{dice});this.events=[];this.match=true;this.learning=learning;this.phase="fans";this.half=1;this.drive=0;this.scores=[0,0];this.turns=[0,0];
+  this.fans=[0,0];this.dedicatedFans=[1,1];this.weather="Perfect Conditions";this.cheer=[false,false];this.driveBonus=[0,0];this.bribes=[0,0];this.skip=[false,false];this.ball={x:null,y:null,carrier:null};
+  this.players.forEach(p=>Object.assign(p,{x:null,y:null,status:"reserve"}));this.note("Exhibition match: 11 demo players, 1 Dedicated Fan, 2 team re-rolls, no purchased staff per team. League-only Journeymen and Inducements do not apply.");
+ }
+ profile(p){const base=super.profile(p);return p.snack?{...base,ma:Math.max(1,base.ma-1),av:Math.max(3,parseInt(base.av)-1)+"+"}:base;}
+ right(team){return (team===0)===(this.half===1);}
+ ownHalf(team,x){return this.inside(x,7)&&(this.right(team)?x<=12:x>=13);}
+ line(team){return this.right(team)?12:13;}
+ centre(y){return y>=4&&y<=10;}
+ advancePregame(){
+  if(this.pending)return false;
+  if(this.phase==="fans"){
+   this.fans=this.dedicatedFans.map((n,t)=>this.learning?n:n+Math.ceil(this.roll(this.teams[t].name+" Fair-weather Fans")/2));
+   this.note("Fan Factors: "+this.fans.join(" / ")+".");this.phase="weather";return true;
+  }
+  if(this.phase==="weather"){if(!this.learning)this.rollWeather();this.phase="leagueSteps";return true;}
+  if(this.phase==="leagueSteps"){this.note("Exhibition: Journeymen and league Inducements skipped.");this.phase="rolloff";return true;}
+  if(this.phase==="rolloff"){
+   let a,b;do{a=this.roll(this.teams[0].name+" kick/receive roll-off");b=this.roll(this.teams[1].name+" kick/receive roll-off");}while(a===b);
+   this.rolloffWinner=a>b?0:1;this.phase="kickChoice";this.note(this.teams[this.rolloffWinner].name+" chooses who kicks.");return true;
+  }return false;
+ }
+ rollWeather(){const sum=this.roll("Weather team 1")+this.roll("Weather team 2");this.weather=sum===2?"Sweltering Heat":sum===3?"Very Sunny":sum===11?"Pouring Rain":sum===12?"Blizzard":"Perfect Conditions";this.note("Weather: "+this.weather+".");return this.weather;}
+ chooseKicking(team){if(this.phase!=="kickChoice"||![0,1].includes(team))return false;this.firstReceiver=1-team;this.prepareDrive(team);return true;}
+ available(team){return this.players.filter(p=>p.team===team&&!["casualty","knocked-out","sent-off"].includes(p.status)&&!p.heatOut);}
+ prepareDrive(kicking){
+  this.drive++;this.kicking=kicking;this.receiving=1-kicking;this.active=kicking;this.setupTeam=kicking;this.phase="setup";this.finished=false;this.pending=null;this.mover=null;this.action=null;this.blockAction=null;this.ball={x:null,y:null,carrier:null};this.kickTouchback=false;this.eventState=null;
+  for(const p of this.players){if(!["casualty","knocked-out","sent-off"].includes(p.status))Object.assign(p,{status:"reserve",x:null,y:null,distracted:false,used:false,spent:0});}
+  this.note("Drive "+this.drive+": "+this.teams[kicking].name+" sets up first.");this.autoSetup(kicking);
+ }
+ setupErrors(team=this.setupTeam){
+  const list=this.players.filter(p=>p.team===team&&this.onPitch(p)),needed=Math.min(11,this.available(team).length),errors=[];
+  if(list.length!==needed)errors.push("Field "+needed+" eligible player(s).");
+  if(list.some(p=>!this.ownHalf(team,p.x)||p.heatOut||p.status!=="standing"))errors.push("All players must be eligible and in their own half.");
+  if(list.filter(p=>p.x===this.line(team)&&this.centre(p.y)).length<Math.min(3,needed))errors.push("Place at least "+Math.min(3,needed)+" player(s) on the central Line of Scrimmage.");
+  if(list.filter(p=>p.y<4).length>2||list.filter(p=>p.y>10).length>2)errors.push("At most two players in each Wide Zone.");return errors;
+ }
+ autoSetup(team=this.setupTeam){
+  if(this.phase!=="setup"||team!==this.setupTeam)return false;
+  const list=this.available(team);list.forEach(p=>Object.assign(p,{x:null,y:null,status:"reserve"}));const line=this.line(team),back=this.right(team)?-1:1;
+  const spots=[[line,6],[line,7],[line,8],[line+back*3,5],[line+back*3,9],[line+back*4,2],[line+back*4,12],[line+back*6,4],[line+back*6,10],[line+back*7,6],[line+back*7,8]];
+  list.slice(0,11).forEach((p,i)=>Object.assign(p,{x:spots[i][0],y:spots[i][1],status:"standing"}));return true;
+ }
+ placeSetup(id,x,y){
+  const p=this.players.find(p=>p.id===id);if(this.phase!=="setup"||!p||p.team!==this.setupTeam||!this.available(this.setupTeam).includes(p)||!this.inside(x,y)||!this.ownHalf(p.team,x)||this.at(x,y))return false;
+  if(!this.onPitch(p)&&this.players.filter(q=>q.team===p.team&&this.onPitch(q)).length>=11)return false;Object.assign(p,{x,y,status:"standing"});return true;
+ }
+ confirmSetup(){
+  if(this.phase!=="setup"||this.setupErrors().length)return false;
+  if(this.setupTeam===this.kicking){this.setupTeam=this.receiving;this.active=this.receiving;this.autoSetup();}
+  else{this.phase="kicker";this.active=this.kicking;}return true;
+ }
+ eligibleKickers(){const list=this.players.filter(p=>p.team===this.kicking&&this.onPitch(p)&&this.centre(p.y)),back=list.filter(p=>p.x!==this.line(p.team));return back.length?back:list;}
+ nominateKicker(id){if(this.phase!=="kicker"||!this.eligibleKickers().some(p=>p.id===id))return false;this.kicker=id;this.phase="kickAim";return true;}
+ kick(x,y){
+  if(this.phase!=="kickAim"||!this.inside(x,y)||!this.ownHalf(this.receiving,x))return false;
+  const distance=this.roll("Kick deviation distance"),dirs=[[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]],[dx,dy]=dirs[this.roll("Kick deviation direction",8)-1];
+  this.kickLanding={x:x+distance*dx,y:y+distance*dy};this.checkKickBounds();this.note("Kick is airborne; resolve the Kick-off Event before catching.");
+  if(this.learning)this.landKick();else this.kickoffEvent(this.roll("Kick-off Event")+this.roll("Kick-off Event"));return true;
+ }
+ checkKickBounds(){if(!this.inside(this.kickLanding.x,this.kickLanding.y)||!this.ownHalf(this.receiving,this.kickLanding.x))this.kickTouchback=true;}
+ openPlayers(team){return this.players.filter(p=>p.team===team&&this.onPitch(p)&&p.status==="standing"&&!p.distracted&&!this.marking(p));}
+ choice(kind,options,fn){this.pending={type:"custom",kind,options,resolve:option=>{if(!options.includes(option))return;this.pending=null;fn(option);}};}
+ randomPlayers(list,count,label){const remaining=[...list],result=[];while(result.length<count&&remaining.length)result.push(remaining.splice(this.roll(label,remaining.length)-1,1)[0]);return result;}
+ kickoffEvent(total){
+  this.phase="kickEvent";this.note("Kick-off Event "+total+".");
+  const finish=()=>this.landKick();
+  if(total===2){this.bribes=this.bribes.map(n=>n+1);this.note("Get the Ref: each team receives a Bribe (Foul actions are not yet available).");finish();}
+  else if(total===3){const amount=this.turns[this.kicking]>=6?-1:1;this.turns=this.turns.map(n=>Math.max(0,n+amount));this.note("TIME-OUT: both Turn Markers "+(amount>0?"advance":"move back")+" one.");finish();}
+  else if(total===4||total===9||total===10){
+   const team=total===9?this.receiving:this.kicking,kind=total===4?"defence":total===9?"snap":"charge",limit=Math.ceil(this.roll("Kick-off selected player count")/2)+3;
+   this.eventState={kind,team,limit,eligible:this.openPlayers(team).map(p=>p.id),used:[]};this.active=team;this.phase=kind==="charge"?"charge":"eventMove";this.blitzUsed[team]=false;
+   this.note((kind==="defence"?"Solid Defence: redeploy":kind==="snap"?"Quick Snap: move one square with":"Charge: activate")+" up to "+limit+" Open players. Finish the event when ready.");
+  }
+  else if(total===5){const list=!this.kickTouchback&&!this.at(this.kickLanding.x,this.kickLanding.y)?this.openPlayers(this.receiving):[];
+   const options=list.map(p=>"High Kick: #"+p.number);options.push("Skip High Kick");this.choice("High Kick",options,option=>{const p=list[options.indexOf(option)];if(p)Object.assign(p,this.kickLanding);finish();});
+  }
+  else if(total===6||total===7){
+   const a=this.roll(this.teams[0].name+(total===6?" Cheering Fans":" Brilliant Coaching")),b=this.roll(this.teams[1].name+(total===6?" Cheering Fans":" Brilliant Coaching"));
+   for(const t of [0,1])if((t===0?a:b)>=(t===0?b:a)){if(total===6)this.cheer[t]=true;else{this.rerolls[t]++;this.driveBonus[t]++;}}
+   this.note(total===6?"Cheering Fans: winning coach(es) gain an assist on their first Block next turn.":"Brilliant Coaching: winning coach(es) gain a Drive re-roll.");finish();
+  }
+  else if(total===8){
+   if(this.rollWeather()==="Perfect Conditions"&&!this.kickTouchback){const dirs=[[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]];for(let i=0;i<3;i++){const [dx,dy]=dirs[this.roll("Airborne weather scatter",8)-1];this.kickLanding.x+=dx;this.kickLanding.y+=dy;this.checkKickBounds();if(this.kickTouchback)break;}}finish();
+  }
+  else if(total===11||total===12){
+   const a=this.roll(this.teams[0].name+" event contest")+(total===12?this.fans[0]:0),b=this.roll(this.teams[1].name+" event contest")+(total===12?this.fans[1]:0);
+   for(const t of [0,1])if((t===0?a:b)<=(t===0?b:a)){
+    const count=total===11?1:Math.ceil(this.roll("Pitch invasion player count")/2),list=this.randomPlayers(this.players.filter(p=>p.team===t&&this.onPitch(p)),count,"Random event player");
+    for(const p of list)if(total===12){p.status="stunned";this.note("Pitch invasion stuns #"+p.number+".");}else if(this.roll("Dodgy Snack")===1){Object.assign(p,{status:"reserve",x:null,y:null});this.note("Dodgy Snack removes #"+p.number+" for the drive.");}else{p.snack=true;this.note("Dodgy Snack: #"+p.number+" loses 1 MA and AV this drive.");}
+   }finish();
+  }
+ }
+ eventPlace(id,x,y){
+  const e=this.eventState,p=this.players.find(p=>p.id===id);if(this.phase!=="eventMove"||!e||!p||!e.eligible.includes(id)||!this.inside(x,y)||this.at(x,y))return false;
+  if(!e.used.includes(id)&&e.used.length>=e.limit)return false;
+  if(e.kind==="snap"&&(e.used.includes(id)||this.distance(p,{x,y})!==1))return false;
+  if(e.kind==="defence"&&!this.ownHalf(p.team,x))return false;
+  Object.assign(p,{x,y});if(!e.used.includes(id))e.used.push(id);return true;
+ }
+ finishEvent(){if(!["eventMove","charge"].includes(this.phase)||this.pending||this.mover)return false;if(this.eventState.kind==="defence"&&this.setupErrors(this.kicking).length)return false;this.eventState=null;this.landKick();return true;}
+ landKick(){
+  this.phase="kickLanding";this.active=this.receiving;this.mover=null;this.action=null;this.pending=null;
+  if(this.kickTouchback){this.touchback();return;}
+  this.landBall(this.kickLanding.x,this.kickLanding.y,false,()=>{if(this.kickTouchback)this.touchback();else this.startReceivingTurn();},true);
+ }
+ bounce(x,y,done){
+  if(this.phase!=="kickLanding"){super.bounce(x,y,done);return;}
+  const dirs=[[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]],[dx,dy]=dirs[this.roll("Kick bounce",8)-1];
+  if(!this.inside(x+dx,y+dy)||!this.ownHalf(this.receiving,x+dx)){this.kickTouchback=true;done();return;}this.landBall(x+dx,y+dy,false,done);
+ }
+ touchback(){
+  this.phase="touchback";this.ball={x:null,y:null,carrier:null};const list=this.players.filter(p=>p.team===this.receiving&&this.onPitch(p)&&p.status==="standing");
+  if(!list.length){this.note("Touchback: choose any empty square in the receiving half.");return;}
+  const options=list.map(p=>"Give ball to #"+p.number);this.choice("Touchback — "+this.teams[this.receiving].name,options,option=>{const p=list[options.indexOf(option)];this.ball={x:p.x,y:p.y,carrier:p.id};this.startReceivingTurn();});
+ }
+ placeTouchback(x,y){if(this.phase!=="touchback"||this.pending||!this.inside(x,y)||!this.ownHalf(this.receiving,x)||this.at(x,y))return false;this.ball={x,y,carrier:null};this.startReceivingTurn();return true;}
+ resetTeam(team){this.secureUsed[team]=false;this.blitzUsed[team]=false;this.passUsed[team]=false;this.handoffUsed[team]=false;for(const p of this.players)if(p.team===team)Object.assign(p,{used:false,spent:0,dodgeUsed:false,proUsed:false,stunnedAtStart:p.status==="stunned"});}
+ startReceivingTurn(){this.phase="play";this.eventState=null;this.finished=false;this.pending=null;this.beginTurn(this.receiving);}
+ beginTurn(team){
+  if(this.skip[team]){this.skip[team]=false;this.turns[team]++;this.note(this.teams[team].name+" skips a turn celebrating an opposition-turn Touchdown.");}
+  if(this.turns[team]>=8){if(this.turns[1-team]>=8){this.endDrive(null);return;}team=1-team;}
+  this.active=team;this.turns[team]++;this.resetTeam(team);this.note(this.teams[team].name+" — half "+this.half+", turn "+this.turns[team]+".");
+ }
+ canStart(p){if(!super.canStart(p))return false;if(this.phase==="play")return true;const e=this.eventState;return this.phase==="charge"&&e?.eligible.includes(p.id)&&!e.used.includes(p.id)&&e.used.length<e.limit;}
+ start(id,action="move"){
+  if(this.phase==="charge"&&!["move","blitz"].includes(action))return false;const valid=this.players.find(p=>p.id===id);if(!this.canStart(valid))return false;
+  this.stallCandidate=this.phase==="play"&&this.canScoreWithoutDice(valid)?id:null;
+  const result=super.start(id,action);if(result&&this.phase==="charge")this.eventState.used.push(id);return result;
+ }
+ canSecure(p){return this.phase==="play"&&super.canSecure(p);}
+ canBallAction(p,kind){return this.phase==="play"&&super.canBallAction(p,kind);}
+ block(a,d){if(this.phase!=="play")return false;const p=this.players.find(p=>p.id===a);this.stallCandidate=p&&this.canScoreWithoutDice(p)?a:null;return super.block(a,d);}
+ options(p,kind){const result=super.options(p,kind);return this.phase==="play"?result:result.filter(s=>s!=="Team");}
+ test(p,kind,target,yes,no){if(this.weather==="Blizzard"&&kind==="Rush")target++;if(this.weather==="Pouring Rain"&&["Pick up","Catch","Intercept"].includes(kind))target++;super.test(p,kind,target,yes,no);}
+ passPreview(x,y){const result=super.passPreview(x,y);if(result&&this.weather==="Very Sunny")result.target++;return result;}
+ passRange(from,to){const result=super.passRange(from,to);return this.weather==="Blizzard"&&result?.band>1?null:result;}
+ assists(a,d){const result=super.assists(a,d);if(this.cheer[a.team])result.offensive++;return result;}
+ rollBlock(a,d,blitz=false){super.rollBlock(a,d,blitz);this.cheer[a.team]=false;}
+ decide(option){const before=[...this.rerolls],result=super.decide(option);this.consumeBonus(before);return result;}
+ rerollBlock(source,index=null){const before=[...this.rerolls],result=super.rerollBlock(source,index);this.consumeBonus(before);return result;}
+ consumeBonus(before){for(const t of [0,1])if(this.rerolls[t]<before[t])this.driveBonus[t]=Math.max(0,this.driveBonus[t]-(before[t]-this.rerolls[t]));}
+ endTurn(turnover=false){
+  if(this.pending||this.finished||!["play","charge"].includes(this.phase))return false;
+  if(this.phase==="charge"){this.note("Charge ends.");this.mover=null;this.action=null;this.blockAction=null;this.eventState=null;this.landKick();return true;}
+  const current=this.active,phase=this.phase;
+  if(this.mover&&this.stallCandidate){this.checkStalling(this.players.find(p=>p.id===this.mover));if(this.pending||this.active!==current||this.phase!==phase)return true;}
+  this.note(turnover?"TURNOVER.":"Turn ended.");for(const p of this.players)if(p.team===this.active&&p.status==="stunned"&&p.stunnedAtStart)p.status="prone";
+  this.cheer[this.active]=false;this.mover=null;this.action=null;this.blockAction=null;this.blitzTarget=null;
+  if(this.turns.every(n=>n>=8))this.endDrive(null);else this.beginTurn(1-this.active);return true;
+ }
+ finishBlock(){const b=this.blockAction;super.finishBlock();if(this.phase==="play"||this.phase==="charge")this.checkScore();if(b&&!b.blitz)this.checkStalling(b.attacker);}
+ canScoreWithoutDice(p){
+  if(!p||this.ball.carrier!==p.id||p.status!=="standing"||this.has(p,"Bone Head")||this.has(p,"Really Stupid"))return false;
+  const goal=this.right(p.team)?25:0,queue=[{x:p.x,y:p.y,spent:0}],seen=new Set([p.x+","+p.y]);
+  while(queue.length){const n=queue.shift();if(n.x===goal)return true;for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)if(dx||dy){const x=n.x+dx,y=n.y+dy,key=x+","+y;if(seen.has(key))continue;const plan=this.planFrom(p,x,y,n.x,n.y,n.spent);if(!plan||plan.rushes||plan.dodge||plan.jump)continue;seen.add(key);queue.push({x,y,spent:n.spent+1});}}
+  return false;
+ }
+ checkStalling(p){
+  if(this.phase!=="play"||this.finished||this.pending||p?.team!==this.active||this.stallCandidate!==p.id||this.ball.carrier!==p.id)return;
+  this.stallCandidate=null;this.note("Stalling: the crowd may take action.");if(this.roll("Crowd Takes Action")>=this.turns[this.active])this.fall(p);
+ }
+ finish(){const p=this.players.find(q=>q.id===this.mover),result=super.finish();if(result&&p)this.checkStalling(p);return result;}
+ checkScore(){
+  if(!["play","charge"].includes(this.phase))return;const p=this.players.find(q=>q.id===this.ball.carrier);
+  if(p&&p.status==="standing"&&p.x===(this.right(p.team)?25:0)){this.scores[p.team]++;this.note("TOUCHDOWN — "+this.teams[p.team].name+"! Score "+this.scores.join("–")+".");if(p.team!==this.active){this.turns[p.team]=Math.min(8,this.turns[p.team]+1);this.note("Scoring during the opponent's turn: the scoring team skips its next turn celebrating.");}this.endDrive(p.team);}
+ }
+ endDrive(scorer){this.phase="endDrive";this.finished=true;this.pending=null;this.mover=null;this.action=null;this.blockAction=null;this.lastScorer=scorer;this.note("End of Drive: resolve recovery and effects before continuing.");}
+ continueDrive(){
+  if(this.phase!=="endDrive")return false;
+  const field=this.players.filter(p=>this.onPitch(p));for(const p of this.players)p.heatOut=false;
+  if(this.weather==="Sweltering Heat"){const count=Math.ceil(this.roll("Sweltering Heat player count")/2);for(const t of [0,1])for(const p of this.randomPlayers(field.filter(q=>q.team===t),count,"Heat exhaustion")){p.heatOut=true;this.note("Heat: #"+p.number+" misses the next drive.");}}
+  for(const p of this.players){if(p.status==="knocked-out"&&this.roll("KO recovery #"+p.number)>=4){p.status="reserve";this.note("#"+p.number+" recovers from KO.");}p.snack=false;}
+  for(const t of [0,1]){this.rerolls[t]=Math.max(0,this.rerolls[t]-this.driveBonus[t]);this.driveBonus[t]=0;}
+  if(this.turns.every(n=>n>=8)){
+   if(this.half===2){this.phase="finished";this.note(this.scores[0]===this.scores[1]?"Full time — draw.":"Full time — "+this.teams[this.scores[0]>this.scores[1]?0:1].name+" wins.");return true;}
+   this.half=2;this.turns=[0,0];this.rerolls=[2,2];this.skip=[false,false];this.note("HALF-TIME: change ends and replenish team re-rolls.");this.prepareDrive(this.firstReceiver);return true;
+  }
+  this.prepareDrive(this.lastScorer??this.kicking);return true;
+ }
+}
+if(typeof module!=="undefined")module.exports={MatchGame};
+</script>
 <script>
 
 "use strict";
@@ -789,7 +980,7 @@ const teams=JSON.parse(document.getElementById("team-data").textContent);
 const pitch=document.getElementById("pitch"),coach=document.getElementById("coach"),selection=document.getElementById("selection"),log=document.getElementById("log");
 const money=n=>n.toLocaleString("en-US")+" gp";
 let game,selected=null,destination=null,blockMode=false,ballMode=false,throwDestination=null;
-function reset(){game=new MovementGame(teams,{scenario:document.getElementById("scenario").value});selected=game.practicePlayer;destination=null;blockMode=false;ballMode=false;throwDestination=null;render();const p=game.players.find(p=>p.id===selected);showProfile(p?.team??0,p?.role??0,p?.number??null);}
+function reset(){const scenario=document.getElementById("scenario").value;game=scenario.startsWith("match")?new MatchGame(teams,{learning:scenario==="match-learning"}):new MovementGame(teams,{scenario});selected=game.practicePlayer;destination=null;blockMode=false;ballMode=false;throwDestination=null;render();const p=game.players.find(p=>p.id===selected);showProfile(p?.team??0,p?.role??0,p?.number??null);}
 function showProfile(team,role,number){
  const t=teams[team],p=t.positions[role];
  document.getElementById("profile").innerHTML='<div class="eyebrow">'+t.name+'</div><h2>'+(number?'#'+number+' · ':'')+p.name+'</h2><p class="muted">'+p.traits+'</p><div class="stats">'+["ma","st","ag","pa","av"].map(k=>'<div class="stat"><small>'+k.toUpperCase()+'</small>'+p[k]+'</div>').join("")+'</div><p class="profile-skills">'+p.skills.join(" · ")+'</p><p class="muted">Cost: '+money(p.cost)+' · Limit: 0–'+p.max+'<br>Primary: '+p.primary+' · Secondary: '+p.secondary+'</p><a class="muted" href="'+t.source+'">2025 roster source</a>';
@@ -806,6 +997,16 @@ function rangeFor(p){if(!p||game.pending||game.finished)return new Map();const s
 function routeKey(x,y){return x+","+y;}
 function choose(x,y){
  const p=game.at(x,y);
+ if(game.match&&!["play","charge"].includes(game.phase)){
+  if(game.phase==="setup"||game.phase==="eventMove"){
+   const team=game.phase==="setup"?game.setupTeam:game.eventState.team;
+   if(p?.team===team){selected=p.id;showProfile(p.team,p.role,p.number);}
+   else if(selected){if(game.phase==="setup")game.placeSetup(selected,x,y);else game.eventPlace(selected,x,y);}
+  }else if(game.phase==="kickAim"){
+   if(destination?.x===x&&destination?.y===y){game.kick(x,y);destination=null;}else if(game.ownHalf(game.receiving,x))destination={x,y};
+  }else if(game.phase==="touchback")game.placeTouchback(x,y);
+  render();return;
+ }
  if(ballMode){
   const valid=game.action==="handoff"?game.canHandoff(p):!!game.passPreview(x,y);
   if(!valid){selection.textContent="Choose a highlighted ball target.";return;}
@@ -829,9 +1030,9 @@ function choose(x,y){
 }
 function button(label,fn){const b=document.createElement("button");b.className="control";b.textContent=label;b.addEventListener("click",fn);return b;}
 function planChecks(plan,mover){
- const checks=[];for(let i=0;i<plan.rushes;i++)checks.push("Rush 2+");
+ const checks=[];for(let i=0;i<plan.rushes;i++)checks.push(game.weather==="Blizzard"?"Rush 3+":"Rush 2+");
  if(plan.jump||plan.dodge)checks.push((plan.jump?"Jump ":"Dodge ")+Math.min(6,Math.max(2,plan.target))+"+");
- if(plan.pickup)checks.push("Pickup "+Math.min(6,Number.parseInt(game.profile(mover).ag)+game.marking(mover,plan.x,plan.y))+"+");
+ if(plan.pickup)checks.push(game.action==="secure"?"Secure the Ball 2+":"Pickup "+Math.min(6,Number.parseInt(game.profile(mover).ag)+game.marking(mover,plan.x,plan.y)+(game.weather==="Pouring Rain"?1:0))+"+");
  return checks;
 }
 function commitRoute(){
@@ -874,7 +1075,7 @@ function render(){
  const choices=document.getElementById("choices");choices.replaceChildren();
  if(ballMode){
   const p=document.createElement("p"),target=throwDestination&&game.at(throwDestination.x,throwDestination.y),preview=throwDestination&&game.passPreview(throwDestination.x,throwDestination.y);
-  p.textContent=throwDestination?(game.action==="handoff"?"Hand-off to #"+target.number+" · Catch "+Math.min(6,Number.parseInt(game.profile(target).ag)+game.marking(target))+"+":preview.name+" · Pass "+Math.min(6,preview.target)+"+"+(target?" · Catch "+Math.min(6,Number.parseInt(game.profile(target).ag)+game.marking(target))+"+":" · ball will bounce"))+". Click the same square again to commit.":"Click a highlighted ball target to preview, then click it again to commit. Click Choose ball target again to return to movement.";choices.append(p);
+  p.textContent=throwDestination?(game.action==="handoff"?"Hand-off to #"+target.number+" · Catch "+Math.min(6,Number.parseInt(game.profile(target).ag)+game.marking(target)+(game.weather==="Pouring Rain"?1:0))+"+":preview.name+" · Pass "+Math.min(6,preview.target)+"+"+(target?" · Catch "+Math.min(6,Number.parseInt(game.profile(target).ag)+game.marking(target)+(game.weather==="Pouring Rain"?1:0))+"+":" · ball will bounce"))+". Click the same square again to commit.":"Click a highlighted ball target to preview, then click it again to commit. Click Choose ball target again to return to movement.";choices.append(p);
  }
  if(game.pending){
   const q=game.pending;
@@ -924,7 +1125,43 @@ function render(){
  document.getElementById("finish").disabled=!game.mover||!!game.pending||game.finished;
  document.getElementById("end").disabled=!!game.pending||game.finished;
  log.replaceChildren(...game.events.map(e=>{const li=document.createElement("li");li.textContent=e;return li;}));
+ document.getElementById("mode-notice").textContent=game.match?"Exhibition match: play through pre-game, setup, kickoff, turns, drive recovery, and two halves. League progression and additional player actions remain in development.":"Practice actions with Perfect Conditions. Select a drill to try individual rules.";
+ if(game.match)renderMatch();else document.getElementById("matchflow").hidden=true;
  document.getElementById("dugout").textContent=game.players.filter(p=>!game.onPitch(p)&&p.status!=="reserve").map(p=>teams[p.team].name+" #"+p.number+": "+p.status).join(" · ");
+}
+function matchRun(fn){fn();destination=null;blockMode=false;ballMode=false;throwDestination=null;render();}
+function renderMatch(){
+ const panel=document.getElementById("matchflow");panel.hidden=false;panel.replaceChildren();
+ const title=document.createElement("h2");title.textContent=teams[0].name+" "+game.scores[0]+" – "+game.scores[1]+" "+teams[1].name;panel.append(title);
+ const info=document.createElement("p");info.textContent="Half "+game.half+" · Drive "+game.drive+" · Turn markers "+game.turns.join(" / ")+" · "+game.weather+" · Fan Factors "+game.fans.join(" / ")+(game.learning?" · Learning rules: equal fans, Perfect Conditions, no Kick-off Event.":"");panel.append(info);
+ const say=text=>{const p=document.createElement("p");p.textContent=text;panel.append(p);};
+ const add=(label,fn)=>panel.append(button(label,()=>matchRun(fn)));
+ if(["fans","weather","leagueSteps","rolloff"].includes(game.phase)){
+  say(game.phase==="fans"?"Pre-game 1: determine the fans in attendance.":game.phase==="weather"?"Pre-game 2: determine the weather.":game.phase==="leagueSteps"?"Pre-game 3–4: Journeymen and Inducements apply to League Play. This match uses the existing exhibition rosters.":"Pre-game 5: roll off. The winning coach chooses which team kicks.");
+  add(game.phase==="fans"?"Determine fans":game.phase==="weather"?"Determine weather":game.phase==="leagueSteps"?"Continue exhibition pre-game":"Roll for kick or receive",()=>game.advancePregame());
+ }else if(game.phase==="kickChoice"){
+  say(teams[game.rolloffWinner].name+" won the roll-off. Choose who kicks first.");for(const t of [0,1])add(teams[t].name+" kicks",()=>game.chooseKicking(t));
+ }else if(game.phase==="setup"){
+  say(teams[game.setupTeam].name+" sets up. Select a player, then an empty square in their own half. Central LOS needs three players; each Wide Zone permits two.");
+  say(game.setupErrors().join(" ")||"Formation is legal. Confirm when ready.");
+  for(const p of game.available(game.setupTeam))add("Select #"+p.number+" · "+game.profile(p).name,()=>{selected=p.id;showProfile(p.team,p.role,p.number);});
+  add("Use suggested formation",()=>game.autoSetup());add("Confirm formation",()=>game.confirmSetup());
+ }else if(game.phase==="kicker"){
+  say(teams[game.kicking].name+": nominate a kicker outside the Wide Zones and away from the LOS when possible.");for(const p of game.eligibleKickers())add("Kicker #"+p.number+" · "+game.profile(p).name,()=>game.nominateKicker(p.id));
+ }else if(game.phase==="kickAim")say("Click any square in the receiving half to aim the kick; click the same square again to kick. Deviation and the Kick-off Event resolve before the ball lands.");
+ else if(game.phase==="eventMove"||game.phase==="charge"){
+  const e=game.eventState;say(e.kind+": "+teams[e.team].name+" · "+e.used.length+" / "+e.limit+" players used. "+(e.kind==="charge"?"Select an eligible Open player and declare Move or Blitz. End their activation before selecting the next. Throw Team-mate and Kick Team-mate are not implemented.":"Select an eligible player below, then click an empty square. "+(e.kind==="snap"?"Each player moves at most one square.":"Finish with a legal formation.")));
+  for(const id of e.eligible){const p=game.players.find(q=>q.id===id);if(!e.used.includes(id)||e.kind==="defence")add("Event player #"+p.number,()=>{selected=id;showProfile(p.team,p.role,p.number);});}
+  add("Finish Kick-off Event",()=>game.finishEvent());
+ }else if(game.phase==="touchback")say("Touchback: the receiving coach chooses who gets the ball below. If no one is standing, click an empty square in the receiving half.");
+ else if(game.phase==="endDrive"){say("Drive ended. Resolve weather effects, recover Knocked-out players, expire drive effects, then set up the next drive or advance to half/full time.");add("Resolve end of drive and continue",()=>game.continueDrive());}
+ else if(game.phase==="finished")say("Full time: "+(game.scores[0]===game.scores[1]?"draw":teams[game.scores[0]>game.scores[1]?0:1].name+" wins")+". Reset to start a new match.");
+ else if(game.phase==="play")say(teams[game.active].name+" to play. End team turn when finished; turnovers also advance play.");
+ else say("Resolve the pending kickoff decision below.");
+ coach.textContent=teams[game.active].name+" · Half "+game.half+" · Turn "+game.turns[game.active];
+ if(game.phase!=="play"&&game.phase!=="charge")selection.textContent="Match phase: "+game.phase+". Follow the match panel above the pitch.";
+ document.getElementById("end").disabled=!!game.pending||game.finished||!["play","charge"].includes(game.phase);
+ if(game.phase==="charge"&&game.action!=="blitz")document.getElementById("block").disabled=true;
 }
 function renderRosters(){
  document.getElementById("rosters").innerHTML=teams.map((t,team)=>{

@@ -64,7 +64,7 @@ class MovementGame {
  canBlock(attacker,target){
   const a=typeof attacker==="string"?this.players.find(p=>p.id===attacker):attacker;
   const d=typeof target==="string"?this.players.find(p=>p.id===target):target;
-  return this.canStart(a)&&a.status==="standing"&&!a.distracted&&d&&d.team!==this.active&&this.onPitch(d)&&d.status==="standing"&&this.distance(a,d)===1;
+  return this.canStart(a)&&a.status==="standing"&&d&&d.team!==this.active&&this.onPitch(d)&&d.status==="standing"&&this.distance(a,d)===1;
  }
  canBallAction(p,kind){return this.canStart(p)&&["pass","handoff"].includes(kind)&&!(kind==="pass"?this.passUsed:this.handoffUsed)[this.active];}
  ballActor(kind){const p=this.players.find(p=>p.id===this.mover);return this.action===kind&&!this.ballActionDone&&!this.pending&&!this.finished&&p?.status==="standing"&&!p.distracted&&this.ball.carrier===p.id?p:null;}
@@ -88,7 +88,7 @@ class MovementGame {
   const preview=this.passPreview(x,y);if(!preview)return false;
   const p=this.ballActor("pass");this.ballActionDone=true;
   this.note("#"+p.number+" attempts a "+preview.name+" to "+(x+1)+", "+(y+1)+"; PA "+preview.target+"+.");
-  const modifier=preview.band+this.marking(p),target=Number.parseInt(this.profile(p).pa),resolve=n=>{
+  const modifier=preview.target-Number.parseInt(this.profile(p).pa),target=Number.parseInt(this.profile(p).pa),resolve=n=>{
    this.pending=null;this.ball={x:p.x,y:p.y,carrier:null};
    if(n===1||n-modifier<=1&&n!==6){this.note("Fumbled Pass: ball bounces from the thrower; turnover.");this.bounce(p.x,p.y,()=>this.endTurn(true));return;}
    const accurate=n===6||n-modifier>=target;
@@ -166,8 +166,11 @@ class MovementGame {
  block(attackerId,targetId){
   const attacker=this.players.find(p=>p.id===attackerId),target=this.players.find(p=>p.id===targetId);
   if(!this.canBlock(attacker,target))return false;
-  attacker.used=true;attacker.proUsed=false;this.action="block";
-  this.rollBlock(attacker,target,false);return true;
+  attacker.used=true;attacker.proUsed=false;attacker.distracted=false;this.action="block";this.mover=attacker.id;
+  const ready=()=>{this.mover=null;this.rollBlock(attacker,target,false);},failed=()=>{attacker.distracted=true;this.mover=null;this.action=null;this.note("Block activation trait failed; activation ends without turnover.");};
+  if(this.has(attacker,"Bone Head"))this.test(attacker,"Bone Head",2,ready,failed);
+  else if(this.has(attacker,"Really Stupid")){const helper=this.players.some(q=>q.id!==attacker.id&&q.team===attacker.team&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&!this.has(q,"Really Stupid")&&this.distance(q,attacker)===1);this.test(attacker,"Really Stupid",helper?2:4,ready,failed);}
+  else ready();return true;
  }
  rollBlock(attacker,target,blitz=false){
   const assists=this.assists(attacker,target),aStrength=Number(this.profile(attacker).st)+assists.offensive,dStrength=Number(this.profile(target).st)+assists.defensive;
@@ -213,7 +216,7 @@ class MovementGame {
  applyBlockResult(result){
   const b=this.blockAction;if(!b)return;
   const {attacker:a,target:d}=b;
-  if(result==="Player Down"){this.fall(a,{turnover:a.team===this.active,after:()=>this.finishBlock()});return;}
+  if(result==="Player Down"){this.fall(a,{turnover:a.team===this.active,mightyBlowBy:d,after:()=>this.finishBlock()});return;}
   if(result==="Both Down"){this.resolveBothDown();return;}
   if(result==="Stumble")result=this.has(d,"Dodge")&&!d.distracted&&!this.has(a,"Tackle")?"Push Back":"POW";
   if(result==="Push Back"||result==="POW"){this.resolvePush(result==="POW");return;}
@@ -234,9 +237,9 @@ class MovementGame {
   const b=this.blockAction,{attacker:a,target:d}=b;
   if(choice.includes("Wrestle")){
    this.note(choice+": both players are placed prone without Armour Rolls.");
-   let i=0,turnover=false;const prone=[a,d];const next=()=>{
+   let i=0,turnover=false;const prone=[a,d];prone.forEach(p=>p.status="prone");const next=()=>{
     if(i>=prone.length){if(turnover)this.endTurn(true);else this.finishBlock();return;}
-    const p=prone[i++],carrying=this.ball.carrier===p.id;if(p.team===this.active)turnover=true;
+    const p=prone[i++],carrying=this.ball.carrier===p.id;if(p.team===this.active&&carrying)turnover=true;
     p.status="prone";this.note("#"+p.number+" is placed prone by Wrestle.");
     if(carrying){const {x,y}=p;this.ball={x,y,carrier:null};this.bounce(x,y,next);}else next();
    };next();return;

@@ -10,6 +10,14 @@ function fixture(rolls=[],scenario="dodge"){
 }
 function choose(g,option="Accept"){assert.ok(g.pending);g.decide(option);}
 
+test("Block declaration resolves Bone Head before rolling Block Dice",()=>{
+ const g=fixture([1],"block"),a=g.players[15];a.team=0;a.role=4;g.active=0;const d=g.players[11];
+ assert.ok(g.block(a.id,d.id));assert.ok(a.distracted);assert.equal(g.blockAction,null);assert.equal(g.active,0);assert.equal(g.mover,null);
+});
+test("Wrestle placing active ball carrier prone turns over even after teammate catches",()=>{
+ const g=fixture([2,2,2,4],"block"),a=g.players[15],d=g.players[5];g.ball.carrier=a.id;g.block(a.id,d.id);g.selectBlockDie(0);choose(g,"Defender uses Wrestle");assert.equal(g.active,0);
+});
+
 test("a pass to empty ground still turns over when its bounce is caught",()=>{
  const g=fixture([6,2,4],"pass"),a=g.players[0],r=g.players[1],d=g.players[11];a.role=0;d.x=null;d.y=null;d.status="reserve";r.x=14;r.y=6;
  g.start(a.id,"pass");g.pass(14,7);assert.equal(g.ball.carrier,r.id);assert.equal(g.active,1);
@@ -111,9 +119,9 @@ test("Block Player Down causes a turnover after armour",()=>{
  const g=fixture([1,1,1,1],"block"),a=g.players[15];g.block(a.id,g.players[5].id);g.selectBlockDie(0);
  assert.equal(a.status,"prone");assert.equal(g.active,0);assert.equal(g.blockAction,null);
 });
-test("Wrestle places both players prone without armour and causes a turnover",()=>{
+test("Wrestle places both players prone without armour and no turnover without active ball carrier",()=>{
  const g=fixture([2,2],"block"),a=g.players[15],d=g.players[5];g.block(a.id,d.id);g.selectBlockDie(0);choose(g,"Defender uses Wrestle");
- assert.equal(a.status,"prone");assert.equal(d.status,"prone");assert.equal(g.active,0);
+ assert.equal(a.status,"prone");assert.equal(d.status,"prone");assert.equal(g.active,1);
 });
 test("Stand Firm can stop a push and end the Block",()=>{
  const g=fixture([3,3],"block"),a=g.players[15],d=g.players[5];g.block(a.id,d.id);g.selectBlockDie(0);choose(g,"Stand Firm");

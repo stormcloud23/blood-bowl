@@ -37,7 +37,7 @@ The action is available once per team turn to a non-Big-Guy player only when the
 ## Deliberate practice boundaries
 
 - Perfect Conditions only; no weather roll or weather modifiers.
-- No full match clock, halves, kickoff, drive restart, KO recovery, or re-roll replenishment. Touchdown stops the drill.
+- Practice modes stop at a touchdown. The exhibition match sequence in match.cjs now adds halves, kickoff, drive restarts, KO recovery, and halftime re-roll replenishment; see MATCH.md.
 - No AI. Move, Block, Blitz, Pass, Hand-off, and Secure the Ball work as practice actions; no full turn or match sequencing is implemented.
 - No apothecaries or permanent casualty/league outcomes. Casualties leave the pitch; regeneration can place a Troll in reserves.
 - Beneficial Thick Skull and Regeneration effects are applied automatically. Dice re-roll choices remain explicit.
