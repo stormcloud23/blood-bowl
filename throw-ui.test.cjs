@@ -15,6 +15,15 @@ function uiFixture(scenario='throw-team-mate'){
  vm.runInContext(scripts,context);
  return {get,context,run:code=>vm.runInContext(code,context)};
 }
+
+test('Tentacles defending coach choice in the bundled UI suspends a committed route',()=>{
+ const {get,run}=uiFixture('dodge');
+ run('game.players[11].extraSkills=["Tentacles"];game.dice=()=>6;game.start(game.players[0].id);selected=game.players[0].id;choose(9,6);choose(9,6);render()');
+ assert.equal(run('game.pending.team'),1);
+ assert.ok(get('choices').children.some(e=>e.textContent.includes('Tentacles')));
+ const choice=get('choices').children.find(e=>e.textContent.includes('(1-1)'));assert.ok(choice);choice.listeners.click();
+ assert.equal(run('game.pending'),null);assert.equal(run('game.mover'),null);assert.equal(run('game.players[0].x'),10);assert.equal(run('game.active'),0);
+});
 test('throw practice UI declares, selects, previews and commits a throw',()=>{
  const {get,context}=uiFixture();
  vm.runInContext('game.dice=()=>6',context);

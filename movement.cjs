@@ -4,7 +4,7 @@ class MovementGame {
  constructor(teams, {dice=null, scenario="teams"}={}) {
   this.teams=teams; this.dice=dice || (s=>1+Math.floor(Math.random()*s));
   this.active=scenario==="block"?1:0; this.turns=[1,0]; this.rerolls=[2,2]; this.mover=null;
-  this.pending=null; this.finished=false; this.events=[]; this.ball={x:12,y:7,carrier:null};
+  this.pending=null; this.interruptions=[]; this.finished=false; this.events=[]; this.ball={x:12,y:7,carrier:null};
   this.action=null;this.blockAction=null;this.secureUsed=[false,false];this.blitzUsed=[false,false];this.blitzTarget=null;this.blitzBlocked=false;this.practicePlayer=null;
   this.passUsed=[false,false];this.handoffUsed=[false,false];this.ballActionDone=false;
   this.players=teams.flatMap((t,team)=>t.lineup.map((role,i)=>({
@@ -63,6 +63,24 @@ class MovementGame {
   this.pending={type:"custom",kind:"Pro",options:["Team re-roll Pro","Accept Pro failure"],resolve:choice=>{
    this.pending=null;if(choice==="Team re-roll Pro"&&this.useTeamReroll(p)&&this.roll("Pro re-roll needs 3+")>=3)yes();else no();
   }};
+ }
+ // Keep the interrupted action on the stack until its reaction (including nested
+ // decisions) completes. Pop before resuming, so a continuation can interrupt again.
+ interrupt(kind,react,resume){
+  if(this.pending)throw Error("Resolve the pending decision before interrupting");
+  const frame={kind,done:false};this.interruptions.push(frame);
+  const complete=value=>{
+   if(frame.done||this.interruptions.at(-1)!==frame||this.pending)return false;
+   frame.done=true;this.interruptions.pop();resume(value);return true;
+  };
+  react(complete);return complete;
+ }
+ reactionChoice(kind,team,candidates,resolve){
+  const options=candidates.map(p=>"#"+p.number+" ("+p.id+")").concat("Decline");
+  const q={type:"custom",kind:this.teams[team].name+" — "+kind,team,options,resolve:choice=>{
+   if(this.pending!==q||!options.includes(choice))return false;
+   this.pending=null;resolve(candidates[options.indexOf(choice)]||null);return true;
+  }};this.pending=q;
  }
  activationExtra(p,action,ready,failed){ready();}
  afterFollow(a,d,knock,done){done();}
