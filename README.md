@@ -1,28 +1,43 @@
 # Blood Bowl browser game
 
-A browser implementation targeting the Blood Bowl 2025 ruleset.
+A self-contained browser game targeting **Blood Bowl 2025 exhibition matches**, with rules behavior informed by the FFB Java engine.
 
-**v0.0.14** ports selected FFB BB2025 rules into the existing browser engine. It corrects Pro usage and failed-Pro re-rolls, optional Break Tackle decisions, Iron Hard Skin injury interactions, Lone Fouler/send-off/Bribe sequencing, re-roll pool priority, and stalling when ending a turn without activating the carrier. Strong Arm and Bullseye are newly available in the skill laboratory. The game remains self-contained for GitHub Pages: no Java, backend or external runtime is needed. See [the FFB comparison](docs/FFB-AUDIT.md), [the 108-skill source map](docs/FFB-SKILL-MAP.md), and [third-party notices](THIRD_PARTY_NOTICES.md).
+**[Play on GitHub Pages](https://stormcloud23.github.io/blood-bowl/)** — no installation, Java server, or backend required. You can also open `index.html` locally.
 
-Build with `node build.cjs` and verify with `node --test *.test.cjs`. Skill coverage is now **78 implemented, 3 partial, 27 deferred** within the available actions. This release does not complete all match rules, saved games, AI or leagues.
+## Current capabilities
 
-## Agreed scope
+- Two-player hotseat play with Imperial Nobility and Black Orc demo teams.
+- Guided exhibition flow through pregame, setup, kickoff, two halves, scoring, drive recovery, and full time.
+- Movement previews that prefer safer routes, explicit shortcuts and waypoints, and per-step risk highlights.
+- Movement, Blocks, Blitz, passing, interceptions, fouls, thrown/kicked players, and supported special actions.
+- Coach-controlled re-rolls and reaction choices, plus a skills laboratory and practice drills.
+- **98 implemented, 2 partial, and 8 deferred** entries in the 108-skill/trait catalogue.
 
-- Two human players taking turns in the same browser (hotseat).
-- One human player against a computer opponent.
-- Complete standalone matches first, followed by persistent league progression.
-- Simple, readable visuals; rules completeness takes priority over animation.
+These coverage labels describe available actions, not complete FFB parity. Six deferred skills still affect exhibition play, and several match systems need further work. Games currently reset on reload; roster creation, save/resume, AI, and leagues are not implemented.
 
-v0.0.13 adds waypoint movement previews: selecting a tile shows the remaining range from there, additional clicks extend the planned route, and **Cancel movement preview** restores the range from the player's current position. Previewing spends no movement and rolls no dice. Committing follows the displayed steps.
+## Build and verify
 
-Local v0.0.12 changes movement highlights to show the check on each individual arrival step. A dodge early in a route no longer turns later no-roll tiles amber. Selected routes show their actual step checks; hover text and accessible labels explain them. Green tiles can still require risky earlier steps; the route preview lists all required checks.
+GitHub Pages serves the committed `index.html` from the root of `main`. Playing needs no build step. For development, use Node.js 24, matching CI:
 
-Local v0.0.11 adds **Throw Team-mate, Right Stuff, and Always Hungry**, completing the starting abilities on the two demo rosters. Select **Throw Team-mate practice**, declare the throw, choose the Goblin in the side panel, then click a highlighted target twice. Scatter, fumbles, collisions, landing, crowd injury, Troll eating, carried balls, and scoring are supported. Coverage now totals **76 implemented, 3 partial, 29 deferred**. Run `node build.cjs` followed by `node --test movement.test.cjs match.test.cjs skills.test.cjs throw-ui.test.cjs` to verify the self-contained page and engines.
+```sh
+node generate-skill-docs.cjs
+node build.cjs
+node --test *.test.cjs
+git diff --check
+```
 
-Version 0.0.10 audits all 108 skills/traits: 73 implemented, 3 partial, 32 deferred with individual dependency notes. Select Skills laboratory to add supported abilities to practice players. Optional skill controls, Foul, direct special actions, and the in-app coverage inventory are included. See [skills and traits coverage](docs/SKILLS.md). Version 0.0.9 added a guided exhibition match from pre-game fans/weather and kick/receive choice through legal setup, kickoff events, touchbacks, team turns, touchdowns, drive recovery, halftime, and full time. See [match sequence coverage](docs/MATCH.md) for rules and limits. Individual practice drills remain available. Games reset on reload. Version 0.0.8 added Hand-off and Pass practice, range and catch previews, interceptions, inaccurate scatter, fumbles, and Give and Go continuation. Declare an action, move as needed, then choose a ball target; click once to preview and again to commit. Version 0.0.7 added Blitz practice: declare a reachable opponent, move adjacent, choose Blitz Block (1 MA), resolve it, then continue moving. One Blitz is available per team turn, including any required rush for the block. Version 0.0.6 added Block and Secure the Ball practice. Block resolves eligible assists, Strength-based Block Dice, supported re-rolls, knockdowns, pushes, and follow-ups. Secure the Ball permits a free move to a safe loose ball and uses the special 2+ pickup roll. The two-click movement preview remains available. The practice drive still supports the Imperial Nobility and Black Orc profiles; it is not a complete match. See [action coverage and limitations](docs/MOVEMENT.md) and [roster coverage](docs/ROSTERS.md).
+The rules engines are `movement.cjs`, `skills.cjs`, and `match.cjs`. The build embeds them into the standalone page. CI checks generated outputs and runs the regression/UI test suites.
 
-Open https://stormcloud23.github.io/blood-bowl/ to test published versions. GitHub Pages publishes from the root of main. The self-contained index.html needs no build step and can also be opened locally. Each published prototype shows its version number.
+## Planned features
 
-Repository: https://github.com/stormcloud23/blood-bowl
+1. Finish exhibition rules: remaining skills, casualty/treatment handling, staff and inducements, star abilities, and match-rule verification.
+2. Add roster/team creation and broader team support.
+3. Add persistent league progression, including advances, recruitment, finances, and injuries.
 
-See [the development roadmap](docs/ROADMAP.md).
+Save/resume/export and a computer opponent are also planned. Exhibition correctness comes first.
+
+## Rules and implementation references
+
+Use [Blood Bowl Base BB2025](https://bloodbowlbase.ru/bb2025/) for rules as written and [FFB](https://github.com/christerk/ffb) for executable BB2025 behavior. The project's comparison policy and remaining gaps are documented in the [exhibition audit](docs/EXHIBITION-PARITY.md), [skill coverage](docs/SKILLS.md), and [FFB source map](docs/FFB-SKILL-MAP.md).
+
+See [third-party notices](THIRD_PARTY_NOTICES.md) for FFB attribution and licensing.
