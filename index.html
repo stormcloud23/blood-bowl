@@ -12,11 +12,11 @@
 </style>
 </head>
 <body>
-<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>The development pitch</h1></div><span class="badge">v0.0.4 · Sandbox</span></header>
+<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>The development pitch</h1></div><span class="badge">v0.0.5 · Sandbox</span></header>
 <div class="notice"><strong>Move actions are now enforced</strong><br><span class="muted">Move, dodge, rush, jump, stand up, and pick up the ball. Perfect Conditions. This is a practice drive: other actions, full match sequencing, AI, and leagues are still to come.</span></div>
-<label for="scenario">Practice setup </label><select id="scenario"><option value="teams">Both teams</option><option value="dodge">Dodge practice</option><option value="jump">Jump & stand up</option><option value="pickup">Ball pickup</option><option value="traits">Ogre & Troll traits</option></select><p class="muted">Changing the setup starts a new practice. Direction template: 1 NW · 2 N · 3 NE · 4 W · 5 E · 6 SW · 7 S · 8 SE.</p><main><section><div class="pitch-wrap"><div id="pitch" class="pitch" role="group" aria-label="Development pitch"></div></div><p class="muted">Select a player to preview their movement range, then choose a highlighted square as a waypoint. The shortest legal path and required checks are shown. Commit one step at a time to inspect the result, or move through the waypoint; dice are rolled only when you commit. Green = no roll, amber = checks required, purple = jump.</p><button class="control" id="start">Declare Move</button><button class="control secondary" id="finish">End Move</button><button class="control secondary" id="end">End team turn</button><button class="control secondary" id="reset">Reset practice</button></section>
+<label for="scenario">Practice setup </label><select id="scenario"><option value="teams">Both teams</option><option value="dodge">Dodge practice</option><option value="jump">Jump & stand up</option><option value="pickup">Ball pickup</option><option value="traits">Ogre & Troll traits</option></select><p class="muted">Changing the setup starts a new practice. Direction template: 1 NW · 2 N · 3 NE · 4 W · 5 E · 6 SW · 7 S · 8 SE.</p><main><section><div class="pitch-wrap"><div id="pitch" class="pitch" role="group" aria-label="Development pitch"></div></div><p class="muted">Select a player to see their movement range. Click a highlighted destination once to preview its route and checks; click the same square again to commit the move through it. After arrival, choose another square if movement remains. Dice are rolled only when committed. Green = no roll, amber = checks required, purple = jump.</p><button class="control" id="start">Declare Move</button><button class="control secondary" id="finish">End Move</button><button class="control secondary" id="end">End team turn</button><button class="control secondary" id="reset">Reset practice</button></section>
 <aside class="panel"><div class="eyebrow">Movement practice</div><h2 id="coach"></h2><p id="selection" role="status" aria-live="polite"></p><div id="movement" aria-live="polite"></div><div id="choices"></div><div id="profile"></div><div id="dugout"></div><h2>Session log</h2><ol id="log"></ol><p class="muted">Practice resets on reload. Two team re-rolls each; no half-time replenishment in this drill.</p></aside></main><section id="rosters" aria-label="Team rosters"></section>
-<footer>Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.4 with feedback.</footer>
+<footer>Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.5 with feedback.</footer>
 <script id="team-data" type="application/json">[
   {
     "id": "imperial-nobility",
@@ -479,7 +479,10 @@ function choose(x,y){
  const p=game.at(x,y);
  if(p){selected=p.id;destination=null;showProfile(p.team,p.role,p.number);render();return;}
  const mover=planningPlayer(),route=rangeFor(mover).get(routeKey(x,y));
- if(route&&route.path.length){destination={x,y};render();}
+ if(route&&route.path.length){
+  if(game.mover&&destination?.x===x&&destination?.y===y){commitRoute();return;}
+  destination={x,y};render();
+ }
  else {destination=null;render();selection.textContent=game.pending?"Resolve the dice result first.":"Choose a highlighted square for the active Move. Squares occupied by players cannot be entered.";}
 }
 function button(label,fn){const b=document.createElement("button");b.className="control";b.textContent=label;b.addEventListener("click",fn);return b;}
@@ -489,15 +492,15 @@ function planChecks(plan,mover){
  if(plan.pickup)checks.push("Pickup "+Math.min(6,Number.parseInt(game.profile(mover).ag)+game.marking(mover,plan.x,plan.y))+"+");
  return checks;
 }
-function commitRoute(all){
+function commitRoute(){
  const player=game.players.find(p=>p.id===game.mover);if(!player||!destination)return;
  const target={...destination};let guard=40;
  while(guard--&&game.mover===player.id&&!game.pending&&!game.finished){
   const path=game.search(player).get(routeKey(target.x,target.y))?.path;if(!path?.length)break;
   const next=path[0];game.step(next.x,next.y);
-  if(!all||game.pending||game.mover!==player.id||game.finished||player.x===target.x&&player.y===target.y)break;
+  if(game.pending||game.mover!==player.id||game.finished||player.x===target.x&&player.y===target.y)break;
  }
- if(game.mover!==player.id||game.finished)destination=null;render();
+ destination=null;render();
 }
 function render(){
  const mover=game.players.find(p=>p.id===game.mover),inspected=game.players.find(p=>p.id===selected);
@@ -509,7 +512,7 @@ function render(){
   cell.type="button";cell.className="square"+(x===0||x===25?" endzone":"")+(x===12?" middle":"")+(y===3||y===10?" wide":"")+(p&&p.id===selected?" selected":"")+(reach&&reach.path.length?" legal":"")+(reach?.path.some(s=>s.plan.rushes||s.plan.dodge||s.plan.jump||s.plan.pickup)?" risk":"")+(first?.plan.jump?" jump":"")+(routeIndex?" route":"")+(destination?.x===x&&destination?.y===y?" destination":"");
   const label=p?teams[p.team].name+" #"+p.number+" "+game.profile(p).name+" ("+p.status+(p.distracted?", distracted":"")+(p.used?", activated":"")+")":"empty";
   const ballHere=game.ball.carrier?p?.id===game.ball.carrier:game.ball.x===x&&game.ball.y===y;
-  cell.setAttribute("aria-label","Square "+(x+1)+", "+(y+1)+", "+label+(ballHere?", ball":"")+(routeIndex?", route waypoint "+routeIndex:""));cell.title=routeIndex?"Waypoint "+routeIndex+" of "+chosen.path.length+" · "+label:reach?.path.length?"Reachable in "+reach.spent+" movement · "+label:label;
+  cell.setAttribute("aria-label","Square "+(x+1)+", "+(y+1)+", "+label+(ballHere?", ball":"")+(routeIndex?", route step "+routeIndex:""));cell.title=routeIndex?"Route step "+routeIndex+" of "+chosen.path.length+" · "+label:reach?.path.length?"Reachable in "+reach.spent+" movement · "+label:label;
   if(p){const token=document.createElement("span");token.className="token"+(p.team?" blue":"")+(p.used&&p.id!==game.mover?" used":"")+" "+p.status+(p.distracted?" distracted":"");token.textContent=p.number;cell.append(token);}
   if(routeIndex){const n=document.createElement("span");n.className="route-index";n.textContent=routeIndex;cell.append(n);}
   if(ballHere){const b=document.createElement("span");b.className="ball";b.textContent="◆";cell.append(b);}
@@ -526,17 +529,13 @@ function render(){
   for(const option of [...q.options,"Accept"])choices.append(button(option==="Team"?"Use team re-roll":option==="Accept"?"Accept failure":"Use "+option,()=>{game.decide(option);destination=null;render();}));
  }else if(destination&&chosen){
   const initialSpent=mover?mover.spent:planner.status==="prone"?Math.min(3,game.profile(planner).ma):0;
-  const title=document.createElement("p");title.textContent=chosen.path.length?"Lowest-MA route: "+chosen.path.length+" waypoint(s), "+(chosen.spent-initialSpent)+" movement point(s). Select any highlighted square to change the waypoint. Required checks appear below; dice are rolled only when committed.":"Waypoint reached. Choose another highlighted square to continue planning.";choices.append(title);
+  const title=document.createElement("p");title.textContent=chosen.path.length?"Lowest-MA route: "+chosen.path.length+" square(s), "+(chosen.spent-initialSpent)+" movement point(s). Click the selected destination again to commit. Choose another highlighted square to change it. Required checks appear below; dice are rolled only when committed.":"Destination reached. Choose another highlighted square to continue moving.";choices.append(title);
   chosen.path.forEach((step,i)=>{
    const row=document.createElement("p"),checks=planChecks(step.plan,planner);
    row.textContent=(i+1)+". "+(step.plan.jump?"Jump to ":"Move to ")+(step.x+1)+", "+(step.y+1)+" · "+step.plan.cost+" MA · "+(checks.length?checks.join(" → "):"no roll");choices.append(row);
-   if(i<chosen.path.length-1)choices.append(button("Set waypoint "+(i+1),()=>{destination={x:step.x,y:step.y};render();}));
   });
   if(!mover)choices.append(button("Declare Move to begin",()=>{game.start(planner.id);render();}));
-  else if(chosen.path.length) {
-   choices.append(button("Commit next step",()=>commitRoute(false)));
-   choices.append(button("Commit through waypoint",()=>commitRoute(true)));
-  }else choices.append(button("Clear waypoint",()=>{destination=null;render();}));
+  else if(!chosen.path.length)choices.append(button("Clear destination",()=>{destination=null;render();}));
  }
  document.getElementById("start").disabled=!game.canStart(inspected);
  document.getElementById("start").textContent=destination&&!mover?"Declare Move for waypoint":"Declare Move";
