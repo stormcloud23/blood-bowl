@@ -24,6 +24,21 @@ test('Tentacles defending coach choice in the bundled UI suspends a committed ro
  const choice=get('choices').children.find(e=>e.textContent.includes('(1-1)'));assert.ok(choice);choice.listeners.click();
  assert.equal(run('game.pending'),null);assert.equal(run('game.mover'),null);assert.equal(run('game.players[0].x'),10);assert.equal(run('game.active'),0);
 });
+test('Shadowing defending coach button resumes a dodge in the bundled UI',()=>{
+ const {get,run}=uiFixture('dodge');
+ run('game.players[11].extraSkills=["Shadowing"];game.dice=()=>6;game.start(game.players[0].id);selected=game.players[0].id;choose(9,6);choose(9,6);render()');
+ assert.equal(run('game.pending.team'),1);assert.ok(get('choices').children.some(e=>e.textContent.includes('Shadowing')));
+ get('choices').children.find(e=>e.textContent.includes('(1-1)')).listeners.click();
+ assert.equal(run('game.pending'),null);assert.equal(run('game.players[11].x'),10);assert.equal(run('game.players[0].x'),9);assert.equal(run('game.interruptions.length'),0);
+});
+test('Arm Bar owner and injury modifier are both reachable through browser buttons',()=>{
+ const {get,run}=uiFixture('dodge');
+ run('game.players[11].extraSkills=["Arm Bar"];game.rerolls=[0,0];globalThis.rolls=[1,6,6,4,5];game.dice=()=>rolls.shift();game.start(game.players[0].id);selected=game.players[0].id;choose(9,6);choose(9,6);render()');
+ get('choices').children.find(e=>e.textContent.includes('(1-1)')).listeners.click();assert.equal(run('game.pending.team'),1);
+ assert.ok(get('choices').children.some(e=>e.textContent===run('teams[1].name')+' — Arm Bar — choose:'));
+ get('choices').children.find(e=>e.textContent==='Add +1 to Injury').listeners.click();
+ assert.equal(run('game.pending'),null);assert.equal(run('game.players[0].status'),'casualty');assert.equal(run('game.active'),1);
+});
 test('throw practice UI declares, selects, previews and commits a throw',()=>{
  const {get,context}=uiFixture();
  vm.runInContext('game.dice=()=>6',context);

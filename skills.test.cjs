@@ -120,7 +120,7 @@ test("all 108 source entries have an explicit coverage status and dependency not
  assert.equal(SKILL_CATALOG.length,108);assert.equal(new Set(SKILL_CATALOG.map(s=>s.name)).size,108);
  for(const [category,names] of Object.entries(SKILL_GROUPS))assert.equal(names.length,category==="Traits"?36:12);
  for(const s of SKILL_CATALOG){assert.ok(["Implemented","Partial","Deferred"].includes(s.status));assert.ok(s.notes.length>15);}
- assert.equal(SKILL_CATALOG.filter(s=>s.status==="Deferred").length,26);
+ assert.equal(SKILL_CATALOG.filter(s=>s.status==="Deferred").length,24);
 });
 test("all browser scripts compile together and the skill bundle equals source",()=>{
  assert.equal(html.match(/id="skills-engine">\n([\s\S]*?)<\/script>/)[1].trimEnd(),fs.readFileSync("skills.cjs","utf8").trimEnd());

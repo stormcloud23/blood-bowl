@@ -1,5 +1,10 @@
 # Reaction continuations — first increment
 
+Follow-on: [Shadowing, Arm Bar and the exhibition backlog](EXHIBITION-PARITY.md)
+extends this mechanism with a post-movement boundary and guarded injury choices.
+The Tentacles timing below describes the first increment; the follow-on audit
+records the remaining discrepancy with FFB's Rush-before-Tentacles sequence.
+
 The browser now has an in-memory interruption stack in `MovementGame.interrupt`.
 A reaction receives a completion token. Only the top frame can complete, only
 after its pending decision is cleared, and only once. Completion removes the
@@ -29,6 +34,7 @@ Sources:
 Regression coverage includes held carriers, departure cancellation, defender
 selection, natural limits, Leap/Rush timing, failed holds, Fumblerooski, nested
 completion order, duplicate callbacks, and the actual bundled UI buttons.
-Other reactions (including Shadowing, Diving Tackle and Dump-off) remain deferred.
+At this first increment other reactions remained deferred; Shadowing and Arm Bar
+have since been added. Diving Tackle and Dump-off still require further windows.
 Exhibition parity is still incomplete. Static GitHub Pages deployment remains
 self-contained; no Java server, runtime dependency or network access was added.

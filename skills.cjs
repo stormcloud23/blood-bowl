@@ -17,14 +17,12 @@ const SKILL_DEFERRED={
  "Lethal Flight":"Requires thrown-player flight, collision and casualty attribution.",
  "Pile Driver":"Requires a nested free Foul that completes before prone placement and original Block cleanup.",
  "Saboteur":"Requires simultaneous knockdown/explosion reactions and the Secret Weapon injury exception.",
- "Shadowing":"Needs a movement reaction chain with defender movement before route continuation.",
  "Violent Innovator":"Requires Star Player Point attribution and league progression.",
  "Steady Footing":"Needs failed movement continuation callbacks for every remaining check after preventing a fall.",
  "Monstrous Mouth":"Needs Chomp constraints on all forced and voluntary movement, including incoming Ball & Chain support.",
  "Dump-off":"Needs a nested out-of-turn Quick Pass before the targeted attack resumes.",
  "On the Ball":"Needs interrupting, multi-player out-of-turn movement before passing and kickoff events.",
  "Punt":"Needs directional kick target and direction/distance re-roll choices separate from normal passing.",
- "Arm Bar":"Needs one defender-selected injury modifier window following a failed departure.",
  "Multiple Block":"Needs two simultaneous Block resolutions, both completed even if one causes a turnover.",
  "Animal Savagery":"Needs activation interruption, forced teammate selection, mandatory damage modifiers and continuation.",
  "Ball & Chain":"Needs directional random movement, collision Blocks against either team and special injury handling.",
@@ -116,7 +114,7 @@ class SkillGame extends SkillBase {
   const conflicts={Frenzy:["Grab","Hit and Run","Multiple Block"],Grab:["Frenzy"],Leap:["Pogo"],Pogo:["Leap"]},owned=[...super.profile(p).skills,...(p.extraSkills||[])];if((conflicts[name]||[]).some(s=>owned.includes(s))||["Bullseye","Strong Arm"].includes(name)&&!owned.includes("Throw Team-mate"))return false;p.extraSkills=[...new Set([...(p.extraSkills||[]),name])];return true;}
  used(p,name){return p.skillUses?.[name]===this.skillTurn;}
  use(p,name){p.skillUses||={};p.skillUses[name]=this.skillTurn;this.note("#"+p.number+" uses "+name+".");}
- resetSkillTurn(){this.skillTurn++;this.throwUsed||=[false,false];this.throwUsed[this.active]=false;this.throwMate=null;}
+ resetSkillTurn(){this.skillTurn++;this.shadowingCounts={};this.throwUsed||=[false,false];this.throwUsed[this.active]=false;this.throwMate=null;}
  rushLimit(p){return this.skill(p,"Sprint")?3:2;}
  standCost(p){return this.has(p,"Jump Up")?0:super.standCost(p);}
  stand(p,after=null){if(this.has(p,"Jump Up")){p.status="standing";p.spent=0;this.note("Jump Up: stands for free.");if(after)after();return;}super.stand(p,after);}
@@ -215,6 +213,24 @@ class SkillGame extends SkillBase {
    if(held){this.note("Tentacles: #"+p.number+" is held in place; activation ends.");this.mover=null;this.action=null;}
    else move();
   });return true;
+ }
+ movementOutcome(p,plan,origin,failure,done){
+  // Capture departure eligibility before Shadowing can relocate a defender.
+  const markers=this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&this.distance(q,origin)===1);
+  const arms=failure&&["Dodge","Jump"].includes(failure.kind)?markers.filter(q=>this.skill(q,"Arm Bar")):[];
+  const shadow=armBarBy=>{
+   const context={armBarBy};
+   const candidates=plan.dodge&&!this.at(origin.x,origin.y)?markers.filter(q=>this.skill(q,"Shadowing")&&!q.rooted&&(this.shadowingCounts?.[q.id]||0)<Number(this.profile(q).ma)):[];
+   if(!candidates.length){done(context);return;}
+   this.interrupt("Shadowing",finish=>this.reactionChoice("Shadowing",1-p.team,candidates,q=>{
+    if(q){this.shadowingCounts||={};this.shadowingCounts[q.id]=(this.shadowingCounts[q.id]||0)+1;
+     if(this.roll("Shadowing #"+q.number+" needs 4+")>=4){q.x=origin.x;q.y=origin.y;this.note("#"+q.number+" shadows into the vacated square.");if(this.ball.carrier===q.id){this.ball.x=q.x;this.ball.y=q.y;}}
+    }
+    finish();
+   }),()=>done(context));
+  };
+  if(!arms.length){shadow(null);return;}
+  this.interrupt("Arm Bar",finish=>this.reactionChoice("Arm Bar",1-p.team,arms,q=>finish(q)),shadow);
  }
  dropBall(){const p=this.players.find(q=>q.id===this.mover);if(!p||this.pending||this.ball.carrier!==p.id||!this.skill(p,"Fumblerooski")||this.has(p,"My Ball"))return false;p.dropOnExit=!p.dropOnExit;return true;}
  passPreview(x,y){const value=super.passPreview(x,y),p=this.players.find(q=>q.id===this.mover);if(!value)return null;value.target+=this.disturbance(p);if(this.skill(p,"Nerves of Steel"))value.target-=this.marking(p);if(value.band<2&&this.skill(p,"Accurate")||value.band>=2&&this.skill(p,"Cannoneer"))value.target--;return value;}
