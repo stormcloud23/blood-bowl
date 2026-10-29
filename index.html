@@ -526,17 +526,17 @@ function render(){
   for(const option of [...q.options,"Accept"])choices.append(button(option==="Team"?"Use team re-roll":option==="Accept"?"Accept failure":"Use "+option,()=>{game.decide(option);destination=null;render();}));
  }else if(destination&&chosen){
   const initialSpent=mover?mover.spent:planner.status==="prone"?Math.min(3,game.profile(planner).ma):0;
-  const title=document.createElement("p");title.textContent="Lowest-MA route: "+chosen.path.length+" waypoint(s), "+(chosen.spent-initialSpent)+" movement point(s). Select any highlighted square to change the waypoint. Required checks appear below; dice are rolled only when committed.";choices.append(title);
+  const title=document.createElement("p");title.textContent=chosen.path.length?"Lowest-MA route: "+chosen.path.length+" waypoint(s), "+(chosen.spent-initialSpent)+" movement point(s). Select any highlighted square to change the waypoint. Required checks appear below; dice are rolled only when committed.":"Waypoint reached. Choose another highlighted square to continue planning.";choices.append(title);
   chosen.path.forEach((step,i)=>{
    const row=document.createElement("p"),checks=planChecks(step.plan,planner);
    row.textContent=(i+1)+". "+(step.plan.jump?"Jump to ":"Move to ")+(step.x+1)+", "+(step.y+1)+" · "+step.plan.cost+" MA · "+(checks.length?checks.join(" → "):"no roll");choices.append(row);
    if(i<chosen.path.length-1)choices.append(button("Set waypoint "+(i+1),()=>{destination={x:step.x,y:step.y};render();}));
   });
   if(!mover)choices.append(button("Declare Move to begin",()=>{game.start(planner.id);render();}));
-  else {
+  else if(chosen.path.length) {
    choices.append(button("Commit next step",()=>commitRoute(false)));
    choices.append(button("Commit through waypoint",()=>commitRoute(true)));
-  }
+  }else choices.append(button("Clear waypoint",()=>{destination=null;render();}));
  }
  document.getElementById("start").disabled=!game.canStart(inspected);
  document.getElementById("start").textContent=destination&&!mover?"Declare Move for waypoint":"Declare Move";
@@ -553,7 +553,7 @@ function renderRosters(){
  document.querySelectorAll(".role-button").forEach(button=>button.addEventListener("click",()=>{showProfile(Number(button.dataset.team),Number(button.dataset.role),null);document.getElementById("profile").scrollIntoView({behavior:"smooth",block:"center"});}));
 }
 
-document.getElementById("start").addEventListener("click",()=>{game.start(selected);destination=null;render();});
+document.getElementById("start").addEventListener("click",()=>{game.start(selected);render();});
 document.getElementById("finish").addEventListener("click",()=>{game.finish();destination=null;render();});
 document.getElementById("end").addEventListener("click",()=>{game.endTurn();destination=null;selected=null;render();});
 document.getElementById("reset").addEventListener("click",reset);
