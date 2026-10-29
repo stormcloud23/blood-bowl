@@ -10,9 +10,7 @@ const SKILL_GROUPS={
  Traits:["Always Hungry","Animal Savagery","Animosity (X)","Ball & Chain","Bloodlust (X+)","Bombardier","Bone Head","Breathe Fire","Chainsaw","Decay","Drunkard","Hatred (X)","Hypnotic Gaze","Insignificant","Kick Team-mate","Loner (X+)","My Ball","No Ball","Pick-me-up","Plague Ridden","Pogo","Projectile Vomit","Really Stupid","Regeneration","Right Stuff","Secret Weapon","Stab","Stunty","Swoop","Take Root","Throw Team-mate","Timmm-ber!","Titchy","Trickster","Unchannelled Fury","Unsteady"]
 };
 const SKILL_DEFERRED={
- "Diving Catch":"Needs ball-landing reaction choices, contested adjacent catchers, and original pass target tracking.",
  "Hit and Run":"Needs an optional post-action move that runs before Blitz continuation and turnover cleanup.",
- "Safe Pair of Hands":"Needs one shared pre-prone ball-placement window for falls, Wrestle, and every forced placement.",
  "Lethal Flight":"Requires thrown-player flight, collision and casualty attribution.",
  "Pile Driver":"Requires a nested free Foul that completes before prone placement and original Block cleanup.",
  "Saboteur":"Requires simultaneous knockdown/explosion reactions and the Secret Weapon injury exception.",
@@ -260,8 +258,9 @@ class SkillGame extends SkillBase {
   };
   const placeTackler=armBarBy=>{
    const q=plan.divingTackler;if(!q){shadow(armBarBy);return;}
-   q.x=origin.x;q.y=origin.y;q.status="prone";q.rooted=false;this.note("#"+q.number+" is placed prone by Diving Tackle.");
-   if(this.ball.carrier===q.id||!this.ball.carrier&&this.ball.x===q.x&&this.ball.y===q.y){this.ball={x:q.x,y:q.y,carrier:null};this.bounce(q.x,q.y,()=>shadow(armBarBy));}else shadow(armBarBy);
+   q.x=origin.x;q.y=origin.y;this.note("#"+q.number+" uses Diving Tackle.");
+   // FFB StepDropDivingTackler uses dropPlayer's ineligible-for-placement overload.
+   this.placeProne(q,()=>shadow(armBarBy),{allowPlacement:false});
   };
   if(!arms.length){placeTackler(null);return;}
   this.interrupt("Arm Bar",finish=>this.reactionChoice("Arm Bar",1-p.team,arms,q=>finish(q)),placeTackler);
@@ -331,7 +330,7 @@ class SkillGame extends SkillBase {
    if(name==="Chainsaw"){this.test(p,"Chainsaw kick-back",2,()=>this.armourOnly(target,finish,{bonus:this.has(target,"Iron Hard Skin")?0:3}),()=>this.fall(p,{prevented:finish}));return;}
    if(name==="Breathe Fire"){
     const penalty=+this.profile(target).st>=5?1:0;this.test(p,"Breathe Fire",4+penalty,n=>{
-     if(n===6){this.fall(target,{turnover:false,after:finish});return;}target.status="prone";target.rooted=false;if(this.ball.carrier===target.id){this.ball={x:target.x,y:target.y,carrier:null};this.bounce(target.x,target.y,finish);}else finish();
+     if(n===6){this.fall(target,{turnover:false,after:finish});return;}this.placeProne(target,finish);
     },n=>{if(n===1||n-penalty===1)this.fall(p,{prevented:finish});else finish();});
    }
   };
@@ -343,8 +342,11 @@ class SkillGame extends SkillBase {
  }
  armourOnly(p,done,{bonus=0,injuryBonus=0,onDice=null}={}){
   const a=this.roll("Armour"),b=this.roll("Armour");if(onDice)onDice("Armour",a,b);if(a+b+bonus<parseInt(this.profile(p).av)){this.note("Armour holds.");done();return;}
-  const x=p.x,y=p.y,carrying=this.ball.carrier===p.id,c=this.roll("Injury"),d=this.roll("Injury");if(onDice)onDice("Injury",c,d);this.injuryResult(p,c+d+injuryBonus);
-  const finish=()=>{this.syncLeader?.();if(carrying&&p.team===this.active)this.endTurn(true);else done();};if(carrying){this.ball={x,y,carrier:null};this.bounce(x,y,finish);}else finish();
+  const x=p.x,y=p.y,carrying=this.ball.carrier===p.id;
+  this.beforeProne(p,{x,y},()=>{
+   const c=this.roll("Injury"),d=this.roll("Injury");if(onDice)onDice("Injury",c,d);this.injuryResult(p,c+d+injuryBonus);
+   const finish=()=>{this.syncLeader?.();if(carrying&&p.team===this.active)this.endTurn(true);else done();};this.releaseProneBall(p,{x,y},finish);
+  });
  }
  foul(p,target){
   const helpers=(team,victim,excluded,offensive)=>this.players.filter(q=>q.team===team&&q.id!==p.id&&q.id!==target.id&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&!q.gouged&&this.distance(q,victim)===1&&(this.markedByExcept(q,[excluded.id])===0||offensive&&this.skill(q,"Put the Boot In")&&!this.players.some(r=>r.team!==q.team&&r.team!==this.active&&this.skill(r,"Defensive")&&this.onPitch(r)&&this.distance(r,q)===1))).length;
@@ -375,6 +377,34 @@ class SkillGame extends SkillBase {
     this.pending={type:"custom",kind:"Bribe",options:["Use Bribe","Accept send-off"],resolve:option=>{this.pending=null;if(option==="Use Bribe"){this.bribes[p.team]--;if(this.roll("Bribe needs 2+")>=2){this.note("Bribe succeeds: no send-off or turnover.");done(false);return;}bribe();}else remove();}};
    };bribe();
   }};
+ }
+ chooseLandingCatcher(x,y,delivery,done){
+  if(!["pass","kickoff","throw-in"].includes(delivery.kind)){super.chooseLandingCatcher(x,y,delivery,done);return;}
+  const direct=this.at(x,y),adjacent=this.players.filter(p=>this.onPitch(p)&&this.distance(p,{x,y})===1&&this.skill(p,"Diving Catch")).sort((a,b)=>a.number-b.number);
+  if(!adjacent.length){done(direct);return;}
+  this.interrupt("Diving Catch",finish=>{
+   const order=[this.active,1-this.active],offer=i=>{
+    if(i>=order.length){finish(direct);return;}
+    const team=order[i],candidates=adjacent.filter(p=>p.team===team);if(direct?.team===team)candidates.unshift(direct);
+    if(!candidates.length){offer(i+1);return;}
+    this.reactionChoice("Diving Catch / catcher",team,candidates,p=>{if(p)finish(p);else offer(i+1);});
+   };offer(0);
+  },done);
+ }
+ landingTarget(p,delivery){return super.landingTarget(p,delivery)-(delivery.kind==="pass"&&delivery.accurateToPlayer&&this.skill(p,"Diving Catch")?1:0);}
+ beforeProne(p,origin,done){
+  if(this.ball.carrier!==p.id||!this.skill(p,"Safe Pair of Hands")){done(false);return;}
+  const squares=[];for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if((dx||dy)&&this.inside(origin.x+dx,origin.y+dy)&&!this.at(origin.x+dx,origin.y+dy))squares.push({x:origin.x+dx,y:origin.y+dy});
+  if(!squares.length){done(false);return;}
+  this.interrupt("Safe Pair of Hands",finish=>{
+   const options=squares.map(pos=>"Place ball at "+(pos.x+1)+", "+(pos.y+1)).concat("Bounce normally");
+   const q={type:"custom",kind:"Safe Pair of Hands",team:p.team,options,squares,resolve:choice=>{
+    if(this.pending!==q||!options.includes(choice))return false;
+    this.pending=null;const pos=squares[options.indexOf(choice)];
+    if(pos){this.ball={...pos,carrier:null};this.note("Safe Pair of Hands: ball placed at "+(pos.x+1)+", "+(pos.y+1)+".");}
+    finish(!!pos);return true;
+   }};this.pending=q;
+  },done);
  }
  preventFall(p,yes,no){
   if(!this.skill(p,"Steady Footing")){no();return;}

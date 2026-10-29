@@ -109,7 +109,7 @@ class MatchGame extends MatchBase {
  landKick(){
   this.phase="kickLanding";this.active=this.receiving;this.mover=null;this.action=null;this.pending=null;
   if(this.kickTouchback){this.touchback();return;}
-  this.landBall(this.kickLanding.x,this.kickLanding.y,false,()=>{if(this.kickTouchback)this.touchback();else this.startReceivingTurn();},true);
+  this.landBall(this.kickLanding.x,this.kickLanding.y,false,()=>{if(!this.ownHalf(this.receiving,this.ball.x))this.kickTouchback=true;if(this.kickTouchback)this.touchback();else this.startReceivingTurn();},true,{kind:"kickoff"});
  }
  bounce(x,y,done){
   if(this.phase!=="kickLanding"){super.bounce(x,y,done);return;}

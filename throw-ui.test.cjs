@@ -60,6 +60,21 @@ test('a stale Steady Footing button cannot answer the next Rush failure decision
  const old=get('choices').children.find(e=>e.textContent==='Use Steady Footing');old.listeners.click();assert.equal(run('rolls.length'),2);old.listeners.click();assert.equal(run('rolls.length'),2);
  get('choices').children.find(e=>e.textContent==='Use Steady Footing').listeners.click();assert.equal(run('game.pending'),null);assert.equal(run('game.players[0].x'),8);assert.equal(run('rolls.length'),0);
 });
+test('Diving Catch UI selects an adjacent receiver and rejects the stale decision button',()=>{
+ const {get,run}=uiFixture('pass');run('game.players[11].status="reserve";game.players[11].x=null;game.players[11].y=null;game.players[1].y=6;game.players[1].extraSkills=["Diving Catch"];game.rerolls=[0,0];game.dice=()=>6;game.start(game.players[0].id,"pass");game.pass(14,7);render()');
+ assert.ok(get('choices').children.some(e=>e.textContent.includes('Diving Catch')));const choice=get('choices').children.find(e=>e.textContent.includes('(0-2)'));assert.ok(choice);choice.listeners.click();choice.listeners.click();assert.equal(run('game.ball.carrier'),'0-2');assert.equal(run('game.active'),0);assert.equal(run('game.pending'),null);
+});
+test('Safe Pair of Hands UI places the ball and resumes armour exactly once',()=>{
+ const {get,run}=uiFixture('dodge');run('game.players[0].extraSkills=["Safe Pair of Hands"];game.ball={x:10,y:7,carrier:game.players[0].id};game.rerolls=[0,0];globalThis.rolls=[1,1];game.dice=()=>rolls.shift();game.fall(game.players[0]);render()');
+ assert.equal(run('game.players[0].status'),'standing');const choice=get('choices').children.find(e=>e.textContent.startsWith('Place ball at'));assert.ok(choice);choice.listeners.click();choice.listeners.click();assert.equal(run('game.players[0].status'),'prone');assert.equal(run('game.ball.carrier'),null);assert.equal(run('game.active'),1);assert.equal(run('rolls.length'),0);assert.equal(run('game.pending'),null);
+});
+test('Safe Pair of Hands UI decline bounces the ball normally',()=>{
+ const {get,run}=uiFixture('dodge');run('game.players[0].extraSkills=["Safe Pair of Hands"];game.ball={x:10,y:7,carrier:game.players[0].id};game.rerolls=[0,0];globalThis.rolls=[1,1,7];game.dice=()=>rolls.shift();game.fall(game.players[0]);render()');
+ get('choices').children.find(e=>e.textContent==='Bounce normally').listeners.click();assert.equal(run('game.ball.x'),10);assert.equal(run('game.ball.y'),8);assert.equal(run('game.active'),1);assert.equal(run('rolls.length'),0);
+});
+test('accurate Pass preview reflects the receiver Diving Catch bonus',()=>{
+ const {get,run}=uiFixture('pass');run('game.players[1].extraSkills=["Diving Catch"];game.start(game.players[0].id,"pass");selected=game.players[0].id;ballMode=true;throwDestination={x:14,y:7};render()');assert.ok(get('choices').children.some(e=>e.textContent.includes('Catch 2+ (accurate delivery)')));
+});
 test('throw practice UI declares, selects, previews and commits a throw',()=>{
  const {get,context}=uiFixture();
  vm.runInContext('game.dice=()=>6',context);

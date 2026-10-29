@@ -18,9 +18,9 @@ test("Wrestle placing active ball carrier prone turns over even after teammate c
  const g=fixture([2,2,2,4],"block"),a=g.players[15],d=g.players[5];g.ball.carrier=a.id;g.block(a.id,d.id);g.selectBlockDie(0);choose(g,"Defender uses Wrestle");assert.equal(g.active,0);
 });
 
-test("a pass to empty ground still turns over when its bounce is caught",()=>{
+test("a non-fumbled pass to empty ground is saved when its bounce is caught, matching FFB",()=>{
  const g=fixture([6,2,4],"pass"),a=g.players[0],r=g.players[1],d=g.players[11];a.role=0;d.x=null;d.y=null;d.status="reserve";r.x=14;r.y=6;
- g.start(a.id,"pass");g.pass(14,7);assert.equal(g.ball.carrier,r.id);assert.equal(g.active,1);
+ g.start(a.id,"pass");g.pass(14,7);assert.equal(g.ball.carrier,r.id);assert.equal(g.active,0);
 });
 test("scatter leaving the pitch invokes a throw-in from the last square",()=>{
  const g=fixture([4,5,3,1,1,2],"pass"),a=g.players[0];a.role=0;a.x=15;g.start(a.id,"pass");g.pass(25,7);

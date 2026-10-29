@@ -2,7 +2,9 @@
 
 Updated October 29, 2026 using the owner's requested FFB BB2025 baseline. FFB code takes priority where it conflicts with earlier browser behavior. See [the comparison and remaining gaps](FFB-AUDIT.md), [all 108 FFB skill definitions](FFB-SKILL-MAP.md), and [FFB attribution](../THIRD_PARTY_NOTICES.md). This is a targeted port, not a claim of complete FFB parity.
 
-Diving Tackle now offers the moving coach modifiers/re-rolls before the defender's selection, retains the final die and places one tackler prone without armour. Using it suppresses Shadowing; Pogo cancels its effect on jumps. Steady Footing offers a separate 6+ test before a fall, retaining any remaining movement checks and independent turnovers. Rushes now precede Tentacles as in FFB. See [Diving Tackle and Steady Footing](DODGE-FOOTING.md) and [the exhibition backlog](EXHIBITION-PARITY.md).
+Diving Catch now offers the active coach a catcher choice before the opposing coach, retaining delivery mode through re-rolls and bouncing failed adjacent catches from the catcher. Safe Pair of Hands offers an empty adjacent placement before eligible falls and prone placements, preserving actual knockdown turnovers while avoiding the Wrestle carrier-drop turnover. See [ball landing and placement](CATCH-PLACEMENT.md) for the pinned FFB differences and [the exhibition backlog](EXHIBITION-PARITY.md).
+
+Diving Tackle offers the moving coach modifiers/re-rolls before the defender's selection, retains the final die and places one tackler prone without armour. Using it suppresses Shadowing; Pogo cancels its effect on jumps. Steady Footing offers a separate 6+ test before a fall, retaining any remaining movement checks and independent turnovers. Rushes precede Tentacles as in FFB. See [Diving Tackle and Steady Footing](DODGE-FOOTING.md).
 
 Shadowing and Arm Bar use departure continuations before pickup or injury. Shadowing has one defender selection per exit and an MA-based attempt limit per turn. Arm Bar offers one selected defender's post-roll armour or injury modifier. The pinned FFB implementation suppresses both Arm Bar modifiers against Iron Hard Skin; Mighty Blow and Dirty Player injury modifiers remain available.
 
@@ -12,7 +14,7 @@ Build with `node build.cjs` and verify all suites with `node --test *.test.cjs`.
 
 Reviewed October 28, 2026 against the full [Blood Bowl 2025 Skills & Traits list](https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/), [current FAQ](https://bloodbowlbase.ru/bb2025/core_rules/latest_faq/), [Foul / Argue the Call rules](https://bloodbowlbase.ru/bb2025/core_rules/the_game_of_blood_bowl/#foul-actions), and [Bribes](https://bloodbowlbase.ru/bb2025/core_rules/inducements/#0-3-bribes-0-6-for-teams-with-the-bribery-and-corruption-special-rule).
 
-All 108 entries are accounted for: **83 implemented**, **3 partial**, **22 deferred**. Implemented describes support within the available actions and exhibition sequence, not missing league or inducement systems. Deferred abilities are not offered as laboratory additions. Each deferred row records the missing dependency for a future pass. This table and the app inventory share the same registry in skills.cjs.
+All 108 entries are accounted for: **85 implemented**, **3 partial**, **20 deferred**. Implemented describes support within the available actions and exhibition sequence, not missing league or inducement systems. Deferred abilities are not offered as laboratory additions. Each deferred row records the missing dependency for a future pass. This table and the app inventory share the same registry in skills.cjs.
 
 ## How to try them
 
@@ -31,14 +33,14 @@ Sources: [Throw Team-mate and landing](https://bloodbowlbase.ru/bb2025/core_rule
 | Entry | Category | Use | Status | Coverage / remaining dependency |
 | --- | --- | --- | --- | --- |
 | Catch | Agility | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
-| Diving Catch | Agility | Active | Deferred | Needs ball-landing reaction choices, contested adjacent catchers, and original pass target tracking. |
+| Diving Catch | Agility | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Diving Tackle | Agility | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Dodge | Agility | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Defensive | Agility | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Hit and Run | Agility | Active | Deferred | Needs an optional post-action move that runs before Blitz continuation and turnover cleanup. |
 | Jump Up | Agility | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Leap | Agility | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
-| Safe Pair of Hands | Agility | Active | Deferred | Needs one shared pre-prone ball-placement window for falls, Wrestle, and every forced placement. |
+| Safe Pair of Hands | Agility | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Sidestep | Agility | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Sprint | Agility | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Sure Feet | Agility | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
@@ -143,6 +145,6 @@ Sources: [Throw Team-mate and landing](https://bloodbowlbase.ru/bb2025/core_rule
 
 Run `node build.cjs`, then `node --test movement.test.cjs match.test.cjs skills.test.cjs`. Tests use injected dice for movement, passing, activation traits, Block timing, Foul modifiers, send-offs, Bribes, end-of-drive Secret Weapon handling, Leader pools, and catalogue completeness. All browser engines are checked against their source and compiled together.
 
-The in-memory interruption stack supports Tentacles, Shadowing, Arm Bar, Diving Tackle and Steady Footing. Remaining reactions need additional action-specific continuation boundaries. Bombs need their own airborne object and simultaneous injury resolution; thrown-player extensions build on existing flight handling. Casualty-dependent match effects need actual Casualty Table results and treatment timing. Roster creation and league progression remain later work. No deferred skill is treated as implemented merely because its name appears on a roster.
+The in-memory interruption stack supports Tentacles, Shadowing, Arm Bar, Diving Tackle, Steady Footing, Diving Catch and Safe Pair of Hands. Remaining reactions need additional action-specific continuation boundaries. Bombs need their own airborne object and simultaneous injury resolution; thrown-player extensions build on existing flight handling. Casualty-dependent match effects need actual Casualty Table results and treatment timing. Roster creation and league progression remain later work. No deferred skill is treated as implemented merely because its name appears on a roster.
 
 The source now permits negative modified D6 results: a modified pass result of exactly 1 (or natural 1) fumbles; a negative failed result scatters as inaccurate. This corrects the older engine's one-or-less fumble assumption. Stunty's interception penalty, Tackle's Dodge re-roll restriction, Jump Up standing cost, and the three legal straight push squares were also corrected during this audit.
