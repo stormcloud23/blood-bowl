@@ -152,10 +152,11 @@ class MatchGame extends MatchBase {
   if(this.pending||this.finished||!["play","charge"].includes(this.phase))return false;
   if(this.phase==="charge"){this.note("Charge ends.");this.mover=null;this.action=null;this.blockAction=null;this.eventState=null;this.landKick();return true;}
   const current=this.active,phase=this.phase;
-  if(this.mover&&this.stallCandidate){this.checkStalling(this.players.find(p=>p.id===this.mover));if(this.pending||this.active!==current||this.phase!==phase)return true;}
+  const resume=()=>{if(this.active===current&&this.phase===phase)this.endTurn(turnover);};
+  if(this.mover&&this.stallCandidate){this.checkStalling(this.players.find(p=>p.id===this.mover),resume);if(this.pending||this.active!==current||this.phase!==phase)return true;}
   // FFB's forgone-activation step also checks a carrier whose coach ends the turn without activating them.
   if(this.wouldEndTurnTriggerStalling()){
-   const carrier=this.players.find(p=>p.id===this.ball.carrier);this.stallCandidate=carrier.id;this.checkStalling(carrier);
+   const carrier=this.players.find(p=>p.id===this.ball.carrier);this.stallCandidate=carrier.id;this.checkStalling(carrier,resume);
    if(this.pending||this.active!==current||this.phase!==phase)return true;
   }
   this.note(turnover?"TURNOVER.":"Turn ended.");for(const p of this.players)if(p.team===this.active&&p.status==="stunned"&&p.stunnedAtStart)p.status="prone";
@@ -170,10 +171,10 @@ class MatchGame extends MatchBase {
   return false;
  }
  wouldEndTurnTriggerStalling(excluded=null){const p=this.players.find(q=>q.id===this.ball.carrier);return this.phase==="play"&&this.turns[this.active]<=6&&p&&p!==excluded&&p.team===this.active&&!p.used&&!p.stallingChecked&&this.canScoreWithoutDice(p);}
- checkStalling(p){
+ checkStalling(p,afterPrevention=null){
   if(this.phase!=="play"||this.finished||this.pending||p?.team!==this.active||p.stallingChecked||this.stallCandidate!==p.id||this.ball.carrier!==p.id)return;
   this.stallCandidate=null;p.stallingChecked=true;if(this.turns[this.active]>6){this.note("Stalling: no crowd roll in turns 7–8.");return;}
-  this.note("Stalling: the crowd may take action.");if(this.roll("Crowd Takes Action")>=this.turns[this.active])this.fall(p);
+  this.note("Stalling: the crowd may take action.");if(this.roll("Crowd Takes Action")>=this.turns[this.active])this.fall(p,{prevented:afterPrevention});
  }
  finish(){const p=this.players.find(q=>q.id===this.mover),result=super.finish();if(result&&p)this.checkStalling(p);return result;}
  checkScore(){

@@ -15,9 +15,9 @@ test('Tentacles uses strength difference with natural one and six limits',()=>{
 test('Tentacles suspends a departure and a natural six ends only the activation',()=>{
  const {g,p,queue}=fixture([6]);g.ball={x:p.x,y:p.y,carrier:p.id};
  assert.equal(g.step(9,6),true);const choice=g.pending;
- assert.equal(choice.team,1);assert.equal(p.spent,0);assert.equal(p.x,10);
+ assert.equal(choice.team,1);assert.equal(p.spent,1);assert.equal(p.x,9);
  assert.equal(g.step(9,6),false);assert.equal(g.finish(),false);assert.equal(g.endTurn(),false);
- select(g);assert.equal(g.mover,null);assert.equal(g.active,0);assert.equal(p.status,'standing');assert.equal(p.spent,0);assert.equal(g.ball.carrier,p.id);
+ select(g);assert.equal(g.mover,null);assert.equal(g.active,0);assert.equal(p.status,'standing');assert.equal(p.spent,1);assert.equal(p.x,10);assert.equal(g.ball.carrier,p.id);
  assert.equal(g.interruptions.length,0);assert.equal(choice.resolve(choice.options[0]),false);assert.equal(queue.length,0);
 });
 test('declining Tentacles resumes once and then permits the mover re-roll decision',()=>{
@@ -40,8 +40,8 @@ test('prone, distracted and disabled Tentacles players cannot react',()=>{
   g.step(9,6);assert.equal(g.pending,null);assert.equal(p.x,9);
  }
 });
-test('Tentacles intercepts Leap before spending movement or rolling Rush',()=>{
- const {g,p}=fixture([6]);p.extraSkills=['Leap'];p.spent=g.profile(p).ma;g.step(8,7);assert.ok(g.pending.kind.includes('Tentacles'));select(g);assert.equal(p.x,10);assert.equal(p.spent,g.profile(p).ma);
+test('Tentacles holds a Leap after spending movement and resolving both Rushes',()=>{
+ const {g,p,queue}=fixture([6,6,6]);p.extraSkills=['Leap'];p.spent=g.profile(p).ma;g.step(8,7);assert.ok(g.pending.kind.includes('Tentacles'));assert.equal(queue.length,1);select(g);assert.equal(p.x,10);assert.equal(p.spent,g.profile(p).ma+2);
 });
 test('a held Fumblerooski carrier retains the ball and its drop intention',()=>{
  const {g,p}=fixture([6]);p.extraSkills=['Fumblerooski'];g.ball={x:p.x,y:p.y,carrier:p.id};p.dropOnExit=true;g.step(9,6);select(g);assert.equal(g.ball.carrier,p.id);assert.equal(p.dropOnExit,true);

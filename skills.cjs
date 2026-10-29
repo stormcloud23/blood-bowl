@@ -11,14 +11,12 @@ const SKILL_GROUPS={
 };
 const SKILL_DEFERRED={
  "Diving Catch":"Needs ball-landing reaction choices, contested adjacent catchers, and original pass target tracking.",
- "Diving Tackle":"Needs a post-reroll reaction window and placement before final movement failure resolution.",
  "Hit and Run":"Needs an optional post-action move that runs before Blitz continuation and turnover cleanup.",
  "Safe Pair of Hands":"Needs one shared pre-prone ball-placement window for falls, Wrestle, and every forced placement.",
  "Lethal Flight":"Requires thrown-player flight, collision and casualty attribution.",
  "Pile Driver":"Requires a nested free Foul that completes before prone placement and original Block cleanup.",
  "Saboteur":"Requires simultaneous knockdown/explosion reactions and the Secret Weapon injury exception.",
  "Violent Innovator":"Requires Star Player Point attribution and league progression.",
- "Steady Footing":"Needs failed movement continuation callbacks for every remaining check after preventing a fall.",
  "Monstrous Mouth":"Needs Chomp constraints on all forced and voluntary movement, including incoming Ball & Chain support.",
  "Dump-off":"Needs a nested out-of-turn Quick Pass before the targeted attack resumes.",
  "On the Ball":"Needs interrupting, multi-player out-of-turn movement before passing and kickoff events.",
@@ -61,11 +59,11 @@ class SkillGame extends SkillBase {
    const victim=this.at(pos.x,pos.y);
    if(victim){
     this.note("Thrown #"+p.number+" crashes into #"+victim.number+".");
-    if(victim.team===this.active)forcedTurnover=true;
-    this.fall(victim,{turnover:false,after:()=>land(drift(pos,"Collision bounce"),subpar,true,pos)});return;
+    const resume=()=>land(drift(pos,"Collision bounce"),subpar,true,pos);
+    this.fall(victim,{turnover:false,prevented:resume,after:()=>{if(victim.team===this.active)forcedTurnover=true;resume();}});return;
    }
    p.x=pos.x;p.y=pos.y;if(this.ball.carrier===p.id){this.ball.x=p.x;this.ball.y=p.y;}
-   const fail=()=>this.fall(p,{turnover:false,after:()=>end(forcedTurnover||carrying)});
+   const fail=()=>this.fall(p,{turnover:false,prevented:()=>ok(),after:()=>end(forcedTurnover||carrying)});
    const ok=()=>{this.note("#"+p.number+" lands on their feet.");if(!this.ball.carrier&&this.ball.x===p.x&&this.ball.y===p.y)this.bounce(p.x,p.y,()=>end(forcedTurnover));else end(forcedTurnover);};
    if(unable||crashed){fail();return;}
    this.test(p,"Landing",parseInt(this.profile(p).ag)+(subpar?1:0)+this.marking(p),ok,fail);
@@ -139,7 +137,7 @@ class SkillGame extends SkillBase {
  }
  options(p,kind){let result=super.options(p,kind);if(kind==="Dodge"&&this.departureMarkers(p).some(q=>this.skill(q,"Tackle")))result=result.filter(s=>s!=="Dodge");
   if(kind==="Rush"&&this.skill(p,"Sure Feet")&&!this.used(p,"Sure Feet"))result.push("Sure Feet");if(kind==="Pick up"&&this.skill(p,"Sure Hands"))result.push("Sure Hands");
-  if((this.mover===p.id||this.attackRoller===p.id)&&this.skill(p,"Pro")&&!p.proUsed&&!result.includes("Pro"))result.push("Pro");if(this.canTeamReroll(p)&&!result.includes("Team"))result.push("Team");return result;
+  if((this.mover===p.id||this.attackRoller===p.id||this.blockAction?.attacker.id===p.id)&&this.skill(p,"Pro")&&!p.proUsed&&!result.includes("Pro"))result.push("Pro");if(this.canTeamReroll(p)&&!result.includes("Team"))result.push("Team");return result;
  }
  departureMarkers(p){const o=this.departureOrigin||p;return this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&this.distance(q,o)===1);}
  checkTarget(p,kind,target){
@@ -155,17 +153,37 @@ class SkillGame extends SkillBase {
  forecastTarget(p,kind,target){if(this.weather==="Blizzard"&&kind==="Rush"||this.weather==="Pouring Rain"&&["Pick up","Catch","Intercept"].includes(kind))target++;return this.checkTarget(p,kind,target);}
  test(p,kind,target,yes,no){
   if(["Catch","Pick up","Secure the Ball","Intercept"].includes(kind)&&this.has(p,"No Ball")){no(1);return;}
-  target=this.checkTarget(p,kind,target);
+  this.resolveSkillTest(p,kind,this.checkTarget(p,kind,target),yes,no);
+ }
+ departureTest(p,plan,origin,kind,target,yes,no){
+  const candidates=kind==="Jump"&&this.skill(p,"Pogo")?[]:this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&this.distance(q,origin)===1&&this.skill(q,"Diving Tackle")&&!q.rooted);
+  const penalty=kind==="Jump"?this.jumpTarget(p,origin.x,origin.y,plan.x,plan.y,2)-target:2;
+  this.resolveSkillTest(p,kind,this.checkTarget(p,kind,target),yes,no,{plan,candidates,penalty});
+ }
+ resolveSkillTest(p,kind,target,yes,no,departure=null){
+  const tacklers=departure?.candidates||[];
+  const penalty=departure?.penalty||2;
+  const finish=(n,bonus=0)=>{
+   if(!this.success(n,target-bonus)){no(n);return;}
+   if(!tacklers.length){yes(n);return;}
+   this.interrupt("Diving Tackle",done=>this.reactionChoice("Diving Tackle"+(this.success(n,target+penalty-bonus)?" (will not trip)":" (will trip)"),1-p.team,tacklers,q=>done(q)),q=>{
+    departure.plan.divingTackler=q;
+    if(q&&!this.success(n,target+penalty-bonus))no(n);else yes(n);
+   });
+  };
   // Like FFB's modifier-choice step, keep the failed roll suspended until the coach decides.
   // A modifier can still rescue the re-rolled die, but never opens another re-roll window.
   const resolve=(n,mayReroll)=>{
-   if(this.success(n,target)){yes(n);return;}
+   const lookAhead=this.success(n,target)&&tacklers.length&&!this.success(n,target+penalty);
+   if(this.success(n,target)&&!lookAhead){finish(n);return;}
    const bonus=+this.profile(p).st<=3?1:+this.profile(p).st===4?2:3;
-   const breakTackle=kind==="Dodge"&&this.skill(p,"Break Tackle")&&!this.used(p,"Break Tackle")&&this.success(n,target-bonus);
+   const breakTackle=kind==="Dodge"&&this.skill(p,"Break Tackle")&&!this.used(p,"Break Tackle")&&this.success(n,target+(tacklers.length?penalty:0)-bonus);
    const options=mayReroll?this.options(p,kind):[];if(breakTackle)options.unshift("Break Tackle");
-   if(!options.length){no(n);return;}
-   this.pending={p,kind,target,roll:n,options,resolve:value=>resolve(value,false),accept:()=>no(n),useModifier:()=>{this.use(p,"Break Tackle");yes(n);}};
-   this.note(kind+" failed. Choose a modifier, re-roll or accept the result.");
+   if(!options.length){finish(n);return;}
+   const q={p,kind,target,roll:n,options,lookAhead,resolved:false};
+   const settle=fn=>(...args)=>{if(q.resolved||this.pending&&this.pending!==q)return false;q.resolved=true;if(this.pending===q)this.pending=null;fn(...args);return true;};
+   q.resolve=settle(value=>resolve(value,false));q.accept=settle(()=>finish(n));q.useModifier=settle(()=>{this.use(p,"Break Tackle");finish(n,bonus);});this.pending=q;
+   this.note(lookAhead?"Diving Tackle may make this "+kind+" fail. Choose modifiers or a re-roll before the defender decides.":kind+" failed. Choose a modifier, re-roll or accept the result.");
   };
   resolve(this.roll(kind+" #"+p.number+" needs "+Math.min(6,Math.max(2,target))+"+"),true);
  }
@@ -178,6 +196,14 @@ class SkillGame extends SkillBase {
  canTeamReroll(p){return p.team===this.active&&this.rerollsAvailable(p.team)>0&&(!this.match||this.phase==="play");}
  useTeamReroll(p){if(!this.canTeamReroll(p))return false;this.spendLeader(p.team);return super.useTeamReroll(p);}
  disturbance(p){return this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&this.has(q,"Disturbing Presence")&&this.distance(q,p)<=3).length;}
+ jumpTarget(p,fx,fy,x,y,diving=0){
+  const pogo=this.skill(p,"Pogo"),marks=pogo?0:Math.max(this.marking(p,fx,fy),this.marking(p,x,y));
+  const tail=!pogo&&this.players.some(q=>q.team!==p.team&&this.onPitch(q)&&this.distance(q,{x:fx,y:fy})===1&&this.skill(q,"Prehensile Tail"))?1:0;
+  const legs=this.skill(p,"Very Long Legs")?1:0,dt=pogo?0:diving;
+  let sum=marks+tail-legs+dt;const count=Number(marks>0)+tail+legs+Number(dt>0);
+  if(this.skill(p,"Leap")&&(sum>1||sum>0&&count>1))sum--;
+  return parseInt(this.profile(p).ag)+sum;
+ }
  planFrom(p,x,y,fx,fy,spent){
   if(p?.rooted||this.action?.startsWith("special:")&&this.action!=="special:Hypnotic Gaze")return null;let plan=super.planFrom(p,x,y,fx,fy,spent);const jump=Math.max(Math.abs(x-fx),Math.abs(y-fy))===2,leap=this.skill(p,"Leap"),pogo=this.skill(p,"Pogo");
   if(!plan&&jump&&(leap||pogo)&&!this.pending&&!this.finished&&this.inside(x,y)&&!this.at(x,y)&&spent+2<=this.profile(p).ma+this.rushLimit(p)){
@@ -185,9 +211,10 @@ class SkillGame extends SkillBase {
   }
   if(!plan)return null;
   const fromMarkers=this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&this.distance(q,{x:fx,y:fy})===1);
-  if(plan.jump){const penalty=Math.max(this.marking(p,fx,fy),this.marking(p,x,y));if(pogo)plan.target-=penalty;else if(leap&&penalty>0)plan.target-=penalty-Math.max(1,penalty-1);if(this.skill(p,"Very Long Legs"))plan.target--;}
+  if(plan.jump)plan.target=this.jumpTarget(p,fx,fy,x,y);
   if(plan.dodge){if(this.skill(p,"Two Heads"))plan.target--;if(this.has(p,"Titchy"))plan.target--;if(!this.has(p,"Stunty"))plan.target-=this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&this.distance(q,{x,y})===1&&this.has(q,"Titchy")).length;}
-  if((plan.jump||plan.dodge)&&!pogo&&fromMarkers.some(q=>this.skill(q,"Prehensile Tail")))plan.target++;
+  if(plan.dodge&&!pogo&&fromMarkers.some(q=>this.skill(q,"Prehensile Tail")))plan.target++;
+  if((plan.jump||plan.dodge)&&!(plan.jump&&pogo)&&fromMarkers.some(q=>this.skill(q,"Diving Tackle")&&!q.rooted))plan.divingTackleTarget=plan.jump?this.jumpTarget(p,fx,fy,x,y,2):plan.target+2;
   return plan;
  }
  search(p,sx=p?.x,sy=p?.y,spent=p?.spent||0){
@@ -197,12 +224,14 @@ class SkillGame extends SkillBase {
  step(x,y){
   const plan=this.plan(x,y);if(!plan)return false;
   const p=this.players.find(q=>q.id===this.mover);this.departureOrigin={x:p.x,y:p.y};
-  const move=()=>{
-   if(p.dropOnExit&&this.skill(p,"Fumblerooski")&&!this.has(p,"My Ball")&&this.ball.carrier===p.id){this.ball={x:p.x,y:p.y,carrier:null};p.dropOnExit=false;this.note("Fumblerooski: ball left on the ground without turnover.");}
-   return super.step(x,y);
-  };
+  return super.step(x,y);
+ }
+ beforeMovement(p,plan,origin){
+  if(p.dropOnExit&&this.skill(p,"Fumblerooski")&&!this.has(p,"My Ball")&&this.ball.carrier===p.id){plan.fumblerooskiDropped=true;this.ball={x:origin.x,y:origin.y,carrier:null};p.dropOnExit=false;this.note("Fumblerooski: ball left on the ground without turnover.");}
+ }
+ beforeDepartureTests(p,plan,origin,proceed){
   const holders=(plan.dodge||plan.jump)?this.departureMarkers(p).filter(q=>this.skill(q,"Tentacles")):[];
-  if(!holders.length)return move();
+  if(!holders.length){proceed();return;}
   this.interrupt("Tentacles",done=>this.reactionChoice("Tentacles",1-p.team,holders,holder=>{
    if(!holder){done(false);return;}
    // BB2025 TentaclesBehaviour: defender rolls; neither an opposing team
@@ -210,8 +239,8 @@ class SkillGame extends SkillBase {
    const target=Math.max(2,6-Number(this.profile(holder).st)+Number(this.profile(p).st));
    done(this.success(this.roll("Tentacles #"+holder.number+" needs "+Math.min(6,target)+"+"),target));
   }),held=>{
-   if(held){this.note("Tentacles: #"+p.number+" is held in place; activation ends.");this.mover=null;this.action=null;}
-   else move();
+   if(held){p.x=origin.x;p.y=origin.y;if(plan.fumblerooskiDropped&&!this.ball.carrier&&this.ball.x===p.x&&this.ball.y===p.y){this.ball.carrier=p.id;p.dropOnExit=true;}if(this.ball.carrier===p.id){this.ball.x=p.x;this.ball.y=p.y;}this.note("Tentacles: #"+p.number+" is held in place; activation ends.");this.mover=null;this.action=null;}
+   else proceed();
   });return true;
  }
  movementOutcome(p,plan,origin,failure,done){
@@ -220,7 +249,7 @@ class SkillGame extends SkillBase {
   const arms=failure&&["Dodge","Jump"].includes(failure.kind)?markers.filter(q=>this.skill(q,"Arm Bar")):[];
   const shadow=armBarBy=>{
    const context={armBarBy};
-   const candidates=plan.dodge&&!this.at(origin.x,origin.y)?markers.filter(q=>this.skill(q,"Shadowing")&&!q.rooted&&(this.shadowingCounts?.[q.id]||0)<Number(this.profile(q).ma)):[];
+   const candidates=plan.dodge&&!plan.divingTackler&&!this.at(origin.x,origin.y)?markers.filter(q=>this.skill(q,"Shadowing")&&!q.rooted&&(this.shadowingCounts?.[q.id]||0)<Number(this.profile(q).ma)):[];
    if(!candidates.length){done(context);return;}
    this.interrupt("Shadowing",finish=>this.reactionChoice("Shadowing",1-p.team,candidates,q=>{
     if(q){this.shadowingCounts||={};this.shadowingCounts[q.id]=(this.shadowingCounts[q.id]||0)+1;
@@ -229,8 +258,13 @@ class SkillGame extends SkillBase {
     finish();
    }),()=>done(context));
   };
-  if(!arms.length){shadow(null);return;}
-  this.interrupt("Arm Bar",finish=>this.reactionChoice("Arm Bar",1-p.team,arms,q=>finish(q)),shadow);
+  const placeTackler=armBarBy=>{
+   const q=plan.divingTackler;if(!q){shadow(armBarBy);return;}
+   q.x=origin.x;q.y=origin.y;q.status="prone";q.rooted=false;this.note("#"+q.number+" is placed prone by Diving Tackle.");
+   if(this.ball.carrier===q.id||!this.ball.carrier&&this.ball.x===q.x&&this.ball.y===q.y){this.ball={x:q.x,y:q.y,carrier:null};this.bounce(q.x,q.y,()=>shadow(armBarBy));}else shadow(armBarBy);
+  };
+  if(!arms.length){placeTackler(null);return;}
+  this.interrupt("Arm Bar",finish=>this.reactionChoice("Arm Bar",1-p.team,arms,q=>finish(q)),placeTackler);
  }
  dropBall(){const p=this.players.find(q=>q.id===this.mover);if(!p||this.pending||this.ball.carrier!==p.id||!this.skill(p,"Fumblerooski")||this.has(p,"My Ball"))return false;p.dropOnExit=!p.dropOnExit;return true;}
  passPreview(x,y){const value=super.passPreview(x,y),p=this.players.find(q=>q.id===this.mover);if(!value)return null;value.target+=this.disturbance(p);if(this.skill(p,"Nerves of Steel"))value.target-=this.marking(p);if(value.band<2&&this.skill(p,"Accurate")||value.band>=2&&this.skill(p,"Cannoneer"))value.target--;return value;}
@@ -277,7 +311,7 @@ class SkillGame extends SkillBase {
   const b=this.blockAction;
   if(b&&!b.turnover&&b.pushResolved&&b.frenzyRound===1&&this.skill(b.attacker,"Frenzy")&&b.target.status==="standing"&&this.onPitch(b.target)&&this.distance(b.attacker,b.target)===1){
    const a=b.attacker,d=b.target;if(!b.blitz||a.spent<this.profile(a).ma+this.rushLimit(a)){
-    this.blockAction=null;this.nextFrenzyRound=2;const hit=()=>this.rollBlock(a,d,b.blitz);if(b.blitz){a.spent++;if(a.spent>this.profile(a).ma)this.test(a,"Rush",2,hit,()=>this.fall(a));else hit();}else hit();return;
+    this.blockAction=null;this.nextFrenzyRound=2;const hit=()=>this.rollBlock(a,d,b.blitz);if(b.blitz){a.spent++;if(a.spent>this.profile(a).ma)this.test(a,"Rush",2,hit,()=>this.fall(a,{prevented:hit}));else hit();}else hit();return;
    }
   }super.finishBlock();
  }
@@ -286,7 +320,7 @@ class SkillGame extends SkillBase {
  specialTargets(){const p=this.players.find(q=>q.id===this.mover);if(!p||this.pending||p.specialDone)return [];if(this.action!=="foul"&&!this.action?.startsWith("special:"))return [];return this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&this.distance(p,q)===1&&(this.action==="foul"?["prone","stunned"].includes(q.status):q.status==="standing"));}
  performSpecial(targetId,blitzName=null){
   const p=this.players.find(q=>q.id===this.mover),target=this.players.find(q=>q.id===targetId);if(!p||!target)return false;
-  if(blitzName){if(!this.canBlitzBlock()||target.id!==this.blitzTarget||!this.skill(p,blitzName)||!["Stab","Projectile Vomit","Breathe Fire","Chainsaw"].includes(blitzName))return false;p.spent++;this.blitzBlocked=true;const run=()=>this.specialAttack(p,target,blitzName);if(p.spent>this.profile(p).ma)this.test(p,"Rush",2,run,()=>this.fall(p));else run();return true;}
+  if(blitzName){if(!this.canBlitzBlock()||target.id!==this.blitzTarget||!this.skill(p,blitzName)||!["Stab","Projectile Vomit","Breathe Fire","Chainsaw"].includes(blitzName))return false;p.spent++;this.blitzBlocked=true;const run=()=>this.specialAttack(p,target,blitzName);if(p.spent>this.profile(p).ma)this.test(p,"Rush",2,run,()=>this.fall(p,{prevented:run}));else run();return true;}
   if(!this.specialTargets().includes(target))return false;p.specialDone=true;if(this.action==="foul")this.foul(p,target);else this.specialAttack(p,target,this.action.slice(8));return true;
  }
  specialAttack(p,target,name){
@@ -294,11 +328,11 @@ class SkillGame extends SkillBase {
    if(name==="Hypnotic Gaze"){this.test(p,"Hypnotic Gaze",3,()=>{target.distracted=true;finish();},finish);return;}
    if(name==="Stab"){this.armourOnly(target,finish);return;}
    if(name==="Projectile Vomit"){this.test(p,name,2,()=>this.armourOnly(target,finish),()=>this.armourOnly(p,finish));return;}
-   if(name==="Chainsaw"){this.test(p,"Chainsaw kick-back",2,()=>this.armourOnly(target,finish,{bonus:this.has(target,"Iron Hard Skin")?0:3}),()=>this.fall(p));return;}
+   if(name==="Chainsaw"){this.test(p,"Chainsaw kick-back",2,()=>this.armourOnly(target,finish,{bonus:this.has(target,"Iron Hard Skin")?0:3}),()=>this.fall(p,{prevented:finish}));return;}
    if(name==="Breathe Fire"){
     const penalty=+this.profile(target).st>=5?1:0;this.test(p,"Breathe Fire",4+penalty,n=>{
      if(n===6){this.fall(target,{turnover:false,after:finish});return;}target.status="prone";target.rooted=false;if(this.ball.carrier===target.id){this.ball={x:target.x,y:target.y,carrier:null};this.bounce(target.x,target.y,finish);}else finish();
-    },n=>{if(n===1||n-penalty===1)this.fall(p);else finish();});
+    },n=>{if(n===1||n-penalty===1)this.fall(p,{prevented:finish});else finish();});
    }
   };
   if(this.has(target,"Foul Appearance"))this.test(p,"Foul Appearance",2,perform,finish);else perform();
@@ -342,7 +376,18 @@ class SkillGame extends SkillBase {
    };bribe();
   }};
  }
- fall(p,options={}){p.rooted=false;const old=options.after;return super.fall(p,{...options,after:()=>{this.syncLeader();if(old)old();}});}
+ preventFall(p,yes,no){
+  if(!this.skill(p,"Steady Footing")){no();return;}
+  this.interrupt("Steady Footing",done=>{
+   const options=["Use Steady Footing","Fall normally"],q={type:"custom",kind:"Steady Footing",team:p.team,options,resolve:choice=>{
+    if(this.pending!==q||!options.includes(choice))return false;
+    this.pending=null;
+    if(choice===options[0])this.test(p,"Steady Footing",6,()=>done(true),()=>done(false));else done(false);
+    return true;
+   }};this.pending=q;
+  },saved=>{if(saved){this.note("Steady Footing: #"+p.number+" stays standing.");yes();}else no();});
+ }
+ resolveFall(p,options={}){p.rooted=false;const old=options.after;return super.resolveFall(p,{...options,after:()=>{this.syncLeader();if(old)old();}});}
  endTurn(turnover=false){const previous=this.active,result=super.endTurn(turnover);if(result){this.resetSkillTurn();this.foulUsed[this.active]=false;this.pickMeUp(previous);}return result;}
  pickMeUp(endingTeam){const sources=this.players.filter(p=>p.team===1-endingTeam&&this.onPitch(p)&&this.skill(p,"Pick-me-up")),eligible=this.players.filter(p=>p.team===1-endingTeam&&p.status==="prone"&&this.onPitch(p)&&sources.some(q=>this.distance(q,p)<=3));for(const p of eligible)if(this.roll("Pick-me-up #"+p.number)>=5)p.status="standing";}
 }
