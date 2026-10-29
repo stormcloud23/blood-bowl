@@ -3,8 +3,10 @@
 The departure reaction increment added Shadowing and Arm Bar in PR #3.
 The [next movement increment](DODGE-FOOTING.md) adds Diving Tackle and Steady
 Footing and corrects Rush-before-Tentacles ordering, based on merged main
-`cc2653f`. Current catalogue totals: **83 implemented,
-3 partial, 22 deferred**. These are feature inventory labels, not certification
+`cc2653f`. [Ball landing and placement](CATCH-PLACEMENT.md) adds Diving Catch
+and Safe Pair of Hands on merged main `c2138fc` (PR #4).
+Current catalogue totals: **85 implemented,
+3 partial, 20 deferred**. These are feature inventory labels, not certification
 of complete FFB parity. GitHub Pages continues to serve the committed standalone
 HTML; no backend, runtime package, or external rules request is required.
 
@@ -46,13 +48,13 @@ Use executable BB2025 behavior, not the outdated Shadowing JavaDoc.
 
 ## Remaining exhibition skill dependencies
 
-All 22 deferred catalogue entries remain accounted for below. **20 have match
+All 20 deferred catalogue entries remain accounted for below. **18 have match
 effects that still block skill-complete exhibition play.** The other two chiefly
 depend on the deferred roster/progression systems.
 
 | Group | Remaining entries | Required shared work |
 | --- | --- | --- |
-| Reactions | Diving Catch, Hit and Run, Safe Pair of Hands, Dump-off, On the Ball, Trickster | Ball landing/placement windows, pre-attack and out-of-turn movement contexts, and nested special-action continuations. |
+| Reactions | Hit and Run, Dump-off, On the Ball, Trickster | Pre-attack and out-of-turn movement contexts, post-action movement, and nested special-action continuations. Ball landing and placement boundaries are now available. |
 | Special actions and activation traits | Pile Driver, Saboteur, Monstrous Mouth, Punt, Multiple Block, Animal Savagery, Ball & Chain, Bloodlust (X+), Bombardier | Nested actions, movement restrictions across all relocation paths, feeding before scoring/passing, directional movement, simultaneous resolution even after a turnover. |
 | Flight extensions | Lethal Flight, Kick Team-mate, Swoop | Extend the existing thrown-player flight/collision machinery with attribution, a separate kick allowance and fumble injury, directional flight and landing re-rolls. |
 | Casualty-dependent match effects | Decay, Plague Ridden | Actual casualty results, Regeneration/apothecary ordering, eligible death attribution, once-per-game creation of a predefined reserve lineman. Plague Ridden's in-match reserve addition must not wait for league hiring. |
@@ -63,7 +65,10 @@ need applicable inducement/team-rule interactions. Existing implemented entries
 also need interaction audits as new actions arrive. Diving Tackle now suppresses
 Shadowing when used, preserves re-roll history, and keeps modifier selection
 before the defender's decision. New knockdown actions must route through the
-Steady Footing boundary and supply a continuation for a prevented fall.
+Steady Footing boundary and supply a continuation for a prevented fall. Eligible
+prone placements use `beforeProne`; deliveries carry an explicit landing mode.
+Pinned FFB exceptions, including Diving Tackle's exclusion from Safe Pair of
+Hands, are recorded in the ball-handling audit.
 
 Other exhibition blockers remain: casualty/treatment resources, staff and
 applicable inducements, star abilities and team rules, full kickoff/drive audit,

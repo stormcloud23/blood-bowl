@@ -129,7 +129,7 @@ class MovementGame {
   const preview=this.passPreview(x,y);if(!preview)return false;
   const p=this.ballActor("pass");this.ballActionDone=true;
   this.note("#"+p.number+" attempts a "+preview.name+" to "+(x+1)+", "+(y+1)+"; PA "+preview.target+"+.");
-  this.passContext={p,preview};
+  this.passContext={p,preview,target:{x,y}};
   const modifier=preview.target-Number.parseInt(this.profile(p).pa),target=Number.parseInt(this.profile(p).pa),resolve=n=>{
    this.pending=null;
    if(n===1&&this.has(p,"Safe Pass")){this.note("Safe Pass: possession retained; activation ends.");this.mover=null;this.action=null;this.passContext=null;return;}
@@ -137,7 +137,8 @@ class MovementGame {
    if(n===1||n-modifier===1&&n!==6){this.note("Fumbled Pass: ball bounces from the thrower; turnover.");this.bounce(p.x,p.y,()=>this.endTurn(true));return;}
    const accurate=!preview.hail&&(n===6||n-modifier>=target);
    this.note(accurate?"Accurate Pass.":"Inaccurate Pass: Scatter (3).");
-   const land=(lx,ly)=>this.interceptPass(p,{x:lx,y:ly},accurate,()=>{const ground=!this.at(lx,ly);this.landBall(lx,ly,false,()=>this.finishBallAction(p,preview.band===0,ground),true);});
+   const original=this.at(x,y),delivery={kind:"pass",target:{x,y},accurate,accurateToPlayer:accurate&&original?.status==="standing"&&!original.distracted};
+   const land=(lx,ly)=>this.interceptPass(p,{x:lx,y:ly},accurate,()=>this.landBall(lx,ly,false,()=>this.finishBallAction(p,preview.band===0),true,delivery));
    if(accurate)land(x,y);else this.scatterPass(x,y,land,()=>this.throwIn(this.ball.x,this.ball.y,()=>this.finishBallAction(p,preview.band===0)));
   };
   const roll=this.roll("Pass accuracy needs "+Math.min(6,preview.target)+"+");
@@ -167,6 +168,7 @@ class MovementGame {
   }};
  }
  finishBallAction(p,allowGiveAndGo,forcedTurnover=false){
+  this.passContext=null;
   if(this.finished)return;
   const carrier=this.players.find(q=>q.id===this.ball.carrier);
   if(forcedTurnover||!carrier||carrier.team!==p.team){this.endTurn(true);return;}
@@ -279,12 +281,14 @@ class MovementGame {
   const b=this.blockAction,{attacker:a,target:d}=b;
   if(choice.includes("Wrestle")){
    this.note(choice+": both players are placed prone without Armour Rolls.");
-   let i=0,turnover=false;const prone=[a,d];prone.forEach(p=>p.status="prone");const next=()=>{
+   let i=0,turnover=false;const prone=[a,d],carrier=prone.find(p=>this.ball.carrier===p.id),next=()=>{
     if(i>=prone.length){if(turnover)this.endTurn(true);else this.finishBlock();return;}
-    const p=prone[i++],carrying=this.ball.carrier===p.id;if(p.team===this.active&&carrying)turnover=true;
+    const p=prone[i++],carrying=this.ball.carrier===p.id;
     p.status="prone";this.note("#"+p.number+" is placed prone by Wrestle.");
     if(carrying){const {x,y}=p;this.ball={x,y,carrier:null};this.bounce(x,y,next);}else next();
-   };next();return;
+   };
+   const ready=placed=>{turnover=!!carrier&&carrier.team===this.active&&!placed;prone.forEach(p=>{p.status="prone";p.rooted=false;});next();};
+   if(carrier)this.beforeProne(carrier,{x:carrier.x,y:carrier.y},ready);else ready(false);return;
   }
   const down=[];
   if(choice!=="Attacker uses Block"&&choice!=="Both use Block")down.push({p:a,by:d});
@@ -516,8 +520,17 @@ class MovementGame {
   this.note(this.teams[this.active].name+" turn "+this.turns[this.active]+".");return true;
  }
  preventFall(p,yes,no){no();}
+ beforeProne(p,origin,done){done(false);}
+ placeProne(p,done,{allowPlacement=true}={}){
+  const origin={x:p.x,y:p.y};
+  const place=()=>{p.status="prone";p.rooted=false;this.note("#"+p.number+" is placed prone.");this.releaseProneBall(p,origin,done);};
+  if(allowPlacement)this.beforeProne(p,origin,place);else place();
+ }
+ releaseProneBall(p,{x,y},done){
+  if(this.ball.carrier===p.id||!this.ball.carrier&&this.ball.x===x&&this.ball.y===y){this.ball={x,y,carrier:null};this.bounce(x,y,done);}else done();
+ }
  fall(p,options={}){
-  const resolve=()=>this.resolveFall(p,options);
+  const resolve=()=>this.beforeProne(p,{x:p.x,y:p.y},()=>this.resolveFall(p,options));
   if(options.skipPrevention)resolve();else this.preventFall(p,()=>{if(options.prevented)options.prevented();else if(options.after)options.after();},resolve);
  }
  resolveFall(p,{turnover=true,after=null,mightyBlowBy=null,armBarBy=null}={}){
@@ -593,14 +606,22 @@ class MovementGame {
   for(let i=1;i<distance;i++){if(!this.inside(x+dx,y+dy)){this.throwIn(x,y,done);return;}x+=dx;y+=dy;}
   this.landBall(x,y,true,done);
  }
- landBall(x,y,thrown,done,direct=false){
-  this.ball={x,y,carrier:null};const p=this.at(x,y);
-  if(p&&p.status==="standing"&&!p.distracted){
-   this.test(p,"Catch",Number.parseInt(this.profile(p).ag)+(direct?0:1)+this.marking(p),()=>{
-    this.ball.carrier=p.id;this.note("#"+p.number+" catches the ball.");this.checkScore();done();
-   },()=>this.bounce(x,y,done));
-  }else if(p||thrown||direct)this.bounce(x,y,done);
-  else done();
+ chooseLandingCatcher(x,y,delivery,done){done(this.at(x,y));}
+ landingTarget(p,delivery){
+  const clean=delivery.kind==="direct"||delivery.kind==="kickoff"||delivery.kind==="pass"&&delivery.accurateToPlayer;
+  return Number.parseInt(this.profile(p).ag)+(clean?0:1)+this.marking(p);
+ }
+ landBall(x,y,thrown,done,direct=false,delivery=null){
+  delivery||={kind:thrown?"throw-in":direct?"direct":"bounce"};
+  this.ball={x,y,carrier:null};this.chooseLandingCatcher(x,y,delivery,p=>{
+   if(p&&p.status==="standing"&&!p.distracted){
+    const cx=p.x,cy=p.y;this.ball={x:cx,y:cy,carrier:null};
+    this.test(p,"Catch",this.landingTarget(p,delivery),()=>{
+     this.ball={x:cx,y:cy,carrier:p.id};this.note("#"+p.number+" catches the ball.");this.checkScore();done();
+    },()=>this.bounce(cx,cy,done));
+   }else if(p||thrown||direct)this.bounce(x,y,done);
+   else done();
+  });
  }
  checkScore(){
   const p=this.players.find(p=>p.id===this.ball.carrier);

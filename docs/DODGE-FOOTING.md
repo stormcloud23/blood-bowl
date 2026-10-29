@@ -92,7 +92,8 @@ Jump Rush tests are corrected to the source-derived ordering. Build with
 
 Coverage is now **83 implemented, 3 partial, 22 deferred**. Full exhibition
 parity is still incomplete; see [the remaining exhibition dependencies](EXHIBITION-PARITY.md).
-Next candidates are Safe Pair of Hands and Diving Catch, adding shared ball
-placement and landing reactions before the more complex pre-attack reactions.
+Safe Pair of Hands and Diving Catch are now implemented in the
+[ball landing/placement increment](CATCH-PLACEMENT.md), adding shared boundaries
+before the more complex pre-attack reactions.
 Future special actions must supply their own prevented-fall continuations and
 must preserve independent injury/turnover consequences.

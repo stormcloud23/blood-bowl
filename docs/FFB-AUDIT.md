@@ -2,7 +2,7 @@
 
 Follow-on work: [reaction continuations and Tentacles](REACTIONS.md) adds an
 in-memory interruption stack and the first departure reaction. Current coverage
-is 83 implemented, 3 partial and 22 deferred after the subsequent
+is 85 implemented, 3 partial and 20 deferred after the subsequent
 [movement reactions and exhibition dependency review](EXHIBITION-PARITY.md); the historical comparison below
 describes the preceding increment.
 
