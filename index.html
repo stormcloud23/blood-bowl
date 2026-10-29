@@ -7,14 +7,16 @@
 :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101b20;color:#e7eeeb}*{box-sizing:border-box}body{margin:0;padding:28px;max-width:1500px;margin-inline:auto}header{display:flex;justify-content:space-between;gap:20px;align-items:center}h1{font-size:32px;margin:8px 0}h2{font-size:18px}p{line-height:1.6;color:#b8c9c7}.eyebrow{color:#e9bb69;font-size:12px;letter-spacing:2px;text-transform:uppercase}.badge{padding:8px 12px;border:1px solid #45595e;border-radius:20px;font-size:12px}.notice{border-left:3px solid #e9bb69;padding:12px 18px;background:#202d30;margin:24px 0}main{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:24px}.pitch-wrap{overflow:auto;border:1px solid #526a61;border-radius:8px}.pitch{display:grid;grid-template-columns:repeat(26,1fr);min-width:650px;background:#284f40;padding:8px}.square{aspect-ratio:1;border:1px solid #ffffff16;background:transparent;padding:0;min-width:0;font-size:12px;cursor:pointer;color:white;position:relative}.square:nth-child(52n+1){background:#ffffff08}.square.endzone{background:#142f2b}.square.middle{border-right:2px solid #ffffff80}.square.wide{border-bottom:2px dashed #ffffff70}.square:hover{background:#ffffff25}.square:focus-visible{outline:3px solid #ffe0a0;z-index:2}.token{display:grid;place-items:center;width:85%;height:85%;margin:auto;border-radius:50%;background:#dbac60;color:#17242a;font-weight:bold;border:2px solid #ffdfaa}.token.blue{background:#8abacb;border-color:#c4e5ed}.selected{outline:3px solid white;outline-offset:-3px}.panel{background:#19282e;border:1px solid #34474d;border-radius:8px;padding:20px}button.control{padding:11px 16px;background:#e9bb69;border:0;border-radius:5px;color:#17242a;font-weight:650;cursor:pointer;margin:4px 4px 4px 0}button.secondary{background:#31474f;color:#e7eeeb}#log{padding-left:20px;font-size:13px;line-height:1.7;max-height:220px;overflow:auto}a{color:#b5d9df}footer{font-size:13px;margin-top:24px;color:#9aafae}.muted{font-size:13px}@media(max-width:950px){main{grid-template-columns:1fr}body{padding:16px}header{align-items:flex-start}h1{font-size:25px}}
 
 #rosters{margin-top:30px;display:grid;gap:24px}.table-scroll{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:12px 9px;text-align:left;border-bottom:1px solid #34474d}th{color:#e9bb69}td.skills{min-width:180px}td:first-child{min-width:150px}.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}.stat{background:#101b20;text-align:center;padding:8px 2px;border-radius:4px}.stat small{display:block;color:#b8c9c7}.profile-skills{font-size:13px;line-height:1.7}#profile{border-block:1px solid #34474d;padding:14px 0;margin:14px 0}.role-button{color:#b5d9df;background:none;border:0;padding:0;text-align:left;font:inherit;cursor:pointer;text-decoration:underline}.roster-heading{display:flex;justify-content:space-between;align-items:center;gap:16px}.team-summary{font-size:13px}.token{font-size:11px}.token small{font-size:8px;display:block}.token{line-height:1;display:flex;flex-direction:column;justify-content:center}
+
+.square.legal{background:#69c58b40;box-shadow:inset 0 0 0 1px #a0e3ad}.square.risk{background:#e4a24755}.square.jump{box-shadow:inset 0 0 0 2px #cc96ed}.square.destination{outline:3px solid #fff;outline-offset:-3px}.token.used{opacity:.45}.token.prone{border-style:dashed}.token.stunned{border-color:#ff6b70}.token.distracted{border-color:#ce96f0}.ball{position:absolute;right:1px;bottom:1px;color:#fff;font-size:12px;text-shadow:0 0 3px black}button:disabled{opacity:.4;cursor:not-allowed!important}select{padding:8px;background:#19282e;color:#e7eeeb;border:1px solid #526a61;border-radius:4px}#choices button{margin-block:5px}#movement{line-height:1.6;margin:10px 0}.dugout{font-size:12px}
 </style>
 </head>
 <body>
-<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>The development pitch</h1></div><span class="badge">v0.0.2 · Sandbox</span></header>
-<div class="notice"><strong>Two teams, ready to inspect</strong><br><span class="muted">Free movement sandbox. Dice, legal movement, activations, scoring, AI, and leagues are not implemented. Player profiles match the 2025 source. Skill effects are not yet enforced.</span></div>
-<main><section><div class="pitch-wrap"><div id="pitch" class="pitch" role="group" aria-label="Development pitch"></div></div><p class="muted">Select any player to inspect their profile. Move an active coach’s player by choosing an empty square. Keyboard: Tab to a square and Enter to select it. Passing control changes the active coach.</p><button class="control" id="end">Pass control</button><button class="control secondary" id="reset">Reset sandbox</button></section>
-<aside class="panel"><div class="eyebrow">Hotseat sandbox</div><h2 id="coach"></h2><p id="selection" role="status" aria-live="polite"></p><div id="profile"></div><h2>Session log</h2><ol id="log"></ol><p class="muted">This sandbox resets on reload. Save/resume will be added with match state.</p></aside></main><section id="rosters" aria-label="Team rosters"></section>
-<footer>Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.2 with feedback.</footer>
+<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>The development pitch</h1></div><span class="badge">v0.0.3 · Sandbox</span></header>
+<div class="notice"><strong>Move actions are now enforced</strong><br><span class="muted">Move, dodge, rush, jump, stand up, and pick up the ball. Perfect Conditions. This is a practice drive: other actions, full match sequencing, AI, and leagues are still to come.</span></div>
+<label for="scenario">Practice setup </label><select id="scenario"><option value="teams">Both teams</option><option value="dodge">Dodge practice</option><option value="jump">Jump & stand up</option><option value="pickup">Ball pickup</option><option value="traits">Ogre & Troll traits</option></select><p class="muted">Changing the setup starts a new practice. Direction template: 1 NW · 2 N · 3 NE · 4 W · 5 E · 6 SW · 7 S · 8 SE.</p><main><section><div class="pitch-wrap"><div id="pitch" class="pitch" role="group" aria-label="Development pitch"></div></div><p class="muted">Select your player, declare Move, then choose a highlighted destination and confirm. Green = no roll, amber = dice required, purple = jump. End Move before activating another player.</p><button class="control" id="start">Declare Move</button><button class="control secondary" id="finish">End Move</button><button class="control secondary" id="end">End team turn</button><button class="control secondary" id="reset">Reset practice</button></section>
+<aside class="panel"><div class="eyebrow">Movement practice</div><h2 id="coach"></h2><p id="selection" role="status" aria-live="polite"></p><div id="movement" aria-live="polite"></div><div id="choices"></div><div id="profile"></div><div id="dugout"></div><h2>Session log</h2><ol id="log"></ol><p class="muted">Practice resets on reload. Two team re-rolls each; no half-time replenishment in this drill.</p></aside></main><section id="rosters" aria-label="Team rosters"></section>
+<footer>Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.3 with feedback.</footer>
 <script id="team-data" type="application/json">[
   {
     "id": "imperial-nobility",
@@ -234,43 +236,251 @@
     }
   }
 ]</script>
+<script id="movement-engine">
+"use strict";
+// Movement practice engine. Sources and boundaries: docs/MOVEMENT.md.
+class MovementGame {
+ constructor(teams, {dice=null, scenario="teams"}={}) {
+  this.teams=teams; this.dice=dice || (s=>1+Math.floor(Math.random()*s));
+  this.active=0; this.turns=[1,0]; this.rerolls=[2,2]; this.mover=null;
+  this.pending=null; this.finished=false; this.events=[]; this.ball={x:12,y:7,carrier:null};
+  this.players=teams.flatMap((t,team)=>t.lineup.map((role,i)=>({
+   id:team+"-"+(i+1),number:i+1,team,role,x:team?16+i%3:9-i%3,y:2+Math.floor(i/3)*3,
+   status:"standing",distracted:false,used:false,spent:0,dodgeUsed:false,stunnedAtStart:false
+  })));
+  if(scenario!=="teams") {
+   const a=this.players[0],b=this.players[11],c=this.players[1];
+   this.players.forEach(p=>{p.x=null;p.y=null;p.status="reserve";});
+   [a,b,c].forEach(p=>{p.status="standing";});
+   Object.assign(a,{x:10,y:7});Object.assign(b,{x:11,y:7});Object.assign(c,{x:9,y:7});
+   this.ball={x:12,y:9,carrier:null};
+   if(scenario==="jump"){b.status="prone";c.status="prone";}
+   if(scenario==="pickup"){b.x=18;this.ball={x:11,y:7,carrier:null};}
+   if(scenario==="traits"){a.role=4;b.role=2;b.x=13;c.x=12;c.team=1;c.role=0;}
+  }
+  this.note("Movement practice started. Perfect Conditions; two team re-rolls each.");
+ }
+ profile(p){return this.teams[p.team].positions[p.role];}
+ has(p,skill){return this.profile(p).skills.includes(skill);}
+ onPitch(p){return Number.isInteger(p.x)&&Number.isInteger(p.y);}
+ at(x,y){return this.players.find(p=>this.onPitch(p)&&p.x===x&&p.y===y);}
+ inside(x,y){return Number.isInteger(x)&&Number.isInteger(y)&&x>=0&&x<26&&y>=0&&y<15;}
+ distance(a,b){return Math.max(Math.abs(a.x-b.x),Math.abs(a.y-b.y));}
+ marking(p,x=p.x,y=p.y){return this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&this.distance(q,{x,y})===1).length;}
+ note(s){this.events.unshift(s);this.events=this.events.slice(0,150);}
+ roll(label,sides=6){const n=this.dice(sides);if(!Number.isInteger(n)||n<1||n>sides)throw Error("Invalid die");this.note(label+": "+n+" (D"+sides+").");return n;}
+ success(n,target){return n===6||(n!==1&&n>=target);}
+ canStart(p){return p&&this.onPitch(p)&&p.team===this.active&&!p.used&&["standing","prone"].includes(p.status)&&!this.mover&&!this.pending&&!this.finished;}
+ start(id){
+  const p=this.players.find(p=>p.id===id);if(!this.canStart(p))return false;
+  this.mover=id;p.used=true;p.spent=0;p.distracted=false;
+  this.note(this.teams[p.team].name+" #"+p.number+" declares Move.");
+  const ready=()=>{if(p.status==="prone")this.stand(p);};
+  const failed=()=>{p.distracted=true;this.note("#"+p.number+" is Distracted; activation ends (no turnover).");this.mover=null;};
+  if(this.has(p,"Bone Head"))this.test(p,"Bone Head",2,ready,failed);
+  else if(this.has(p,"Really Stupid")){
+   const help=this.players.some(q=>q.id!==p.id&&q.team===p.team&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&!this.has(q,"Really Stupid")&&this.distance(p,q)===1);
+   this.test(p,"Really Stupid",help?2:4,ready,failed);
+  } else ready();
+  return true;
+ }
+ stand(p){
+  const ma=this.profile(p).ma;
+  const ok=()=>{p.status="standing";p.spent=Math.min(3,ma);this.note("#"+p.number+" stands up: "+p.spent+" movement spent.");};
+  if(ma<=2)this.test(p,"Stand up",4,ok,()=>{this.note("Stand-up failed; activation ends.");this.mover=null;});
+  else ok();
+ }
+ options(p,kind){
+  const options=[];
+  if(p.status==="standing"&&!p.distracted){
+   if(kind==="Dodge"&&this.has(p,"Dodge")&&!p.dodgeUsed)options.push("Dodge");
+   if(kind==="Catch"&&this.has(p,"Catch"))options.push("Catch");
+   if(this.mover===p.id&&this.has(p,"Pro"))options.push("Pro");
+  }
+  if(p.team===this.active&&this.rerolls[p.team]>0)options.push("Team");
+  return options;
+ }
+ test(p,kind,target,yes,no){
+  const roll=this.roll(kind+" #"+p.number+" needs "+Math.min(6,Math.max(2,target))+"+");
+  const resolve=n=>{if(this.success(n,target))yes(n);else no(n);};
+  if(this.success(roll,target)){yes(roll);return;}
+  const options=this.options(p,kind);
+  if(!options.length){no(roll);return;}
+  this.pending={p,kind,target,roll,options,resolve};
+  this.note(kind+" failed. Choose a re-roll or accept the result.");
+ }
+ decide(choice){
+  const q=this.pending;if(!q)return false;
+  if(choice!=="Accept"&&!q.options.includes(choice))return false;
+  this.pending=null;
+  if(choice==="Accept"){q.resolve(q.roll);return true;}
+  if(choice==="Dodge")q.p.dodgeUsed=true;
+  if(choice==="Pro"&&this.roll("Pro needs 3+")<3){q.resolve(q.roll);return true;}
+  if(choice==="Team"){
+   this.rerolls[q.p.team]--;
+   const loner=this.profile(q.p).skills.find(s=>s.startsWith("Loner ("));
+   if(loner&&this.roll("Loner needs "+loner.match(/\d+/)[0]+"+")<Number(loner.match(/\d+/)[0])){q.resolve(q.roll);return true;}
+  }
+  // A re-rolled die is resolved directly; no further re-roll is offered.
+  q.resolve(this.roll(q.kind+" re-roll ("+choice+")"));return true;
+ }
+ plan(x,y){
+  const p=this.players.find(p=>p.id===this.mover);
+  if(!p||this.pending||this.finished||p.status!=="standing"||!this.inside(x,y)||this.at(x,y))return null;
+  const distance=this.distance(p,{x,y});let cost=1,jump=false;
+  if(distance!==1){
+   if(distance!==2||!this.players.some(q=>this.onPitch(q)&&["prone","stunned"].includes(q.status)&&this.distance(p,q)===1&&this.distance(q,{x,y})===1))return null;
+   jump=true;cost=2;
+  }
+  const ma=this.profile(p).ma;
+  if(p.spent+cost>ma+2)return null;
+  const rushes=Math.max(0,p.spent+cost-ma)-Math.max(0,p.spent-ma);
+  const originMarks=this.marking(p),targetMarks=this.marking(p,x,y);
+  const dodge=!jump&&originMarks>0;
+  const target=Number.parseInt(this.profile(p).ag)+(jump?Math.max(originMarks,targetMarks):this.has(p,"Stunty")?0:targetMarks);
+  return {x,y,cost,jump,rushes,dodge,target,pickup:!this.ball.carrier&&this.ball.x===x&&this.ball.y===y};
+ }
+ step(x,y){
+  const plan=this.plan(x,y);if(!plan)return false;
+  const p=this.players.find(p=>p.id===this.mover),origin={x:p.x,y:p.y};
+  p.spent+=plan.cost;
+  if(!plan.jump){p.x=x;p.y=y;}
+  const arrive=()=>{
+   p.x=x;p.y=y;this.note("#"+p.number+" moved to "+(x+1)+", "+(y+1)+"; "+p.spent+"/"+this.profile(p).ma+" movement.");
+   if(plan.pickup)this.test(p,"Pick up",Number.parseInt(this.profile(p).ag)+this.marking(p),()=>{
+    this.ball.carrier=p.id;this.note("#"+p.number+" picks up the ball.");this.checkScore();
+   },()=>{this.note("Failed pickup: turnover regardless of subsequent catches.");this.bounce(x,y,()=>this.endTurn(true));});
+   else this.checkScore();
+  };
+  const movementTest=()=>{
+   if(plan.jump)this.test(p,"Jump",plan.target,arrive,n=>{if(n!==1){p.x=x;p.y=y;}else{p.x=origin.x;p.y=origin.y;}this.fall(p);});
+   else if(plan.dodge)this.test(p,"Dodge",plan.target,arrive,()=>this.fall(p));
+   else arrive();
+  };
+  const rush=n=>{if(!n){movementTest();return;}this.test(p,"Rush",2,()=>rush(n-1),()=>this.fall(p));};
+  rush(plan.rushes);return true;
+ }
+ finish(){
+  if(!this.mover||this.pending||this.finished)return false;
+  const p=this.players.find(p=>p.id===this.mover);this.note("#"+p.number+" ends their Move.");this.mover=null;return true;
+ }
+ endTurn(turnover=false){
+  if(this.pending||this.finished)return false;
+  this.note(turnover?"TURNOVER.":"Turn ended.");
+  for(const p of this.players)if(p.team===this.active&&p.status==="stunned"&&p.stunnedAtStart)p.status="prone";
+  this.mover=null;this.active=1-this.active;this.turns[this.active]++;
+  for(const p of this.players){p.dodgeUsed=false;if(p.team===this.active){p.used=false;p.spent=0;p.stunnedAtStart=p.status==="stunned";}}
+  this.note(this.teams[this.active].name+" turn "+this.turns[this.active]+".");return true;
+ }
+ fall(p){
+  this.note("#"+p.number+" falls over.");p.status="prone";
+  const armour=this.roll("Armour")+this.roll("Armour");
+  if(armour>=Number.parseInt(this.profile(p).av)){
+   const injury=this.roll("Injury")+this.roll("Injury"),stunty=this.has(p,"Stunty"),thick=this.has(p,"Thick Skull");
+   const stunMax=stunty?(thick?7:6):(thick?8:7),koMax=stunty?8:9;
+   if(injury<=stunMax)p.status="stunned";
+   else if(injury<=koMax)p.status="knocked-out";
+   else if(this.has(p,"Regeneration")&&this.roll("Regeneration needs 4+")>=4)p.status="reserve";
+   else p.status="casualty";
+   this.note("#"+p.number+" injury result: "+p.status+".");
+  }else this.note("Armour holds; player remains prone.");
+  const {x,y}=p,carrying=this.ball.carrier===p.id;
+  if(["knocked-out","casualty","reserve"].includes(p.status)){p.x=null;p.y=null;}
+  if(carrying||(!this.ball.carrier&&this.ball.x===x&&this.ball.y===y)){this.ball={x,y,carrier:null};this.bounce(x,y,()=>this.endTurn(true));}
+  else this.endTurn(true);
+ }
+ bounce(x,y,done){
+  const dirs=[[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]];
+  const [dx,dy]=dirs[this.roll("Ball bounce (1 NW, 2 N, 3 NE, 4 W, 5 E, 6 SW, 7 S, 8 SE)",8)-1];
+  if(!this.inside(x+dx,y+dy)){this.throwIn(x,y,done);return;}
+  this.landBall(x+dx,y+dy,false,done);
+ }
+ throwIn(x,y,done){
+  let dirs;
+  const edgeX=x===0?1:x===25?-1:0,edgeY=y===0?1:y===14?-1:0;
+  if(edgeX&&edgeY)dirs=[[edgeX,0],[edgeX,edgeY],[0,edgeY]];
+  else if(edgeX)dirs=[[edgeX,-1],[edgeX,0],[edgeX,1]];
+  else dirs=[[-1,edgeY],[0,edgeY],[1,edgeY]];
+  const [dx,dy]=dirs[Math.ceil(this.roll("Throw-in direction")/2)-1];
+  const distance=this.roll("Throw-in distance")+this.roll("Throw-in distance");
+  for(let i=1;i<distance;i++){if(!this.inside(x+dx,y+dy)){this.throwIn(x,y,done);return;}x+=dx;y+=dy;}
+  this.landBall(x,y,true,done);
+ }
+ landBall(x,y,thrown,done){
+  this.ball={x,y,carrier:null};const p=this.at(x,y);
+  if(p&&p.status==="standing"&&!p.distracted){
+   this.test(p,"Catch",Number.parseInt(this.profile(p).ag)+1+this.marking(p),()=>{
+    this.ball.carrier=p.id;this.note("#"+p.number+" catches the ball.");this.checkScore();done();
+   },()=>this.bounce(x,y,done));
+  }else if(p||thrown)this.bounce(x,y,done);
+  else done();
+ }
+ checkScore(){
+  const p=this.players.find(p=>p.id===this.ball.carrier);
+  if(p&&p.status==="standing"&&p.x===(p.team===0?25:0)){
+   this.finished=true;this.mover=null;this.note("TOUCHDOWN — "+this.teams[p.team].name+". Practice drive complete; reset to play again.");
+  }
+ }
+}
+if(typeof module!=="undefined")module.exports={MovementGame};
+</script>
 <script>
+
 "use strict";
 const teams=JSON.parse(document.getElementById("team-data").textContent);
 const pitch=document.getElementById("pitch"),coach=document.getElementById("coach"),selection=document.getElementById("selection"),log=document.getElementById("log");
 const money=n=>n.toLocaleString("en-US")+" gp";
-let players,active,selected,entries;
-function reset(){
- players=teams.flatMap((t,team)=>t.lineup.map((role,i)=>({id:team+"-"+(i+1),number:i+1,team,role,x:team?16+(i%3):9-(i%3),y:2+Math.floor(i/3)*3})));
- active=0;selected=null;entries=["Demonstration lineups loaded."];render();showProfile(0,0,null);
-}
-function record(message){entries.unshift(message);entries=entries.slice(0,20);}
+let game,selected=null,destination=null;
+function reset(){game=new MovementGame(teams,{scenario:document.getElementById("scenario").value});selected=null;destination=null;render();showProfile(0,0,null);}
 function showProfile(team,role,number){
  const t=teams[team],p=t.positions[role];
  document.getElementById("profile").innerHTML='<div class="eyebrow">'+t.name+'</div><h2>'+(number?'#'+number+' · ':'')+p.name+'</h2><p class="muted">'+p.traits+'</p><div class="stats">'+["ma","st","ag","pa","av"].map(k=>'<div class="stat"><small>'+k.toUpperCase()+'</small>'+p[k]+'</div>').join("")+'</div><p class="profile-skills">'+p.skills.join(" · ")+'</p><p class="muted">Cost: '+money(p.cost)+' · Limit: 0–'+p.max+'<br>Primary: '+p.primary+' · Secondary: '+p.secondary+'</p><a class="muted" href="'+t.source+'">2025 roster source</a>';
 }
+
 function choose(x,y){
- const occupant=players.find(p=>p.x===x&&p.y===y);
- if(occupant){selected=occupant.id;render();showProfile(occupant.team,occupant.role,occupant.number);pitch.children[y*26+x].focus();return;}
- if(selected===null){selection.textContent="Select one of your players first.";return;}
- const player=players.find(p=>p.id===selected);
- if(player.team!==active){selection.textContent="Opponent profile only. Pass control to move this team.";return;}
- player.x=x;player.y=y;record(teams[player.team].name+" #"+player.number+" moved to "+(x+1)+", "+(y+1)+".");render();pitch.children[y*26+x].focus();
+ const p=game.at(x,y);
+ if(p){selected=p.id;destination=null;showProfile(p.team,p.role,p.number);render();return;}
+ if(game.plan(x,y)){destination={x,y};render();}
+ else {destination=null;render();selection.textContent=game.pending?"Resolve the dice result first.":"Choose a highlighted square for the active Move. Squares occupied by players cannot be entered.";}
 }
+function button(label,fn){const b=document.createElement("button");b.className="control";b.textContent=label;b.addEventListener("click",fn);return b;}
 function render(){
+ const mover=game.players.find(p=>p.id===game.mover),inspected=game.players.find(p=>p.id===selected);
  pitch.replaceChildren();
  for(let y=0;y<15;y++)for(let x=0;x<26;x++){
- const player=players.find(p=>p.x===x&&p.y===y),cell=document.createElement("button");
- cell.type="button";cell.className="square"+(x===0||x===25?" endzone":"")+(x===12?" middle":"")+(y===3||y===10?" wide":"")+(player&&player.id===selected?" selected":"");
- const label=player?teams[player.team].name+" #"+player.number+" "+teams[player.team].positions[player.role].name:"empty";
- cell.setAttribute("aria-label","Square "+(x+1)+", "+(y+1)+", "+label);cell.title=label;
- if(player){const token=document.createElement("span");token.className="token"+(player.team?" blue":"");token.textContent=player.number;cell.append(token);}
- cell.addEventListener("click",()=>choose(x,y));pitch.append(cell);
+  const p=game.at(x,y),plan=game.plan(x,y),cell=document.createElement("button");
+  cell.type="button";cell.className="square"+(x===0||x===25?" endzone":"")+(x===12?" middle":"")+(y===3||y===10?" wide":"")+(p&&p.id===selected?" selected":"")+(plan?" legal":"")+(plan&&(plan.dodge||plan.rushes||plan.jump||plan.pickup)?" risk":"")+(plan?.jump?" jump":"")+(destination?.x===x&&destination?.y===y?" destination":"");
+  const label=p?teams[p.team].name+" #"+p.number+" "+game.profile(p).name+" ("+p.status+(p.distracted?", distracted":"")+(p.used?", activated":"")+")":"empty";
+  const ballHere=game.ball.carrier?p?.id===game.ball.carrier:game.ball.x===x&&game.ball.y===y;
+  cell.setAttribute("aria-label","Square "+(x+1)+", "+(y+1)+", "+label+(ballHere?", ball":""));cell.title=label;
+  if(p){const token=document.createElement("span");token.className="token"+(p.team?" blue":"")+(p.used&&p.id!==game.mover?" used":"")+" "+p.status+(p.distracted?" distracted":"");token.textContent=p.number;cell.append(token);}
+  if(ballHere){const b=document.createElement("span");b.className="ball";b.textContent="◆";cell.append(b);}
+  cell.addEventListener("click",()=>choose(x,y));pitch.append(cell);
  }
- coach.textContent=teams[active].name+" coach";
- const p=players.find(p=>p.id===selected);
- selection.textContent=!p?"Select a player to inspect their profile.":p.team===active?"#"+p.number+" selected. Choose an empty square.":"Inspecting opponent #"+p.number+". Pass control to move their team.";
- log.replaceChildren(...entries.map(e=>{const li=document.createElement("li");li.textContent=e;return li;}));
+ coach.textContent=teams[game.active].name+" · Turn "+game.turns[game.active];
+ selection.textContent=game.finished?"Practice drive complete. Reset to start again.":inspected?"#"+inspected.number+" "+game.profile(inspected).name+" · "+inspected.status+(inspected.distracted?" · Distracted":"")+(inspected.used?" · activated this turn":""):"Select a player to inspect or activate.";
+ const movement=document.getElementById("movement");
+ movement.textContent=(mover?"Moving #"+mover.number+": "+mover.spent+" / "+game.profile(mover).ma+" MA used · "+Math.max(0,mover.spent-game.profile(mover).ma)+" / 2 rushes used. ":"")+"Team re-rolls left: "+game.rerolls[game.active]+".";
+ const choices=document.getElementById("choices");choices.replaceChildren();
+ if(game.pending){
+  const q=game.pending,p=document.createElement("p");p.textContent=teams[q.p.team].name+" #"+q.p.number+" — "+q.kind+" failed ("+q.roll+"). Choose:";choices.append(p);
+  for(const option of [...q.options,"Accept"])choices.append(button(option==="Team"?"Use team re-roll":option==="Accept"?"Accept failure":"Use "+option,()=>{game.decide(option);destination=null;render();}));
+ }else if(destination){
+  const plan=game.plan(destination.x,destination.y);
+  if(plan){
+   const risks=[];
+   if(plan.rushes)risks.push(plan.rushes+" rush roll(s), 2+ each");
+   if(plan.jump||plan.dodge)risks.push((plan.jump?"Jump":"Dodge")+" "+Math.min(6,Math.max(2,plan.target))+"+");
+   if(plan.pickup)risks.push("Pickup "+Math.min(6,Number.parseInt(game.profile(mover).ag)+game.marking(mover,plan.x,plan.y))+"+");
+   const p=document.createElement("p");p.textContent=(plan.jump?"Jump":"Step")+" to "+(plan.x+1)+", "+(plan.y+1)+" · costs "+plan.cost+" MA. "+(risks.length?risks.join(" → "):"No dice roll.");choices.append(p);
+   choices.append(button("Confirm "+(plan.jump?"jump":"step"),()=>{game.step(plan.x,plan.y);destination=null;render();}));
+  }
+ }
+ document.getElementById("start").disabled=!game.canStart(inspected);
+ document.getElementById("finish").disabled=!game.mover||!!game.pending||game.finished;
+ document.getElementById("end").disabled=!!game.pending||game.finished;
+ log.replaceChildren(...game.events.map(e=>{const li=document.createElement("li");li.textContent=e;return li;}));
+ document.getElementById("dugout").textContent=game.players.filter(p=>!game.onPitch(p)&&p.status!=="reserve").map(p=>teams[p.team].name+" #"+p.number+": "+p.status).join(" · ");
 }
 function renderRosters(){
  document.getElementById("rosters").innerHTML=teams.map((t,team)=>{
@@ -279,9 +489,14 @@ function renderRosters(){
  }).join("");
  document.querySelectorAll(".role-button").forEach(button=>button.addEventListener("click",()=>{showProfile(Number(button.dataset.team),Number(button.dataset.role),null);document.getElementById("profile").scrollIntoView({behavior:"smooth",block:"center"});}));
 }
-document.getElementById("end").addEventListener("click",()=>{active=1-active;selected=null;record("Control passed to "+teams[active].name+".");render();showProfile(active,0,null);});
+
+document.getElementById("start").addEventListener("click",()=>{game.start(selected);destination=null;render();});
+document.getElementById("finish").addEventListener("click",()=>{game.finish();destination=null;render();});
+document.getElementById("end").addEventListener("click",()=>{game.endTurn();destination=null;selected=null;render();});
 document.getElementById("reset").addEventListener("click",reset);
+document.getElementById("scenario").addEventListener("change",reset);
 renderRosters();reset();
 </script>
 </body>
 </html>
+
