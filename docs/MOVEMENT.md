@@ -1,4 +1,4 @@
-# Move, Block & Secure the Ball actions — v0.0.6
+# Move, Block & Secure the Ball actions — v0.0.7
 
 ## Sources reviewed October 28, 2026
 
@@ -38,7 +38,7 @@ The action is available once per team turn to a non-Big-Guy player only when the
 
 - Perfect Conditions only; no weather roll or weather modifiers.
 - No full match clock, halves, kickoff, drive restart, KO recovery, or re-roll replenishment. Touchdown stops the drill.
-- No Blitzes, passes, hand-offs, or AI. Block and Secure the Ball work only as isolated practice actions; no full turn or match sequencing is implemented.
+- No passes, hand-offs, or AI. Move, Block, Blitz, and Secure the Ball work as practice actions; no full turn or match sequencing is implemented.
 - No apothecaries or permanent casualty/league outcomes. Casualties leave the pitch; regeneration can place a Troll in reserves.
 - Beneficial Thick Skull and Regeneration effects are applied automatically. Dice re-roll choices remain explicit.
 - Only starting skills relevant to the implemented practice actions for the two supported rosters are implemented. Other skill effects remain future work.
@@ -49,4 +49,10 @@ The action is available once per team turn to a non-Big-Guy player only when the
 movement.cjs is the UI-independent engine; movement.test.cjs exercises it with injected dice. index.html contains a generated copy so root-of-main Pages hosting requires no runtime build.
 
 After editing movement.cjs, run `node build.cjs`, then `node --test movement.test.cjs` when doing a requested verification pass. The tests verify that the embedded engine matches the source. Publish index.html with the supporting source and tests. Validation: 41 passing tests, including eight Block and Secure the Ball tests covering assists, result selection, turnovers, Wrestle, Stand Firm, eligibility, and pickup resolution.
+
+## Blitz action
+
+Reviewed the 2025 Blitz section: https://bloodbowlbase.ru/bb2025/core_rules/the_game_of_blood_bowl/#blitz-actions . Declare one reachable standing opponent before activation. A team may declare one Blitz per turn, even if the player skips the block or fails an activation trait. Movement, standing, and activation traits use the normal Move flow. The block costs one MA, requires a Rush if beyond MA, and only targets the declared opponent. Successful resolution resumes movement; follow-up is free. Brawler and Grab's expanded push selection are restricted to declared Block actions. The Blitz practice setup uses a Noble Blitzer against a Goblin Bruiser.
+
+Validation: 45 tests pass, including Blitz movement before/after blocking, block cost, rush failure, activation failure, target eligibility, skipping the block, and allowance reset.
 
