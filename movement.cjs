@@ -46,6 +46,7 @@ class MovementGame {
  has(p,skill){return this.profile(p).skills.includes(skill);}
  rushLimit(p){return 2;}
  standCost(p){return Math.min(3,this.profile(p).ma);}
+ movementAllowance(p){return this.profile(p).ma;}
  armourBroken(p,roll,bonus=0,by=null){return roll+bonus>=Number.parseInt(this.profile(p).av);}
  canMighty(by,p){return by&&this.has(by,"Mighty Blow");}
  canMightyArmour(by,p){return this.canMighty(by,p);}
@@ -128,6 +129,10 @@ class MovementGame {
  pass(x,y){
   const preview=this.passPreview(x,y);if(!preview)return false;
   const p=this.ballActor("pass");this.ballActionDone=true;
+  this.beforePass(p,{x,y},()=>{this.ballActionDone=false;const finalPreview=this.passPreview(x,y)||preview;this.ballActionDone=true;this.resolvePass(p,x,y,finalPreview);});return true;
+ }
+ beforePass(p,target,done){done();}
+ resolvePass(p,x,y,preview){
   this.note("#"+p.number+" attempts a "+preview.name+" to "+(x+1)+", "+(y+1)+"; PA "+preview.target+"+.");
   this.passContext={p,preview,target:{x,y}};
   const modifier=preview.target-Number.parseInt(this.profile(p).pa),target=Number.parseInt(this.profile(p).pa),resolve=n=>{
@@ -287,7 +292,7 @@ class MovementGame {
     p.status="prone";this.note("#"+p.number+" is placed prone by Wrestle.");
     if(carrying){const {x,y}=p;this.ball={x,y,carrier:null};this.bounce(x,y,next);}else next();
    };
-   const ready=placed=>{turnover=!!carrier&&carrier.team===this.active&&!placed;prone.forEach(p=>{p.status="prone";p.rooted=false;});next();};
+   const ready=placed=>{turnover=!!carrier&&carrier.team===this.active&&!placed;prone.forEach(p=>{p.status="prone";p.rooted=false;this.onProne(p);});next();};
    if(carrier)this.beforeProne(carrier,{x:carrier.x,y:carrier.y},ready);else ready(false);return;
   }
   const down=[];
@@ -297,7 +302,7 @@ class MovementGame {
  }
  resolveBlockDowns(down){
   let i=0,turnover=false;const next=()=>{
-   if(i>=down.length){if(turnover)this.endTurn(true);else this.finishBlock();return;}
+   if(i>=down.length){if(turnover&&!this.blockAction?.saboteurTriggered)this.endTurn(true);else this.finishBlock();return;}
    const {p,by}=down[i++];this.fall(p,{turnover:false,mightyBlowBy:by,prevented:next,after:()=>{if(p.team===this.active)turnover=true;next();}});
   };next();
  }
@@ -383,7 +388,7 @@ class MovementGame {
   return true;
  }
  stand(p,after=null){
-  const ma=this.profile(p).ma;
+  const ma=this.movementAllowance(p);
   const ok=()=>{p.status="standing";p.spent=this.standCost(p);this.note("#"+p.number+" stands up: "+p.spent+" movement spent.");if(after)after();};
   if(ma<=2)this.test(p,"Stand up",4,ok,()=>{this.note("Stand-up failed; activation ends.");this.mover=null;this.action=null;});
   else ok();
@@ -433,7 +438,7 @@ class MovementGame {
    if(distance!==2||!this.players.some(q=>this.onPitch(q)&&["prone","stunned"].includes(q.status)&&this.distance(from,q)===1&&this.distance(q,{x,y})===1))return null;
    jump=true;cost=2;
   }
-  const ma=this.profile(p).ma;
+  const ma=this.movementAllowance(p);
   if(spent+cost>ma+this.rushLimit(p))return null;
   const rushes=Math.max(0,spent+cost-ma)-Math.max(0,spent-ma);
   const originMarks=this.markingAt(p,fromX,fromY),targetMarks=this.markingAt(p,x,y);
@@ -478,6 +483,7 @@ class MovementGame {
   return reached;
  }
  movementOutcome(p,plan,origin,failure,done){done({});}
+ movementCompleted(p){}
  beforeMovement(p,plan,origin){}
  beforeDepartureTests(p,plan,origin,done){done();}
  departureTest(p,plan,origin,kind,target,yes,no){this.test(p,kind,target,yes,no);}
@@ -493,9 +499,9 @@ class MovementGame {
    const pickup=!this.ball.carrier&&this.ball.x===p.x&&this.ball.y===p.y;
    if(pickup&&this.action==="secure")this.secureBall(p,p.x,p.y);
    else if(pickup)this.test(p,"Pick up",Number.parseInt(this.profile(p).ag)+this.marking(p),()=>{
-    this.ball.carrier=p.id;this.note("#"+p.number+" picks up the ball.");this.checkScore();
+    this.ball.carrier=p.id;this.note("#"+p.number+" picks up the ball.");this.checkScore();this.movementCompleted(p);
    },()=>{this.note("Failed pickup: turnover regardless of subsequent catches.");this.bounce(p.x,p.y,()=>this.endTurn(true));});
-   else this.checkScore();
+   else {this.checkScore();this.movementCompleted(p);}
    });
   };
   const fail=(kind,n,recover)=>this.preventFall(p,recover,()=>this.movementOutcome(p,plan,origin,{kind,roll:n},context=>this.fall(p,{...context,skipPrevention:true})));
@@ -528,39 +534,43 @@ class MovementGame {
   this.note(this.teams[this.active].name+" turn "+this.turns[this.active]+".");return true;
  }
  preventFall(p,yes,no){no();}
+ onProne(p){}
  beforeProne(p,origin,done){done(false);}
  placeProne(p,done,{allowPlacement=true}={}){
   const origin={x:p.x,y:p.y};
-  const place=()=>{p.status="prone";p.rooted=false;this.note("#"+p.number+" is placed prone.");this.releaseProneBall(p,origin,done);};
+  const place=()=>{p.status="prone";p.rooted=false;this.onProne(p);this.note("#"+p.number+" is placed prone.");this.releaseProneBall(p,origin,done);};
   if(allowPlacement)this.beforeProne(p,origin,place);else place();
  }
  releaseProneBall(p,{x,y},done){
   if(this.ball.carrier===p.id||!this.ball.carrier&&this.ball.x===x&&this.ball.y===y){this.ball={x,y,carrier:null};this.bounce(x,y,done);}else done();
  }
  fall(p,options={}){
-  const resolve=()=>this.beforeProne(p,{x:p.x,y:p.y},()=>this.resolveFall(p,options));
+  const resolve=()=>{if(options.skipPlacement)this.resolveFall(p,options);else this.beforeProne(p,{x:p.x,y:p.y},()=>this.resolveFall(p,options));};
   if(options.skipPrevention)resolve();else this.preventFall(p,()=>{if(options.prevented)options.prevented();else if(options.after)options.after();},resolve);
  }
- resolveFall(p,{turnover=true,after=null,mightyBlowBy=null,armBarBy=null}={}){
-  const modifierKind=armBarBy?"Arm Bar":"Mighty Blow",modifierBy=armBarBy||mightyBlowBy;
-  const injuryBonus=armBarBy?!this.has(p,"Iron Hard Skin"):this.canMighty(mightyBlowBy,p);
-  const armourBonus=armBarBy?injuryBonus:this.canMightyArmour(mightyBlowBy,p);
+ resolveFall(p,{turnover=true,after=null,mightyBlowBy=null,armBarBy=null,impactBy=null,savageryBy=null,blockBlast=false}={}){
+  const modifierKind=impactBy?"Lethal Flight":armBarBy?"Arm Bar":"Mighty Blow",modifierBy=impactBy||armBarBy||mightyBlowBy;
+  const injuryBonus=savageryBy?false:impactBy?true:armBarBy?!this.has(p,"Iron Hard Skin"):this.canMighty(mightyBlowBy,p);
+  const armourBonus=savageryBy?false:impactBy?!this.has(p,"Iron Hard Skin"):armBarBy?injuryBonus:this.canMightyArmour(mightyBlowBy,p);
+  if(savageryBy)mightyBlowBy={...savageryBy,disabledSkills:[]};
+  const broken=(n,bonus=0)=>blockBlast?n>=Number.parseInt(this.profile(p).av):this.armourBroken(p,n,bonus,mightyBlowBy);
   const modifierChoice=(options,resolve)=>{
    const q={type:"custom",kind:modifierKind,team:modifierBy.team,options,resolve:choice=>{
     if(this.pending!==q||!options.includes(choice))return false;
     this.pending=null;resolve(choice);return true;
    }};this.pending=q;
   };
-  this.note("#"+p.number+" is knocked down.");p.status="prone";
+  this.note("#"+p.number+" is knocked down.");p.status="prone";this.onProne(p);
   const {x,y}=p,carrying=this.ball.carrier===p.id,av=Number.parseInt(this.profile(p).av);
   const complete=()=>{
    if(p.status==="casualty"&&armBarBy){p.casualtySource={playerId:armBarBy.id,cause:"Arm Bar"};this.note("Arm Bar casualty caused by #"+armBarBy.number+".");}
+   if(p.status==="casualty"&&impactBy){p.casualtySource={playerId:impactBy.id,cause:"Lethal Flight"};this.note("Lethal Flight casualty caused by #"+impactBy.number+".");}
    const finish=()=>{if(turnover)this.endTurn(true);else if(after)after();};
    if(carrying||(!this.ball.carrier&&this.ball.x===x&&this.ball.y===y)){this.ball={x,y,carrier:null};this.bounce(x,y,finish);}
    else finish();
   };
   const injury=modifier=>{
-   const total=this.roll("Injury")+this.roll("Injury")+modifier,stunty=this.has(p,"Stunty"),thick=this.has(p,"Thick Skull");
+   const total=this.roll("Injury")+this.roll("Injury")+modifier,stunty=!blockBlast&&this.has(p,"Stunty"),thick=this.has(p,"Thick Skull");
    const stunMax=stunty?(thick?7:6):(thick?8:7),koMax=stunty?8:9;
    if(total<=stunMax)p.status="stunned";
    else if(total<=koMax)p.status="knocked-out";
@@ -570,12 +580,12 @@ class MovementGame {
    if(["knocked-out","casualty","reserve"].includes(p.status)){p.x=null;p.y=null;}
    complete();
   };
-  const armour=this.roll("Armour")+this.roll("Armour");
+  const armour=this.roll("Armour")+this.roll("Armour")+(savageryBy&&!this.has(p,"Iron Hard Skin")&&this.has(mightyBlowBy,"Mighty Blow")?1:0);
   const continueAfterArmour=bonus=>{
-   if(this.armourBroken(p,armour,bonus,mightyBlowBy))injury(0);
+   if(broken(armour,bonus))injury(0);
    else {this.note("Armour holds; player remains prone.");complete();}
   };
-  if(this.armourBroken(p,armour,0,mightyBlowBy)){
+  if(broken(armour)){
    this.note("Armour broken.");
    const dice=this.roll("Injury")+this.roll("Injury");
    if(injuryBonus){
@@ -586,14 +596,14 @@ class MovementGame {
      this.note("#"+p.number+" injury result: "+p.status+".");if(["knocked-out","casualty","reserve"].includes(p.status)){p.x=null;p.y=null;}complete();
     });
    }else{
-    const stunty=this.has(p,"Stunty"),thick=this.has(p,"Thick Skull"),stunMax=stunty?(thick?7:6):(thick?8:7),koMax=stunty?8:9;
+    const stunty=!blockBlast&&this.has(p,"Stunty"),thick=this.has(p,"Thick Skull"),stunMax=stunty?(thick?7:6):(thick?8:7),koMax=stunty?8:9;
     if(dice<=stunMax)p.status="stunned";else if(dice<=koMax)p.status="knocked-out";else if(this.has(p,"Regeneration")&&this.roll("Regeneration needs 4+")>=4)p.status="reserve";else p.status="casualty";
     this.note("#"+p.number+" injury result: "+p.status+".");if(["knocked-out","casualty","reserve"].includes(p.status)){p.x=null;p.y=null;}complete();
    }
   }else if(armourBonus){
    modifierChoice(["Add +1 to Armour","No modifier"],choice=>{
     const bonus=choice==="Add +1 to Armour"?1:0;
-    if(this.armourBroken(p,armour,bonus,mightyBlowBy)){this.note("Armour broken with "+modifierKind+".");injury(0);}else continueAfterArmour(0);
+    if(broken(armour,bonus)){this.note("Armour broken with "+modifierKind+".");injury(0);}else continueAfterArmour(0);
    });
   }else continueAfterArmour(0);
  }
@@ -616,7 +626,7 @@ class MovementGame {
  }
  chooseLandingCatcher(x,y,delivery,done){done(this.at(x,y));}
  landingTarget(p,delivery){
-  const clean=delivery.kind==="direct"||delivery.kind==="kickoff"||delivery.kind==="pass"&&delivery.accurateToPlayer;
+  const clean=delivery.kind==="direct"||delivery.kind==="kickoff"||delivery.kind==="punt"||delivery.kind==="pass"&&delivery.accurateToPlayer;
   return Number.parseInt(this.profile(p).ag)+(clean?0:1)+this.marking(p);
  }
  landBall(x,y,thrown,done,direct=false,delivery=null){
@@ -632,6 +642,7 @@ class MovementGame {
   });
  }
  checkScore(){
+  if(this.scoreDeferrals)return;
   const p=this.players.find(p=>p.id===this.ball.carrier);
   if(p&&p.status==="standing"&&p.x===(p.team===0?25:0)){
    this.finished=true;this.mover=null;this.note("TOUCHDOWN — "+this.teams[p.team].name+". Practice drive complete; reset to play again.");

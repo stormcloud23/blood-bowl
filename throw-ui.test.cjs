@@ -75,6 +75,40 @@ test('Safe Pair of Hands UI decline bounces the ball normally',()=>{
 test('accurate Pass preview reflects the receiver Diving Catch bonus',()=>{
  const {get,run}=uiFixture('pass');run('game.players[1].extraSkills=["Diving Catch"];game.start(game.players[0].id,"pass");selected=game.players[0].id;ballMode=true;throwDestination={x:14,y:7};render()');assert.ok(get('choices').children.some(e=>e.textContent.includes('Catch 2+ (accurate delivery)')));
 });
+test('Kick Team-mate UI declares, selects a passenger and completes the existing flight flow',()=>{
+ const {get,run}=uiFixture('pickup');run('game.players[0].extraSkills=["Kick Team-mate"];game.players[1].extraSkills=["Right Stuff"];game.rerolls=[0,0];game.dice=()=>6;selected=game.players[0].id;render()');
+ assert.equal(get('kick-mate').disabled,false);get('kick-mate').listeners.click();get('choices').children.find(e=>e.textContent.startsWith('Throw team-mate #')).listeners.click();run('choose(12,7);choose(12,7)');assert.equal(run('game.players[1].x'),9);assert.equal(run('game.players[1].y'),10);assert.equal(run('game.kickUsed[0]'),true);assert.equal(run('game.passUsed[0]'),false);
+});
+test('Swoop UI uses the selected template before landing',()=>{
+ const {get,run}=uiFixture();run('game.players[11].extraSkills=["Swoop"];game.rerolls=[0,0];game.dice=()=>6');get('throw-mate').listeners.click();get('choices').children.find(e=>e.textContent.startsWith('Throw team-mate #')).listeners.click();run('choose(12,7);choose(12,7)');get('choices').children.find(e=>e.textContent==='North').listeners.click();assert.equal(run('game.players[11].status'),'standing');assert.equal(run('game.pending'),null);
+});
+test('Trickster UI relocates the defender before selecting Block dice',()=>{
+ const {get,run}=uiFixture('dodge');run('game.players[11].extraSkills=["Trickster"];game.dice=()=>6;game.block(game.players[0].id,game.players[11].id);render()');get('choices').children.find(e=>e.textContent.startsWith('Relocate to')).listeners.click();assert.equal(run('game.pending.type'),'blockSelect');assert.equal(run('game.players[11].x'),9);
+});
+test('Dump-off UI completes an out-of-turn pass then returns to the interrupted Block',()=>{
+ const {get,run}=uiFixture('dodge');run('game.players[11].extraSkills=["Dump-off"];game.ball={x:11,y:7,carrier:game.players[11].id};game.rerolls=[0,0];game.dice=()=>6;game.block(game.players[0].id,game.players[11].id);render()');get('choices').children.find(e=>e.textContent==='Quick pass to 14, 8').listeners.click();assert.equal(run('game.pending.type'),'blockSelect');assert.equal(run('game.dumpContext'),null);assert.equal(run('game.active'),0);
+});
+test('Hit and Run UI offers a free move after a Block and retains Blitz state',()=>{
+ const {get,run}=uiFixture('dodge');run('game.players[0].extraSkills=["Hit and Run"];game.mover=game.players[0].id;game.action="blitz";game.blockAction={attacker:game.players[0],target:game.players[11],blitz:true,assists:{offensive:0,defensive:0}};game.finishBlock();render()');get('choices').children.find(e=>e.textContent.startsWith('Move free to')).listeners.click();assert.equal(run('game.players[0].x'),9);assert.equal(run('game.action'),'blitz');assert.equal(run('game.pending'),null);
+});
+test('Punt UI allows movement declaration, template choice and ground resolution',()=>{
+ const {get,run}=uiFixture('pickup');run('game.players[0].extraSkills=["Punt"];game.ball={x:10,y:7,carrier:game.players[0].id};game.rerolls=[0,0];game.dice=()=>6;game.start(game.players[0].id,"special:Punt");render()');get('choices').children.find(e=>e.textContent==='Punt now').listeners.click();get('choices').children.find(e=>e.textContent==='North').listeners.click();assert.equal(run('game.active'),0);assert.equal(run('game.action'),null);assert.equal(run('game.passUsed[0]'),false);
+});
+test('Chomp UI replaces a Blitz Block without ending the Blitz activation',()=>{
+ const {get,run}=uiFixture('dodge');run('game.players[0].extraSkills=["Monstrous Mouth"];game.dice=()=>6;game.startBlitz(game.players[0].id,game.players[11].id);render()');get('choices').children.find(e=>e.textContent==='Blitz: Chomp (1 MA)').listeners.click();assert.equal(run('game.isChomped(game.players[11])'),true);assert.equal(run('game.action'),'blitz');
+});
+test('Pile Driver UI runs a free foul and places the attacker prone',()=>{
+ const {get,run}=uiFixture('dodge');run('game.players[0].extraSkills=["Pile Driver"];game.players[11].status="prone";game.rerolls=[0,0];globalThis.rolls=[1,2];game.dice=()=>rolls.shift();game.blockAction={attacker:game.players[0],target:game.players[11],blitz:false,targetKnocked:true,assists:{offensive:0,defensive:0}};game.finishBlock();render()');get('choices').children.find(e=>e.textContent==='Free foul').listeners.click();assert.equal(run('game.players[0].status'),'prone');assert.equal(run('game.blockAction'),null);assert.equal(run('game.scoreDeferrals'),0);
+});
+test('On the Ball UI finishes defensive movement before the pass dice',()=>{
+ const {get,run}=uiFixture('pass');run('game.players[11].extraSkills=["On the Ball"];game.rerolls=[0,0];game.dice=()=>6;game.start(game.players[0].id,"pass");game.pass(14,7);render()');get('choices').children.find(e=>e.textContent.includes('(1-1)')).listeners.click();get('choices').children.find(e=>e.textContent==='Move to 12, 7').listeners.click();get('choices').children.find(e=>e.textContent==='Stop moving').listeners.click();assert.equal(run('game.ball.carrier'),'0-2');assert.equal(run('game.moveContext'),null);assert.equal(run('game.active'),0);
+});
+test('Chainsaw foul UI chooses the chainsaw and runs kickback before armour',()=>{
+ const {get,run}=uiFixture('dodge');run('game.players[0].extraSkills=["Chainsaw"];game.players[11].status="prone";game.rerolls=[0,0];globalThis.rolls=[2,1,2];game.dice=()=>rolls.shift();game.start(game.players[0].id,"foul");game.performSpecial(game.players[11].id);render()');get('choices').children.find(e=>e.textContent==='Use Chainsaw').listeners.click();assert.equal(run('game.players[0].status'),'standing');assert.equal(run('game.pending'),null);assert.equal(run('rolls.length'),0);
+});
+test('Saboteur UI resolves the automatic KO and collateral fall before Block cleanup',()=>{
+ const {get,run}=uiFixture('dodge');run('game.players[11].extraSkills=["Saboteur","Secret Weapon"];game.rerolls=[0,0];globalThis.rolls=[6,1,1];game.dice=()=>rolls.shift();game.blockAction={attacker:game.players[0],target:game.players[11],blitz:false,assists:{offensive:0,defensive:0}};game.fall(game.players[11],{turnover:false,mightyBlowBy:game.players[0],after:()=>game.finishBlock()});render()');const choice=get('choices').children.find(e=>e.textContent==='Use Saboteur');choice.listeners.click();choice.listeners.click();assert.equal(run('game.players[11].status'),'knocked-out');assert.equal(run('game.players[0].status'),'prone');assert.equal(run('game.active'),0);assert.equal(run('game.scoreDeferrals'),0);assert.equal(run('rolls.length'),0);
+});
 test('throw practice UI declares, selects, previews and commits a throw',()=>{
  const {get,context}=uiFixture();
  vm.runInContext('game.dice=()=>6',context);

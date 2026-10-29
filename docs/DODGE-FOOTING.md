@@ -16,6 +16,10 @@ defender's choice. Break Tackle choices account for the prospective penalty and
 remain available to rescue a re-rolled die when applicable.
 
 The defender can choose an ineffective tackle, including against a natural six.
+The subsequent special-action audit confirms the pinned default
+`DIVING_TACKLE_LEAVING_TZ_ONLY=true`: a player who remains in that tackler's
+tackle zone cannot be tackled by them. Preview and execution now apply that
+eligibility check.
 One selected tackler is placed prone in the vacated square, without armour or a
 Steady Footing check for that placement. Carried/ground balls bounce as needed.
 Using Diving Tackle suppresses Shadowing for that departure; declining it does
