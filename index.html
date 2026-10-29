@@ -12,11 +12,11 @@
 </style>
 </head>
 <body>
-<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>The development pitch</h1></div><span class="badge">v0.0.12 · Sandbox</span></header>
+<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>The development pitch</h1></div><span class="badge">v0.0.13 · Sandbox</span></header>
 <div class="notice" id="mode-notice"><strong>Movement and ball action practice</strong><br><span class="muted">Preview movement and its checks, resolve Block dice, pushes, and follow-ups, or secure a loose ball. Perfect Conditions. This remains a practice drive, not a complete match.</span></div>
-<label for="scenario">Game mode </label><select id="scenario"><option value="match">Exhibition match — pre-game</option><option value="match-learning">Learning match — simplified kickoff</option><option value="skills">Skills laboratory</option><option value="teams">Both teams</option><option value="dodge">Dodge practice</option><option value="jump">Jump & stand up</option><option value="pickup">Ball pickup</option><option value="throw-team-mate">Throw Team-mate practice</option><option value="traits">Ogre & Troll traits</option><option value="handoff">Hand-off practice</option><option value="pass">Pass & interception practice</option><option value="blitz">Blitz practice</option><option value="block">Block practice</option><option value="secure">Secure the Ball practice</option></select><p class="muted">Changing the mode starts a new game or practice. Direction template: 1 NW · 2 N · 3 NE · 4 W · 5 E · 6 SW · 7 S · 8 SE.</p><div id="matchflow" class="notice" aria-live="polite"></div><main><section><div class="pitch-wrap"><div id="pitch" class="pitch" role="group" aria-label="Development pitch"></div></div><p class="muted">Select a player and choose an action. For movement, click a destination once to preview, then again to commit. For Pass or Hand-off, declare the action, move as needed, then choose a ball target. For Blitz, choose Declare Blitz and a highlighted target, move adjacent, then choose Blitz Block (1 MA). During Block, click a highlighted target. Green = no roll on that step; amber = a check on that step or an action target; purple border = jump. Earlier route steps may still require rolls.</p><button class="control" id="start">Declare Move</button><button class="control secondary" id="handoff">Declare Hand-off</button><button class="control secondary" id="pass">Declare Pass</button><button class="control secondary" id="throw-mate">Declare Throw Team-mate</button><button class="control secondary" id="transfer">Choose ball target</button><button class="control secondary" id="blitz">Declare Blitz</button><button class="control secondary" id="block">Block</button><button class="control secondary" id="special">Foul / special action</button><button class="control secondary" id="secure">Secure the Ball</button><button class="control secondary" id="finish">End Move</button><button class="control secondary" id="end">End team turn</button><button class="control secondary" id="reset">Reset practice</button></section>
+<label for="scenario">Game mode </label><select id="scenario"><option value="match">Exhibition match — pre-game</option><option value="match-learning">Learning match — simplified kickoff</option><option value="skills">Skills laboratory</option><option value="teams">Both teams</option><option value="dodge">Dodge practice</option><option value="jump">Jump & stand up</option><option value="pickup">Ball pickup</option><option value="throw-team-mate">Throw Team-mate practice</option><option value="traits">Ogre & Troll traits</option><option value="handoff">Hand-off practice</option><option value="pass">Pass & interception practice</option><option value="blitz">Blitz practice</option><option value="block">Block practice</option><option value="secure">Secure the Ball practice</option></select><p class="muted">Changing the mode starts a new game or practice. Direction template: 1 NW · 2 N · 3 NE · 4 W · 5 E · 6 SW · 7 S · 8 SE.</p><div id="matchflow" class="notice" aria-live="polite"></div><main><section><div class="pitch-wrap"><div id="pitch" class="pitch" role="group" aria-label="Development pitch"></div></div><p class="muted">Select a player and choose an action. For movement, click a destination to preview the remaining range from there. Click another highlighted tile to extend the route. Declare the action, then click the selected destination again to commit; Cancel movement preview restores the current range. For Pass or Hand-off, declare the action, move as needed, then choose a ball target. For Blitz, choose Declare Blitz and a highlighted target, move adjacent, then choose Blitz Block (1 MA). During Block, click a highlighted target. Green = no roll on that step; amber = a check on that step or an action target; purple border = jump. Earlier route steps may still require rolls.</p><button class="control" id="start">Declare Move</button><button class="control secondary" id="handoff">Declare Hand-off</button><button class="control secondary" id="pass">Declare Pass</button><button class="control secondary" id="throw-mate">Declare Throw Team-mate</button><button class="control secondary" id="transfer">Choose ball target</button><button class="control secondary" id="blitz">Declare Blitz</button><button class="control secondary" id="block">Block</button><button class="control secondary" id="special">Foul / special action</button><button class="control secondary" id="secure">Secure the Ball</button><button class="control secondary" id="finish">End Move</button><button class="control secondary" id="end">End team turn</button><button class="control secondary" id="reset">Reset practice</button></section>
 <aside class="panel"><div class="eyebrow">Movement & action practice</div><h2 id="coach"></h2><p id="selection" role="status" aria-live="polite"></p><div id="movement" aria-live="polite"></div><div id="choices"></div><div id="profile"></div><div id="dugout"></div><h2>Session log</h2><ol id="log"></ol><p class="muted">Games reset on reload. Two team re-rolls each; match re-rolls replenish at half-time.</p></aside></main><section id="rosters" aria-label="Team rosters"></section>
-<footer>Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.12 with feedback.</footer>
+<footer>Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.13 with feedback.</footer>
 <script id="team-data" type="application/json">[
   {
     "id": "imperial-nobility",
@@ -1313,6 +1313,22 @@ function plannedStart(p){
  return {x:p.x,y:p.y,spent:game.mover===p.id?p.spent:p.status==="prone"?game.standCost(p):0};
 }
 function rangeFor(p){if(!p||game.pending||game.finished)return new Map();const s=plannedStart(p);return game.search(p,s.x,s.y,s.spent);}
+function previewRoute(p){
+ if(!p||!destination)return null;const s=plannedStart(p);
+ if(destination.playerId===p.id&&destination.startX===s.x&&destination.startY===s.y&&destination.startSpent===s.spent)return destination;
+ return null;
+}
+function remainingRange(p,route){
+ if(!route)return rangeFor(p);
+ if(game.pending||game.finished||game.action==="secure"&&route.path.some(s=>s.plan.pickup))return new Map();
+ // Forecast on a separate board: vacate the starting square and move the carried ball,
+ // without changing the live player, dice, activation or movement allowance.
+ const forecast=Object.assign(Object.create(Object.getPrototypeOf(game)),game,{players:game.players.map(q=>({...q})),ball:{...game.ball}});
+ const actor=forecast.players.find(q=>q.id===p.id);Object.assign(actor,{x:route.x,y:route.y,spent:route.spent,status:"standing"});
+ if(forecast.ball.carrier===p.id||route.path.some(s=>s.plan.pickup))forecast.ball={x:actor.x,y:actor.y,carrier:p.id};
+ return forecast.search(actor,actor.x,actor.y,route.spent);
+}
+function cancelMovementPreview(){destination=null;render();}
 function routeKey(x,y){return x+","+y;}
 function choose(x,y){
  const p=game.at(x,y);
@@ -1344,10 +1360,11 @@ function choose(x,y){
   return;
  }
  if(p){selected=p.id;destination=null;showProfile(p.team,p.role,p.number);render();return;}
- const mover=planningPlayer(),route=rangeFor(mover).get(routeKey(x,y));
+ const mover=planningPlayer(),previous=previewRoute(mover);
+ if(previous?.x===x&&previous?.y===y){if(game.mover)commitRoute();else render();return;}
+ const route=remainingRange(mover,previous).get(routeKey(x,y));
  if(route&&route.path.length){
-  if(game.mover&&destination?.x===x&&destination?.y===y){commitRoute();return;}
-  destination={x,y};render();
+  const start=plannedStart(mover);destination={x,y,spent:route.spent,path:[...(previous?.path||[]),...route.path],playerId:mover.id,startX:start.x,startY:start.y,startSpent:start.spent};render();
  }
  else {destination=null;render();selection.textContent=game.pending?"Resolve the dice result first.":"Choose a highlighted square for the active Move. Squares occupied by players cannot be entered.";}
 }
@@ -1360,11 +1377,10 @@ function planChecks(plan,mover){
 }
 function commitRoute(){
  const player=game.players.find(p=>p.id===game.mover);if(!player||!destination)return;
- const target={...destination};let guard=40;
- while(guard--&&game.mover===player.id&&!game.pending&&!game.finished){
-  const path=game.search(player).get(routeKey(target.x,target.y))?.path;if(!path?.length)break;
-  const next=path[0];game.step(next.x,next.y);
-  if(game.pending||game.mover!==player.id||game.finished||player.x===target.x&&player.y===target.y)break;
+ const route=previewRoute(player);if(!route)return;
+ for(const next of route.path){
+  if(game.mover!==player.id||game.pending||game.finished||!game.step(next.x,next.y))break;
+  if(game.pending||game.mover!==player.id||game.finished)break;
  }
  destination=null;render();
 }
@@ -1372,7 +1388,7 @@ function render(){
  if(ballMode&&!(game.action==="throw-team-mate"?game.throwActor():game.ballActor(game.action))){ballMode=false;throwDestination=null;}
  if(blockMode&&(game.mover||game.pending))blockMode=false;
  const mover=game.players.find(p=>p.id===game.mover),inspected=game.players.find(p=>p.id===selected);
- const planner=planningPlayer(),range=ballMode?new Map():rangeFor(planner),chosen=destination&&range.get(routeKey(destination.x,destination.y));
+ const planner=planningPlayer(),chosen=previewRoute(planner),range=ballMode?new Map():remainingRange(planner,chosen);
  const blockAttacker=blockMode?game.players.find(p=>p.id===selected):null;
  const routeIndices=new Map((chosen?.path||[]).map((step,i)=>[routeKey(step.x,step.y),i+1]));
  const routePlans=new Map((chosen?.path||[]).map(step=>[routeKey(step.x,step.y),step.plan]));
@@ -1380,7 +1396,7 @@ function render(){
  for(let y=0;y<15;y++)for(let x=0;x<26;x++){
   const p=game.at(x,y),reach=range.get(routeKey(x,y)),plan=routePlans.get(routeKey(x,y))||reach?.path.at(-1)?.plan,cell=document.createElement("button"),routeIndex=routeIndices.get(routeKey(x,y)),blockTarget=!!(blockAttacker&&p&&(blockMode==="blitz"?game.canBlitz(blockAttacker,p):game.canBlock(blockAttacker,p)));
   const checks=plan&&planner?planChecks(plan,planner):[],risky=checks.length>0;
-  cell.type="button";cell.className="square"+(x===0||x===25?" endzone":"")+(x===12?" middle":"")+(y===3||y===10?" wide":"")+(p&&p.id===selected?" selected":"")+(reach&&reach.path.length?" legal":"")+(risky?" risk":"")+(plan?.jump?" jump":"")+(routeIndex?" route":"")+(destination?.x===x&&destination?.y===y?" destination":"")+(blockTarget?" block-target":"");
+  cell.type="button";cell.className="square"+(x===0||x===25?" endzone":"")+(x===12?" middle":"")+(y===3||y===10?" wide":"")+(p&&p.id===selected?" selected":"")+(reach&&reach.path.length||routeIndex?" legal":"")+(risky?" risk":"")+(plan?.jump?" jump":"")+(routeIndex?" route":"")+(destination?.x===x&&destination?.y===y?" destination":"")+(blockTarget?" block-target":"");
   const ballTarget=ballMode&&(game.action==="throw-team-mate"?!!game.throwPreview(x,y):game.action==="handoff"?game.canHandoff(p):!!game.passPreview(x,y));
   if(ballTarget)cell.className+=" legal";
   if(throwDestination?.x===x&&throwDestination?.y===y)cell.className+=" destination";
@@ -1399,6 +1415,7 @@ function render(){
  const rangeCount=Math.max(0,range.size-1);
  movement.textContent=(game.blockAction?"Block: ST "+game.blockAction.aStrength+" vs "+game.blockAction.dStrength+" · "+game.blockAction.assists.offensive+" offensive assist(s), "+game.blockAction.assists.defensive+" defensive assist(s). ":mover?"Moving #"+mover.number+": "+mover.spent+" / "+game.profile(mover).ma+" MA used · "+Math.max(0,mover.spent-game.profile(mover).ma)+" / "+game.rushLimit(mover)+" rushes used. ":planner?"Forecast for #"+planner.number+": "+rangeCount+" reachable destinations, including up to "+game.rushLimit(planner)+" rushes. ":"")+"Team re-rolls left: "+game.rerollsAvailable(game.active)+"."+(game.action==="blitz"?" Blitz target: #"+game.players.find(p=>p.id===game.blitzTarget)?.number+(game.blitzBlocked?" · block completed; continue moving.":" · move adjacent, then choose Blitz Block (1 MA).") : "");
  const choices=document.getElementById("choices");choices.replaceChildren();
+ if(chosen&&!ballMode){const remaining=document.createElement("p");remaining.textContent="From preview square "+(chosen.x+1)+", "+(chosen.y+1)+": "+Math.max(0,game.profile(planner).ma-chosen.spent)+" normal MA and "+Math.max(0,game.rushLimit(planner)-Math.max(0,chosen.spent-game.profile(planner).ma))+" Rush(es) remaining · "+rangeCount+" possible next destinations. The player has not moved.";choices.append(remaining);choices.append(button("Cancel movement preview",cancelMovementPreview));}
  if(ballMode&&game.action==="throw-team-mate"){
   const p=document.createElement("p"),preview=throwDestination&&game.throwPreview(throwDestination.x,throwDestination.y);p.textContent=preview?preview.name+" · Superb Throw "+Math.min(6,preview.target)+"+. Click again to throw #"+preview.mate.number+". Both Superb and Subpar throws scatter before landing.":"Choose a highlighted square, then click it again to throw your team-mate.";choices.append(p);
  }else if(ballMode){
@@ -1430,7 +1447,7 @@ function render(){
   }
  }else if(!ballMode&&destination&&chosen){
   const initialSpent=mover?mover.spent:planner.status==="prone"?game.standCost(planner):0;
-  const title=document.createElement("p");title.textContent=chosen.path.length?"Lowest-MA route: "+chosen.path.length+" square(s), "+(chosen.spent-initialSpent)+" movement point(s). Click the selected destination again to commit. Choose another highlighted square to change it. Required checks appear below; dice are rolled only when committed.":"Destination reached. Choose another highlighted square to continue moving.";choices.append(title);
+  const title=document.createElement("p");title.textContent=chosen.path.length?"Planned route: "+chosen.path.length+" step(s), "+(chosen.spent-initialSpent)+" movement point(s). Click another highlighted square to extend this route. "+(mover?"Click the selected destination again to commit.":"Declare Move to begin, then click the selected destination again to commit.")+" Cancel movement preview to start planning again. Required checks appear below; dice are rolled only when committed.":"Destination reached. Choose another highlighted square to continue moving.";choices.append(title);
   chosen.path.forEach((step,i)=>{
    const row=document.createElement("p"),checks=planChecks(step.plan,planner);
    row.textContent=(i+1)+". "+(step.plan.jump?"Jump to ":"Move to ")+(step.x+1)+", "+(step.y+1)+" · "+step.plan.cost+" MA · "+(checks.length?checks.join(" → "):"no roll");choices.append(row);

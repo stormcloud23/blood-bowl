@@ -9,6 +9,8 @@ A browser implementation targeting the Blood Bowl 2025 ruleset.
 - Complete standalone matches first, followed by persistent league progression.
 - Simple, readable visuals; rules completeness takes priority over animation.
 
+v0.0.13 adds waypoint movement previews: selecting a tile shows the remaining range from there, additional clicks extend the planned route, and **Cancel movement preview** restores the range from the player's current position. Previewing spends no movement and rolls no dice. Committing follows the displayed steps.
+
 Local v0.0.12 changes movement highlights to show the check on each individual arrival step. A dodge early in a route no longer turns later no-roll tiles amber. Selected routes show their actual step checks; hover text and accessible labels explain them. Green tiles can still require risky earlier steps; the route preview lists all required checks.
 
 Local v0.0.11 adds **Throw Team-mate, Right Stuff, and Always Hungry**, completing the starting abilities on the two demo rosters. Select **Throw Team-mate practice**, declare the throw, choose the Goblin in the side panel, then click a highlighted target twice. Scatter, fumbles, collisions, landing, crowd injury, Troll eating, carried balls, and scoring are supported. Coverage now totals **76 implemented, 3 partial, 29 deferred**. Run `node build.cjs` followed by `node --test movement.test.cjs match.test.cjs skills.test.cjs throw-ui.test.cjs` to verify the self-contained page and engines.
