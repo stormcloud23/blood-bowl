@@ -715,25 +715,33 @@ class MovementGame {
   if(!p||this.pending||this.finished||p.status!=="standing")return null;
   return this.planFrom(p,x,y,p.x,p.y,p.spent);
  }
+ searchOffsets(p,node){
+  const offsets=[];
+  for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)if(dx||dy)offsets.push([node.x+dx,node.y+dy]);
+  return offsets;
+ }
  search(p,startX=p?.x,startY=p?.y,startSpent=p?.spent||0){
   const reached=new Map();
   if(!p||!this.onPitch(p)||!this.inside(startX,startY))return reached;
-  const key=(x,y)=>x+","+y,origin={x:startX,y:startY,spent:startSpent,path:[]};
+  const key=(x,y)=>x+","+y,origin={x:startX,y:startY,spent:startSpent,checks:0,path:[]};
+  const compare=(a,b)=>a.checks-b.checks||a.spent-b.spent;
+  // Keep each movement-budget state: a shorter risky prefix may be the
+  // only way to reach a distant square even when a safe prefix exists.
+  const states=new Map([[key(startX,startY)+","+startSpent,origin]]);
   reached.set(key(startX,startY),origin);
   const queue=[origin];
   while(queue.length){
-   queue.sort((a,b)=>a.spent-b.spent);const node=queue.shift();
-   if(reached.get(key(node.x,node.y))!==node)continue;
-   const candidates=[];
-   for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(dx||dy)candidates.push([node.x+dx,node.y+dy]);
-   for(const obstacle of this.players){
-    if(!this.onPitch(obstacle)||!["prone","stunned"].includes(obstacle.status)||this.distance(obstacle,node)!==1)continue;
-    for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)if(Math.max(Math.abs(dx),Math.abs(dy))===2&&this.distance(obstacle,{x:node.x+dx,y:node.y+dy})===1)candidates.push([node.x+dx,node.y+dy]);
-   }
+   queue.sort(compare);const node=queue.shift();
+   if(states.get(key(node.x,node.y)+","+node.spent)!==node)continue;
+   const candidates=this.searchOffsets(p,node);
    for(const [x,y] of candidates){
     const plan=this.planFrom(p,x,y,node.x,node.y,node.spent);if(!plan)continue;
-    const spent=node.spent+plan.cost,k=key(x,y),old=reached.get(k);if(old&&old.spent<=spent)continue;
-    const next={x,y,spent,path:node.path.concat({x,y,plan})};reached.set(k,next);queue.push(next);
+    const spent=node.spent+plan.cost,k=key(x,y),stateKey=k+","+spent;
+    const checks=node.checks+plan.rushes+Number(plan.dodge||plan.jump)+Number(plan.pickup);
+    const next={x,y,spent,checks,path:node.path.concat({x,y,plan})};
+    if(states.has(stateKey)&&compare(states.get(stateKey),next)<=0)continue;
+    states.set(stateKey,next);queue.push(next);
+    if(!reached.has(k)||compare(next,reached.get(k))<0)reached.set(k,next);
    }
   }
   return reached;
@@ -1118,10 +1126,6 @@ class SkillGame extends SkillBase {
   if(plan.dodge&&!pogo&&fromMarkers.some(q=>this.skill(q,"Prehensile Tail")))plan.target++;
   if((plan.jump||plan.dodge)&&!(plan.jump&&pogo)&&fromMarkers.some(q=>this.skill(q,"Diving Tackle")&&!q.rooted))plan.divingTackleTarget=plan.jump?this.jumpTarget(p,fx,fy,x,y,2):plan.target+2;
   return plan;
- }
- search(p,sx=p?.x,sy=p?.y,spent=p?.spent||0){
-  if(!p||!this.skill(p,"Leap")&&!this.skill(p,"Pogo"))return super.search(p,sx,sy,spent);
-  const map=new Map(),queue=[{x:sx,y:sy,spent,path:[]}];map.set(sx+","+sy,queue[0]);while(queue.length){queue.sort((a,b)=>a.spent-b.spent);const n=queue.shift();if(map.get(n.x+","+n.y)!==n)continue;for(let dx=-2;dx<=2;dx++)for(let dy=-2;dy<=2;dy++)if(dx||dy){const x=n.x+dx,y=n.y+dy,plan=this.planFrom(p,x,y,n.x,n.y,n.spent);if(!plan)continue;const next={x,y,spent:n.spent+plan.cost,path:n.path.concat({x,y,plan})},key=x+","+y;if(map.has(key)&&map.get(key).spent<=next.spent)continue;map.set(key,next);queue.push(next);}}return map;
  }
  step(x,y){
   const plan=this.plan(x,y);if(!plan)return false;
@@ -1599,7 +1603,13 @@ function choose(x,y){
  if(p){selected=p.id;destination=null;showProfile(p.team,p.role,p.number);render();return;}
  const mover=planningPlayer(),previous=previewRoute(mover);
  if(previous?.x===x&&previous?.y===y){if(game.mover)commitRoute();else render();return;}
- const route=remainingRange(mover,previous).get(routeKey(x,y));
+ let route=remainingRange(mover,previous).get(routeKey(x,y));
+ // An adjacent click is an explicit step, preserving coach-selected shortcuts.
+ const from=previous||(mover?plannedStart(mover):null);
+ if(mover&&route&&game.distance(from,{x,y})===1){
+  const plan=game.planFrom(mover,x,y,from.x,from.y,previous?.spent??from.spent);
+  if(plan)route={x,y,spent:(previous?.spent??from.spent)+plan.cost,path:[{x,y,plan}]};
+ }
  if(route&&route.path.length){
   const start=plannedStart(mover);destination={x,y,spent:route.spent,path:[...(previous?.path||[]),...route.path],playerId:mover.id,startX:start.x,startY:start.y,startSpent:start.spent};render();
  }

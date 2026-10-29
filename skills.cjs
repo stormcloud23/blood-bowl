@@ -215,10 +215,6 @@ class SkillGame extends SkillBase {
   if((plan.jump||plan.dodge)&&!(plan.jump&&pogo)&&fromMarkers.some(q=>this.skill(q,"Diving Tackle")&&!q.rooted))plan.divingTackleTarget=plan.jump?this.jumpTarget(p,fx,fy,x,y,2):plan.target+2;
   return plan;
  }
- search(p,sx=p?.x,sy=p?.y,spent=p?.spent||0){
-  if(!p||!this.skill(p,"Leap")&&!this.skill(p,"Pogo"))return super.search(p,sx,sy,spent);
-  const map=new Map(),queue=[{x:sx,y:sy,spent,path:[]}];map.set(sx+","+sy,queue[0]);while(queue.length){queue.sort((a,b)=>a.spent-b.spent);const n=queue.shift();if(map.get(n.x+","+n.y)!==n)continue;for(let dx=-2;dx<=2;dx++)for(let dy=-2;dy<=2;dy++)if(dx||dy){const x=n.x+dx,y=n.y+dy,plan=this.planFrom(p,x,y,n.x,n.y,n.spent);if(!plan)continue;const next={x,y,spent:n.spent+plan.cost,path:n.path.concat({x,y,plan})},key=x+","+y;if(map.has(key)&&map.get(key).spent<=next.spent)continue;map.set(key,next);queue.push(next);}}return map;
- }
  step(x,y){
   const plan=this.plan(x,y);if(!plan)return false;
   const p=this.players.find(q=>q.id===this.mover);this.departureOrigin={x:p.x,y:p.y};

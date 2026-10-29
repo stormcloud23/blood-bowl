@@ -2,6 +2,16 @@
 
 The [v0.0.14 FFB comparison](FFB-AUDIT.md) supersedes conflicting earlier behavior: Pro is once per player per turn; a failed Pro check can itself use a team re-roll; Break Tackle is an explicit optional decision; Block dice cannot be re-rolled after result selection; and Iron Hard Skin does not cancel injury bonuses. See SKILLS.md for the expanded ability coverage. The original practice boundaries below are historical, not the current complete skill inventory.
 
+## Route preference — October 29, 2026
+
+Automatic routes minimize required Dodge/Jump, Rush and pickup checks first,
+then movement spent. A longer route without checks therefore takes precedence
+over a shorter dodge route. Separate movement-budget states preserve distant
+destinations that need a shorter risky approach. Leap and Pogo use the same
+search. Adjacent clicks explicitly select individual steps, allowing coaches
+to choose a shortcut. Tile colors continue to describe the arrival step of
+the selected route; the full preview lists checks on earlier steps.
+
 ## Sources reviewed October 28, 2026
 
 - https://bloodbowlbase.ru/bb2025/core_rules/the_game_of_blood_bowl/#move-actions — Move, standing, dodging, jumping, pickup, rushing. Same page: armour/injury tables, catching, throw-ins, touchdowns.

@@ -119,6 +119,20 @@ test('movement tiles mark only their arrival check, with route-specific dodge an
  assert.match(square(8,5).className,/\broute\b/);
  assert.doesNotMatch(square(8,5).className,/\brisk\b/);
 });
+test('safe detour is green and default while explicit adjacent steps retain the dodge shortcut',()=>{
+ const {get,run}=uiFixture('dodge');
+ run('game.players.forEach(p=>{p.x=null;p.y=null;p.status="reserve"});Object.assign(game.players[0],{x:5,y:5,status:"standing"});Object.assign(game.players[1],{x:6,y:5,status:"standing"});Object.assign(game.players[11],{x:7,y:5,status:"standing"});game.ball={x:0,y:0,carrier:null};selected=game.players[0].id;render()');
+ const square=get('pitch').children[7*26+7];
+ assert.doesNotMatch(square.className,/\brisk\b/);
+ assert.match(square.title,/Reachable in 3 movement/);
+ run('choose(7,7)');
+ assert.equal(run('destination.spent'),3);
+ assert.equal(run('destination.path.some(s=>s.plan.dodge||s.plan.rushes||s.plan.jump||s.plan.pickup)'),false);
+ run('cancelMovementPreview();choose(6,6);choose(7,7)');
+ assert.equal(run('destination.spent'),2);
+ assert.equal(run('destination.path.at(-1).plan.dodge'),true);
+});
+
 test('waypoint preview spends hypothetical MA and cancellation restores the starting range without moving',()=>{
  const {get,run}=uiFixture('dodge');run('selected=game.players[0].id;render()');
  const square=(x,y)=>get('pitch').children[y*26+x];
