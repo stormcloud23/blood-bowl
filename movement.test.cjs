@@ -10,6 +10,28 @@ function fixture(rolls=[],scenario="dodge"){
 }
 function choose(g,option="Accept"){assert.ok(g.pending);g.decide(option);}
 
+test("Blitz declares a reachable target, costs one MA, and resumes movement",()=>{
+ const g=fixture([3,3],"blitz"),a=g.players[0],d=g.players[11];
+ assert.ok(g.startBlitz(a.id,d.id));assert.ok(g.blitzUsed[0]);
+ g.step(9,7);g.step(10,7);g.step(11,7);assert.ok(g.blitzBlock());assert.equal(a.spent,4);
+ g.selectBlockDie(0);const q=g.pending;q.resolve({x:13,y:7});choose(g,"Stay");
+ assert.equal(g.action,"blitz");assert.equal(g.mover,a.id);assert.equal(g.blitzBlock(),false);
+ assert.ok(g.step(11,6));g.finish();assert.equal(g.canBlitz(g.players[1],d),false);
+});
+test("Blitz block rush fails before Block dice and turns over",()=>{
+ const g=fixture([1,1,1],"blitz"),a=g.players[0],d=g.players[11];g.startBlitz(a.id,d.id);a.x=11;a.spent=7;
+ assert.ok(g.blitzBlock());choose(g,"Accept");assert.equal(a.status,"prone");assert.equal(g.active,1);assert.equal(g.blockAction,null);
+});
+test("Blitz target is fixed, cannot be unreachable, and may be skipped",()=>{
+ const g=fixture([],"blitz"),a=g.players[0],d=g.players[11];d.x=25;assert.equal(g.startBlitz(a.id,d.id),false);
+ d.x=12;g.startBlitz(a.id,d.id);g.finish();assert.equal(g.active,0);assert.ok(g.blitzUsed[0]);
+ g.endTurn();g.endTurn();assert.equal(g.blitzUsed[0],false);
+});
+test("Blitz declaration uses activation traits and spends team Blitz on failure",()=>{
+ const g=fixture([1],"blitz"),a=g.players[0],d=g.players[11];a.role=4;g.startBlitz(a.id,d.id);
+ assert.ok(a.distracted);assert.equal(g.mover,null);assert.ok(g.blitzUsed[0]);assert.equal(g.active,0);
+});
+
 test("Block counts assists and gives the stronger coach result selection",()=>{
  const g=fixture([3,6],"block"),a=g.players[15],d=g.players[5];
  assert.ok(g.block(a.id,d.id));assert.equal(g.blockAction.aStrength,5);assert.equal(g.blockAction.dStrength,3);
