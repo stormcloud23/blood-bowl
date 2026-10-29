@@ -51,4 +51,3 @@ test('interruption stack enforces nested completion order and resumes each frame
  g.interrupt('outer',done=>{outer=done;g.interrupt('inner',finish=>inner=finish,v=>events.push(v));},v=>events.push(v));
  assert.equal(outer('early'),false);assert.equal(inner('inner'),true);assert.equal(inner('duplicate'),false);assert.equal(outer('outer'),true);assert.deepEqual(events,['inner','outer']);assert.equal(g.interruptions.length,0);
 });
-
