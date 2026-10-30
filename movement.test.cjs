@@ -26,8 +26,8 @@ test("scatter leaving the pitch invokes a throw-in from the last square",()=>{
  const g=fixture([4,5,3,1,1,2],"pass"),a=g.players[0];a.role=0;a.x=15;g.start(a.id,"pass");g.pass(25,7);
  assert.deepEqual([g.ball.x,g.ball.y],[24,6]);assert.equal(g.active,1);
 });
-test("ruler overlap excludes horizontal adjacent rows that only touch its edge",()=>{
- const g=fixture([],"pass"),a=g.players[0],d=g.players[11];d.y=8;assert.equal(g.interceptionCandidates(a,{x:14,y:7}).length,0);d.y=7;assert.equal(g.interceptionCandidates(a,{x:14,y:7}).length,1);
+test("pinned FFB ruler includes adjacent horizontal rows but excludes the next row",()=>{
+ const g=fixture([],"pass"),a=g.players[0],d=g.players[11];d.y=9;assert.equal(g.interceptionCandidates(a,{x:14,y:7}).length,0);d.y=8;assert.equal(g.interceptionCandidates(a,{x:14,y:7}).length,1);d.y=7;assert.equal(g.interceptionCandidates(a,{x:14,y:7}).length,1);
 });
 
 test("Hand-off catch has no bounce penalty; Give and Go preserves movement",()=>{
@@ -77,7 +77,7 @@ test("fumbles bounce at thrower and turn over, including modified rolls of one",
  }
 });
 test("inaccurate pass scatters three times before landing and bouncing",()=>{
- const g=fixture([3,2,2,2,2],"pass"),a=g.players[0];a.role=0;g.start(a.id,"pass");g.pass(14,7);
+ const g=fixture([3,2,2,2,2],"pass"),a=g.players[0];a.role=0;g.start(a.id,"pass");g.pass(14,7);if(g.pending)choose(g,"Decline interception");
  assert.deepEqual([g.ball.x,g.ball.y],[14,3]);assert.equal(g.active,1);assert.equal(g.events.filter(e=>e.startsWith("Pass scatter:")).length,3);
 });
 test("Pass skill rerolls accuracy once; resulting six is accurate",()=>{

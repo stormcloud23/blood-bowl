@@ -1,3 +1,9 @@
+Latest continuation: [passing geometry and selected kickoff/drive corrections](PASSING-DRIVE-AUDIT.md) replaces the old ruler approximation and exactly-one-only fumble behavior with pinned executable FFB rules. An isolated Java-method oracle now verifies these calculations; older statements below about not running Java describe historical increments.
+
+Follow-on: [Mascots, Weather Mages and regeneration aids](INDUCEMENT-ACTIONS.md) adds those basic inducements and shared medical/re-roll choices. Older exclusions below are historical.
+
+Latest continuation: [referees and Secret Weapons](REFEREES.md) adds Biased Referees and grouped drive-end argument/Bribe choices. Current catalogue: 106 implemented, 0 partial, 2 deferred. Older Secret Weapon boundaries below describe historical increments.
+
 # Exhibition parity — departure reactions
 
 The departure reaction increment added Shadowing and Arm Bar in PR #3.

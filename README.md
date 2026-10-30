@@ -14,10 +14,12 @@ A self-contained browser game targeting **Blood Bowl 2025 matches and local leag
 - Movement, Blocks, Blitz, passing, interceptions, fouls, thrown/kicked players, and supported special actions.
 - Ball & Chain movement/collisions, Bloodlust feeding, and recursive bomb throws with grouped blast treatment.
 - Multiple Block with two committed attacks, coach dice choices and grouped injury treatment.
-- Configurable staff and basic inducements, kickoff staff bonuses, Keg recovery, Master Chefs, and Bribery and Corruption.
+- Configurable staff and basic inducements, kickoff staff bonuses, Keg recovery, Master Chefs, Biased Referees, and Bribery and Corruption.
+- Grouped end-of-drive Secret Weapon arguments and Bribe allocation.
+- Team Mascot re-roll choices, Weather Mages, and rule-gated Mortuary Assistants / Plague Doctors.
 - Casualty results, pregame team apothecaries, Regeneration treatment, Decay and Plague Ridden reserves.
 - Coach-controlled re-rolls and reaction choices, plus a skills laboratory and practice drills.
-- **105 implemented, 1 partial, and 2 deferred** entries in the 108-skill/trait catalogue.
+- **106 implemented, 0 partial, and 2 deferred** entries in the 108-skill/trait catalogue.
 
 These coverage labels describe available actions, not complete FFB parity. The two deferred entries chiefly require roster/progression work; exhibition interactions and several match systems still need further verification. League teams and completed results save in browser storage with JSON export/import. Unfinished fixtures restart from pre-game after reload. Live match save/resume and AI are not implemented. See [team creation and progression](docs/LEAGUES.md).
 

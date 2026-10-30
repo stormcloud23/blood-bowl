@@ -30,6 +30,37 @@ test('resource UI changes lock after determining fans and stale value buttons ca
 test('the real Secret Weapon send-off UI uses the Black Orc rule re-roll and rejects stale replay',()=>{
  const {get,run}=uiFixture('match');run('game.phase="endDrive";game.drive=1;game.kicking=0;globalThis.weapon=game.players[11];weapon.extraSkills=["Secret Weapon"];weapon.status="standing";weapon.x=15;weapon.y=7;weapon.fieldedDrive=1;globalThis.rolls=[1,6];game.dice=()=>rolls.shift();game.continueDrive();render()');assert.equal(run('game.pending.team'),1);const argue=get('choices').children.find(e=>e.textContent==='Argue the Call');argue.listeners.click();argue.listeners.click();assert.equal(run('game.argueRerolls[1]'),0);assert.equal(run('game.argueBanned[1]'),false);assert.equal(run('game.phase'),'setup');assert.notEqual(run('weapon.status'),'sent-off');assert.equal(run('rolls.length'),0);
 });
+
+test('Biased Referee resource controls show the Black Orc discount and live selection',()=>{
+ const {get,run}=uiFixture('match');get('matchflow').children.find(e=>e.textContent==='Configure staff and inducements — '+run('teams[1].name')).listeners.click();get('choices').children.find(e=>e.textContent==='Biased Referees: 0').listeners.click();get('choices').children.find(e=>e.textContent==='1 — 80,000 gp').listeners.click();get('choices').children.find(e=>e.textContent==='Done').listeners.click();assert.equal(run('game.biasedRefs[1]'),1);assert.ok(get('matchflow').children.some(e=>e.textContent.includes('Biased Referees 0 / 1')));
+});
+
+test('grouped Secret Weapon UI chooses argument order before allocating Bribes',()=>{
+ const {get,run}=uiFixture('match');run('game.setResource(0,"bribes",1);game.phase="endDrive";game.drive=1;game.kicking=0;game.players.slice(0,2).forEach((p,i)=>Object.assign(p,{extraSkills:["Secret Weapon"],status:"standing",x:10,y:5+i,fieldedDrive:1}));globalThis.rolls=[2,6,2];game.dice=()=>rolls.shift();game.continueDrive();render()');
+ const choose=label=>{const b=get('choices').children.find(e=>e.textContent===label);assert.ok(b,label);b.listeners.click();};
+ choose('Argue for #2');choose('Argue the Call');assert.match(run('game.pending.kind'),/Bribes/);const old=get('choices').children.find(e=>e.textContent==='Use Bribe');old.listeners.click();old.listeners.click();assert.equal(run('game.bribes[0]'),0);assert.equal(run('game.phase'),'setup');assert.equal(run('rolls.length'),0);
+});
+
+test('Biased Referee end-drive UI offers optional rule re-roll after natural one',()=>{
+ const {get,run}=uiFixture('match');run('game.setResource(1,"biasedRefs",1);game.phase="endDrive";game.drive=1;game.kicking=0;Object.assign(game.players[11],{extraSkills:["Secret Weapon"],status:"standing",x:15,y:7,fieldedDrive:1});game.dice=()=>1;game.continueDrive();render()');get('choices').children.find(e=>e.textContent==='Argue the Call').listeners.click();assert.equal(run('game.argueBanned[1]'),false);assert.equal(run('game.argueRerolls[1]'),1);get('choices').children.find(e=>e.textContent==='Keep argument results').listeners.click();assert.equal(run('game.phase'),'setup');assert.equal(run('game.argueRerolls[1]'),1);
+});
+
+test('Mascot re-roll appears in the real ordinary-roll and Block menus',()=>{
+ const {get,run}=uiFixture('match');run('game.setResource(0,"mascots",1);game.phase="play";globalThis.p=game.players[0];Object.assign(p,{status:"standing",x:10,y:7});game.rerolls=[0,0];globalThis.rolls=[1,4,6];game.dice=()=>rolls.shift();globalThis.success=false;game.test(p,"Pick up",3,()=>success=true,()=>{});render()');get('choices').children.find(e=>e.textContent==='Use Mascot').listeners.click();assert.equal(run('success'),true);assert.equal(run('game.mascots[0]'),0);
+ run('game.mascots[0]=1;game.blockAction={attacker:p,target:game.players[11],chooserTeam:0,dice:[1],poolLocked:false,assists:{offensive:0,defensive:0}};game.pending={type:"blockSelect"};globalThis.rolls=[4,6];render()');get('choices').children.find(e=>e.textContent==='Re-roll the dice with Mascot').listeners.click();assert.equal(run('game.blockAction.dice[0]'),6);assert.equal(run('game.mascots[0]'),0);
+});
+
+test('Weather Mage start-of-turn and result decisions are reachable through real UI buttons',()=>{
+ const {get,run}=uiFixture('match');run('game.setResource(0,"weatherMages",1);game.phase="play";globalThis.rolls=[1,1];game.dice=()=>rolls.shift();game.beginTurn(0);render()');get('choices').children.find(e=>e.textContent==='Use Weather Mage').listeners.click();get('choices').children.find(e=>e.textContent==='Very Sunny').listeners.click();assert.equal(run('game.weather'),'Very Sunny');assert.equal(run('game.weatherMages[0]'),0);assert.equal(run('game.pending'),null);
+});
+
+test('Mortuary Assistant injury control retains the defending coach and spends one use',()=>{
+ const {get,run}=uiFixture('match');run('game.teams[1].special.push("Masters of Undeath");game.setResource(1,"mortuaryAssistants",1);game.phase="play";game.rerolls=[0,0];globalThis.p=game.players[11];Object.assign(p,{status:"standing",x:15,y:7,extraSkills:["Regeneration"]});globalThis.rolls=[16,1,1,6];game.dice=()=>rolls.shift();game.resolveInjury(p,12);render()');assert.equal(run('game.pending.team'),1);get('choices').children.find(e=>e.textContent==='Mortuary Assistant re-roll Regeneration').listeners.click();assert.equal(run('p.status'),'reserve');assert.equal(run('game.mortuaryAssistants[1]'),0);assert.equal(run('rolls.length'),0);
+});
+
+test('Plague Doctor treatment control cures a casualty without spending an apothecary',()=>{
+ const {get,run}=uiFixture('match');run('game.teams[1].special.push("Favoured of Nurgle");game.setResource(1,"plagueDoctors",1);game.phase="play";globalThis.p=game.players[11];Object.assign(p,{status:"standing",x:15,y:7});globalThis.rolls=[1,1];game.dice=()=>rolls.shift();game.resolveInjury(p,12);render()');get('choices').children.find(e=>e.textContent==='Use Plague Doctor').listeners.click();assert.equal(run('p.status'),'reserve');assert.equal(run('game.plagueDoctors[1]'),0);assert.equal(run('game.apothecaries[1]'),0);
+});
 function outlierUi(rolls,scenario='skills'){
  const f=uiFixture(scenario);f.run('game.players.forEach(p=>Object.assign(p,{status:"reserve",x:null,y:null,extraSkills:[],profileOverride:{name:"Fixture",cost:0,max:16,primary:"G",secondary:"A",ma:6,st:3,ag:"3+",pa:"3+",av:"9+",skills:[],traits:"Lineman, Human"}}));globalThis.a=game.players[0];globalThis.b=game.players[1];globalThis.d=game.players[11];Object.assign(a,{x:10,y:7,status:"standing"});Object.assign(b,{x:9,y:7,status:"standing"});Object.assign(d,{x:12,y:7,status:"standing"});game.rerolls=[0,0];game.ball={x:20,y:14,carrier:null};game.interceptionCandidates=()=>[];selected=a.id;globalThis.rolls='+JSON.stringify(rolls)+';game.dice=()=>rolls.shift();if(game.match){game.phase="play";game.turns=[1,0];}render()');return f;
 }
@@ -164,6 +195,10 @@ test('Safe Pair of Hands UI decline bounces the ball normally',()=>{
 test('accurate Pass preview reflects the receiver Diving Catch bonus',()=>{
  const {get,run}=uiFixture('pass');run('game.players[1].extraSkills=["Diving Catch"];game.start(game.players[0].id,"pass");selected=game.players[0].id;ballMode=true;throwDestination={x:14,y:7};render()');assert.ok(get('choices').children.some(e=>e.textContent.includes('Catch 2+ (accurate delivery)')));
 });
+
+test('PA-dash pass preview explains the automatic fumble instead of displaying NaN',()=>{
+ const {get,run}=uiFixture('pass');run('game.players[0].profileOverride={...game.profile(game.players[0]),pa:"-"};game.start(game.players[0].id,"pass");selected=game.players[0].id;ballMode=true;throwDestination={x:14,y:7};render()');assert.ok(get('choices').children.some(e=>e.textContent.includes('PA –: automatic fumble')));assert.ok(!get('choices').children.some(e=>e.textContent.includes('NaN')));
+});
 test('Kick Team-mate UI declares, selects a passenger and completes the existing flight flow',()=>{
  const {get,run}=uiFixture('pickup');run('game.players[0].extraSkills=["Kick Team-mate"];game.players[1].extraSkills=["Right Stuff"];game.rerolls=[0,0];game.dice=()=>6;selected=game.players[0].id;render()');
  assert.equal(get('kick-mate').disabled,false);get('kick-mate').listeners.click();get('choices').children.find(e=>e.textContent.startsWith('Throw team-mate #')).listeners.click();run('choose(12,7);choose(12,7)');assert.equal(run('game.players[1].x'),9);assert.equal(run('game.players[1].y'),10);assert.equal(run('game.kickUsed[0]'),true);assert.equal(run('game.passUsed[0]'),false);
@@ -190,7 +225,7 @@ test('Pile Driver UI runs a free foul and places the attacker prone',()=>{
  const {get,run}=uiFixture('dodge');run('game.players[0].extraSkills=["Pile Driver"];game.players[11].status="prone";game.rerolls=[0,0];globalThis.rolls=[1,2];game.dice=()=>rolls.shift();game.blockAction={attacker:game.players[0],target:game.players[11],blitz:false,targetKnocked:true,assists:{offensive:0,defensive:0}};game.finishBlock();render()');get('choices').children.find(e=>e.textContent==='Free foul').listeners.click();assert.equal(run('game.players[0].status'),'prone');assert.equal(run('game.blockAction'),null);assert.equal(run('game.scoreDeferrals'),0);
 });
 test('On the Ball UI finishes defensive movement before the pass dice',()=>{
- const {get,run}=uiFixture('pass');run('game.players[11].extraSkills=["On the Ball"];game.rerolls=[0,0];game.dice=()=>6;game.start(game.players[0].id,"pass");game.pass(14,7);render()');get('choices').children.find(e=>e.textContent.includes('(1-1)')).listeners.click();get('choices').children.find(e=>e.textContent==='Move to 12, 7').listeners.click();get('choices').children.find(e=>e.textContent==='Stop moving').listeners.click();assert.equal(run('game.ball.carrier'),'0-2');assert.equal(run('game.moveContext'),null);assert.equal(run('game.active'),0);
+ const {get,run}=uiFixture('pass');run('game.players[11].extraSkills=["On the Ball"];game.rerolls=[0,0];game.dice=()=>6;game.start(game.players[0].id,"pass");game.pass(14,7);render()');get('choices').children.find(e=>e.textContent.includes('(1-1)')).listeners.click();get('choices').children.find(e=>e.textContent==='Move to 12, 7').listeners.click();get('choices').children.find(e=>e.textContent==='Stop moving').listeners.click();get('choices').children.find(e=>e.textContent==='Decline interception').listeners.click();assert.equal(run('game.ball.carrier'),'0-2');assert.equal(run('game.moveContext'),null);assert.equal(run('game.active'),0);
 });
 test('Chainsaw foul UI chooses the chainsaw and runs kickback before armour',()=>{
  const {get,run}=uiFixture('dodge');run('game.players[0].extraSkills=["Chainsaw"];game.players[11].status="prone";game.rerolls=[0,0];globalThis.rolls=[2,1,2];game.dice=()=>rolls.shift();game.start(game.players[0].id,"foul");game.performSpecial(game.players[11].id);render()');get('choices').children.find(e=>e.textContent==='Use Chainsaw').listeners.click();assert.equal(run('game.players[0].status'),'standing');assert.equal(run('game.pending'),null);assert.equal(run('rolls.length'),0);

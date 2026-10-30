@@ -81,10 +81,10 @@ class MovementGame {
    resume();
   };
   const medical=()=>{
-   if(!["casualty","knocked-out"].includes(state)||!this.apothecaries[p.team]||state==="knocked-out"&&this.has(p,"Ball & Chain")){finish();return;}
-   this.treatmentChoice("Apothecary — #"+p.number+(record.selected?": "+record.selected.result:" knocked out"),p,["Use Apothecary","Decline treatment"],choice=>{
-    if(choice!=="Use Apothecary"){finish();return;}
-    this.apothecaries[p.team]--;record.treatment="Apothecary";
+   if(!["casualty","knocked-out"].includes(state)||!this.medicalSources(p).length||state==="knocked-out"&&this.has(p,"Ball & Chain")){finish();return;}
+   this.treatmentChoice("Apothecary — #"+p.number+(record.selected?": "+record.selected.result:" knocked out"),p,[...this.medicalSources(p),"Decline treatment"],choice=>{
+    if(!this.useMedicalSource(p,choice)){finish();return;}
+    record.treatment=choice==="Use Plague Doctor"?"Plague Doctor":"Apothecary";
     if(state==="knocked-out"||record.selected.result==="Badly hurt"){
      state=state==="knocked-out"&&!crowd&&!stunIsKo?"stunned":"reserve";finish();return;
     }
@@ -103,9 +103,10 @@ class MovementGame {
    update();next();
   };
   const retryRegeneration=next=>{
-   if(record.regenerationFailed&&this.canTeamReroll(p)){
-    this.treatmentChoice("Regeneration — #"+p.number,p,["Team re-roll Regeneration","Accept Regeneration failure"],choice=>{
-     if(choice==="Team re-roll Regeneration"&&this.useTeamReroll(p)){
+   const sources=this.regenerationSources(p),labels=sources.map(s=>this.rerollLabel(s)+" Regeneration");
+   if(record.regenerationFailed&&sources.length){
+    this.treatmentChoice("Regeneration — #"+p.number,p,[...labels,"Accept Regeneration failure"],choice=>{
+     const source=sources[labels.indexOf(choice)];if(source&&this.useRegenerationSource(p,source)){
       record.regenerationReroll=this.roll("Regeneration re-roll needs 4+");
       if(record.regenerationReroll>=4){state="reserve";record.treatment="Regeneration";}
      }
@@ -114,8 +115,12 @@ class MovementGame {
    }
    next();
   };
-  this.scheduleInjury({p,record,origin,regenerate,retryRegeneration,treat:next=>{resume=next;medical();}},done);
+  this.scheduleInjury({p,record,origin,regenerate,retryRegeneration,canRetryRegeneration:()=>record.regenerationFailed&&this.regenerationSources(p).length>0,treat:next=>{resume=next;medical();}},done);
  }
+ medicalSources(p){return this.apothecaries[p.team]>0?["Use Apothecary"]:[];}
+ useMedicalSource(p,choice){if(choice!=="Use Apothecary"||!this.apothecaries[p.team])return false;this.apothecaries[p.team]--;return true;}
+ regenerationSources(p){return this.rerollSources(p);}
+ useRegenerationSource(p,source){return this.useRerollSource(p,source);}
  scheduleInjury(entry,done){entry.regenerate(()=>entry.retryRegeneration(()=>entry.treat(done)));}
 
  has(p,skill){return this.profile(p).skills.includes(skill);}
@@ -132,13 +137,18 @@ class MovementGame {
   const loner=this.profile(p).skills.find(s=>s.startsWith("Loner ("));
   return !loner||this.roll("Loner needs "+loner.match(/\d+/)[0]+"+")>=Number(loner.match(/\d+/)[0]);
  }
+ rerollSources(p){return this.canTeamReroll(p)?["Team"]:[];}
+ isRerollSource(source){return source==="Team";}
+ rerollLabel(source){return source+" re-roll";}
+ useRerollSource(p,source){return source==="Team"&&this.useTeamReroll(p);}
  attemptPro(p,yes,no){
   p.proUsed=true;
   if(this.roll("Pro needs 3+")>=3){yes();return;}
-  if(!this.canTeamReroll(p)){no();return;}
-  this.pending={type:"custom",kind:"Pro",options:["Team re-roll Pro","Accept Pro failure"],resolve:choice=>{
-   this.pending=null;if(choice==="Team re-roll Pro"&&this.useTeamReroll(p)&&this.roll("Pro re-roll needs 3+")>=3)yes();else no();
-  }};
+  const sources=this.rerollSources(p);if(!sources.length){no();return;}
+  const labels=sources.map(s=>this.rerollLabel(s)+" Pro"),q={type:"custom",kind:"Pro",team:p.team,options:[...labels,"Accept Pro failure"],resolve:choice=>{
+   if(this.pending!==q||!q.options.includes(choice))return false;
+   this.pending=null;const source=sources[labels.indexOf(choice)];if(source&&this.useRerollSource(p,source)&&this.roll("Pro re-roll needs 3+")>=3)yes();else no();return true;
+  }};this.pending=q;
  }
  // Keep the interrupted action on the stack until its reaction (including nested
  // decisions) completes. Pop before resuming, so a continuation can interrupt again.
@@ -207,20 +217,27 @@ class MovementGame {
   this.beforePass(p,{x,y},()=>{this.ballActionDone=false;const finalPreview=this.passPreview(x,y)||preview;this.ballActionDone=true;this.resolvePass(p,x,y,finalPreview);});return true;
  }
  beforePass(p,target,done){done();}
+ classifyPass(pa,roll,modifier,safePass=false){
+  if(!Number.isFinite(pa)||pa<=0)return "FUMBLE";
+  if(roll===1)return safePass?"SAVED_FUMBLE":"FUMBLE";
+  if(roll===6||roll-modifier>=pa)return "ACCURATE";
+  return roll-modifier<=1?"FUMBLE":"INACCURATE";
+ }
  resolvePass(p,x,y,preview){
-  this.note("#"+p.number+" attempts a "+preview.name+" to "+(x+1)+", "+(y+1)+"; PA "+preview.target+"+.");
+  this.note("#"+p.number+" attempts a "+preview.name+" to "+(x+1)+", "+(y+1)+"; "+(Number.isFinite(preview.target)?"PA "+preview.target+"+":"PA –, automatic fumble")+".");
   this.passContext={p,preview,target:{x,y}};
   const modifier=preview.target-Number.parseInt(this.profile(p).pa),target=Number.parseInt(this.profile(p).pa),resolve=n=>{
-   this.pending=null;
-   if(n===1&&this.has(p,"Safe Pass")){this.note("Safe Pass: possession retained; activation ends.");this.mover=null;this.action=null;this.passContext=null;return;}
+   this.pending=null;const result=this.classifyPass(target,n,modifier,this.has(p,"Safe Pass"));
+   if(result==="SAVED_FUMBLE"){this.note("Safe Pass: possession retained; activation ends.");this.mover=null;this.action=null;this.passContext=null;return;}
    this.ball={x:p.x,y:p.y,carrier:null};
-   if(n===1||n-modifier===1&&n!==6){this.note("Fumbled Pass: ball bounces from the thrower; turnover.");this.bounce(p.x,p.y,()=>this.endTurn(true));return;}
-   const accurate=!preview.hail&&(n===6||n-modifier>=target);
+   if(result==="FUMBLE"){this.note("Fumbled Pass: ball bounces from the thrower; turnover.");this.bounce(p.x,p.y,()=>this.endTurn(true));return;}
+   const accurate=!preview.hail&&result==="ACCURATE";
    this.note(accurate?"Accurate Pass.":"Inaccurate Pass: Scatter (3).");
    const original=this.at(x,y),delivery={kind:"pass",target:{x,y},accurate,accurateToPlayer:accurate&&original?.status==="standing"&&!original.distracted};
    const land=(lx,ly)=>this.interceptPass(p,{x:lx,y:ly},accurate,()=>this.landBall(lx,ly,false,()=>this.finishBallAction(p,preview.band===0),true,delivery));
    if(accurate)land(x,y);else this.scatterPass(x,y,land,()=>this.throwIn(this.ball.x,this.ball.y,()=>this.finishBallAction(p,preview.band===0)));
   };
+  if(!Number.isFinite(target)){this.note("No Passing Ability: automatic fumble, without a passing die.");resolve(0);return true;}
   const roll=this.roll("Pass accuracy needs "+Math.min(6,preview.target)+"+");
   if(roll===6||roll!==1&&roll>=preview.target){resolve(roll);return true;}
   const options=this.options(p,"Pass");if(options.length)this.pending={p,kind:"Pass",target:preview.target,roll,options,resolve};else resolve(roll);return true;
@@ -230,22 +247,24 @@ class MovementGame {
   for(let i=0;i<3;i++){const [dx,dy]=dirs[this.roll("Pass scatter",8)-1];if(!this.inside(x+dx,y+dy)){this.ball={x,y,carrier:null};out();return;}x+=dx;y+=dy;}
   land(x,y);
  }
- interceptionCandidates(from,to){
-  const dx=to.x-from.x,dy=to.y-from.y,len=Math.hypot(dx,dy);if(!len)return [];
-  // Rectangle of the ruler (one square wide), tested against each player square using separating axes.
-  const ux=dx/len,uy=dy/len,mx=(from.x+to.x)/2,my=(from.y+to.y)/2;
-  return this.players.filter(p=>p.team!==from.team&&this.onPitch(p)&&p.status==="standing"&&!p.distracted&&
-   [[1,0],[0,1],[ux,uy],[-uy,ux]].every(([ax,ay])=>Math.abs((p.x-mx)*ax+(p.y-my)*ay)<.5*(Math.abs(ax)+Math.abs(ay))+len/2*Math.abs(ux*ax+uy*ay)+.5*Math.abs(-uy*ax+ux*ay)-1e-9));
+ interceptionSquare(from,to,point){
+  // Translated from pinned FFB UtilPassing.canIntercept (ruler width 1.74).
+  const rx=to.x-from.x,ry=to.y-from.y,ix=point.x-from.x,iy=point.y-from.y;
+  const toTarget=(rx-ix)**2+(ry-iy)**2,fromThrower=ix**2+iy**2,lengthSquared=rx**2+ry**2;
+  const corners=[Math.abs(ry*(ix+.5)-rx*(iy+.5)),Math.abs(ry*(ix+.5)-rx*(iy-.5)),Math.abs(ry*(ix-.5)-rx*(iy+.5)),Math.abs(ry*(ix-.5)-rx*(iy-.5))];
+  return lengthSquared>toTarget&&lengthSquared>fromThrower&&1.74>2*Math.min(...corners)/Math.sqrt(lengthSquared);
  }
+ interceptionCandidates(from,to){return this.players.filter(p=>p.team!==from.team&&this.onPitch(p)&&p.status==="standing"&&!p.distracted&&this.interceptionSquare(from,to,p));}
+
  interceptPass(p,to,accurate,land){
   const candidates=this.interceptionCandidates(p,to);if(!candidates.length){land();return;}
   const options=candidates.map(q=>"Intercept with #"+q.number);options.push("Decline interception");
-  this.pending={type:"custom",kind:this.teams[1-p.team].name+" interception",options,resolve:choice=>{
-   this.pending=null;const index=options.indexOf(choice);if(index===candidates.length){land();return;}
+  const decision={type:"custom",team:1-p.team,kind:this.teams[1-p.team].name+" interception",options,resolve:choice=>{
+   if(this.pending!==decision||!options.includes(choice))return false;this.pending=null;const index=options.indexOf(choice);if(index===candidates.length){land();return true;}
    const q=candidates[index];this.test(q,"Intercept",Number.parseInt(this.profile(q).ag)+(accurate?3:2)+this.marking(q),()=>{
     this.ball={x:q.x,y:q.y,carrier:q.id};this.recordStat(q,"interception");this.note("#"+q.number+" intercepts the pass.");this.checkScore();this.endTurn(true);
-   },land);
-  }};
+   },land);return true;
+  }};this.pending=decision;
  }
  finishBallAction(p,allowGiveAndGo,forcedTurnover=false){
   this.passContext=null;
@@ -312,9 +331,8 @@ class MovementGame {
  blockFace(n){return ["","Player Down","Both Down","Push Back","Push Back","Stumble","POW"][n];}
  rerollBlock(source,index=null){
   const b=this.blockAction;if(!b||this.pending?.type!=="blockSelect"||b.poolLocked)return false;
-  if(source==="Team"){
-   if(!this.canTeamReroll(b.attacker))return false;
-   if(!this.useTeamReroll(b.attacker)){b.poolLocked=true;this.pending={type:"blockSelect"};this.note("Loner failed; the team re-roll is lost.");return true;}
+  if(this.rerollSources(b.attacker).includes(source)){
+   if(!this.useRerollSource(b.attacker,source)){b.poolLocked=true;this.pending={type:"blockSelect"};this.note("Loner failed; the team re-roll is lost.");return true;}
    b.poolLocked=true;b.dice=b.dice.map((_,i)=>this.roll("Block die "+(i+1)+" team re-roll"));
    this.pending={type:"blockSelect"};this.note("Team re-roll: re-rolled the Block Dice pool.");return true;
   }
@@ -474,7 +492,7 @@ class MovementGame {
    if(kind==="Pass"&&this.has(p,"Pass"))options.push("Pass");
    if(this.mover===p.id&&this.has(p,"Pro")&&!p.proUsed)options.push("Pro");
   }
-  if(this.canTeamReroll(p))options.push("Team");
+  options.push(...this.rerollSources(p));
   return options;
  }
  test(p,kind,target,yes,no){
@@ -497,8 +515,8 @@ class MovementGame {
   if(choice==="Accept"){if(q.accept)q.accept();else q.resolve(q.roll);return true;}
   if(choice==="Dodge")q.p.dodgeUsed=true;
   if(choice==="Pro"){this.attemptPro(q.p,()=>q.resolve(this.roll(q.kind+" re-roll (Pro)")),()=>{if(q.accept)q.accept();else q.resolve(q.roll);});return true;}
-  if(choice==="Team"){
-   if(!this.useTeamReroll(q.p)){q.resolve(q.roll);return true;}
+  if(this.isRerollSource(choice)){
+   if(!this.useRerollSource(q.p,choice)){q.resolve(q.roll);return true;}
   }
   // A re-rolled die is resolved directly; no further re-roll is offered.
   q.resolve(this.roll(q.kind+" re-roll ("+choice+")"));return true;

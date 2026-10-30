@@ -8,6 +8,11 @@ const MATCH_RESOURCES={
  cheerleaders:{label:"Cheerleaders",group:"staff",max:6,cost:10000,initial:0},
  dedicatedFans:{label:"Dedicated Fans",group:"staff",min:1,max:6,cost:5000,initial:1},
  bribes:{label:"Bribes",group:"inducement",max:3,cost:100000,initial:0},
+ mortuaryAssistants:{label:"Mortuary Assistants",group:"inducement",max:1,cost:100000,initial:0},
+ plagueDoctors:{label:"Plague Doctors",group:"inducement",max:1,cost:100000,initial:0},
+ weatherMages:{label:"Weather Mages",group:"inducement",max:1,cost:30000,initial:0},
+ mascots:{label:"Team Mascots",group:"inducement",max:1,cost:25000,initial:0},
+ biasedRefs:{label:"Biased Referees",group:"inducement",max:1,cost:120000,initial:0},
  kegs:{label:"Blitzer's Best Kegs",group:"inducement",max:2,cost:50000,initial:0},
  extraTraining:{label:"Extra Training",group:"inducement",max:4,cost:100000,initial:0},
  wanderingApothecaries:{label:"Wandering Apothecaries",group:"inducement",max:2,cost:100000,initial:0},
@@ -36,6 +41,9 @@ class MatchGame extends MatchBase {
   if(key==="apothecary"){spec.cost=this.teams[team].staff?.apothecary||0;if(!spec.cost)spec.max=0;}
   if(key==="wanderingApothecaries"&&!this.teams[team].staff?.apothecary)spec.max=0;
   if(key==="bribes"&&this.hasTeamRule(team,"Bribery and Corruption")){spec.cost=50000;spec.max=6;}
+  if(key==="mortuaryAssistants"&&!this.hasTeamRule(team,"Masters of Undeath"))spec.max=0;
+  if(key==="plagueDoctors"&&!this.hasTeamRule(team,"Favoured of Nurgle"))spec.max=0;
+  if(key==="biasedRefs"&&this.hasTeamRule(team,"Bribery and Corruption"))spec.cost=80000;
   if(key==="masterChef"&&(this.teams[team].rosterKeywords||[]).some(k=>k.toLowerCase()==="master chef"))spec.cost=100000;
   return spec;
  }
@@ -61,11 +69,24 @@ class MatchGame extends MatchBase {
  lockLeagueInducements(team){if(this.phase!=="leagueSteps"||this.pending||this.leaguePurchaseOrder[this.leaguePurchaseStep]!==team)return false;this.leaguePurchaseStep++;return true;}
  leagueBudget(team){const diff=this.teams[team].ctv-this.teams[1-team].ctv;if(diff===0)return 0;if(diff>0)return this.teams[team].treasury;return -diff+this.resourceCosts(1-team).inducements+Math.min(50000,this.teams[team].treasury);}
  leagueTreasurySpend(team){const diff=this.teams[team].ctv-this.teams[1-team].ctv,cost=this.resourceCosts(team).inducements;return diff>=0?cost:Math.max(0,cost-(-diff+this.resourceCosts(1-team).inducements));}
+ medicalSources(p){const result=super.medicalSources(p);if(this.plagueDoctors?.[p.team]>0)result.push("Use Plague Doctor");return result;}
+ useMedicalSource(p,choice){if(choice!=="Use Plague Doctor")return super.useMedicalSource(p,choice);if(!this.plagueDoctors?.[p.team])return false;this.plagueDoctors[p.team]--;return true;}
+ regenerationSources(p){if(this.mortuaryAssistants?.[p.team]>0)return ["Mortuary Assistant"];if(this.plagueDoctors?.[p.team]>0)return ["Plague Doctor"];return super.regenerationSources(p);}
+ useRegenerationSource(p,source){if(source==="Mortuary Assistant"&&this.mortuaryAssistants[p.team]>0){this.mortuaryAssistants[p.team]--;return true;}if(source==="Plague Doctor"&&this.plagueDoctors[p.team]>0){this.plagueDoctors[p.team]--;return true;}return super.useRegenerationSource(p,source);}
+ isRerollSource(source){return ["Team","Mascot","Mascot then Team"].includes(source);}
+ rerollSources(p){const result=super.rerollSources(p);if(this.teamRerollAllowed(p)&&this.mascots?.[p.team]>0){result.push("Mascot");if(this.canTeamReroll(p))result.push("Mascot then Team");}return result;}
+ useRerollSource(p,source){
+  if(source==="Team")return super.useRerollSource(p,source);
+  if(!["Mascot","Mascot then Team"].includes(source)||!this.rerollSources(p).includes(source))return false;
+  const success=this.roll("Mascot needs 4+")>=4;this.mascots[p.team]--;this.note(success?"Mascot grants the re-roll.":"Mascot fails to grant the re-roll.");
+  if(!success)return source==="Mascot then Team"&&this.useTeamReroll(p);
+  const loner=this.parameter(p,"Loner");return !loner||this.roll("Loner for Mascot")>=Number(loner.match(/\d+/)[0]);
+ }
  refreshResources(){
   this.baseRerolls=this.resourceChoices.map(r=>r.teamRerolls);
   this.rerolls=this.resourceChoices.map(r=>r.teamRerolls+r.extraTraining);
   this.apothecaries=this.resourceChoices.map(r=>r.apothecary+r.wanderingApothecaries);
-  this.bribes=this.resourceChoices.map(r=>r.bribes);this.dedicatedFans=this.resourceChoices.map(r=>r.dedicatedFans);
+  this.mortuaryAssistants=this.resourceChoices.map(r=>r.mortuaryAssistants);this.plagueDoctors=this.resourceChoices.map(r=>r.plagueDoctors);this.weatherMages=this.resourceChoices.map(r=>r.weatherMages);this.mascots=this.resourceChoices.map(r=>r.mascots);this.biasedRefs=this.resourceChoices.map(r=>r.biasedRefs);this.bribes=this.resourceChoices.map(r=>r.bribes);this.dedicatedFans=this.resourceChoices.map(r=>r.dedicatedFans);
   this.argueRerolls=this.resourceChoices.map((r,t)=>this.hasTeamRule(t,"Bribery and Corruption")?1:0);
  }
  resourceCosts(team){
@@ -105,6 +126,15 @@ class MatchGame extends MatchBase {
   }return false;
  }
  rollWeather(){const sum=this.roll("Weather team 1")+this.roll("Weather team 2");this.weather=sum===2?"Sweltering Heat":sum===3?"Very Sunny":sum===11?"Pouring Rain":sum===12?"Blizzard":"Perfect Conditions";this.note("Weather: "+this.weather+".");return this.weather;}
+ weatherName(sum){return sum<=2?"Sweltering Heat":sum===3?"Very Sunny":sum===11?"Pouring Rain":sum>=12?"Blizzard":"Perfect Conditions";}
+ useWeatherMage(team){
+  if(this.phase!=="play"||this.pending||team!==this.active||this.weatherWindowTeam!==team||this.weatherMages[team]<1||this.mover)return false;
+  this.weatherMages[team]--;const sum=this.roll("Weather Mage die 1")+this.roll("Weather Mage die 2"),choices=new Map();
+  for(const modifier of [0,1,-1,2,-2]){const name=this.weatherName(Math.max(2,Math.min(12,sum+modifier)));if(!choices.has(name))choices.set(name,modifier);}
+  const apply=name=>{this.weather=name;this.note("Weather Mage: "+name+" (roll "+sum+", modifier "+choices.get(name)+").");};
+  if(choices.size===1)apply([...choices.keys()][0]);else this.skillChoice("Weather Mage result",team,[...choices.keys()],apply);
+  return true;
+ }
  chooseKicking(team){if(this.phase!=="kickChoice"||![0,1].includes(team))return false;this.firstReceiver=1-team;this.prepareDrive(team);return true;}
  available(team){return this.players.filter(p=>p.team===team&&!p.eaten&&!["casualty","knocked-out","sent-off"].includes(p.status)&&!p.heatOut);}
  prepareDrive(kicking){
@@ -164,7 +194,7 @@ class MatchGame extends MatchBase {
    const options=list.map(p=>"High Kick: #"+p.number);options.push("Skip High Kick");this.choice("High Kick",options,option=>{const p=list[options.indexOf(option)];if(p)Object.assign(p,this.kickLanding);finish();});
   }
   else if(total===6||total===7){
-   const kind=total===6?"cheerleaders":"assistants",a=this.roll(this.teams[0].name+(total===6?" Cheering Fans":" Brilliant Coaching"))+this.staffCount(0,kind),b=this.roll(this.teams[1].name+(total===6?" Cheering Fans":" Brilliant Coaching"))+this.staffCount(1,kind);
+   const kind=total===6?"cheerleaders":"assistants",contest=t=>{let n=this.roll(this.teams[t].name+(total===6?" Cheering Fans":" Brilliant Coaching"));if(total===6&&n===1&&this.resourceChoices[t].mascots){this.note("Team Mascot re-rolls the Cheering Fans natural one.");n=this.roll("Mascot Cheering Fans re-roll");}return n+this.staffCount(t,kind);},a=contest(0),b=contest(1);
    for(const t of [0,1])if((t===0?a:b)>=(t===0?b:a)){if(total===6)this.cheer[t]=true;else{this.rerolls[t]++;this.driveBonus[t]++;}}
   this.note(total===6?"Cheering Fans: winning coach(es) gain an assist on their first Block next turn.":"Brilliant Coaching: winning coach(es) gain a Drive re-roll.");finish();
   }
@@ -172,11 +202,11 @@ class MatchGame extends MatchBase {
    if(this.rollWeather()==="Perfect Conditions"&&!this.kickTouchback){const dirs=[[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]];for(let i=0;i<3;i++){const [dx,dy]=dirs[this.roll("Airborne weather scatter",8)-1];this.kickLanding.x+=dx;this.kickLanding.y+=dy;this.checkKickBounds();if(this.kickTouchback)break;}}finish();
   }
   else if(total===11||total===12){
-   const a=this.roll(this.teams[0].name+" event contest")+(total===12?this.fans[0]:0),b=this.roll(this.teams[1].name+" event contest")+(total===12?this.fans[1]:0);
-   for(const t of [0,1])if((t===0?a:b)<=(t===0?b:a)){
-    const count=total===11?1:Math.ceil(this.roll("Pitch invasion player count")/2),list=this.randomPlayers(this.players.filter(p=>p.team===t&&this.onPitch(p)),count,"Random event player");
-    for(const p of list)if(total===12){p.status="stunned";this.note("Pitch invasion stuns #"+p.number+".");}else if(this.roll("Dodgy Snack")===1){Object.assign(p,{status:"reserve",x:null,y:null});this.note("Dodgy Snack removes #"+p.number+" for the drive.");}else{p.snack=true;this.note("Dodgy Snack: #"+p.number+" loses 1 MA and AV this drive.");}
-   }finish();
+   const a=this.roll(this.teams[0].name+" event contest")+(total===12?this.fans[0]:0),b=this.roll(this.teams[1].name+" event contest")+(total===12?this.fans[1]:0),count=total===12?Math.ceil(this.roll("Pitch invasion player count")/2):1;
+   // Commit every victim before any Snack effect or Ball & Chain treatment.
+   const victims=[0,1].flatMap(t=>(t===0?a:b)<=(t===0?b:a)?this.randomPlayers(this.players.filter(p=>p.team===t&&this.onPitch(p)&&(total!==12||p.status==="standing")),count,"Random event player"):[]);
+   if(total===11){for(const p of victims)if(this.roll("Dodgy Snack")===1){Object.assign(p,{status:"reserve",x:null,y:null});this.note("Dodgy Snack removes #"+p.number+" for the drive.");}else{p.snack=true;this.note("Dodgy Snack: #"+p.number+" loses 1 MA and AV this drive.");}finish();return;}
+   let index=0;const stun=()=>{if(index===victims.length){finish();return;}const p=victims[index++];if(this.has(p,"Ball & Chain")){this.chainDamage(p,stun,{placed:true});return;}p.status="stunned";p.rooted=false;this.onProne(p);this.note("Pitch invasion stuns #"+p.number+".");stun();};stun();
   }
  }
  eventPlace(id,x,y){
@@ -209,6 +239,7 @@ class MatchGame extends MatchBase {
   if(this.skip[team]){this.skip[team]=false;this.turns[team]++;this.note(this.teams[team].name+" skips a turn celebrating an opposition-turn Touchdown.");}
   if(this.turns[team]>=8){if(this.turns[1-team]>=8){this.endDrive(null);return;}team=1-team;}
   this.active=team;this.turns[team]++;this.resetTeam(team);this.note(this.teams[team].name+" — half "+this.half+", turn "+this.turns[team]+".");
+  if(this.weatherMages[team]>0){this.weatherWindowTeam=team;this.skillChoice("Weather Mage — "+this.teams[team].name,team,["Use Weather Mage","Keep weather"],choice=>{if(choice==="Use Weather Mage")this.useWeatherMage(team);this.weatherWindowTeam=null;});}
  }
  canStart(p){if(!super.canStart(p))return false;if(this.phase==="play")return true;const e=this.eventState;return this.phase==="charge"&&e?.eligible.includes(p.id)&&!e.used.includes(p.id)&&e.used.length<e.limit;}
  start(id,action="move"){
@@ -221,7 +252,7 @@ class MatchGame extends MatchBase {
  canBallAction(p,kind){return this.phase==="play"&&super.canBallAction(p,kind);}
  block(a,d){if(this.phase!=="play")return false;const p=this.players.find(p=>p.id===a);this.stallCandidate=p&&this.canScoreWithoutDice(p)?a:null;return super.block(a,d);}
  options(p,kind){const result=super.options(p,kind);return this.phase==="play"?result:result.filter(s=>s!=="Team");}
- test(p,kind,target,yes,no){if(this.weather==="Blizzard"&&kind==="Rush")target++;if(this.weather==="Pouring Rain"&&["Pick up","Catch","Intercept"].includes(kind))target++;super.test(p,kind,target,yes,no);}
+ test(p,kind,target,yes,no){if(this.weather==="Blizzard"&&kind==="Rush")target++;if(this.weather==="Pouring Rain"&&["Pick up","Catch","Intercept","Bomb interception"].includes(kind))target++;super.test(p,kind,target,yes,no);}
  passPreview(x,y){const result=super.passPreview(x,y);if(result&&this.weather==="Very Sunny"&&this.action!=="bomb")result.target++;return result;}
  throwPreview(x,y){const result=super.throwPreview(x,y);if(result&&this.weather==="Very Sunny")result.target++;return result;}
  passRange(from,to){const result=super.passRange(from,to);return this.weather==="Blizzard"&&result?.band>1?null:result;}
@@ -272,16 +303,61 @@ class MatchGame extends MatchBase {
   if(p&&p.status==="standing"&&p.x===(this.right(p.team)?25:0)){this.scores[p.team]++;this.recordStat(p,"touchdown");this.note("TOUCHDOWN — "+this.teams[p.team].name+"! Score "+this.scores.join("–")+".");if(p.team!==this.active){this.turns[p.team]=Math.min(8,this.turns[p.team]+1);this.note("Scoring during the opponent's turn: the scoring team skips its next turn celebrating.");}this.endDrive(p.team);}
  }
  endDrive(scorer){this.phase="endDrive";this.finished=true;this.pending=null;this.mover=null;this.action=null;this.blockAction=null;this.lastScorer=scorer;this.note("End of Drive: resolve recovery and effects before continuing.");}
+ // FFB StepEndTurn: each coach argues/retries, then both Bribe allocations.
+ resolveSecretWeapons(){
+  let c=this.weaponContext;
+  if(!c){
+   const players=this.players.filter(p=>p.fieldedDrive===this.drive&&p.weaponResolvedDrive!==this.drive&&this.has(p,"Secret Weapon")&&!["sent-off","casualty"].includes(p.status)&&!p.eaten);
+   if(!players.length)return false;
+   c=this.weaponContext={players,stage:0,argued:new Set(),saved:new Set(),retry:[],retryDone:new Set()};
+  }
+  this.argueBanned||=[false,false];
+  const resume=()=>this.continueDrive();
+  const rollArgue=(p,rerolled=false)=>{
+   let n=this.roll(rerolled?"Bribery and Corruption Argue re-roll":"Argue the Call"),modified=n+(this.biasedRefs?.[p.team]||0);
+   if(n===1&&!rerolled&&(this.argueRerolls?.[p.team]||0)>0){
+    if(modified===1){this.argueRerolls[p.team]--;this.note("Bribery and Corruption: re-roll the natural-one Argue the Call.");rollArgue(p,true);return;}
+    c.retry.push(p);
+   }
+   if(modified>=6){c.saved.add(p.id);this.note("Argue the Call saves #"+p.number+" from the Secret Weapon ban.");}
+   if(modified===1){this.argueBanned[p.team]=true;this.note("The coach is banned from further arguments; end-of-drive Bribes remain available.");}
+  };
+  while(c.stage<6){
+   const team=[1,1,0,0,1,0][c.stage],remaining=c.players.filter(p=>p.team===team&&!c.saved.has(p.id));
+   if(c.stage<4&&c.stage%2===0){
+    const list=remaining.filter(p=>!c.argued.has(p.id));
+    if(!list.length||this.argueBanned[team]){c.stage++;continue;}
+    const labels=list.map(p=>list.length===1?"Argue the Call":"Argue for #"+p.number);
+    this.skillChoice("Secret Weapon arguments — "+this.teams[team].name,team,[...labels,"Accept send-off"],choice=>{
+     const p=list[labels.indexOf(choice)];if(p){c.argued.add(p.id);rollArgue(p);}else c.stage++;resume();
+    });return true;
+   }
+   if(c.stage<4){
+    const list=c.retry.filter(p=>p.team===team&&!c.saved.has(p.id));
+    if(c.retryDone.has(team)||!list.length||!(this.argueRerolls?.[team]>0)){c.stage++;continue;}
+    const labels=list.map(p=>"Re-roll Argue for #"+p.number);
+    this.skillChoice("Bribery and Corruption — "+this.teams[team].name,team,[...labels,"Keep argument results"],choice=>{
+     c.retryDone.add(team);const p=list[labels.indexOf(choice)];if(p){this.argueRerolls[team]--;rollArgue(p,true);}c.stage++;resume();
+    });return true;
+   }
+   if(!remaining.length||!(this.bribes[team]>0)){c.stage++;continue;}
+   const labels=remaining.map(p=>remaining.length===1?"Use Bribe":"Bribe for #"+p.number);
+   this.skillChoice("Secret Weapon Bribes — "+this.teams[team].name,team,[...labels,"Accept send-off"],choice=>{
+    const p=remaining[labels.indexOf(choice)];if(p){this.bribes[team]--;if(this.roll("Bribe needs 2+")>=2){c.saved.add(p.id);this.note("Bribe saves #"+p.number+" from the Secret Weapon ban.");}}else c.stage++;resume();
+   });return true;
+  }
+  for(const p of c.players){p.weaponResolvedDrive=this.drive;if(!c.saved.has(p.id)){Object.assign(p,{x:null,y:null,status:"sent-off"});if(this.ball.carrier===p.id)this.ball={x:null,y:null,carrier:null};this.note("Secret Weapon #"+p.number+" is Sent-off.");}}
+  this.weaponContext=null;return false;
+ }
  continueDrive(){
   if(this.phase!=="endDrive"||this.pending)return false;
-  const weapon=this.players.find(p=>p.fieldedDrive===this.drive&&p.weaponResolvedDrive!==this.drive&&this.has(p,"Secret Weapon")&&p.status!=="sent-off");
-  if(weapon){weapon.weaponResolvedDrive=this.drive;this.sendOff(weapon,()=>this.continueDrive());return true;}
+  if(this.turns.every(n=>n>=8)&&this.half===2){this.phase="finished";this.note(this.scores[0]===this.scores[1]?"Full time — draw.":"Full time — "+this.teams[this.scores[0]>this.scores[1]?0:1].name+" wins.");return true;}
+  if(this.resolveSecretWeapons())return true;
   const field=this.players.filter(p=>this.onPitch(p));for(const p of this.players)p.heatOut=false;
-  if(this.weather==="Sweltering Heat"){const count=Math.ceil(this.roll("Sweltering Heat player count")/2);for(const t of [0,1])for(const p of this.randomPlayers(field.filter(q=>q.team===t),count,"Heat exhaustion")){p.heatOut=true;this.note("Heat: #"+p.number+" misses the next drive.");}}
   for(const p of this.players){if(p.status==="knocked-out"&&this.roll("KO recovery #"+p.number)+this.resourceChoices[p.team].kegs>=4){p.status="reserve";this.note("#"+p.number+" recovers from KO.");}p.snack=false;}
+  if(this.weather==="Sweltering Heat"){const count=Math.ceil(this.roll("Sweltering Heat player count")/2);for(const t of [0,1])for(const p of this.randomPlayers(field.filter(q=>q.team===t),count,"Heat exhaustion")){p.heatOut=true;this.note("Heat: #"+p.number+" misses the next drive.");}}
   for(const t of [0,1]){this.rerolls[t]=Math.max(0,this.rerolls[t]-this.driveBonus[t]);this.driveBonus[t]=0;}
   if(this.turns.every(n=>n>=8)){
-   if(this.half===2){this.phase="finished";this.note(this.scores[0]===this.scores[1]?"Full time — draw.":"Full time — "+this.teams[this.scores[0]>this.scores[1]?0:1].name+" wins.");return true;}
    this.half=2;this.turns=[0,0];this.rerolls=this.resourceChoices.map(r=>r.teamRerolls+r.extraTraining);this.skip=[false,false];this.note("HALF-TIME: change ends and replenish purchased re-rolls and Extra Training.");this.prepareDrive(this.firstReceiver);return true;
   }
   this.prepareDrive(this.lastScorer??this.kicking);return true;
