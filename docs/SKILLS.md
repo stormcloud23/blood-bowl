@@ -16,7 +16,7 @@ Build with `node build.cjs` and verify all suites with `node --test *.test.cjs`.
 
 Reviewed October 28, 2026 against the full [Blood Bowl 2025 Skills & Traits list](https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/), [current FAQ](https://bloodbowlbase.ru/bb2025/core_rules/latest_faq/), [Foul / Argue the Call rules](https://bloodbowlbase.ru/bb2025/core_rules/the_game_of_blood_bowl/#foul-actions), and [Bribes](https://bloodbowlbase.ru/bb2025/core_rules/inducements/#0-3-bribes-0-6-for-teams-with-the-bribery-and-corruption-special-rule).
 
-All 108 entries are accounted for: **101 implemented**, **2 partial**, **5 deferred**. Implemented describes support within the available actions and exhibition sequence, not missing league or inducement systems. Deferred abilities are not offered as laboratory additions. Each deferred row records the missing dependency for a future pass. This table and the app inventory share the same registry in skills.cjs.
+All 108 entries are accounted for: **104 implemented**, **2 partial**, **2 deferred**. Implemented describes support within the available actions and exhibition sequence, not missing league or inducement systems. Deferred abilities are not offered as laboratory additions. Each deferred row records the missing dependency for a future pass. This table and the app inventory share the same registry in skills.cjs.
 
 ## How to try them
 
@@ -111,9 +111,9 @@ Sources: [Throw Team-mate and landing](https://bloodbowlbase.ru/bb2025/core_rule
 | Always Hungry | Traits | Active * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Animal Savagery | Traits | Passive * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Animosity (X) | Traits | Active * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
-| Ball & Chain | Traits | Active * | Deferred | Needs directional random movement, collision Blocks against either team and special injury handling. |
-| Bloodlust (X+) | Traits | Passive * | Deferred | Needs Thrall selection, bite injury, action replacement and feeding before passing or scoring. |
-| Bombardier | Traits | Active | Deferred | Needs a separate bomb object, explosions, recursive caught-bomb throws and simultaneous injuries. |
+| Ball & Chain | Traits | Active * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
+| Bloodlust (X+) | Traits | Passive * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
+| Bombardier | Traits | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Bone Head | Traits | Passive * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Breathe Fire | Traits | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Chainsaw | Traits | Active * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |

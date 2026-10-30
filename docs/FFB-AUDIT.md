@@ -1,3 +1,8 @@
+Latest continuation: [outlier skills](OUTLIER-SKILLS.md) implements Ball & Chain,
+Bloodlust and Bombardier on main `e08ef6c`. Current catalogue: 104 implemented,
+2 partial, 2 deferred; only the roster/progression entries remain deferred.
+Older counts below describe historical increments, not the current inventory.
+
 Latest continuation: [Multiple Block](MULTIPLE-BLOCK.md) adds committed attack
 results and grouped injury treatment on main `634a179`. Current catalogue: 101
 implemented, 2 partial, 5 deferred. Older counts below are historical.

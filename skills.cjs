@@ -11,9 +11,6 @@ const SKILL_GROUPS={
 };
 const SKILL_DEFERRED={
  "Violent Innovator":"Requires Star Player Point attribution and league progression.",
- "Ball & Chain":"Needs directional random movement, collision Blocks against either team and special injury handling.",
- "Bloodlust (X+)":"Needs Thrall selection, bite injury, action replacement and feeding before passing or scoring.",
- "Bombardier":"Needs a separate bomb object, explosions, recursive caught-bomb throws and simultaneous injuries.",
  "Insignificant":"Requires the Team Draft List / roster builder.",
 };
 const SKILL_PARTIAL={"Leader":"Exhibition re-roll and missing-Leader eligibility are supported; Halfling Master Chef interactions await inducements.","Secret Weapon":"End-of-drive send-off, Argue the Call and available Bribes are supported; bribe-related roster special rules await inducements."};
@@ -21,6 +18,157 @@ const PASSIVES=new Set(["Claws","Disturbing Presence","Foul Appearance","Iron Ha
 const MANDATORY=new Set(["Frenzy","Disturbing Presence","Foul Appearance","Always Hungry","Animal Savagery","Animosity (X)","Ball & Chain","Bloodlust (X+)","Bone Head","Chainsaw","Decay","Drunkard","Hatred (X)","Insignificant","Loner (X+)","My Ball","No Ball","Really Stupid","Right Stuff","Secret Weapon","Stunty","Take Root","Titchy","Unchannelled Fury","Unsteady"]);
 const SKILL_CATALOG=Object.entries(SKILL_GROUPS).flatMap(([category,names])=>names.map(name=>({name,category,kind:PASSIVES.has(name)?"Passive":"Active",mandatory:MANDATORY.has(name),status:SKILL_DEFERRED[name]?"Deferred":SKILL_PARTIAL[name]?"Partial":"Implemented",notes:SKILL_DEFERRED[name]||SKILL_PARTIAL[name]||"Supported in the available actions. Optional abilities may be disabled before action resolution.",source:"https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/#"+name.toLowerCase().replace(/[^a-z0-9 ]/g,"").replaceAll(" ","-")})));
 class SkillGame extends SkillBase {
+ canBomb(p){return !!p&&this.canStart(p)&&p.status==="standing"&&this.has(p,"Bombardier")&&!this.has(p,"Ball & Chain")&&!this.bombUsed?.[p.team];}
+ beginBomb(p){
+  this.bombContext={original:p,attacker:p,thrower:p,team:p.team,stage:"aim",turnover:false,injuries:[],ball:null};this.bomb={x:p.x,y:p.y,carrier:p.id};this.action="bomb";this.mover=p.id;this.scoreDeferrals=(this.scoreDeferrals||0)+1;this.note("Throw Bomb: choose a highlighted square; no movement before throwing.");
+ }
+ bombActor(){const c=this.bombContext;return c?.stage==="aim"&&!this.pending&&!this.finished?c.thrower:null;}
+ ballActor(kind){return kind==="bomb"?this.bombActor():super.ballActor(kind);}
+ canBlitz(p,target){return !!p&&!this.has(p,"Ball & Chain")&&super.canBlitz(p,target);}
+ secureBall(p,x,y){if(p.bloodlust){this.feed(p,()=>super.secureBall(p,x,y));return;}super.secureBall(p,x,y);}
+ checkScore(){if(this.feedBeforeScore())return;super.checkScore();}
+ feedBeforeScore(){
+  if(this.scoreDeferrals||this.pending)return false;
+  const p=this.players.find(q=>q.id===this.ball.carrier);if(!p?.bloodlust)return false;
+  const goal=this.match?(this.right(p.team)?25:0):(p.team===0?25:0);
+  if(p.x!==goal||p.status!=="standing")return false;this.feed(p,()=>this.checkScore());return true;
+ }
+ bombPreview(x,y){
+  const p=this.bombActor(),range=p&&this.passRange(p,{x,y});if(!range)return null;const pa=parseInt(this.profile(p).pa);
+  let target=(Number.isFinite(pa)?pa:7)+range.band+this.marking(p)+this.disturbance(p)+(this.weather==="Very Sunny"?1:0);
+  if(this.skill(p,"Nerves of Steel"))target-=this.marking(p);if(range.band<2&&this.skill(p,"Accurate")||range.band>=2&&this.skill(p,"Cannoneer"))target--;
+  return {...range,target};
+ }
+ throwBomb(x,y,{animosityChecked=false}={}){
+  const p=this.bombActor(),preview=this.bombPreview(x,y);if(!p||!preview)return false;
+  if(p.bloodlust){this.feed(p,()=>this.throwBomb(x,y));return true;}
+  if(!animosityChecked&&this.parameter(p,"Animosity"))return this.animosity(p,this.at(x,y),()=>this.throwBomb(x,y,{animosityChecked:true}),()=>{if(this.bombContext.rethrows)this.explodeBomb(p.x,p.y);else this.finishBomb();});
+  const c=this.bombContext;c.stage="flight";const pa=parseInt(this.profile(p).pa),modifier=preview.target-(Number.isFinite(pa)?pa:7),origin={x:p.x,y:p.y};
+  const resolve=n=>{
+   if(p===c.original)c.allowMove=preview.band===0&&this.has(p,"Give and Go")&&n!==1;
+   if(Number.isFinite(pa)&&n===1&&this.has(p,"Safe Pass")){this.note("Safe Pass: bomb retained safely; action ends.");this.finishBomb();return;}
+   if(!Number.isFinite(pa)||n===1||n!==6&&n-modifier<=1){this.note("Fumbled bomb: explosion in the thrower's square.");this.explodeBomb(origin.x,origin.y);return;}
+   const accurate=!preview.hail&&(n===6||n-modifier>=pa),delivery={kind:"pass",chooserTeam:p.team,accurate,accurateToPlayer:accurate&&this.at(x,y)?.status==="standing"};
+   let lx=x,ly=y;if(!accurate)for(let i=0;i<3;i++){const pos=this.bombScatter(lx,ly,"Bomb scatter");lx=pos.x;ly=pos.y;if(!this.inside(lx,ly)){this.finishBomb();return;}}
+   const land=()=>this.landBomb(lx,ly,delivery,true);
+   if(preview.hail){land();return;}
+   const candidates=this.interceptionCandidates(p,{x:lx,y:ly}).filter(q=>!this.has(q,"Ball & Chain"));
+   if(!candidates.length){land();return;}
+   const options=candidates.map(q=>"Intercept bomb with #"+q.number+" ("+q.id+")").concat("Decline interception");
+   this.skillChoice("Bomb interception",1-p.team,options,choice=>{
+    const q=candidates[options.indexOf(choice)];if(!q){land();return;}
+    const target=parseInt(this.profile(q).ag)+(accurate?3:2)+this.marking(q)+this.disturbance(q)-(this.skill(q,"Extra Arms")?1:0)-(this.skill(q,"Very Long Legs")?2:0);
+    this.test(q,"Bomb interception",target,()=>this.rethrowBomb(q),land);
+   });
+  };
+  if(!Number.isFinite(pa))resolve(1);else this.test(p,"Pass",preview.target,resolve,resolve);return true;
+ }
+ bombScatter(x,y,label){const dirs=[[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]],[dx,dy]=dirs[this.roll(label,8)-1];return {x:x+dx,y:y+dy};}
+ landBomb(x,y,delivery,mayBounce){
+  if(!this.inside(x,y)){this.note("Bomb leaves the pitch.");this.finishBomb();return;}
+  this.bomb={x,y,carrier:null};
+  const catchWith=p=>{
+   if(p?.status==="standing"&&!p.distracted){
+    this.bomb={x:p.x,y:p.y,carrier:null};const c=this.bombContext;c.catchTest=p.id;
+    const end=fn=>{c.catchTest=null;fn();};this.test(p,"Catch",this.landingTarget(p,delivery),()=>end(()=>this.rethrowBomb(p)),()=>end(()=>this.explodeBomb(p.x,p.y)));return;
+   }
+   if(!this.at(x,y)&&mayBounce){const pos=this.bombScatter(x,y,"Bomb bounce");this.landBomb(pos.x,pos.y,{kind:"bomb"},false);}else this.explodeBomb(x,y);
+  };
+  if(delivery.kind==="pass")this.chooseLandingCatcher(x,y,delivery,catchWith);else catchWith(this.at(x,y));
+ }
+ rethrowBomb(p){const c=this.bombContext;c.thrower=p;c.rethrows=(c.rethrows||0)+1;c.stage="aim";this.bomb={x:p.x,y:p.y,carrier:p.id};this.mover=p.id;this.action="bomb";this.note(this.teams[p.team].name+" #"+p.number+" catches the bomb and must throw it again.");}
+ explodeBomb(x,y){
+  const c=this.bombContext;c.stage="blast";this.bomb={x,y,carrier:null};
+  const victims=this.players.filter(p=>this.onPitch(p)&&this.distance(p,{x,y})<=1).sort((a,b)=>a.y-b.y||a.x-b.x);let i=0;
+  this.note("Bomb explodes at "+(x+1)+", "+(y+1)+".");
+  const next=()=>{
+   if(i===victims.length){c.stage="medical";this.resolveMedicalGroups(c,()=>this.finishBomb());return;}
+   const p=victims[i++];if((p.x!==x||p.y!==y)&&this.roll("Adjacent bomb blast needs 4+")<4){next();return;}
+   const origin={x:p.x,y:p.y},standing=p.status==="standing",carrier=this.ball.carrier===p.id;
+   const damage=()=>{
+    if(standing){p.status="prone";p.rooted=false;this.onProne(p);if(p.team===c.team)c.turnover=true;}
+    if(carrier&&p.team===c.team)c.turnover=true;
+    const finish=()=>this.releaseProneBall(p,origin,next),armour=this.has(p,"Ball & Chain")?Infinity:this.roll("Bomb Armour")+this.roll("Bomb Armour");
+    if(armour<parseInt(this.profile(p).av)){finish();return;}
+    this.injuryResult(p,this.roll("Bomb Injury")+this.roll("Bomb Injury"),finish,{source:{playerId:c.original.id,cause:"Bomb"}});
+   };
+   const placed=()=>standing?this.beforeProne(p,origin,damage):damage();if(standing)this.preventFall(p,next,placed);else placed();
+  };next();
+ }
+ finishBomb({allowFeed=true}={}){
+  const c=this.bombContext;if(!c)return;this.bombContext=null;this.bomb=null;this.mover=null;this.action=null;this.blockAction=null;
+  const finish=()=>{this.scoreDeferrals--;this.syncLeader();const complete=()=>{this.checkScore();if(!this.finished&&c.turnover)this.endTurn(true);else if(!this.finished&&c.allowMove&&c.original.status==="standing"){this.mover=c.original.id;this.action="move";this.note("Give and Go: movement after the bomb is available.");}};if(allowFeed&&c.original.bloodlust)this.feed(c.original,complete);else complete();};
+  if(c.ball){const {x,y,kind}=c.ball;if(kind==="throwIn")super.throwIn(x,y,finish);else super.bounce(x,y,finish);}else finish();
+ }
+ bloodlustActivation(p,action,ready){
+  const trait=this.parameter(p,"Bloodlust");if(!trait||p.bloodlustChecked){ready();return;}
+  p.bloodlustChecked=true;const easy=["block","blitz","foul"].includes(action)||["Stab","Chainsaw","Projectile Vomit","Breathe Fire","Chomp"].some(s=>action==="special:"+s),target=Math.max(2,Number(trait.match(/\d+/)[0])-(easy?1:0));
+  this.test(p,"Bloodlust",target,ready,()=>{
+   p.bloodlust=true;this.note("#"+p.number+" must feed before finishing the action, transferring the ball or scoring.");
+   if(["block","secure","bomb"].includes(action))this.skillChoice("Bloodlust — action",p.team,["Continue declared action","Replace with Move"],choice=>{
+    if(choice==="Continue declared action"){ready();return;}
+    if(this.multipleContext){this.multipleContext=null;this.scoreDeferrals--;}
+    this.action="move";this.blockAction=null;this.mover=p.id;this.attackRoller=null;
+    if(p.status==="prone")this.stand(p);if(this.bombContext)this.finishBomb({allowFeed:false});
+   });else ready();
+  });
+ }
+ thralls(p){return this.players.filter(q=>q!==p&&q.team===p.team&&this.onPitch(q)&&this.distance(p,q)===1&&(q.thrall||this.profile(q).thrall||this.keywords(q).includes("thrall")));}
+ feed(p,done,{allow=true}={}){
+  if(!p?.bloodlust){done();return false;}
+  const victims=allow&&p.status==="standing"&&!p.distracted?this.thralls(p):[],fail=()=>{
+   p.bloodlust=false;if(this.onPitch(p))p.distracted=true;this.note("Bloodlust: #"+p.number+" fails to feed; turnover.");this.mover=null;this.action=null;this.blockAction=null;
+   const finish=()=>this.feedingTurnover();if(this.ball.carrier===p.id){const {x,y}=p;this.ball={x,y,carrier:null};this.bounce(x,y,finish);}else finish();
+  };
+  if(!victims.length){fail();return true;}
+  const options=victims.map(q=>"Bite #"+q.number+" ("+q.id+")").concat("Do not feed");
+  this.skillChoice("Bloodlust — choose a Thrall",p.team,options,choice=>{
+   const q=victims[options.indexOf(choice)];if(!q){fail();return;}
+   p.bloodlust=false;const origin={x:q.x,y:q.y},carrying=this.ball.carrier===q.id;
+   this.note("#"+p.number+" bites Thrall #"+q.number+".");q.status="prone";q.rooted=false;this.onProne(q);
+   this.injuryResult(q,this.roll("Thrall bite Injury")+this.roll("Thrall bite Injury"),()=>this.releaseProneBall(q,origin,()=>{if(carrying)this.feedingTurnover();else done();}),{stunty:false,automaticBadlyHurt:true,source:{playerId:p.id,cause:"Bloodlust bite"}});
+  });return true;
+ }
+ finish(){if(this.bombContext){if(this.pending||this.bombContext.rethrows)return false;this.finishBomb();return true;}const p=this.players.find(p=>p.id===this.mover);if(p?.bloodlust&&!this.pending){this.feed(p,()=>super.finish());return true;}return super.finish();}
+ bloodlustEndTurn(turnover){
+  if(this.pending||this.feedingEndTurn)return false;
+  const p=this.players.find(q=>q.team===this.active&&q.bloodlust);if(!p)return false;
+  this.feedingEndTurn=true;this.feed(p,()=>{this.feedingEndTurn=false;this.endTurn(turnover);},{allow:!turnover});this.feedingEndTurn=false;return true;
+ }
+ offerChain(){
+  const p=this.players.find(p=>p.id===this.mover);if(!p||!this.has(p,"Ball & Chain")||this.pending||p.status!=="standing")return;
+  if(p.spent>=this.movementAllowance(p)+this.rushLimit(p)){const end=()=>{this.mover=null;this.action=null;};if(p.bloodlust)this.feed(p,end);else end();return;}
+  this.skillChoice("Ball & Chain — aim the movement template",p.team,["Aim North","Aim East","Aim South","Aim West","End activation"],choice=>{
+   if(choice==="End activation"){this.finish();return;}this.chainStep(p,choice.slice(4));
+  });
+ }
+ chainStep(p,direction){
+  const fans={North:[[-1,-1],[0,-1],[1,-1]],East:[[1,-1],[1,0],[1,1]],South:[[1,1],[0,1],[-1,1]],West:[[-1,1],[-1,0],[-1,-1]]};
+  const [dx,dy]=fans[direction][Math.ceil(this.roll("Ball & Chain direction")/2)-1],origin={x:p.x,y:p.y},pos={x:p.x+dx,y:p.y+dy};p.spent++;
+  if(!this.inside(pos.x,pos.y)){this.pushPlayer(p,pos,()=>this.endTurn(true));return;}
+  const d=this.at(pos.x,pos.y),rush=done=>p.spent>this.movementAllowance(p)?this.test(p,"Rush",2,done,()=>{
+   if(d){this.chainContext.rushFailed=true;this.resolvePush(false);}else this.fall(p);
+  }):done();
+  if(d){
+   this.chainContext={attacker:p,target:d,origin,ground:d.status!=="standing",carrierBefore:this.ball.carrier};
+   const b={attacker:p,target:d,blitz:false,assists:{offensive:0,defensive:0},aStrength:+this.profile(p).st,dStrength:+this.profile(d).st,chain:true};this.blockAction=b;
+   this.dumpOff(p,d,()=>{const roll=()=>rush(()=>{if(this.chainContext.ground)this.resolvePush(true);else this.chainBlockDice(p,d);});const own=+this.profile(p).st,other=+this.profile(d).st;if(!this.chainContext.ground&&this.skill(p,"Dauntless")&&own<other)this.test(p,"Dauntless",other-own+1,()=>{p.blockST=other;roll();},roll);else roll();});this.guardMultipleDecision();return;
+  }
+  p.x=pos.x;p.y=pos.y;this.refreshChomps();rush(()=>{
+   if(!this.ball.carrier&&this.ball.x===p.x&&this.ball.y===p.y)this.bounce(p.x,p.y,()=>this.offerChain());else this.offerChain();
+  });
+ }
+ chainBlockDice(p,d){
+  this.attackRoller=p.id;super.rollBlock(p,d,false);this.blockAction.chain=true;this.attackRoller=null;p.blockST=null;
+  const hatred=this.parameter(p,"Hatred");if(hatred&&this.keywords(d).includes(hatred.slice(hatred.indexOf("(")+1,-1).toLowerCase())){const i=this.blockAction.dice.indexOf(1);if(i>=0){this.blockAction.poolLocked=true;this.blockAction.dice[i]=this.roll("Hatred Ball & Chain skull re-roll");}}
+ }
+ chainDamage(p,done,{placed=false,source=null,modifierBy=null,modifierKind="Mighty Blow",plague=false}={}){
+  const origin={x:p.x,y:p.y},carrying=this.ball.carrier===p.id;p.status="prone";p.rooted=false;this.onProne(p);
+  // The pinned placed-prone InjuryTypeBallAndChain uses the fixed {5,5} roll.
+  const dice=placed?10:this.roll("Ball & Chain Injury")+this.roll("Ball & Chain Injury"),apply=bonus=>this.injuryResult(p,dice+bonus,()=>this.releaseProneBall(p,origin,()=>{if(carrying&&p.team===this.active)this.endTurn(true);else done();}),{source,plague});
+  if(!placed&&modifierBy)this.skillChoice(modifierKind,modifierBy.team,["Add +1 to Injury","No modifier"],choice=>apply(choice==="Add +1 to Injury"?1:0));else apply(0);
+ }
+ placeProne(p,done,options={}){if(this.has(p,"Ball & Chain")){this.chainDamage(p,done,{placed:true});return;}super.placeProne(p,done,options);}
  multipleTargets(a){return a?this.players.filter(d=>d.team!==a.team&&d.status==="standing"&&this.onPitch(d)&&this.distance(a,d)===1):[];}
  canMultipleBlock(a){return !this.multipleContext&&!!a&&this.canStart(a)&&this.has(a,"Multiple Block")&&!this.has(a,"Ball & Chain")&&(a.status==="standing"||a.status==="prone"&&this.has(a,"Jump Up"))&&this.multipleTargets(a).length>=2;}
  chooseMultipleBlock(a){
@@ -102,18 +250,19 @@ class SkillGame extends SkillBase {
   const b=c.pools[c.index];this.blockAction=b;this.note("Resolve Multiple Block against #"+b.target.number+": "+b.result+".");this.applyBlockResult(b.result);this.guardMultipleDecision();
  }
  guardMultipleDecision(){
-  const q=this.pending;if(!this.multipleContext||!q||q.multipleGuard||!["custom","pushChoice"].includes(q.type))return;
+  const q=this.pending;if(!(this.multipleContext||this.chainContext||this.bombContext)||!q||q.multipleGuard||!["custom","pushChoice"].includes(q.type))return;
   q.multipleGuard=true;const resolve=q.resolve;
   q.resolve=value=>{if(this.pending!==q||!q.options.includes(value))return false;const result=resolve(value);this.guardMultipleDecision();return result;};
  }
  scheduleInjury(entry,done){
-  const c=this.multipleContext;if(c?.stage==="effects"){c.injuries.push(entry);done();return;}
+  const c=this.multipleContext?.stage==="effects"?this.multipleContext:this.bombContext?.stage==="blast"?this.bombContext:null;if(c){c.injuries.push(entry);done();return;}
   super.scheduleInjury(entry,done);
  }
- multipleMedical(){
-  const c=this.multipleContext;let teamIndex=0;
+ multipleMedical(){this.resolveMedicalGroups(this.multipleContext,()=>this.finishMultiple());}
+ resolveMedicalGroups(c,done){
+  let teamIndex=0;
   const group=()=>{
-   if(teamIndex===2){this.finishMultiple();return;}
+   if(teamIndex===2){done();return;}
    const team=teamIndex++===0?1-c.attacker.team:c.attacker.team,entries=c.injuries.filter(e=>e.p.team===team);let i=0;
    const regen=()=>{if(i===entries.length){i=0;retry();return;}entries[i++].regenerate(regen);};
    const retry=()=>{if(i===entries.length){treat();return;}const entry=entries[i++];if(entry.retryRegeneration)entry.retryRegeneration(retry);else retry();};
@@ -124,7 +273,7 @@ class SkillGame extends SkillBase {
     if(automatic){next(automatic);return;}
     if(remaining.length===1||!this.apothecaries[team]){next(remaining[0]);return;}
     const options=remaining.map(e=>"Resolve #"+e.p.number+" injury "+(c.injuries.indexOf(e)+1)+": "+(e.record.medicalStatus==="casualty"?e.record.selected.result:e.record.medicalStatus));
-    this.skillChoice("Multiple Block medical — choose injury to resolve",team,options,option=>next(remaining[options.indexOf(option)]));
+    this.skillChoice((this.bombContext===c?"Bomb":"Multiple Block")+" medical — choose injury to resolve",team,options,option=>next(remaining[options.indexOf(option)]));
    };regen();
   };group();
  }
@@ -139,7 +288,7 @@ class SkillGame extends SkillBase {
    if(worst.record.source)p.casualtySource={...worst.record.source};
   }
   this.multipleContext=null;this.blockAction=null;this.attackRoller=null;this.mover=null;this.action=null;
-  const finish=()=>{this.scoreDeferrals--;this.syncLeader();this.note("Multiple Block action resolved.");this.checkScore();if(!this.finished&&c.turnover)this.endTurn(true);else this.checkStalling?.(c.attacker);};
+  const finish=()=>{this.scoreDeferrals--;this.syncLeader();this.note("Multiple Block action resolved.");const complete=()=>{this.checkScore();if(!this.finished&&c.turnover)this.endTurn(true);else this.checkStalling?.(c.attacker);};if(c.attacker.bloodlust)this.feed(c.attacker,complete,{allow:!c.turnover});else complete();};
   if(c.ball){const {kind,x,y}=c.ball;if(kind==="throwIn")super.throwIn(x,y,finish);else super.bounce(x,y,finish);}else finish();
  }
  multipleEndTurn(turnover){
@@ -147,7 +296,7 @@ class SkillGame extends SkillBase {
   if(!turnover||this.pending)return true;
   c.turnover=true;if(c.stage==="effects")this.finishBlock();else if(c.stage!=="medical")this.finishMultiple();return true;
  }
- bounce(x,y,done){const c=this.multipleContext;if(c?.stage==="effects"){c.ball||={kind:"bounce",x,y};done();return;}super.bounce(x,y,done);}
+ bounce(x,y,done){const c=this.multipleContext?.stage==="effects"?this.multipleContext:this.bombContext?.stage==="blast"?this.bombContext:null;if(c){c.ball||={kind:"bounce",x,y};done();return;}super.bounce(x,y,done);}
  throwIn(x,y,done){const c=this.multipleContext;if(c?.stage==="effects"){c.ball||={kind:"throwIn",x,y};done();return;}super.throwIn(x,y,done);}
  raisePlaguePlayer(victim,source,done){
   const attacker=this.players.find(p=>p.id===source?.playerId),team=attacker?.team;
@@ -163,17 +312,17 @@ class SkillGame extends SkillBase {
   this.treatmentChoice("Plague Ridden lineman",attacker,options,choice=>create(roles[options.indexOf(choice)]));
  }
  // A separate declaration allowance: throwing a player does not consume the Pass.
- canThrowTeamMate(p){return !!(this.canStart(p)&&this.has(p,"Throw Team-mate")&&!this.throwUsed?.[p.team]);}
- canKickTeamMate(p){return !!(this.canStart(p)&&this.has(p,"Kick Team-mate")&&!this.kickUsed?.[p.team]);}
+ canThrowTeamMate(p){return !!(p&&!this.has(p,"Ball & Chain")&&this.canStart(p)&&this.has(p,"Throw Team-mate")&&!this.throwUsed?.[p.team]);}
+ canKickTeamMate(p){return !!(p&&!this.has(p,"Ball & Chain")&&this.canStart(p)&&this.has(p,"Kick Team-mate")&&!this.kickUsed?.[p.team]);}
  throwActor(){const p=this.players.find(q=>q.id===this.mover);return ["throw-team-mate","kick-team-mate"].includes(this.action)&&!this.pending&&!this.finished&&!this.ballActionDone&&p?.status==="standing"&&!p.distracted?p:null;}
  throwCandidates(){const a=this.throwActor();return a?this.players.filter(p=>p.id!==a.id&&p.team===a.team&&this.onPitch(p)&&this.distance(a,p)===1&&this.has(p,"Right Stuff")&&!p.rooted&&!this.isChomped(p)&&["standing","prone","stunned"].includes(p.status)):[];}
  selectThrowMate(id){if(!this.throwCandidates().some(p=>p.id===id))return false;this.throwMate=id;return true;}
  throwPreview(x,y){const a=this.throwActor(),p=this.throwCandidates().find(q=>q.id===this.throwMate),range=a&&super.passRange(a,{x,y});if(!a||!p||!range||range.band>1)return null;return {...range,name:range.band?"Short Throw":"Quick Throw",target:parseInt(this.profile(a).pa)+range.band+this.marking(a)+this.disturbance(a)-(this.skill(a,"Strong Arm")?1:0),mate:p};}
  throwTeamMate(x,y){
-  const preview=this.throwPreview(x,y);if(!preview)return false;
+  const preview=this.throwPreview(x,y);if(!preview)return false;const hungry=this.throwActor();if(hungry.bloodlust){this.feed(hungry,()=>this.throwTeamMate(x,y));return true;}
   const a=this.throwActor(),p=preview.mate,origin={x:p.x,y:p.y},unable=p.status!=="standing"||p.distracted,kicked=this.action==="kick-team-mate";
   this.ballActionDone=true;this.throwMate=null;
-  const end=turnover=>{this.mover=null;this.action=null;if(turnover)this.endTurn(true);else this.checkScore();};
+  const end=turnover=>{const complete=()=>{this.mover=null;this.action=null;if(turnover)this.endTurn(true);else this.checkScore();};if(a.bloodlust)this.feed(a,complete,{allow:!turnover});else complete();};
   const airborne=()=>{p.x=null;p.y=null;this.refreshChomps();};
   const dirs=[[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]];
   const drift=(pos,label)=>{const [dx,dy]=dirs[this.roll(label,8)-1];return {x:pos.x+dx,y:pos.y+dy};};
@@ -256,18 +405,19 @@ class SkillGame extends SkillBase {
  keywords(p){return this.profile(p).traits.split(",").map(s=>s.trim().toLowerCase());}
  toggleSkill(id,name){const p=this.players.find(q=>q.id===id),entry=SKILL_CATALOG.find(s=>s.name===name||name.startsWith(s.name.split(" (")[0]+" ("));if(!p||!entry||entry.mandatory||this.pending)return false;p.disabledSkills||=[];p.disabledSkills=p.disabledSkills.includes(name)?p.disabledSkills.filter(s=>s!==name):p.disabledSkills.concat(name);return true;}
  addSkill(id,name){const p=this.players.find(q=>q.id===id),entry=SKILL_CATALOG.find(s=>s.name===name||s.name.includes("(X")&&name.startsWith(s.name.split(" (")[0]+" ("));if(!this.lab||!p||!entry||entry.status==="Deferred"||name.includes("(X"))return false;
-  const conflicts={Frenzy:["Grab","Hit and Run"],"Hit and Run":["Frenzy"],Grab:["Frenzy"],Leap:["Pogo"],Pogo:["Leap"]},owned=[...super.profile(p).skills,...(p.extraSkills||[])];if((conflicts[name]||[]).some(s=>owned.includes(s))||["Bullseye","Strong Arm"].includes(name)&&!owned.includes("Throw Team-mate")||name==="Lethal Flight"&&!owned.includes("Right Stuff")||name==="Saboteur"&&!owned.includes("Secret Weapon"))return false;p.extraSkills=[...new Set([...(p.extraSkills||[]),name])];return true;}
+  const conflicts={Frenzy:["Grab","Hit and Run"],"Hit and Run":["Frenzy"],Grab:["Frenzy"],Leap:["Pogo"],Pogo:["Leap"]},owned=[...super.profile(p).skills,...(p.extraSkills||[])];const chainConflicts=["Diving Tackle","Defensive","Frenzy","Grab","Hit and Run","Leap","Multiple Block","On the Ball","Shadowing","Steady Footing"];if(name==="Ball & Chain"&&chainConflicts.some(s=>owned.includes(s))||owned.includes("Ball & Chain")&&chainConflicts.includes(name))return false;if((conflicts[name]||[]).some(s=>owned.includes(s))||["Bullseye","Strong Arm"].includes(name)&&!owned.includes("Throw Team-mate")||name==="Lethal Flight"&&!owned.includes("Right Stuff")||name==="Saboteur"&&!owned.includes("Secret Weapon"))return false;p.extraSkills=[...new Set([...(p.extraSkills||[]),name])];return true;}
  used(p,name){return p.skillUses?.[name]===this.skillTurn;}
  use(p,name){p.skillUses||={};p.skillUses[name]=this.skillTurn;this.note("#"+p.number+" uses "+name+".");}
- resetSkillTurn(){this.skillTurn++;this.shadowingCounts={};this.throwUsed||=[false,false];this.throwUsed[this.active]=false;this.kickUsed||=[false,false];this.kickUsed[this.active]=false;this.puntUsed||=[false,false];this.puntUsed[this.active]=false;this.throwMate=null;}
+ resetSkillTurn(){this.skillTurn++;this.bombUsed||=[false,false];this.bombUsed[this.active]=false;for(const p of this.players)if(p.team===this.active){p.bloodlust=false;p.bloodlustChecked=false;}this.shadowingCounts={};this.throwUsed||=[false,false];this.throwUsed[this.active]=false;this.kickUsed||=[false,false];this.kickUsed[this.active]=false;this.puntUsed||=[false,false];this.puntUsed[this.active]=false;this.throwMate=null;}
  rushLimit(p){return this.skill(p,"Sprint")?3:2;}
  standCost(p){return this.has(p,"Jump Up")?0:super.standCost(p);}
  stand(p,after=null){if(this.has(p,"Jump Up")){p.status="standing";p.spent=0;this.note("Jump Up: stands for free.");if(after)after();return;}super.stand(p,after);}
- canSecure(p){return !!p&&!this.has(p,"Unsteady")&&!this.has(p,"No Ball")&&super.canSecure(p);}
- canBallAction(p,kind){return !!p&&!this.has(p,"My Ball")&&super.canBallAction(p,kind);}
- canBlock(a,d){if(typeof a==="string")a=this.players.find(p=>p.id===a);if(typeof d==="string")d=this.players.find(p=>p.id===d);return super.canBlock(a,d)||!!(this.canStart(a)&&a.status==="prone"&&this.has(a,"Jump Up")&&d&&d.team!==a.team&&d.status==="standing"&&this.onPitch(d)&&this.distance(a,d)===1);}
+ canSecure(p){return !!p&&!this.has(p,"Ball & Chain")&&!this.has(p,"Unsteady")&&!this.has(p,"No Ball")&&super.canSecure(p);}
+ canBallAction(p,kind){return !!p&&!this.has(p,"Ball & Chain")&&!this.has(p,"My Ball")&&super.canBallAction(p,kind);}
+ canBlock(a,d){if(typeof a==="string")a=this.players.find(p=>p.id===a);if(typeof d==="string")d=this.players.find(p=>p.id===d);if(a&&this.has(a,"Ball & Chain"))return false;return super.canBlock(a,d)||!!(this.canStart(a)&&a.status==="prone"&&this.has(a,"Jump Up")&&d&&d.team!==a.team&&d.status==="standing"&&this.onPitch(d)&&this.distance(a,d)===1);}
  activationExtra(p,action,ready,failed){
-  const root=()=>{if(this.has(p,"Take Root")&&p.status==="standing"&&!p.rooted)this.test(p,"Take Root",2,ready,()=>{p.rooted=true;this.note("#"+p.number+" is Rooted.");ready();});else ready();};
+  const complete=()=>this.bloodlustActivation(p,action,()=>{ready();if(this.has(p,"Ball & Chain"))this.offerChain();else if(action==="bomb"&&this.action==="bomb"&&!this.pending)this.beginBomb(p);});
+  const root=()=>{if(this.has(p,"Take Root")&&p.status==="standing"&&!p.rooted)this.test(p,"Take Root",2,complete,()=>{p.rooted=true;this.note("#"+p.number+" is Rooted.");complete();});else complete();};
   const fury=()=>{if(this.has(p,"Unchannelled Fury"))this.test(p,"Unchannelled Fury",["block","blitz"].includes(action)?2:4,root,()=>{this.mover=null;this.action=null;this.note("Unchannelled Fury ends the activation.");this.blockActivationFailed();});else root();};
   if(!this.has(p,"Animal Savagery")){fury();return;}
   this.test(p,"Animal Savagery",["block","blitz"].includes(action)?2:4,fury,()=>{
@@ -279,8 +429,8 @@ class SkillGame extends SkillBase {
  }
  start(id,action="move"){
   this.refreshChomps();
-  if(action==="special:Punt")action="punt";
-  const p=this.players.find(q=>q.id===id);if(!this.canStart(p))return false;if(action==="foul"&&this.foulUsed[this.active])return false;
+  if(action==="special:Punt")action="punt";if(action==="special:Throw Bomb")action="bomb";
+  const p=this.players.find(q=>q.id===id);if(!this.canStart(p))return false;if(this.has(p,"Ball & Chain")&&(action!=="move"||p.status!=="standing"))return false;if(action==="bomb"){if(!this.canBomb(p))return false;this.bombUsed||=[false,false];this.bombUsed[p.team]=true;}p.bloodlustChecked=false;p.bloodlust=false;if(action==="foul"&&this.foulUsed[this.active])return false;
   if(action==="throw-team-mate"){if(!this.canThrowTeamMate(p))return false;this.throwUsed||=[false,false];this.throwUsed[p.team]=true;this.throwMate=null;this.note("#"+p.number+" declares Throw Team-mate.");}
   if(action==="kick-team-mate"){if(!this.canKickTeamMate(p))return false;this.kickUsed||=[false,false];this.kickUsed[p.team]=true;this.throwMate=null;this.note("#"+p.number+" declares Kick Team-mate.");}
   if(action==="punt"){if(!this.canPunt(p))return false;this.puntUsed||=[false,false];this.puntUsed[p.team]=true;}
@@ -290,10 +440,10 @@ class SkillGame extends SkillBase {
   p.gouged=false;this.preactivation={p,action};return super.start(id,action);
  }
  // Block declarations retain the base activation-trait order, including prone Jump Up declarations.
- block(a,d){this.refreshChomps();const p=this.players.find(q=>q.id===a);if(!this.canBlock(p,d))return false;p.gouged=false;
+ block(a,d){this.refreshChomps();const p=this.players.find(q=>q.id===a);if(!this.canBlock(p,d))return false;p.bloodlustChecked=false;p.bloodlust=false;p.gouged=false;
   return super.block(a,d);
  }
- options(p,kind){let result=super.options(p,kind);if(kind==="Dodge"&&this.departureMarkers(p).some(q=>this.skill(q,"Tackle")))result=result.filter(s=>s!=="Dodge");
+ options(p,kind){let result=super.options(p,kind);if(this.bombContext?.catchTest===p.id)result=result.filter(s=>s!=="Catch"&&s!=="Monstrous Mouth");if(kind==="Dodge"&&this.departureMarkers(p).some(q=>this.skill(q,"Tackle")))result=result.filter(s=>s!=="Dodge");
   if(kind==="Rush"&&this.skill(p,"Sure Feet")&&!this.used(p,"Sure Feet"))result.push("Sure Feet");if(kind==="Pick up"&&this.skill(p,"Sure Hands"))result.push("Sure Hands");
   if(kind==="Landing"&&p.swooping&&this.skill(p,"Swoop")&&!this.used(p,"Swoop landing"))result.push("Swoop");
   if((this.mover===p.id||this.attackRoller===p.id||this.blockAction?.attacker.id===p.id)&&this.skill(p,"Pro")&&!p.proUsed&&!result.includes("Pro"))result.push("Pro");if(this.canTeamReroll(p)&&!result.includes("Team"))result.push("Team");if(this.dumpContext||this.moveContext)result=result.filter(s=>s!=="Pro");return result;
@@ -311,7 +461,7 @@ class SkillGame extends SkillBase {
  }
  forecastTarget(p,kind,target){if(this.weather==="Blizzard"&&kind==="Rush"||this.weather==="Pouring Rain"&&["Pick up","Catch","Intercept"].includes(kind))target++;return this.checkTarget(p,kind,target);}
  test(p,kind,target,yes,no){
-  if(["Catch","Pick up","Secure the Ball","Intercept"].includes(kind)&&this.has(p,"No Ball")){no(1);return;}
+  if(["Catch","Pick up","Secure the Ball","Intercept"].includes(kind)&&(this.has(p,"No Ball")||this.has(p,"Ball & Chain"))){no(1);return;}
   this.resolveSkillTest(p,kind,this.checkTarget(p,kind,target),yes,no);
  }
  departureTest(p,plan,origin,kind,target,yes,no){
@@ -364,6 +514,7 @@ class SkillGame extends SkillBase {
   return parseInt(this.profile(p).ag)+sum;
  }
  planFrom(p,x,y,fx,fy,spent){
+  if(this.has(p,"Ball & Chain")||this.action==="bomb"&&this.mover===p.id)return null;
   if(p?.rooted||p&&this.isChomped(p)||this.action?.startsWith("special:")&&this.action!=="special:Hypnotic Gaze")return null;let plan=super.planFrom(p,x,y,fx,fy,spent);const jump=Math.max(Math.abs(x-fx),Math.abs(y-fy))===2,leap=this.skill(p,"Leap"),pogo=this.skill(p,"Pogo");
   const ma=this.movementAllowance(p);
   if(!plan&&jump&&(leap||pogo)&&!this.pending&&!this.finished&&this.inside(x,y)&&!this.at(x,y)&&spent+2<=ma+this.rushLimit(p)){
@@ -378,6 +529,7 @@ class SkillGame extends SkillBase {
   return plan;
  }
  step(x,y){
+  const actor=this.players.find(p=>p.id===this.mover);if(actor&&(this.has(actor,"Ball & Chain")||this.action==="bomb"))return false;
   const plan=this.plan(x,y);if(!plan)return false;
   const p=this.players.find(q=>q.id===this.mover);this.departureOrigin={x:p.x,y:p.y};
   return super.step(x,y);
@@ -425,18 +577,20 @@ class SkillGame extends SkillBase {
   this.interrupt("Arm Bar",finish=>this.reactionChoice("Arm Bar",1-p.team,arms,q=>finish(q)),placeTackler);
  }
  dropBall(){const p=this.players.find(q=>q.id===this.mover);if(!p||this.pending||this.ball.carrier!==p.id||!this.skill(p,"Fumblerooski")||this.has(p,"My Ball"))return false;p.dropOnExit=!p.dropOnExit;return true;}
- passPreview(x,y){const value=super.passPreview(x,y),p=this.players.find(q=>q.id===this.mover);if(!value)return null;value.target+=this.disturbance(p);if(this.skill(p,"Nerves of Steel"))value.target-=this.marking(p);if(value.band<2&&this.skill(p,"Accurate")||value.band>=2&&this.skill(p,"Cannoneer"))value.target--;return value;}
+ passPreview(x,y){if(this.action==="bomb")return this.bombPreview(x,y);const value=super.passPreview(x,y),p=this.players.find(q=>q.id===this.mover);if(!value)return null;value.target+=this.disturbance(p);if(this.skill(p,"Nerves of Steel"))value.target-=this.marking(p);if(value.band<2&&this.skill(p,"Accurate")||value.band>=2&&this.skill(p,"Cannoneer"))value.target--;return value;}
  passRange(from,to){const normal=super.passRange(from,to);if(this.dumpContext?.defender===from.id)return normal;const hail=this.skill(from,"Hail Mary Pass")&&this.inside(to.x,to.y)&&(from.x!==to.x||from.y!==to.y);return hail&&(from.hailMary||!normal)?{band:3,name:"Hail Mary Pass",hail:true}:normal;}
  interceptionCandidates(from,to){if(this.passContext?.preview.hail&&this.passContext.p.id===from.id)return [];const candidates=super.interceptionCandidates(from,to).filter(p=>!this.has(p,"No Ball"));return this.skill(from,"Cloud Burster")?candidates.filter(p=>this.skill(p,"Very Long Legs")):candidates;}
- pass(x,y){const p=this.ballActor("pass");if(!p)return false;
-  return this.animosity(p,this.at(x,y),()=>super.pass(x,y));
+ pass(x,y){if(this.action==="bomb")return this.throwBomb(x,y);const p=this.ballActor("pass");if(!p)return false;
+  if(p.bloodlust){this.feed(p,()=>this.pass(x,y));return true;}return this.animosity(p,this.at(x,y),()=>super.pass(x,y));
  }
- handoff(id){const p=this.ballActor("handoff"),target=this.players.find(q=>q.id===id);if(!this.canHandoff(target))return false;return this.animosity(p,target,()=>super.handoff(id));}
+ feedingTurnover(){if(this.bombContext){this.bombContext.turnover=true;this.finishBomb({allowFeed:false});}else this.endTurn(true);}
+ handoff(id){const p=this.ballActor("handoff"),target=this.players.find(q=>q.id===id);if(!this.canHandoff(target))return false;if(p.bloodlust){this.feed(p,()=>{if(this.canHandoff(target))this.handoff(id);else this.finish();});return true;}return this.animosity(p,target,()=>super.handoff(id));}
  animosity(p,target,act,onFailure=null){const trait=this.parameter(p,"Animosity");if(!trait||!target||target.team!==p.team)return act();const word=trait.slice(trait.indexOf("(")+1,-1).toLowerCase();if(word!=="all"&&!this.keywords(target).includes(word))return act();this.test(p,"Animosity",2,act,()=>{this.note("Animosity: player refuses the transfer.");if(onFailure)onFailure();else{this.mover=null;this.action=null;}});return true;}
  armourBroken(p,n,bonus=0,by=null){if(this.has(p,"Iron Hard Skin"))return n>=parseInt(this.profile(p).av);if(by&&this.has(by,"Claws")&&n>=8)return true;return n+bonus+(this.has(p,"Chainsaw")?3:0)>=parseInt(this.profile(p).av);}
  canMighty(by,p){return by&&!by.distracted&&this.has(by,"Mighty Blow");}
  canMightyArmour(by,p){return !this.has(p,"Iron Hard Skin")&&this.canMighty(by,p);}
  assists(a,d){
+  if(this.has(a,"Ball & Chain")||this.has(d,"Ball & Chain"))return {offensive:0,defensive:0};
   const guard=p=>this.skill(p,"Guard")&&!this.players.some(q=>q.team!==p.team&&q.team!==this.active&&this.onPitch(q)&&this.skill(q,"Defensive")&&this.distance(p,q)===1);
   const eligible=(p,target,excluded)=>p.id!==a.id&&p.id!==d.id&&!this.multipleContext?.targets.includes(p)&&this.onPitch(p)&&p.status==="standing"&&!p.distracted&&!p.gouged&&this.distance(p,target)===1&&(this.markedByExcept(p,[excluded.id])===0||guard(p));
   return {offensive:this.players.filter(p=>p.team===a.team&&eligible(p,d,d)).length,defensive:this.players.filter(p=>p.team===d.team&&eligible(p,a,a)).length};
@@ -454,7 +608,7 @@ class SkillGame extends SkillBase {
   const react=()=>this.dumpOff(a,d,strength);
   if(this.has(d,"Foul Appearance"))this.test(a,"Foul Appearance",2,react,()=>{this.note("Foul Appearance cancels the attack and ends the activation.");this.mover=null;this.action=null;this.blockAction=null;this.attackRoller=null;});else react();
  }
- resolvePush(knock){const b=this.blockAction;b.pushResolved=true;if(b.target.rooted||this.isChomped(b.target)){if(knock)this.fall(b.target,{turnover:false,mightyBlowBy:b.attacker,after:()=>this.finishBlock()});else this.finishBlock();return;}super.resolvePush(knock);}
+ resolvePush(knock){const b=this.blockAction;b.pushResolved=true;if(b.target.rooted||this.isChomped(b.target)){if(knock)this.fall(b.target,{turnover:false,mightyBlowBy:b.attacker,after:()=>this.finishBlock()});else this.finishBlock();return;}super.resolvePush(knock);this.guardMultipleDecision();}
  pushSquares(a,d,grab=false){
   const allowed=squares=>this.multipleContext?squares.filter(pos=>!this.multipleContext.targetSquares.some(s=>s.x===pos.x&&s.y===pos.y)):squares;
   const b=this.blockAction;if(this.skill(d,"Sidestep")&&!(b&&d.team!==b.attacker.team&&this.skill(b.attacker,"Grab"))){const open=[];for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)if((dx||dy)&&this.inside(d.x+dx,d.y+dy)&&!this.at(d.x+dx,d.y+dy))open.push({x:d.x+dx,y:d.y+dy});const valid=allowed(open);if(valid.length)return valid;}
@@ -466,7 +620,17 @@ class SkillGame extends SkillBase {
  }
  pushPlayer(p,pos,done,depth=0){if(p.rooted||this.isChomped(p)){done(false);return;}super.pushPlayer(p,pos,done,depth);}
  placePushed(p,pos,done){const b=this.blockAction;if(b&&p.id===b.target.id&&this.skill(b.attacker,"Eye Gouge"))p.gouged=true;super.placePushed(p,pos,ok=>{this.refreshChomps();done(ok);});}
- afterPush(origin,knock,pushed){const b=this.blockAction;super.afterPush(origin,knock,pushed);const q=this.pending;if(!b||!q||q.kind!=="Follow-up")return;
+ afterPush(origin,knock,pushed){const b=this.blockAction;
+  if(this.chainContext){
+   const c=this.chainContext,a=b.attacker,d=b.target;
+   if(pushed){a.x=origin.x;a.y=origin.y;this.note("Ball & Chain follows up.");}
+   this.afterFollow(a,d,knock,()=>{
+    if(c.ground&&this.onPitch(d)){
+     const old=d.status;this.armourOnly(d,()=>{if(d.status==="standing"||d.status==="prone")d.status=old;this.finishBlock();},{source:{playerId:a.id,cause:"Ball & Chain collision"}});
+    }else if(knock&&this.onPitch(d))this.fall(d,{turnover:false,mightyBlowBy:a,after:()=>this.finishBlock()});else this.finishBlock();
+   });return;
+  }
+  super.afterPush(origin,knock,pushed);const q=this.pending;if(!b||!q||q.kind!=="Follow-up")return;
   if(this.multipleContext){q.resolve("Stay");return;}
   if(b.attacker.rooted||this.isChomped(b.attacker)){q.resolve("Stay");return;}
   if(this.skill(b.attacker,"Frenzy")){q.resolve("Follow up");return;}
@@ -476,6 +640,14 @@ class SkillGame extends SkillBase {
  applyBlockResult(result){const b=this.blockAction;if(result==="Both Down"&&b.blitz&&this.skill(b.attacker,"Juggernaut")){this.pending={type:"custom",kind:"Juggernaut",options:["Treat as Push Back","Apply Both Down"],resolve:choice=>{this.pending=null;super.applyBlockResult(choice==="Treat as Push Back"?"Push Back":"Both Down");}};return;}super.applyBlockResult(result);}
  finishBlock(){
   const b=this.blockAction;
+  if(this.chainContext){
+   const c=this.chainContext,a=c.attacker;
+   if(b?.targetKnocked&&c.target.team===a.team&&!c.ground)b.turnover=true;
+   if(c.target.team===a.team&&c.carrierBefore===c.target.id&&this.ball.carrier!==c.target.id)b.turnover=true;
+   if(c.rushFailed){this.chainContext=null;this.blockAction=null;this.fall(a);return;}
+   if(b?.turnover||a.status!=="standing"||!this.onPitch(a)){this.chainContext=null;this.blockAction=null;this.endTurn(true);return;}
+   this.chainContext=null;this.blockAction=null;this.mover=a.id;this.action="move";this.offerChain();return;
+  }
   if(this.multipleContext?.stage==="effects"){
    const c=this.multipleContext;c.turnover||=!!b?.turnover;
    c.index++;this.resolveMultipleNext();return;
@@ -500,10 +672,18 @@ class SkillGame extends SkillBase {
    const a=b.attacker,d=b.target;if(!b.blitz||a.spent<this.profile(a).ma+this.rushLimit(a)){
     this.blockAction=null;this.nextFrenzyRound=2;const hit=()=>this.rollBlock(a,d,b.blitz);if(b.blitz){a.spent++;if(a.spent>this.profile(a).ma)this.test(a,"Rush",2,hit,()=>this.fall(a,{prevented:hit}));else hit();}else hit();return;
    }
-  }super.finishBlock();
+  }if(b&&!b.blitz&&b.attacker.bloodlust){this.feed(b.attacker,()=>this.finishBlock());return;}super.finishBlock();
  }
- resolveBothDownChoice(choice){if(choice.includes("Wrestle")){this.blockAction.attacker.rooted=false;this.blockAction.target.rooted=false;}super.resolveBothDownChoice(choice);}
- specialActions(p){if(!p)return [];const result=[];if(this.canMultipleBlock(p))result.push("Multiple Block");if(this.skill(p,"Monstrous Mouth")&&(this.canStart(p)||this.action==="blitz"&&this.canBlitzBlock()))result.push("Chomp");if(this.canPunt(p))result.push("Punt");if(this.canStart(p)&&!this.foulUsed[this.active])result.push("Foul");for(const name of ["Stab","Projectile Vomit","Hypnotic Gaze","Breathe Fire","Chainsaw"])if(this.has(p,name)&&(p.status==="standing"||name==="Hypnotic Gaze")&&(this.canStart(p)||this.action==="blitz"&&this.canBlitzBlock()))result.push(name);return result;}
+ resolveBothDownChoice(choice){
+  const b=this.blockAction,players=[b.attacker,b.target];
+  if(choice.includes("Wrestle")&&players.some(p=>this.has(p,"Ball & Chain"))){
+   const carrier=players.find(p=>this.ball.carrier===p.id);let i=0,turnover=false;
+   const next=()=>{if(i===players.length){if(turnover)this.endTurn(true);else this.finishBlock();return;}this.placeProne(players[i++],next,{allowPlacement:false});};
+   if(carrier)this.beforeProne(carrier,{x:carrier.x,y:carrier.y},placed=>{turnover=carrier.team===this.active&&!placed;next();});else next();return;
+  }
+  if(choice.includes("Wrestle")){b.attacker.rooted=false;b.target.rooted=false;}super.resolveBothDownChoice(choice);
+ }
+ specialActions(p){if(!p)return [];const result=[];if(this.has(p,"Ball & Chain"))return result;if(this.canBomb(p))result.push("Throw Bomb");if(this.canMultipleBlock(p))result.push("Multiple Block");if(this.skill(p,"Monstrous Mouth")&&(this.canStart(p)||this.action==="blitz"&&this.canBlitzBlock()))result.push("Chomp");if(this.canPunt(p))result.push("Punt");if(this.canStart(p)&&!this.foulUsed[this.active])result.push("Foul");for(const name of ["Stab","Projectile Vomit","Hypnotic Gaze","Breathe Fire","Chainsaw"])if(this.has(p,name)&&(p.status==="standing"||name==="Hypnotic Gaze")&&(this.canStart(p)||this.action==="blitz"&&this.canBlitzBlock()))result.push(name);return result;}
  specialTargets(){const p=this.players.find(q=>q.id===this.mover);if(!p||this.pending||p.specialDone)return [];if(this.action!=="foul"&&!this.action?.startsWith("special:"))return [];return this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&this.distance(p,q)===1&&(this.action==="foul"?["prone","stunned"].includes(q.status):q.status==="standing"));}
  performSpecial(targetId,blitzName=null){
   const p=this.players.find(q=>q.id===this.mover),target=this.players.find(q=>q.id===targetId);if(!p||!target)return false;
@@ -511,7 +691,7 @@ class SkillGame extends SkillBase {
   if(!this.specialTargets().includes(target))return false;p.specialDone=true;if(this.action==="foul")this.foul(p,target);else this.specialAttack(p,target,this.action.slice(8));return true;
  }
  specialAttack(p,target,name){
-  const finish=()=>{const cleanup=()=>{if(name!=="Chomp"||this.action!=="blitz"){this.mover=null;this.action=null;}this.checkScore();};if(name==="Stab")this.hitAndRun(p,cleanup);else cleanup();},perform=()=>{
+  const finish=()=>{const cleanup=()=>{if(p.bloodlust&&(name!=="Chomp"||this.action!=="blitz")){this.feed(p,cleanup);return;}if(name!=="Chomp"||this.action!=="blitz"){this.mover=null;this.action=null;}this.checkScore();};if(name==="Stab")this.hitAndRun(p,cleanup);else cleanup();},perform=()=>{
    if(name==="Chomp"){this.test(p,"Chomp",3,()=>{target.chompers=[...new Set([...(target.chompers||[]),p.id])];this.note("#"+target.number+" is Chomped.");finish();},finish);return;}
    if(name==="Hypnotic Gaze"){this.test(p,"Hypnotic Gaze",3,()=>{target.distracted=true;this.refreshChomps();finish();},finish);return;}
    const medical={source:{playerId:p.id,cause:name},plague:this.action==="blitz"};
@@ -531,7 +711,7 @@ class SkillGame extends SkillBase {
  canPunt(p){return this.canStart(p)&&this.has(p,"Punt")&&!this.has(p,"My Ball")&&!this.has(p,"No Ball")&&!this.puntUsed?.[p.team];}
  puntActor(){const p=this.players.find(q=>q.id===this.mover);return this.action==="punt"&&!this.pending&&!this.ballActionDone&&!this.finished&&p?.status==="standing"&&!p.distracted&&this.ball.carrier===p.id?p:null;}
  punt(){
-  const p=this.puntActor();if(!p)return false;this.ballActionDone=true;
+  const p=this.puntActor();if(!p)return false;if(p.bloodlust){this.feed(p,()=>this.punt());return true;}this.ballActionDone=true;
   const finish=out=>{if(this.finished)return;const carrier=this.players.find(q=>q.id===this.ball.carrier);this.mover=null;this.action=null;if(out||carrier&&carrier.team!==p.team)this.endTurn(true);else this.checkScore();};
   const fans={North:[[-1,-1],[0,-1],[1,-1]],East:[[1,-1],[1,0],[1,1]],South:[[1,1],[0,1],[-1,1]],West:[[-1,1],[-1,0],[-1,-1]]};
   this.skillChoice("Punt template",p.team,Object.keys(fans),choice=>this.rollChoice(p,"Punt direction",6,n=>{
@@ -633,7 +813,7 @@ class SkillGame extends SkillBase {
   const helpers=(team,victim,excluded,offensive)=>this.players.filter(q=>q.team===team&&q.id!==p.id&&q.id!==target.id&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&!q.gouged&&this.distance(q,victim)===1&&(this.markedByExcept(q,[excluded.id])===0||offensive&&this.skill(q,"Put the Boot In")&&!this.players.some(r=>r.team!==q.team&&r.team!==this.active&&this.skill(r,"Defensive")&&this.onPitch(r)&&this.distance(r,q)===1))).length;
   const offense=helpers(p.team,target,target,true),defense=helpers(target.team,p,p,false),modifier=this.has(target,"Iron Hard Skin")?0:offense-defense+(chainsaw?3:0);
   this.note("Foul: "+offense+" offensive and "+defense+" defensive assist(s).");let sent=false;
-  const finishNormal=()=>{if(after){after(false);return;}if(this.skill(p,"Quick Foul")){this.note("Quick Foul: remaining movement is available.");}else{this.mover=null;this.action=null;}},finish=()=>{if(sent)this.sendOff(p,turnover=>after?after(turnover):turnover?this.endTurn(true):finishNormal());else finishNormal();},rollArmour=(rerolled=false)=>{
+  const finishNormal=()=>{if(after){after(false);return;}if(this.skill(p,"Quick Foul")){this.note("Quick Foul: remaining movement is available.");}else if(p.bloodlust)this.feed(p,()=>{this.mover=null;this.action=null;});else{this.mover=null;this.action=null;}},finish=()=>{if(sent)this.sendOff(p,turnover=>after?after(turnover):turnover?this.endTurn(true):finishNormal());else finishNormal();},rollArmour=(rerolled=false)=>{
    const a=this.roll("Foul Armour"),b=this.roll("Foul Armour"),raw=a+b,dirty=this.skill(p,"Dirty Player"),skin=this.has(target,"Iron Hard Skin");
    const afterArmour=bonus=>{const broken=raw+modifier+bonus>=parseInt(this.profile(target).av);
     const keep=()=>{if(a===b&&(!this.skill(p,"Sneaky Git")||broken))sent=true;
@@ -664,7 +844,7 @@ class SkillGame extends SkillBase {
   const direct=this.at(x,y),adjacent=this.players.filter(p=>this.onPitch(p)&&this.distance(p,{x,y})===1&&this.skill(p,"Diving Catch")).sort((a,b)=>a.number-b.number);
   if(!adjacent.length){done(direct);return;}
   this.interrupt("Diving Catch",finish=>{
-   const order=[this.active,1-this.active],offer=i=>{
+   const first=delivery.chooserTeam??this.active,order=[first,1-first],offer=i=>{
     if(i>=order.length){finish(direct);return;}
     const team=order[i],candidates=adjacent.filter(p=>p.team===team);if(direct?.team===team)candidates.unshift(direct);
     if(!candidates.length){offer(i+1);return;}
@@ -721,6 +901,7 @@ class SkillGame extends SkillBase {
   });
  }
  preventFall(p,yes,no){
+  if(this.has(p,"Ball & Chain")){no();return;}
   if(!this.skill(p,"Steady Footing")){no();return;}
   this.interrupt("Steady Footing",done=>{
    const options=["Use Steady Footing","Fall normally"],q={type:"custom",kind:"Steady Footing",team:p.team,options,resolve:choice=>{
@@ -731,8 +912,14 @@ class SkillGame extends SkillBase {
    }};this.pending=q;
   },saved=>{if(saved){this.note("Steady Footing: #"+p.number+" stays standing.");yes();}else no();});
  }
- resolveFall(p,options={}){p.rooted=false;const b=this.blockAction;if(b&&(options.blockBlast||options.mightyBlowBy?.team!==undefined&&options.mightyBlowBy.team!==p.team)&&(p.id===b.attacker.id||p.id===b.target.id)){b.downOutcomes||=new Map();b.downOutcomes.set(p.id,true);}if(b&&p.id===b.target.id&&options.mightyBlowBy?.id===b.attacker.id)b.targetKnocked=true;const old=options.after;return super.resolveFall(p,{...options,after:()=>{this.syncLeader();if(old)old();}});}
- endTurn(turnover=false){if(this.moveContext)return this.finishBoundedMove(true);if(this.dumpContext)return this.finishDumpOff();if(this.multipleEndTurn(turnover))return false;const previous=this.active,result=super.endTurn(turnover);if(result){this.resetSkillTurn();this.foulUsed[this.active]=false;this.pickMeUp(previous);}return result;}
+ resolveFall(p,options={}){
+  if(this.has(p,"Ball & Chain")){
+   const after=()=>{if(options.turnover??true)this.endTurn(true);else if(options.after)options.after();};
+   const by=options.impactBy||options.armBarBy||options.mightyBlowBy,kind=options.impactBy?"Lethal Flight":options.armBarBy?"Arm Bar":"Mighty Blow",can=options.impactBy||options.armBarBy&&!this.has(p,"Iron Hard Skin")||!options.savageryBy&&this.canMighty(options.mightyBlowBy,p);
+   this.chainDamage(p,after,{source:options.injurySource||(by?{playerId:by.id,cause:options.impactBy?"Lethal Flight":options.armBarBy?"Arm Bar":"Block"}:null),modifierBy:can?by:null,modifierKind:kind,plague:!!by&&!!this.blockAction&&!this.multipleContext&&!this.chainContext});return;
+  }
+  p.rooted=false;const b=this.blockAction;if(b&&(options.blockBlast||options.mightyBlowBy?.team!==undefined&&options.mightyBlowBy.team!==p.team)&&(p.id===b.attacker.id||p.id===b.target.id)){b.downOutcomes||=new Map();b.downOutcomes.set(p.id,true);}if(b&&p.id===b.target.id&&options.mightyBlowBy?.id===b.attacker.id)b.targetKnocked=true;const old=options.after;return super.resolveFall(p,{...options,after:()=>{this.syncLeader();if(old)old();}});}
+ endTurn(turnover=false){if(this.bombContext){if(turnover)this.bombContext.turnover=true;return false;}if(this.moveContext)return this.finishBoundedMove(true);if(this.dumpContext)return this.finishDumpOff();if(this.multipleEndTurn(turnover))return false;if(this.pending||this.finished)return false;if(this.bloodlustEndTurn(turnover))return false;this.chainContext=null;const previous=this.active,result=super.endTurn(turnover);if(result){this.resetSkillTurn();this.foulUsed[this.active]=false;this.pickMeUp(previous);}return result;}
  pickMeUp(endingTeam){const sources=this.players.filter(p=>p.team===1-endingTeam&&this.onPitch(p)&&this.skill(p,"Pick-me-up")),eligible=this.players.filter(p=>p.team===1-endingTeam&&p.status==="prone"&&this.onPitch(p)&&sources.some(q=>this.distance(q,p)<=3));for(const p of eligible)if(this.roll("Pick-me-up #"+p.number)>=5)p.status="standing";}
 }
 if(typeof module!=="undefined")module.exports={SkillGame,SKILL_CATALOG,SKILL_GROUPS};

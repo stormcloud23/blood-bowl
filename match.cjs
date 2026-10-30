@@ -146,18 +146,21 @@ class MatchGame extends MatchBase {
  block(a,d){if(this.phase!=="play")return false;const p=this.players.find(p=>p.id===a);this.stallCandidate=p&&this.canScoreWithoutDice(p)?a:null;return super.block(a,d);}
  options(p,kind){const result=super.options(p,kind);return this.phase==="play"?result:result.filter(s=>s!=="Team");}
  test(p,kind,target,yes,no){if(this.weather==="Blizzard"&&kind==="Rush")target++;if(this.weather==="Pouring Rain"&&["Pick up","Catch","Intercept"].includes(kind))target++;super.test(p,kind,target,yes,no);}
- passPreview(x,y){const result=super.passPreview(x,y);if(result&&this.weather==="Very Sunny")result.target++;return result;}
+ passPreview(x,y){const result=super.passPreview(x,y);if(result&&this.weather==="Very Sunny"&&this.action!=="bomb")result.target++;return result;}
  throwPreview(x,y){const result=super.throwPreview(x,y);if(result&&this.weather==="Very Sunny")result.target++;return result;}
  passRange(from,to){const result=super.passRange(from,to);return this.weather==="Blizzard"&&result?.band>1?null:result;}
- assists(a,d){const result=super.assists(a,d);if(this.cheer[a.team])result.offensive++;return result;}
+ assists(a,d){const result=super.assists(a,d);if(this.cheer[a.team]&&!this.has(a,"Ball & Chain")&&!this.has(d,"Ball & Chain"))result.offensive++;return result;}
  onBlockRolled(a){this.cheer[a.team]=false;}
  decide(option){const before=[...this.rerolls],result=super.decide(option);this.consumeBonus(before);return result;}
  rerollBlock(source,index=null){const before=[...this.rerolls],result=super.rerollBlock(source,index);this.consumeBonus(before);return result;}
  consumeBonus(before){for(const t of [0,1])if(this.rerolls[t]<before[t])this.driveBonus[t]=Math.max(0,this.driveBonus[t]-(before[t]-this.rerolls[t]));}
  endTurn(turnover=false){
+  if(this.bombContext){if(turnover)this.bombContext.turnover=true;return false;}
   if(this.moveContext)return this.finishBoundedMove(true);
   if(this.dumpContext)return this.finishDumpOff();
   if(this.multipleEndTurn(turnover))return false;
+  if(this.pending||this.finished)return false;
+  if(this.bloodlustEndTurn(turnover))return false;this.chainContext=null;
   if(this.pending||this.finished||!["play","charge"].includes(this.phase))return false;
   if(this.phase==="charge"){this.note("Charge ends.");this.mover=null;this.action=null;this.blockAction=null;this.eventState=null;this.landKick();return true;}
   const current=this.active,phase=this.phase;
@@ -172,9 +175,9 @@ class MatchGame extends MatchBase {
   this.cheer[this.active]=false;this.pickMeUp(this.active);this.mover=null;this.action=null;this.blockAction=null;this.blitzTarget=null;
   if(this.turns.every(n=>n>=8))this.endDrive(null);else this.beginTurn(1-this.active);return true;
  }
- finishBlock(){if(this.multipleContext){super.finishBlock();return;}const b=this.blockAction;super.finishBlock();if(this.pending)return;if(this.phase==="play"||this.phase==="charge")this.checkScore();if(b&&!b.blitz)this.checkStalling(b.attacker);}
+ finishBlock(){if(this.chainContext){super.finishBlock();return;}if(this.multipleContext){super.finishBlock();return;}const b=this.blockAction;super.finishBlock();if(this.pending)return;if(this.phase==="play"||this.phase==="charge")this.checkScore();if(b&&!b.blitz)this.checkStalling(b.attacker);}
  canScoreWithoutDice(p){
-  if(!p||this.ball.carrier!==p.id||!this.onPitch(p)||p.status!=="standing"||p.distracted||["Bone Head","Really Stupid","Unchannelled Fury","Animal Savagery","Take Root"].some(s=>this.has(p,s)))return false;
+  if(!p||this.ball.carrier!==p.id||!this.onPitch(p)||p.status!=="standing"||p.distracted||["Bone Head","Really Stupid","Unchannelled Fury","Animal Savagery","Take Root"].some(s=>this.has(p,s))||this.parameter(p,"Bloodlust"))return false;
   const goal=this.right(p.team)?25:0,queue=[{x:p.x,y:p.y,spent:0}],seen=new Set([p.x+","+p.y]);
   while(queue.length){const n=queue.shift();if(n.x===goal)return true;for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)if(dx||dy){const x=n.x+dx,y=n.y+dy,key=x+","+y;if(seen.has(key))continue;const plan=this.planFrom(p,x,y,n.x,n.y,n.spent);if(!plan||plan.rushes||plan.dodge||plan.jump)continue;seen.add(key);queue.push({x,y,spent:n.spent+1});}}
   return false;
@@ -187,6 +190,7 @@ class MatchGame extends MatchBase {
  }
  finish(){const p=this.players.find(q=>q.id===this.mover),result=super.finish();if(result&&p)this.checkStalling(p);return result;}
  checkScore(){
+  if(this.feedBeforeScore())return;
   if(this.scoreDeferrals)return;
   if(!["play","charge"].includes(this.phase))return;const p=this.players.find(q=>q.id===this.ball.carrier);
   if(p&&p.status==="standing"&&p.x===(this.right(p.team)?25:0)){this.scores[p.team]++;this.note("TOUCHDOWN — "+this.teams[p.team].name+"! Score "+this.scores.join("–")+".");if(p.team!==this.active){this.turns[p.team]=Math.min(8,this.turns[p.team]+1);this.note("Scoring during the opponent's turn: the scoring team skips its next turn celebrating.");}this.endDrive(p.team);}
