@@ -1,12 +1,14 @@
 # Blood Bowl browser game
 
-A self-contained browser game targeting **Blood Bowl 2025 exhibition matches**, with rules behavior informed by the FFB Java engine.
+A self-contained browser game targeting **Blood Bowl 2025 matches and local league teams**, with rules behavior informed by the FFB Java engine.
 
 **[Play on GitHub Pages](https://stormcloud23.github.io/blood-bowl/)** — no installation, Java server, or backend required. You can also open `index.html` locally.
 
 ## Current capabilities
 
-- Two-player hotseat play with Imperial Nobility and Black Orc demo teams.
+- Two-player hotseat play with Imperial Nobility and Black Orc teams.
+- A team creator with draft budgets, positional limits, staff, saved rosters and local league entry.
+- Persistent match results, SPP, injuries, skills, characteristic advances, recruitment, finances and standings.
 - Guided exhibition flow through pregame, setup, kickoff, two halves, scoring, drive recovery, and full time.
 - Movement previews that prefer safer routes, explicit shortcuts and waypoints, and per-step risk highlights.
 - Movement, Blocks, Blitz, passing, interceptions, fouls, thrown/kicked players, and supported special actions.
@@ -17,7 +19,7 @@ A self-contained browser game targeting **Blood Bowl 2025 exhibition matches**, 
 - Coach-controlled re-rolls and reaction choices, plus a skills laboratory and practice drills.
 - **105 implemented, 1 partial, and 2 deferred** entries in the 108-skill/trait catalogue.
 
-These coverage labels describe available actions, not complete FFB parity. The two deferred entries chiefly require roster/progression work; exhibition interactions and several match systems still need further verification. Games currently reset on reload; roster creation, save/resume, AI, and leagues are not implemented.
+These coverage labels describe available actions, not complete FFB parity. The two deferred entries chiefly require roster/progression work; exhibition interactions and several match systems still need further verification. League teams and completed results save in browser storage with JSON export/import. Unfinished fixtures restart from pre-game after reload. Live match save/resume and AI are not implemented. See [team creation and progression](docs/LEAGUES.md).
 
 ## Build and verify
 
@@ -30,16 +32,16 @@ node --test *.test.cjs
 git diff --check
 ```
 
-The rules engines are `movement.cjs`, `skills.cjs`, and `match.cjs`. The build embeds them into the standalone page. CI checks generated outputs and runs the regression/UI test suites.
+The rules engines are `movement.cjs`, `skills.cjs`, and `match.cjs`; local roster management is in `league.cjs` and `league-ui.cjs`. The build embeds them into the standalone page. CI checks generated outputs and runs the regression/UI test suites.
 
 ## Planned features
 
 1. Finish basic inducements, staff, relevant team rules and non-star exhibition verification.
-2. Add roster/team creation and broader team support.
-3. Add persistent league progression, including advances, recruitment, finances, and injuries.
+2. Extend the team creator to more rosters and racial rules.
+3. Add season scheduling, play-offs and off-season redrafting to local league progression.
 4. Add star players and their unique abilities late, once the core systems are largely complete.
 
-Save/resume/export and a computer opponent are also planned. Exhibition correctness comes first.
+Live match save/resume and a computer opponent are also planned.
 
 ## Rules and implementation references
 

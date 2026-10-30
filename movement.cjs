@@ -43,6 +43,7 @@ class MovementGame {
   }
   this.note((scenario==="block"?"Block practice started.":scenario==="secure"?"Secure the Ball practice started.":"Movement practice started.")+" Perfect Conditions; two team re-rolls each.");
  }
+ recordStat(p,kind){if(!p)return;this.playerStats||={};const stats=this.playerStats[p.id]||={};stats[kind]=(stats[kind]||0)+1;}
  profile(p){return p.profileOverride||this.teams[p.team].positions[p.role];}
  treatmentChoice(kind,p,options,resolve){
   const q={type:"custom",kind,team:p.team,options,resolve:choice=>{
@@ -68,6 +69,7 @@ class MovementGame {
   let state=total<=stunMax?(crowd?"reserve":stunIsKo?"knocked-out":"stunned"):total<=koMax?"knocked-out":"casualty";
   const record={playerId:p.id,team:p.team,injury:total,source:source?{...source}:null,original:null,selected:null,treatment:null};
   if(state==="casualty")record.original=record.selected=automaticBadlyHurt||small&&total===9?{result:"Badly hurt",automatic:true}:this.casualtyRoll(p);
+  if(record.original&&source){const by=this.players.find(q=>q.id===source.playerId);if(by&&by.team!==p.team&&(["Block","Arm Bar","Lethal Flight"].includes(source.cause)||this.has(by,"Violent Innovator")&&["Bomb","Chainsaw","Stab","Breathe Fire","Projectile Vomit","Ball & Chain collision"].includes(source.cause)))this.recordStat(by,"casualty");}
   let resume=done;
   const finish=()=>{
    p.status=state;p.rooted=false;this.onProne(p);
@@ -241,7 +243,7 @@ class MovementGame {
   this.pending={type:"custom",kind:this.teams[1-p.team].name+" interception",options,resolve:choice=>{
    this.pending=null;const index=options.indexOf(choice);if(index===candidates.length){land();return;}
    const q=candidates[index];this.test(q,"Intercept",Number.parseInt(this.profile(q).ag)+(accurate?3:2)+this.marking(q),()=>{
-    this.ball={x:q.x,y:q.y,carrier:q.id};this.note("#"+q.number+" intercepts the pass.");this.checkScore();this.endTurn(true);
+    this.ball={x:q.x,y:q.y,carrier:q.id};this.recordStat(q,"interception");this.note("#"+q.number+" intercepts the pass.");this.checkScore();this.endTurn(true);
    },land);
   }};
  }
@@ -693,6 +695,7 @@ class MovementGame {
    if(p&&p.status==="standing"&&!p.distracted){
     const cx=p.x,cy=p.y;this.ball={x:cx,y:cy,carrier:null};
     this.test(p,"Catch",this.landingTarget(p,delivery),()=>{
+     if(delivery.kind==="pass"&&delivery.accurate&&this.passContext?.p?.team===p.team&&this.passContext.p.id!==p.id&&cx===delivery.target.x&&cy===delivery.target.y)this.recordStat(this.passContext.p,"completion");
      this.ball={x:cx,y:cy,carrier:p.id};this.note("#"+p.number+" catches the ball.");this.checkScore();done();
     },()=>this.bounce(cx,cy,done));
    }else if(p||thrown||direct)this.bounce(x,y,done);

@@ -19,14 +19,19 @@ class MatchGame extends MatchBase {
  constructor(teams,{dice=null,learning=false,resources=null}={}){
   super(teams,{dice});this.events=[];this.match=true;this.learning=learning;this.phase="fans";this.half=1;this.drive=0;this.scores=[0,0];this.turns=[0,0];
   this.fans=[0,0];this.dedicatedFans=[1,1];this.weather="Perfect Conditions";this.cheer=[false,false];this.driveBonus=[0,0];this.bribes=[0,0];this.skip=[false,false];this.ball={x:null,y:null,carrier:null};
+  this.league=teams.every(t=>t.leagueTeamId);
   this.resourceChoices=teams.map((t,i)=>({...Object.fromEntries(Object.entries(MATCH_RESOURCES).map(([key,spec])=>[key,spec.initial])),...(resources?.[i]||t.matchResources||{})}));
   for(const team of [0,1])for(const [key,value] of Object.entries(this.resourceChoices[team]))if(!this.validResource(team,key,value))throw new Error("Invalid match resource: "+key);
+  this.playerStats={};this.stalledTeams=[false,false];
+  if(this.league)for(const [team,t] of teams.entries())for(const [i,p] of this.players.filter(p=>p.team===team).entries()){const record=t.matchPlayers[i];Object.assign(p,{leaguePlayerId:record.id,profileOverride:record.profile,nigglingInjuries:record.nigglingInjuries,journeyman:!!record.journeyman,leagueRecord:record,number:record.number});}
+  const high=teams[0].ctv>teams[1].ctv?0:1;this.leaguePurchaseOrder=this.league&&teams[0].ctv!==teams[1].ctv?[high,1-high]:[];this.leaguePurchaseStep=0;
   this.refreshResources();this.chefHalf=0;this.chefHistory=[];
-  this.players.forEach(p=>Object.assign(p,{x:null,y:null,status:"reserve"}));this.note("Exhibition match: configure staff and basic inducements before determining fans. Star players and unique abilities are deferred.");
+  this.players.forEach(p=>Object.assign(p,{x:null,y:null,status:"reserve"}));this.note(this.league?"League fixture: roster resources are fixed; complete inducement purchases after fans and weather.":"Exhibition match: configure staff and basic inducements before determining fans. Star players and unique abilities are deferred.");
  }
  hasTeamRule(team,name){return (this.teams[team].special||[]).some(rule=>rule.toLowerCase()===name.toLowerCase());}
  resourceSpec(team,key){
   const base=MATCH_RESOURCES[key];if(!base)return null;const spec={...base};
+  if(key==="dedicatedFans"&&this.league)spec.max=7;
   if(key==="teamRerolls")spec.cost=this.teams[team].reroll;
   if(key==="apothecary"){spec.cost=this.teams[team].staff?.apothecary||0;if(!spec.cost)spec.max=0;}
   if(key==="wanderingApothecaries"&&!this.teams[team].staff?.apothecary)spec.max=0;
@@ -36,20 +41,26 @@ class MatchGame extends MatchBase {
  }
  validResource(team,key,value){if(![0,1].includes(team)||!Number.isInteger(value))return false;const spec=this.resourceSpec(team,key);return !!spec&&value>=(spec.min||0)&&value<=spec.max;}
  setResource(team,key,value){
-  if(this.phase!=="fans"||this.pending||!this.validResource(team,key,value))return false;
-  this.resourceChoices[team][key]=value;this.refreshResources();return true;
+  if(this.phase!==(this.league?"leagueSteps":"fans")||this.pending||!this.validResource(team,key,value))return false;
+  if(this.league&&(MATCH_RESOURCES[key].group==="staff"||this.leaguePurchaseOrder[this.leaguePurchaseStep]!==team))return false;
+  const old=this.resourceChoices[team][key];this.resourceChoices[team][key]=value;
+  if(this.league&&[0,1].some(t=>this.resourceCosts(t).inducements>this.leagueBudget(t))){this.resourceChoices[team][key]=old;return false;}
+  this.refreshResources();return true;
  }
  configureResources(team){
-  if(this.phase!=="fans"||this.pending||![0,1].includes(team))return false;
+  if(this.phase!==(this.league?"leagueSteps":"fans")||this.pending||![0,1].includes(team)||this.league&&this.leaguePurchaseOrder[this.leaguePurchaseStep]!==team)return false;
   const menu=()=>{
-   const keys=Object.keys(MATCH_RESOURCES).filter(key=>this.resourceSpec(team,key).max>0),options=keys.map(key=>this.resourceSpec(team,key).label+": "+this.resourceChoices[team][key]);
+   const keys=Object.keys(MATCH_RESOURCES).filter(key=>this.resourceSpec(team,key).max>0&&(!this.league||MATCH_RESOURCES[key].group==="inducement")),options=keys.map(key=>this.resourceSpec(team,key).label+": "+this.resourceChoices[team][key]);
    this.skillChoice("Staff and inducements — "+this.teams[team].name,team,[...options,"Done"],choice=>{
-    const key=keys[options.indexOf(choice)];if(!key)return;
+    const key=keys[options.indexOf(choice)];if(!key){if(choice==="Done"&&this.league)this.lockLeagueInducements(team);return;}
     const spec=this.resourceSpec(team,key),values=Array.from({length:spec.max-(spec.min||0)+1},(_,i)=>i+(spec.min||0)),labels=values.map(value=>value+" — "+((key==="dedicatedFans"?value-1:value)*spec.cost).toLocaleString()+" gp");
     this.skillChoice(spec.label,team,[...labels,"Back"],label=>{const index=labels.indexOf(label);if(index>=0)this.setResource(team,key,values[index]);menu();});
    });
   };menu();return true;
  }
+ lockLeagueInducements(team){if(this.phase!=="leagueSteps"||this.pending||this.leaguePurchaseOrder[this.leaguePurchaseStep]!==team)return false;this.leaguePurchaseStep++;return true;}
+ leagueBudget(team){const diff=this.teams[team].ctv-this.teams[1-team].ctv;if(diff===0)return 0;if(diff>0)return this.teams[team].treasury;return -diff+this.resourceCosts(1-team).inducements+Math.min(50000,this.teams[team].treasury);}
+ leagueTreasurySpend(team){const diff=this.teams[team].ctv-this.teams[1-team].ctv,cost=this.resourceCosts(team).inducements;return diff>=0?cost:Math.max(0,cost-(-diff+this.resourceCosts(1-team).inducements));}
  refreshResources(){
   this.baseRerolls=this.resourceChoices.map(r=>r.teamRerolls);
   this.rerolls=this.resourceChoices.map(r=>r.teamRerolls+r.extraTraining);
@@ -86,6 +97,7 @@ class MatchGame extends MatchBase {
    this.note("Fan Factors: "+this.fans.join(" / ")+".");this.phase="weather";return true;
   }
   if(this.phase==="weather"){if(!this.learning)this.rollWeather();this.phase="leagueSteps";return true;}
+  if(this.phase==="leagueSteps"&&this.league){if(this.leaguePurchaseStep<this.leaguePurchaseOrder.length)return false;this.note("League Journeymen and inducements are ready.");this.phase="rolloff";return true;}
   if(this.phase==="leagueSteps"){this.note("Exhibition staff and selected basic inducements are locked. Automatic league cash, Journeymen and star players are deferred.");this.phase="rolloff";return true;}
   if(this.phase==="rolloff"){
    let a,b;do{a=this.roll(this.teams[0].name+" kick/receive roll-off");b=this.roll(this.teams[1].name+" kick/receive roll-off");}while(a===b);
@@ -249,7 +261,7 @@ class MatchGame extends MatchBase {
  wouldEndTurnTriggerStalling(excluded=null){const p=this.players.find(q=>q.id===this.ball.carrier);return this.phase==="play"&&this.turns[this.active]<=6&&p&&p!==excluded&&p.team===this.active&&!p.used&&!p.stallingChecked&&this.canScoreWithoutDice(p);}
  checkStalling(p,afterPrevention=null){
   if(this.phase!=="play"||this.finished||this.pending||p?.team!==this.active||p.stallingChecked||this.stallCandidate!==p.id||this.ball.carrier!==p.id)return;
-  this.stallCandidate=null;p.stallingChecked=true;if(this.turns[this.active]>6){this.note("Stalling: no crowd roll in turns 7–8.");return;}
+  this.stallCandidate=null;p.stallingChecked=true;this.stalledTeams[p.team]=true;if(this.turns[this.active]>6){this.note("Stalling: no crowd roll in turns 7–8.");return;}
   this.note("Stalling: the crowd may take action.");if(this.roll("Crowd Takes Action")>=this.turns[this.active])this.fall(p,{prevented:afterPrevention});
  }
  finish(){const p=this.players.find(q=>q.id===this.mover),result=super.finish();if(result&&p)this.checkStalling(p);return result;}
@@ -257,7 +269,7 @@ class MatchGame extends MatchBase {
   if(this.feedBeforeScore())return;
   if(this.scoreDeferrals)return;
   if(!["play","charge"].includes(this.phase))return;const p=this.players.find(q=>q.id===this.ball.carrier);
-  if(p&&p.status==="standing"&&p.x===(this.right(p.team)?25:0)){this.scores[p.team]++;this.note("TOUCHDOWN — "+this.teams[p.team].name+"! Score "+this.scores.join("–")+".");if(p.team!==this.active){this.turns[p.team]=Math.min(8,this.turns[p.team]+1);this.note("Scoring during the opponent's turn: the scoring team skips its next turn celebrating.");}this.endDrive(p.team);}
+  if(p&&p.status==="standing"&&p.x===(this.right(p.team)?25:0)){this.scores[p.team]++;this.recordStat(p,"touchdown");this.note("TOUCHDOWN — "+this.teams[p.team].name+"! Score "+this.scores.join("–")+".");if(p.team!==this.active){this.turns[p.team]=Math.min(8,this.turns[p.team]+1);this.note("Scoring during the opponent's turn: the scoring team skips its next turn celebrating.");}this.endDrive(p.team);}
  }
  endDrive(scorer){this.phase="endDrive";this.finished=true;this.pending=null;this.mover=null;this.action=null;this.blockAction=null;this.lastScorer=scorer;this.note("End of Drive: resolve recovery and effects before continuing.");}
  continueDrive(){
