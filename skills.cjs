@@ -326,7 +326,7 @@ class SkillGame extends SkillBase {
   const airborne=()=>{p.x=null;p.y=null;this.refreshChomps();};
   const dirs=[[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]];
   const drift=(pos,label)=>{const [dx,dy]=dirs[this.roll(label,8)-1];return {x:pos.x+dx,y:pos.y+dy};};
-  let forcedTurnover=false,usingSwoop=false;
+  let forcedTurnover=false,usingSwoop=false,superbThrow=false;
   const crowd=(from,to)=>{p.x=from.x;p.y=from.y;this.pushPlayer(p,to,()=>end(true));};
   const land=(pos,subpar,crashed=false,from=origin)=>{
    if(!this.inside(pos.x,pos.y)){crowd(from,pos);return;}
@@ -338,9 +338,9 @@ class SkillGame extends SkillBase {
    }
    p.x=pos.x;p.y=pos.y;if(this.ball.carrier===p.id){this.ball.x=p.x;this.ball.y=p.y;}
    const fail=()=>this.fall(p,{turnover:false,prevented:()=>ok(),after:()=>end(forcedTurnover||carrying)});
-   const ok=()=>{this.note("#"+p.number+" lands on their feet.");if(!this.ball.carrier&&this.ball.x===p.x&&this.ball.y===p.y)this.bounce(p.x,p.y,()=>end(forcedTurnover));else end(forcedTurnover);};
+   const ok=(rolled=false)=>{if(rolled&&!kicked){this.recordStat(p,"landing");if(superbThrow)this.recordStat(a,"completion");}this.note("#"+p.number+" lands on their feet.");if(!this.ball.carrier&&this.ball.x===p.x&&this.ball.y===p.y)this.bounce(p.x,p.y,()=>end(forcedTurnover));else end(forcedTurnover);};
    if(unable||crashed){fail();return;}
-   p.swooping=usingSwoop;this.test(p,"Landing",parseInt(this.profile(p).ag)+(subpar?1:0)+this.marking(p),()=>{p.swooping=false;ok();},()=>{p.swooping=false;fail();});
+   p.swooping=usingSwoop;this.test(p,"Landing",parseInt(this.profile(p).ag)+(subpar?1:0)+this.marking(p),()=>{p.swooping=false;ok(true);},()=>{p.swooping=false;fail();});
   };
   const carrying=this.ball.carrier===p.id;
   const fumble=()=>{
@@ -350,7 +350,7 @@ class SkillGame extends SkillBase {
   const resolve=n=>{
    const modifier=preview.target-parseInt(this.profile(a).pa);
    if(n===1||n!==6&&n-modifier===1){fumble();return;}
-   const superb=this.success(n,preview.target);this.note(superb?"Superb Throw.":"Subpar Throw.");
+   const superb=this.success(n,preview.target);superbThrow=superb;this.note(superb?"Superb Throw.":"Subpar Throw.");
    const flight=skipScatter=>{airborne();let pos={x,y};
     if(!skipScatter&&this.skill(p,"Swoop")){
      this.skillChoice("Swoop",p.team,["North","East","South","West","Scatter normally"],choice=>{

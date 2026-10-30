@@ -39,13 +39,16 @@ SOFTWARE.
 #rosters{margin-top:30px;display:grid;gap:24px}.table-scroll{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:12px 9px;text-align:left;border-bottom:1px solid #34474d}th{color:#e9bb69}td.skills{min-width:180px}td:first-child{min-width:150px}.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}.stat{background:#101b20;text-align:center;padding:8px 2px;border-radius:4px}.stat small{display:block;color:#b8c9c7}.profile-skills{font-size:13px;line-height:1.7}#profile{border-block:1px solid #34474d;padding:14px 0;margin:14px 0}.role-button{color:#b5d9df;background:none;border:0;padding:0;text-align:left;font:inherit;cursor:pointer;text-decoration:underline}.roster-heading{display:flex;justify-content:space-between;align-items:center;gap:16px}.team-summary{font-size:13px}.token{font-size:11px}.token small{font-size:8px;display:block}.token{line-height:1;display:flex;flex-direction:column;justify-content:center}
 
 .square.legal{background:linear-gradient(#69c58b40,#69c58b40) var(--turf);box-shadow:inset 0 0 0 1px #a0e3ad}.square.risk{background:linear-gradient(#e4a24755,#e4a24755) var(--turf)}.square.jump{box-shadow:inset 0 0 0 2px #cc96ed}.square.route{box-shadow:inset 0 0 0 2px #ffe0a0}.square.destination{outline:3px solid #fff;outline-offset:-3px}.square.block-target{background:linear-gradient(#e2686870,#e2686870) var(--turf);box-shadow:inset 0 0 0 3px #ff7b82}.route-index{position:absolute;top:1px;left:1px;display:grid;place-items:center;width:16px;height:16px;border-radius:50%;background:#fff;color:#17242a;font-size:10px;font-weight:700;z-index:1}.token.used{opacity:.45}.token.prone{border-style:dashed}.token.stunned{border-color:#ff6b70}.token.distracted{border-color:#ce96f0}.ball{position:absolute;right:1px;bottom:1px;color:#fff;font-size:12px;text-shadow:0 0 3px black}button:disabled{opacity:.4;cursor:not-allowed!important}select{padding:8px;background:#19282e;color:#e7eeeb;border:1px solid #526a61;border-radius:4px}#choices button{margin-block:5px}#movement{line-height:1.6;margin:10px 0}.dugout{font-size:12px}
+
+#league-panel{margin-top:24px}#league-panel label{display:inline-block;margin:8px 12px 8px 0}#league-panel input,#league-panel textarea{padding:8px;background:#101b20;color:#e7eeeb;border:1px solid #526a61;border-radius:4px}#league-panel details{padding:12px;margin-top:8px;border:1px solid #34474d;border-radius:5px}#league-panel summary{cursor:pointer;color:#e9bb69}#league-panel fieldset{margin:12px 0;border:1px solid #526a61}
 </style>
 </head>
 <body>
-<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>The development pitch</h1></div><span class="badge">v0.0.14 · Sandbox</span></header>
+<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>The development pitch</h1></div><span class="badge">v0.0.15 · Teams & leagues</span></header>
 <div class="notice" id="mode-notice"><strong>Movement and ball action practice</strong><br><span class="muted">Preview movement and its checks, resolve Block dice, pushes, and follow-ups, or secure a loose ball. Perfect Conditions. This remains a practice drive, not a complete match.</span></div>
+<p><a href="#league-panel">Create a team / manage league progression</a></p>
 <label for="scenario">Game mode </label><select id="scenario"><option value="match">Exhibition match — pre-game</option><option value="match-learning">Learning match — simplified kickoff</option><option value="skills">Skills laboratory</option><option value="teams">Both teams</option><option value="dodge">Dodge practice</option><option value="jump">Jump & stand up</option><option value="pickup">Ball pickup</option><option value="throw-team-mate">Throw Team-mate practice</option><option value="traits">Ogre & Troll traits</option><option value="handoff">Hand-off practice</option><option value="pass">Pass & interception practice</option><option value="blitz">Blitz practice</option><option value="block">Block practice</option><option value="secure">Secure the Ball practice</option></select><p class="muted">Changing the mode starts a new game or practice. Direction template: 1 NW · 2 N · 3 NE · 4 W · 5 E · 6 SW · 7 S · 8 SE.</p><div id="matchflow" class="notice" aria-live="polite"></div><main><section><div class="pitch-wrap"><div id="pitch" class="pitch" role="group" aria-label="Development pitch"></div></div><p class="muted">Select a player and choose an action. For movement, click a destination to preview the remaining range from there. Click another highlighted tile to extend the route. Declare the action, then click the selected destination again to commit; Cancel movement preview restores the current range. For Pass or Hand-off, declare the action, move as needed, then choose a ball target. For Blitz, choose Declare Blitz and a highlighted target, move adjacent, then choose Blitz Block (1 MA). During Block, click a highlighted target. Green = no roll on that step; amber = a check on that step or an action target; purple border = jump. Earlier route steps may still require rolls.</p><button class="control" id="start">Declare Move</button><button class="control secondary" id="handoff">Declare Hand-off</button><button class="control secondary" id="pass">Declare Pass</button><button class="control secondary" id="throw-mate">Declare Throw Team-mate</button><button class="control secondary" id="kick-mate">Declare Kick Team-mate</button><button class="control secondary" id="transfer">Choose ball target</button><button class="control secondary" id="blitz">Declare Blitz</button><button class="control secondary" id="block">Block</button><button class="control secondary" id="special">Foul / special action</button><button class="control secondary" id="secure">Secure the Ball</button><button class="control secondary" id="finish">End Move</button><button class="control secondary" id="end">End team turn</button><button class="control secondary" id="reset">Reset practice</button></section>
-<aside class="panel"><div class="eyebrow">Movement & action practice</div><h2 id="coach"></h2><p id="selection" role="status" aria-live="polite"></p><div id="movement" aria-live="polite"></div><div id="choices"></div><div id="profile"></div><div id="dugout"></div><h2>Session log</h2><ol id="log"></ol><p class="muted">Games reset on reload. Two team re-rolls each; match re-rolls replenish at half-time.</p></aside></main><section id="rosters" aria-label="Team rosters"></section>
+<aside class="panel"><div class="eyebrow">Movement & action practice</div><h2 id="coach"></h2><p id="selection" role="status" aria-live="polite"></p><div id="movement" aria-live="polite"></div><div id="choices"></div><div id="profile"></div><div id="dugout"></div><h2>Session log</h2><ol id="log"></ol><p class="muted">League teams and completed results save in this browser. Unfinished games restart from pre-game. Match re-rolls replenish at half-time.</p></aside></main><section id="rosters" aria-label="Team rosters"></section>
 <footer>FFB-derived corrections: <a href="docs/FFB-AUDIT.md">comparison and scope</a> · <a href="THIRD_PARTY_NOTICES.md">MIT attribution</a> · Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.14 with feedback.</footer>
 <script id="team-data" type="application/json">[
   {
@@ -312,6 +315,7 @@ class MovementGame {
   }
   this.note((scenario==="block"?"Block practice started.":scenario==="secure"?"Secure the Ball practice started.":"Movement practice started.")+" Perfect Conditions; two team re-rolls each.");
  }
+ recordStat(p,kind){if(!p)return;this.playerStats||={};const stats=this.playerStats[p.id]||={};stats[kind]=(stats[kind]||0)+1;}
  profile(p){return p.profileOverride||this.teams[p.team].positions[p.role];}
  treatmentChoice(kind,p,options,resolve){
   const q={type:"custom",kind,team:p.team,options,resolve:choice=>{
@@ -337,6 +341,7 @@ class MovementGame {
   let state=total<=stunMax?(crowd?"reserve":stunIsKo?"knocked-out":"stunned"):total<=koMax?"knocked-out":"casualty";
   const record={playerId:p.id,team:p.team,injury:total,source:source?{...source}:null,original:null,selected:null,treatment:null};
   if(state==="casualty")record.original=record.selected=automaticBadlyHurt||small&&total===9?{result:"Badly hurt",automatic:true}:this.casualtyRoll(p);
+  if(record.original&&source){const by=this.players.find(q=>q.id===source.playerId);if(by&&by.team!==p.team&&(["Block","Arm Bar","Lethal Flight"].includes(source.cause)||this.has(by,"Violent Innovator")&&["Bomb","Chainsaw","Stab","Breathe Fire","Projectile Vomit","Ball & Chain collision"].includes(source.cause)))this.recordStat(by,"casualty");}
   let resume=done;
   const finish=()=>{
    p.status=state;p.rooted=false;this.onProne(p);
@@ -510,7 +515,7 @@ class MovementGame {
   this.pending={type:"custom",kind:this.teams[1-p.team].name+" interception",options,resolve:choice=>{
    this.pending=null;const index=options.indexOf(choice);if(index===candidates.length){land();return;}
    const q=candidates[index];this.test(q,"Intercept",Number.parseInt(this.profile(q).ag)+(accurate?3:2)+this.marking(q),()=>{
-    this.ball={x:q.x,y:q.y,carrier:q.id};this.note("#"+q.number+" intercepts the pass.");this.checkScore();this.endTurn(true);
+    this.ball={x:q.x,y:q.y,carrier:q.id};this.recordStat(q,"interception");this.note("#"+q.number+" intercepts the pass.");this.checkScore();this.endTurn(true);
    },land);
   }};
  }
@@ -962,6 +967,7 @@ class MovementGame {
    if(p&&p.status==="standing"&&!p.distracted){
     const cx=p.x,cy=p.y;this.ball={x:cx,y:cy,carrier:null};
     this.test(p,"Catch",this.landingTarget(p,delivery),()=>{
+     if(delivery.kind==="pass"&&delivery.accurate&&this.passContext?.p?.team===p.team&&this.passContext.p.id!==p.id&&cx===delivery.target.x&&cy===delivery.target.y)this.recordStat(this.passContext.p,"completion");
      this.ball={x:cx,y:cy,carrier:p.id};this.note("#"+p.number+" catches the ball.");this.checkScore();done();
     },()=>this.bounce(cx,cy,done));
    }else if(p||thrown||direct)this.bounce(x,y,done);
@@ -1307,7 +1313,7 @@ class SkillGame extends SkillBase {
   const airborne=()=>{p.x=null;p.y=null;this.refreshChomps();};
   const dirs=[[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]];
   const drift=(pos,label)=>{const [dx,dy]=dirs[this.roll(label,8)-1];return {x:pos.x+dx,y:pos.y+dy};};
-  let forcedTurnover=false,usingSwoop=false;
+  let forcedTurnover=false,usingSwoop=false,superbThrow=false;
   const crowd=(from,to)=>{p.x=from.x;p.y=from.y;this.pushPlayer(p,to,()=>end(true));};
   const land=(pos,subpar,crashed=false,from=origin)=>{
    if(!this.inside(pos.x,pos.y)){crowd(from,pos);return;}
@@ -1319,9 +1325,9 @@ class SkillGame extends SkillBase {
    }
    p.x=pos.x;p.y=pos.y;if(this.ball.carrier===p.id){this.ball.x=p.x;this.ball.y=p.y;}
    const fail=()=>this.fall(p,{turnover:false,prevented:()=>ok(),after:()=>end(forcedTurnover||carrying)});
-   const ok=()=>{this.note("#"+p.number+" lands on their feet.");if(!this.ball.carrier&&this.ball.x===p.x&&this.ball.y===p.y)this.bounce(p.x,p.y,()=>end(forcedTurnover));else end(forcedTurnover);};
+   const ok=(rolled=false)=>{if(rolled&&!kicked){this.recordStat(p,"landing");if(superbThrow)this.recordStat(a,"completion");}this.note("#"+p.number+" lands on their feet.");if(!this.ball.carrier&&this.ball.x===p.x&&this.ball.y===p.y)this.bounce(p.x,p.y,()=>end(forcedTurnover));else end(forcedTurnover);};
    if(unable||crashed){fail();return;}
-   p.swooping=usingSwoop;this.test(p,"Landing",parseInt(this.profile(p).ag)+(subpar?1:0)+this.marking(p),()=>{p.swooping=false;ok();},()=>{p.swooping=false;fail();});
+   p.swooping=usingSwoop;this.test(p,"Landing",parseInt(this.profile(p).ag)+(subpar?1:0)+this.marking(p),()=>{p.swooping=false;ok(true);},()=>{p.swooping=false;fail();});
   };
   const carrying=this.ball.carrier===p.id;
   const fumble=()=>{
@@ -1331,7 +1337,7 @@ class SkillGame extends SkillBase {
   const resolve=n=>{
    const modifier=preview.target-parseInt(this.profile(a).pa);
    if(n===1||n!==6&&n-modifier===1){fumble();return;}
-   const superb=this.success(n,preview.target);this.note(superb?"Superb Throw.":"Subpar Throw.");
+   const superb=this.success(n,preview.target);superbThrow=superb;this.note(superb?"Superb Throw.":"Subpar Throw.");
    const flight=skipScatter=>{airborne();let pos={x,y};
     if(!skipScatter&&this.skill(p,"Swoop")){
      this.skillChoice("Swoop",p.team,["North","East","South","West","Scatter normally"],choice=>{
@@ -1937,14 +1943,19 @@ class MatchGame extends MatchBase {
  constructor(teams,{dice=null,learning=false,resources=null}={}){
   super(teams,{dice});this.events=[];this.match=true;this.learning=learning;this.phase="fans";this.half=1;this.drive=0;this.scores=[0,0];this.turns=[0,0];
   this.fans=[0,0];this.dedicatedFans=[1,1];this.weather="Perfect Conditions";this.cheer=[false,false];this.driveBonus=[0,0];this.bribes=[0,0];this.skip=[false,false];this.ball={x:null,y:null,carrier:null};
+  this.league=teams.every(t=>t.leagueTeamId);
   this.resourceChoices=teams.map((t,i)=>({...Object.fromEntries(Object.entries(MATCH_RESOURCES).map(([key,spec])=>[key,spec.initial])),...(resources?.[i]||t.matchResources||{})}));
   for(const team of [0,1])for(const [key,value] of Object.entries(this.resourceChoices[team]))if(!this.validResource(team,key,value))throw new Error("Invalid match resource: "+key);
+  this.playerStats={};this.stalledTeams=[false,false];
+  if(this.league)for(const [team,t] of teams.entries())for(const [i,p] of this.players.filter(p=>p.team===team).entries()){const record=t.matchPlayers[i];Object.assign(p,{leaguePlayerId:record.id,profileOverride:record.profile,nigglingInjuries:record.nigglingInjuries,journeyman:!!record.journeyman,leagueRecord:record,number:record.number});}
+  const high=teams[0].ctv>teams[1].ctv?0:1;this.leaguePurchaseOrder=this.league&&teams[0].ctv!==teams[1].ctv?[high,1-high]:[];this.leaguePurchaseStep=0;
   this.refreshResources();this.chefHalf=0;this.chefHistory=[];
-  this.players.forEach(p=>Object.assign(p,{x:null,y:null,status:"reserve"}));this.note("Exhibition match: configure staff and basic inducements before determining fans. Star players and unique abilities are deferred.");
+  this.players.forEach(p=>Object.assign(p,{x:null,y:null,status:"reserve"}));this.note(this.league?"League fixture: roster resources are fixed; complete inducement purchases after fans and weather.":"Exhibition match: configure staff and basic inducements before determining fans. Star players and unique abilities are deferred.");
  }
  hasTeamRule(team,name){return (this.teams[team].special||[]).some(rule=>rule.toLowerCase()===name.toLowerCase());}
  resourceSpec(team,key){
   const base=MATCH_RESOURCES[key];if(!base)return null;const spec={...base};
+  if(key==="dedicatedFans"&&this.league)spec.max=7;
   if(key==="teamRerolls")spec.cost=this.teams[team].reroll;
   if(key==="apothecary"){spec.cost=this.teams[team].staff?.apothecary||0;if(!spec.cost)spec.max=0;}
   if(key==="wanderingApothecaries"&&!this.teams[team].staff?.apothecary)spec.max=0;
@@ -1954,20 +1965,26 @@ class MatchGame extends MatchBase {
  }
  validResource(team,key,value){if(![0,1].includes(team)||!Number.isInteger(value))return false;const spec=this.resourceSpec(team,key);return !!spec&&value>=(spec.min||0)&&value<=spec.max;}
  setResource(team,key,value){
-  if(this.phase!=="fans"||this.pending||!this.validResource(team,key,value))return false;
-  this.resourceChoices[team][key]=value;this.refreshResources();return true;
+  if(this.phase!==(this.league?"leagueSteps":"fans")||this.pending||!this.validResource(team,key,value))return false;
+  if(this.league&&(MATCH_RESOURCES[key].group==="staff"||this.leaguePurchaseOrder[this.leaguePurchaseStep]!==team))return false;
+  const old=this.resourceChoices[team][key];this.resourceChoices[team][key]=value;
+  if(this.league&&[0,1].some(t=>this.resourceCosts(t).inducements>this.leagueBudget(t))){this.resourceChoices[team][key]=old;return false;}
+  this.refreshResources();return true;
  }
  configureResources(team){
-  if(this.phase!=="fans"||this.pending||![0,1].includes(team))return false;
+  if(this.phase!==(this.league?"leagueSteps":"fans")||this.pending||![0,1].includes(team)||this.league&&this.leaguePurchaseOrder[this.leaguePurchaseStep]!==team)return false;
   const menu=()=>{
-   const keys=Object.keys(MATCH_RESOURCES).filter(key=>this.resourceSpec(team,key).max>0),options=keys.map(key=>this.resourceSpec(team,key).label+": "+this.resourceChoices[team][key]);
+   const keys=Object.keys(MATCH_RESOURCES).filter(key=>this.resourceSpec(team,key).max>0&&(!this.league||MATCH_RESOURCES[key].group==="inducement")),options=keys.map(key=>this.resourceSpec(team,key).label+": "+this.resourceChoices[team][key]);
    this.skillChoice("Staff and inducements — "+this.teams[team].name,team,[...options,"Done"],choice=>{
-    const key=keys[options.indexOf(choice)];if(!key)return;
+    const key=keys[options.indexOf(choice)];if(!key){if(choice==="Done"&&this.league)this.lockLeagueInducements(team);return;}
     const spec=this.resourceSpec(team,key),values=Array.from({length:spec.max-(spec.min||0)+1},(_,i)=>i+(spec.min||0)),labels=values.map(value=>value+" — "+((key==="dedicatedFans"?value-1:value)*spec.cost).toLocaleString()+" gp");
     this.skillChoice(spec.label,team,[...labels,"Back"],label=>{const index=labels.indexOf(label);if(index>=0)this.setResource(team,key,values[index]);menu();});
    });
   };menu();return true;
  }
+ lockLeagueInducements(team){if(this.phase!=="leagueSteps"||this.pending||this.leaguePurchaseOrder[this.leaguePurchaseStep]!==team)return false;this.leaguePurchaseStep++;return true;}
+ leagueBudget(team){const diff=this.teams[team].ctv-this.teams[1-team].ctv;if(diff===0)return 0;if(diff>0)return this.teams[team].treasury;return -diff+this.resourceCosts(1-team).inducements+Math.min(50000,this.teams[team].treasury);}
+ leagueTreasurySpend(team){const diff=this.teams[team].ctv-this.teams[1-team].ctv,cost=this.resourceCosts(team).inducements;return diff>=0?cost:Math.max(0,cost-(-diff+this.resourceCosts(1-team).inducements));}
  refreshResources(){
   this.baseRerolls=this.resourceChoices.map(r=>r.teamRerolls);
   this.rerolls=this.resourceChoices.map(r=>r.teamRerolls+r.extraTraining);
@@ -2004,6 +2021,7 @@ class MatchGame extends MatchBase {
    this.note("Fan Factors: "+this.fans.join(" / ")+".");this.phase="weather";return true;
   }
   if(this.phase==="weather"){if(!this.learning)this.rollWeather();this.phase="leagueSteps";return true;}
+  if(this.phase==="leagueSteps"&&this.league){if(this.leaguePurchaseStep<this.leaguePurchaseOrder.length)return false;this.note("League Journeymen and inducements are ready.");this.phase="rolloff";return true;}
   if(this.phase==="leagueSteps"){this.note("Exhibition staff and selected basic inducements are locked. Automatic league cash, Journeymen and star players are deferred.");this.phase="rolloff";return true;}
   if(this.phase==="rolloff"){
    let a,b;do{a=this.roll(this.teams[0].name+" kick/receive roll-off");b=this.roll(this.teams[1].name+" kick/receive roll-off");}while(a===b);
@@ -2167,7 +2185,7 @@ class MatchGame extends MatchBase {
  wouldEndTurnTriggerStalling(excluded=null){const p=this.players.find(q=>q.id===this.ball.carrier);return this.phase==="play"&&this.turns[this.active]<=6&&p&&p!==excluded&&p.team===this.active&&!p.used&&!p.stallingChecked&&this.canScoreWithoutDice(p);}
  checkStalling(p,afterPrevention=null){
   if(this.phase!=="play"||this.finished||this.pending||p?.team!==this.active||p.stallingChecked||this.stallCandidate!==p.id||this.ball.carrier!==p.id)return;
-  this.stallCandidate=null;p.stallingChecked=true;if(this.turns[this.active]>6){this.note("Stalling: no crowd roll in turns 7–8.");return;}
+  this.stallCandidate=null;p.stallingChecked=true;this.stalledTeams[p.team]=true;if(this.turns[this.active]>6){this.note("Stalling: no crowd roll in turns 7–8.");return;}
   this.note("Stalling: the crowd may take action.");if(this.roll("Crowd Takes Action")>=this.turns[this.active])this.fall(p,{prevented:afterPrevention});
  }
  finish(){const p=this.players.find(q=>q.id===this.mover),result=super.finish();if(result&&p)this.checkStalling(p);return result;}
@@ -2175,7 +2193,7 @@ class MatchGame extends MatchBase {
   if(this.feedBeforeScore())return;
   if(this.scoreDeferrals)return;
   if(!["play","charge"].includes(this.phase))return;const p=this.players.find(q=>q.id===this.ball.carrier);
-  if(p&&p.status==="standing"&&p.x===(this.right(p.team)?25:0)){this.scores[p.team]++;this.note("TOUCHDOWN — "+this.teams[p.team].name+"! Score "+this.scores.join("–")+".");if(p.team!==this.active){this.turns[p.team]=Math.min(8,this.turns[p.team]+1);this.note("Scoring during the opponent's turn: the scoring team skips its next turn celebrating.");}this.endDrive(p.team);}
+  if(p&&p.status==="standing"&&p.x===(this.right(p.team)?25:0)){this.scores[p.team]++;this.recordStat(p,"touchdown");this.note("TOUCHDOWN — "+this.teams[p.team].name+"! Score "+this.scores.join("–")+".");if(p.team!==this.active){this.turns[p.team]=Math.min(8,this.turns[p.team]+1);this.note("Scoring during the opponent's turn: the scoring team skips its next turn celebrating.");}this.endDrive(p.team);}
  }
  endDrive(scorer){this.phase="endDrive";this.finished=true;this.pending=null;this.mover=null;this.action=null;this.blockAction=null;this.lastScorer=scorer;this.note("End of Drive: resolve recovery and effects before continuing.");}
  continueDrive(){
@@ -2195,6 +2213,60 @@ class MatchGame extends MatchBase {
 }
 if(typeof module!=="undefined")module.exports={MatchGame,MATCH_RESOURCES};
 </script>
+<script id="league-engine">
+"use strict";
+// Local roster management. Match behavior remains in the existing engines.
+const LeagueSkills=typeof module!=="undefined"?require("./skills.cjs").SKILL_GROUPS:SKILL_GROUPS;
+const ADVANCEMENT_COSTS=[[3,6,10,14],[4,8,12,16],[6,12,16,20],[8,16,20,24],[10,20,24,28],[15,30,34,38]];
+const ELITE_SKILLS=["Block","Dodge","Guard","Mighty Blow"];
+const cloneLeague=value=>JSON.parse(JSON.stringify(value));
+class LeagueStore {
+ constructor(rosters,data=null,{dice=null}={}){this.rosters=rosters;this.dice=dice||((s)=>1+Math.floor(Math.random()*s));this.data=data?cloneLeague(data):{version:1,teams:[],matches:[],leagues:[],active:null};this.validate();}
+ roll(s=6){const n=this.dice(s);if(!Number.isInteger(n)||n<1||n>s)throw Error("Invalid league die");return n;}
+ id(){return typeof crypto!=="undefined"&&crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);}
+ validate(){const d=this.data;if(d.version!==1||!Array.isArray(d.teams)||!Array.isArray(d.matches)||!Array.isArray(d.leagues))throw Error("Unsupported league backup");const ids=new Set();for(const t of d.teams){if(!t.id||ids.has(t.id))throw Error("Duplicate team ID");ids.add(t.id);this.checkTeam(t);}
+ const leagueIds=new Set(),entered=new Set();for(const l of d.leagues){if(!l.id||leagueIds.has(l.id)||typeof l.name!=="string"||!l.name.trim()||!Array.isArray(l.teamIds))throw Error("Invalid league data");leagueIds.add(l.id);for(const id of l.teamIds){if(!ids.has(id)||entered.has(id)||this.team(id).draft)throw Error("Invalid league membership");entered.add(id);}}
+ const matchIds=new Set();for(const m of d.matches){if(!m.id||matchIds.has(m.id)||!leagueIds.has(m.leagueId)||!Array.isArray(m.teamIds)||m.teamIds.length!==2||m.teamIds.some(id=>!ids.has(id))||!Array.isArray(m.scores)||m.scores.length!==2||m.scores.some(n=>!Number.isInteger(n)||n<0))throw Error("Invalid match record");matchIds.add(m.id);}
+ if(d.active){const a=d.active;if(!a.id||matchIds.has(a.id)||!leagueIds.has(a.leagueId)||!Array.isArray(a.teamIds)||a.teamIds.length!==2||new Set(a.teamIds).size!==2||a.teamIds.some(id=>!ids.has(id))||!Array.isArray(a.teams)||a.teams.length!==2||a.teams.some((t,i)=>t.leagueTeamId!==a.teamIds[i]||!Array.isArray(t.matchPlayers)||t.matchPlayers.length<11||!Array.isArray(t.lineup)))throw Error("Invalid active fixture");}
+ }
+ roster(t){const r=this.rosters.find(r=>r.id===t.rosterId);if(!r)throw Error("Unknown roster");return r;}
+ team(id){const t=this.data.teams.find(t=>t.id===id);if(!t)throw Error("Unknown team");return t;}
+ assertIdle(id){if(this.data.active?.teamIds.includes(id))throw Error("Finish this team's active fixture first");}
+ create(rosterId,name,coach=""){const t={id:this.id(),rosterId,name:name.trim(),coach:coach.trim(),draft:true,budget:1000000,treasury:1000000,players:[],archive:[],staff:{teamRerolls:0,apothecary:0,assistants:0,cheerleaders:0,dedicatedFans:1},record:{played:0,won:0,drawn:0,lost:0,points:0,tdFor:0,tdAgainst:0,casualties:0},history:[]};this.roster(t);if(!t.name||t.name.length>80)throw Error("Enter a team name (1–80 characters)");this.data.teams.push(t);return t;}
+ newPlayer(t,role,name){const base=this.roster(t).positions[role];if(!base)throw Error("Unknown position");return {id:this.id(),role,name:(name||base.name).trim().slice(0,80),number:Math.max(0,...t.players.map(p=>p.number))+1,profile:cloneLeague(base),value:base.cost,spp:0,earnedSpp:0,advances:[],injuries:[],nigglingInjuries:0,missNext:false,retired:false,stats:{touchdown:0,casualty:0,completion:0,interception:0,landing:0,mvp:0,games:0}};}
+ checkTeam(t){const r=this.roster(t);if(typeof t.name!=="string"||!t.name.trim()||!Number.isSafeInteger(t.treasury)||t.treasury<0||!Array.isArray(t.players)||t.players.length>16)throw Error("Invalid team data");const seen=new Set();for(const p of t.players){if(!p.id||seen.has(p.id)||!r.positions[p.role]||!Number.isSafeInteger(p.spp)||p.spp<0||!Number.isSafeInteger(p.value)||p.value<0||!Array.isArray(p.advances)||p.advances.length>6||!p.profile||!Array.isArray(p.profile.skills))throw Error("Invalid player data");seen.add(p.id);}if(t.pendingAdvance&&(!Array.isArray(t.pendingAdvance.options)||!t.pendingAdvance.options.length||t.pendingAdvance.options.some(n=>typeof n!=="string")||!t.players.some(p=>p.id===t.pendingAdvance.playerId)||!Number.isInteger(t.pendingAdvance.cost)||t.pendingAdvance.cost<0))throw Error("Invalid pending advancement");if(!t.record||!Array.isArray(t.history)||!Array.isArray(t.archive)||t.postgame&&!Array.isArray(t.postgame.journeymen))throw Error("Invalid team record");for(const n of Object.values(t.record))if(!Number.isSafeInteger(n)||n<0)throw Error("Invalid team statistics");for(const p of t.players){if(typeof p.name!=="string"||!Number.isInteger(p.number)||p.number<1||!Array.isArray(p.injuries)||!Number.isInteger(p.nigglingInjuries)||p.nigglingInjuries<0||!p.stats||!Number.isInteger(p.earnedSpp)||p.earnedSpp<0)throw Error("Invalid player history");for(const n of Object.values(p.stats))if(!Number.isSafeInteger(n)||n<0)throw Error("Invalid player statistics");for(const k of ["ma","st","ag","pa","av"])if(!(k==="pa"&&p.profile[k]==="-")&&!Number.isFinite(parseInt(p.profile[k])))throw Error("Invalid player characteristic");}
+ for(let i=0;i<r.positions.length;i++)if(t.players.filter(p=>p.role===i).length>r.positions[i].max)throw Error("Position allowance exceeded");for(const [key,max] of Object.entries({teamRerolls:8,apothecary:r.staff.apothecary?1:0,assistants:6,cheerleaders:6,dedicatedFans:t.draft?3:7}))if(!Number.isInteger(t.staff?.[key])||t.staff[key]<(key==="dedicatedFans"?1:0)||t.staff[key]>max)throw Error("Invalid "+key);}
+ hire(id,role,name){this.assertIdle(id);const t=this.team(id),p=this.newPlayer(t,role,name);if(t.players.length>=16||t.players.filter(p=>p.role===role).length>=this.roster(t).positions[role].max)throw Error("Position or roster is full");if(t.treasury<p.value)throw Error("Not enough gold");t.players.push(p);t.treasury-=p.value;return p;}
+ fire(id,pid){this.assertIdle(id);const t=this.team(id),p=t.players.find(p=>p.id===pid);if(!p)throw Error("Unknown player");if(!t.draft&&t.players.filter(q=>q.id!==pid&&!q.missNext&&!q.retired).length<11)throw Error("Release would leave fewer than 11 eligible players");if(t.pendingAdvance?.playerId===pid)throw Error("Resolve the pending advancement");t.players=t.players.filter(q=>q.id!==pid);if(t.draft)t.treasury+=p.value;else t.archive.push({...p,reason:"Released"});}
+ setStaff(id,key,count){this.assertIdle(id);const t=this.team(id),r=this.roster(t),old=t.staff[key],prices={teamRerolls:r.reroll,apothecary:r.staff.apothecary,assistants:10000,cheerleaders:10000,dedicatedFans:5000};if(!(key in prices)||(!t.draft&&key==="dedicatedFans"))throw Error("Unavailable staff purchase");const proposal=cloneLeague(t);proposal.staff[key]=count;this.checkTeam(proposal);if(!t.draft&&key==="teamRerolls"&&count<old)throw Error("Purchased re-rolls cannot be removed");const change=count-old,cost=change>0?change*prices[key]*(key==="teamRerolls"&&!t.draft?2:1):t.draft?change*prices[key]:0;if(cost>t.treasury)throw Error("Not enough gold");t.staff[key]=count;t.treasury-=cost;}
+ values(t){const staff=t.staff.teamRerolls*this.roster(t).reroll+t.staff.apothecary*50000+(t.staff.assistants+t.staff.cheerleaders)*10000;return {tv:staff+t.players.reduce((n,p)=>n+p.value,0),ctv:staff+t.players.filter(p=>!p.missNext&&!p.retired).reduce((n,p)=>n+p.value,0)};}
+ submit(id){const t=this.team(id);this.checkTeam(t);if(!t.draft)throw Error("Team is already submitted");if(t.players.length<11)throw Error("A rookie team needs at least 11 players");if(t.players.filter(p=>p.profile.skills.includes("Insignificant")).length>t.players.length/2)throw Error("Too many Insignificant players");t.draft=false;return t;}
+ createLeague(name){if(!name.trim())throw Error("Enter a league name");const league={id:this.id(),name:name.trim().slice(0,80),teamIds:[]};this.data.leagues.push(league);return league;}
+ enterLeague(lid,tid){this.assertIdle(tid);const l=this.data.leagues.find(l=>l.id===lid),t=this.team(tid);if(!l||t.draft)throw Error("Submit the team before league entry");if(this.data.leagues.some(l=>l.teamIds.includes(tid)))throw Error("Team already belongs to a league");l.teamIds.push(tid);}
+ eligibleSkill(p,name){if(p.profile.skills.includes(name))return false;const pairs=[["Frenzy","Grab"],["Frenzy","Hit and Run"],["Leap","Pogo"]];if(pairs.some(([a,b])=>name===a&&p.profile.skills.includes(b)||name===b&&p.profile.skills.includes(a)))return false;const needs={"Lethal Flight":"Right Stuff","Saboteur":"Secret Weapon","Strong Arm":"Throw Team-mate","Bullseye":"Throw Team-mate"};if(needs[name]&&!p.profile.skills.includes(needs[name]))return false;if(name==="Violent Innovator"&&!p.profile.skills.some(s=>["Breathe Fire","Chainsaw","Stab","Projectile Vomit","Bombardier","Ball & Chain","Hypnotic Gaze","Monstrous Mouth","Punt"].includes(s)))return false;return true;}
+ skillOptions(p,secondary=false){const access=p.profile[secondary?"secondary":"primary"].split(/\s+/);return Object.entries(LeagueSkills).filter(([cat])=>cat!=="Traits"&&access.includes(cat[0])).flatMap(([,names])=>names).filter(n=>this.eligibleSkill(p,n));}
+ advance(id,pid,name,secondary=false){this.assertIdle(id);const t=this.team(id),p=t.players.find(p=>p.id===pid);if(!p||t.draft||p.advances.length>=6)throw Error("Player cannot advance");const pending=t.pendingAdvance;if(pending&&pending.playerId!==pid)throw Error("Resolve the pending advancement first");if(pending){if(!pending.options.includes(name))throw Error("Choose one of the rolled advances");}else {if(!this.skillOptions(p,secondary).includes(name))throw Error("Skill is unavailable");const cost=ADVANCEMENT_COSTS[p.advances.length][secondary?2:1];if(p.spp<cost)throw Error("Not enough SPP");p.spp-=cost;}
+ let value;if(["ma","st","ag","pa","av"].includes(name)){const v=parseInt(p.profile[name]);p.profile[name]=["ma","st"].includes(name)?v+1:(v+(["ag","pa"].includes(name)?-1:1))+"+";value={ma:20000,st:60000,ag:30000,pa:20000,av:10000}[name];}else {secondary=!p.profile.primary.split(/\s+/).some(c=>(LeagueSkills[Object.keys(LeagueSkills).find(k=>k[0]===c)]||[]).includes(name));p.profile.skills.push(name);value=(secondary?40000:20000)+(ELITE_SKILLS.includes(name)?10000:0);}
+ p.value+=value;p.advances.push({name,value,cost:pending?.cost??ADVANCEMENT_COSTS[p.advances.length][secondary?2:1]});delete t.pendingAdvance;return p;}
+ rollAdvance(id,pid,kind,category){this.assertIdle(id);const t=this.team(id),p=t.players.find(p=>p.id===pid);if(t.draft||!p||p.advances.length>=6||t.pendingAdvance)throw Error("Cannot roll advancement");const cost=ADVANCEMENT_COSTS[p.advances.length][kind==="characteristic"?3:0];if(p.spp<cost)throw Error("Not enough SPP");let options=[];
+ if(kind==="characteristic"){const roll=this.roll(8),table=[[],["av"],["av","pa"],["av","ma","pa"],["av","ma","pa"],["ma","pa"],["ag","ma"],["ag","st"],["ma","st","ag","pa","av"]];options=table[roll].filter(k=>{const n=parseInt(p.profile[k]);return Number.isFinite(n)&&p.advances.filter(a=>a.name===k).length<2&&(["ag","pa"].includes(k)?n>1:n<{ma:9,st:8,av:11}[k]);});options.push(...this.skillOptions(p),...this.skillOptions(p,true));}
+ else {if(!p.profile.primary.split(/\s+/).includes(category?.[0])||!LeagueSkills[category])throw Error("Choose a Primary category");const eligible=LeagueSkills[category].filter(n=>this.eligibleSkill(p,n));if(!eligible.length)throw Error("No eligible skills in category");for(let i=0;i<2;i++){let n;let attempts=0;do {if(++attempts>1000)throw Error("Random skill dice failed");n=LeagueSkills[category][(this.roll()>3?6:0)+this.roll()-1];}while(!eligible.includes(n));options.push(n);}}
+ p.spp-=cost;t.pendingAdvance={playerId:pid,cost,options:[...new Set(options)]};return t.pendingAdvance;}
+ matchTeam(t){const r=cloneLeague(this.roster(t)),available=t.players.filter(p=>!p.missNext&&!p.retired).map(cloneLeague),lineman=r.positions.findIndex(p=>p.max===16&&p.traits.includes("Lineman"));if(lineman<0)throw Error("No Journeyman position");while(available.length<11){const p=this.newPlayer(t,lineman,"Journeyman");p.journeyman=true;p.profile.skills.push("Loner (4+)");p.number=Math.max(0,...t.players.map(p=>p.number),...available.map(p=>p.number))+1;available.push(p);}r.name=t.name;r.lineup=available.map(p=>p.role);r.matchPlayers=available;r.matchResources=cloneLeague(t.staff);r.leagueTeamId=t.id;r.treasury=t.treasury;r.ctv=this.values(t).ctv+available.filter(p=>p.journeyman).reduce((n,p)=>n+p.value,0);return r;}
+ startFixture(home,away){if(this.data.active)throw Error("A fixture is already active");if(home===away)throw Error("Choose two different teams");const league=this.data.leagues.find(l=>l.teamIds.includes(home)&&l.teamIds.includes(away));if(!league)throw Error("Both teams must enter the same league");const ts=[home,away].map(id=>this.team(id));if(ts.some(t=>t.draft||t.postgame||t.pendingAdvance||t.players.some(p=>p.advances.length<6&&p.spp>=ADVANCEMENT_COSTS[p.advances.length][3])))throw Error("Finish post-game steps and required advancements first");const teams=ts.map(t=>this.matchTeam(t));this.data.active={id:this.id(),leagueId:league.id,teamIds:[home,away],teams,versions:ts.map(t=>t.history.length)};return cloneLeague(this.data.active);}
+ finishFixture(game,nominations){const a=this.data.active;if(!a||game.leagueFixtureId!==a.id||game.phase!=="finished"||game.pending)throw Error("Complete the active fixture first");if(this.data.matches.some(m=>m.id===a.id))throw Error("Fixture already recorded");for(let i=0;i<2;i++){const eligible=game.players.filter(p=>p.team===i&&p.fieldedDrive!=null);const list=nominations[i];if(!Array.isArray(list)||new Set(list).size!==6||list.some(id=>!eligible.some(p=>p.id===id)))throw Error("Nominate six different eligible players for each MVP");}
+ // Work on a clone; both teams and the match record commit together.
+ const draft=new LeagueStore(this.rosters,this.data,{dice:this.dice}),record={id:a.id,leagueId:a.leagueId,teamIds:a.teamIds,scores:[...game.scores],date:new Date().toISOString(),teams:[]};
+ for(let i=0;i<2;i++){const t=draft.team(a.teamIds[i]),mvp=nominations[i][draft.roll()-1],score=game.scores[i],opponent=game.scores[1-i],outcome=score>opponent?"won":score===opponent?"drawn":"lost",winnings=((game.fans[0]+game.fans[1])/2+score+(game.stalledTeams?.[i]?0:1))*10000;for(const p of t.players)p.missNext=false;
+ const journeymen=[];for(const mp of game.players.filter(p=>p.team===i)){let p=t.players.find(p=>p.id===mp.leaguePlayerId);if(!p&&mp.journeyman){p=cloneLeague(mp.leagueRecord);journeymen.push(p);}if(!p)continue;const stats={...(game.playerStats?.[mp.id]||{})};if(mp.id===mvp)stats.mvp=(stats.mvp||0)+1;let earned=0;const awards={...game.teamSppAwards(i),landing:1};for(const [key,n] of Object.entries(stats)){p.stats[key]=(p.stats[key]||0)+n;earned+=n*(awards[key]||0);}p.spp+=earned;p.earnedSpp+=earned;if(mp.fieldedDrive!=null)p.stats.games++;const injuries=game.injuryRecords.filter(r=>r.playerId===mp.id&&r.status==="casualty"&&r.selected).map(r=>r.selected);if(mp.eaten)injuries.push({dead:true,result:"Eaten"});for(const injury of injuries){p.injuries.push(cloneLeague(injury));if(injury.dead)p.dead=true;if(injury.missNext)p.missNext=true;if(injury.niggling)p.nigglingInjuries++;if(injury.attribute){p.lastLastingMatch=a.id;const k=injury.attribute,v=parseInt(p.profile[k]),n=v+(["ag","pa"].includes(k)?1:-1);p.profile[k]=["ma","st"].includes(k)?Math.max(1,n):Math.min(k==="av"?11:6,Math.max(k==="av"?3:1,n))+"+";}}}
+ t.archive.push(...t.players.filter(p=>p.dead).map(p=>({...p,reason:"Dead"})));t.players=t.players.filter(p=>!p.dead);t.treasury+=winnings-(game.leagueTreasurySpend?.(i)||0);if(outcome!=="drawn"){const die=draft.roll();if(outcome==="won"&&die>=t.staff.dedicatedFans)t.staff.dedicatedFans=Math.min(7,t.staff.dedicatedFans+1);if(outcome==="lost"&&die<t.staff.dedicatedFans)t.staff.dedicatedFans=Math.max(1,t.staff.dedicatedFans-1);}const casualties=game.players.filter(p=>p.team===i).reduce((n,p)=>n+(game.playerStats?.[p.id]?.casualty||0),0);t.record.played++;t.record[outcome]++;t.record.points+=outcome==="won"?3:outcome==="drawn"?1:0;t.record.tdFor+=score;t.record.tdAgainst+=opponent;t.record.casualties+=casualties;t.history.push(a.id);t.postgame={matchId:a.id,journeymen:journeymen.filter(p=>!p.dead)};record.teams.push({teamId:t.id,outcome,winnings,mvp,casualties});}
+ draft.data.matches.push(record);draft.data.active=null;this.data=draft.data;return record;}
+ temporarilyRetire(id,pid){this.assertIdle(id);const t=this.team(id),p=t.players.find(p=>p.id===pid);if(!p||!t.postgame||p.lastLastingMatch!==t.postgame.matchId||p.retired)throw Error("Only a new Lasting Injury permits temporary retirement");p.retired=true;}
+ hireJourneyman(id,pid){const t=this.team(id),p=t.postgame?.journeymen.find(p=>p.id===pid);if(!p)throw Error("Unknown Journeyman");const base=this.roster(t).positions[p.role];if(t.players.length>=16||t.players.filter(q=>q.role===p.role).length>=base.max||t.treasury<p.value)throw Error("Cannot hire Journeyman");t.treasury-=p.value;p.profile.skills=p.profile.skills.filter(s=>s!=="Loner (4+)");p.journeyman=false;t.players.push(p);t.postgame.journeymen=t.postgame.journeymen.filter(q=>q!==p);}
+ prepareNext(id){const t=this.team(id);if(!t.postgame||t.pendingAdvance)throw Error("Resolve post-game decisions first");if(t.players.some(p=>p.advances.length<6&&p.spp>=ADVANCEMENT_COSTS[p.advances.length][3]))throw Error("A player must take an advancement");let loss=0,result="No roll required";if(t.treasury>=100000){const band=Math.min(5,Math.floor(t.treasury/100000)-1),n=this.roll(),table=[[1,0,0,0,0,0],[1,1,0,0,0,0],[2,1,1,0,0,0],[2,2,1,1,0,0],[3,2,2,1,0,0],[3,3,2,2,1,1]],severity=table[band][n-1];result=["Crisis averted","Minor incident","Major incident","Catastrophe"][severity];loss=severity===1?Math.ceil(this.roll()/2)*10000:severity===2?t.treasury-Math.floor(t.treasury/2/5000)*5000:severity===3?Math.max(0,t.treasury-(this.roll()+this.roll())*10000):0;}t.treasury-=loss;t.lastMistake={result,loss};delete t.postgame;return t.lastMistake;}
+}
+if(typeof module!=="undefined")module.exports={LeagueStore,ADVANCEMENT_COSTS,ELITE_SKILLS};
+</script>
 <script>
 
 "use strict";
@@ -2202,10 +2274,11 @@ const teams=JSON.parse(document.getElementById("team-data").textContent);
 const pitch=document.getElementById("pitch"),coach=document.getElementById("coach"),selection=document.getElementById("selection"),log=document.getElementById("log");
 const money=n=>n.toLocaleString("en-US")+" gp";
 let game,selected=null,destination=null,blockMode=false,ballMode=false,throwDestination=null;
-function reset(){const scenario=document.getElementById("scenario").value;game=scenario.startsWith("match")?new MatchGame(teams,{learning:scenario==="match-learning"}):new SkillGame(teams,{scenario});selected=game.practicePlayer;destination=null;blockMode=false;ballMode=false;throwDestination=null;render();const p=game.players.find(p=>p.id===selected);showProfile(p?.team??0,p?.role??0,p?.number??null);}
+function reset(){if(globalThis.resetLeagueTeams)globalThis.resetLeagueTeams();const scenario=document.getElementById("scenario").value;game=scenario.startsWith("match")?new MatchGame(teams,{learning:scenario==="match-learning"}):new SkillGame(teams,{scenario});selected=game.practicePlayer;destination=null;blockMode=false;ballMode=false;throwDestination=null;render();const p=game.players.find(p=>p.id===selected);showProfile(p?.team??0,p?.role??0,p?.number??null);}
+function escapeTeamText(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;", "'":"&#39;"}[c]));}
 function showProfile(team,role,number){
  const t=teams[team],live=number&&game.players.find(p=>p.team===team&&p.number===number),p=live?game.profile(live):t.positions[role];
- document.getElementById("profile").innerHTML='<div class="eyebrow">'+t.name+'</div><h2>'+(number?'#'+number+' · ':'')+p.name+'</h2><p class="muted">'+p.traits+'</p><div class="stats">'+["ma","st","ag","pa","av"].map(k=>'<div class="stat"><small>'+k.toUpperCase()+'</small>'+p[k]+'</div>').join("")+'</div><p class="profile-skills">'+p.skills.join(" · ")+'</p><p class="muted">Cost: '+money(p.cost)+' · Limit: 0–'+p.max+'<br>Primary: '+p.primary+' · Secondary: '+p.secondary+'</p><a class="muted" href="'+t.source+'">2025 roster source</a>';
+ document.getElementById("profile").innerHTML='<div class="eyebrow">'+escapeTeamText(t.name)+'</div><h2>'+(number?'#'+number+' · ':'')+p.name+'</h2><p class="muted">'+p.traits+'</p><div class="stats">'+["ma","st","ag","pa","av"].map(k=>'<div class="stat"><small>'+k.toUpperCase()+'</small>'+p[k]+'</div>').join("")+'</div><p class="profile-skills">'+p.skills.join(" · ")+'</p><p class="muted">Cost: '+money(p.cost)+' · Limit: 0–'+p.max+'<br>Primary: '+p.primary+' · Secondary: '+p.secondary+'</p><a class="muted" href="'+t.source+'">2025 roster source</a>';
 }
 
 function planningPlayer(){
@@ -2423,17 +2496,17 @@ function renderMatch(){
  const say=text=>{const p=document.createElement("p");p.textContent=text;panel.append(p);};
  const add=(label,fn)=>panel.append(button(label,()=>matchRun(fn)));
  if(["fans","weather","leagueSteps","rolloff"].includes(game.phase)){
-  say(game.phase==="fans"?"Pre-game 1: determine the fans in attendance.":game.phase==="weather"?"Pre-game 2: determine the weather.":game.phase==="leagueSteps"?"Pre-game 3–4: use the selected exhibition staff and basic inducements. Automatic league allowances and Journeymen remain deferred.":"Pre-game 5: roll off. The winning coach chooses which team kicks.");
-  if(game.phase==="fans"){
+  say(game.phase==="fans"?"Pre-game 1: determine the fans in attendance.":game.phase==="weather"?"Pre-game 2: determine the weather.":game.phase==="leagueSteps"?"Pre-game 3–4: league fixtures include Journeymen and funded inducements. Exhibitions use configured resources.":"Pre-game 5: roll off. The winning coach chooses which team kicks.");
+  if(game.phase==="fans"&&!game.league||game.phase==="leagueSteps"&&game.league){
    say("Choose staff and basic inducements for this exhibition. Costs are shown; treasury spending and automatic underdog allowances will come with team management.");
    for(const team of [0,1]){
     const costs=game.resourceCosts(team),r=game.resourceChoices[team];
     say(teams[team].name+": "+r.teamRerolls+" team re-rolls, "+r.assistants+" assistant coaches, "+r.cheerleaders+" cheerleaders, "+r.dedicatedFans+" Dedicated Fans. Selected staff/re-rolls "+money(costs.staff)+", fan improvements "+money(costs.fans)+", inducements "+money(costs.inducements)+".");
-    add("Configure staff and inducements — "+teams[team].name,()=>game.configureResources(team));
-    if(teams[team].staff?.apothecary){say(teams[team].name+" apothecaries: "+game.apothecaries[team]);add((r.apothecary?"Remove":"Add")+" apothecary — "+teams[team].name,()=>game.setApothecary(team,!r.apothecary));}
+    if(!game.league||game.leaguePurchaseOrder[game.leaguePurchaseStep]===team){if(game.league)say("Available inducement budget: "+money(game.leagueBudget(team))+". The higher CTV team completes purchases first. Choose Done to lock purchases.");add("Configure staff and inducements — "+teams[team].name,()=>game.configureResources(team));}
+    if(!game.league&&teams[team].staff?.apothecary){say(teams[team].name+" apothecaries: "+game.apothecaries[team]);add((r.apothecary?"Remove":"Add")+" apothecary — "+teams[team].name,()=>game.setApothecary(team,!r.apothecary));}
    }
   }
-  add(game.phase==="fans"?"Determine fans":game.phase==="weather"?"Determine weather":game.phase==="leagueSteps"?"Continue exhibition pre-game":"Roll for kick or receive",()=>game.advancePregame());
+  add(game.phase==="fans"?"Determine fans":game.phase==="weather"?"Determine weather":game.phase==="leagueSteps"?(game.league?"Continue league pre-game":"Continue exhibition pre-game"):"Roll for kick or receive",()=>game.advancePregame());
  }else if(game.phase==="kickChoice"){
   say(teams[game.rolloffWinner].name+" won the roll-off. Choose who kicks first.");for(const t of [0,1])add(teams[t].name+" kicks",()=>game.chooseKicking(t));
  }else if(game.phase==="setup"){
@@ -2450,7 +2523,7 @@ function renderMatch(){
   add("Finish Kick-off Event",()=>game.finishEvent());
  }else if(game.phase==="touchback")say("Touchback: the receiving coach chooses who gets the ball below. If no one is standing, click an empty square in the receiving half.");
  else if(game.phase==="endDrive"){say("Drive ended. Resolve weather effects, recover Knocked-out players, expire drive effects, then set up the next drive or advance to half/full time.");add("Resolve end of drive and continue",()=>game.continueDrive());}
- else if(game.phase==="finished")say("Full time: "+(game.scores[0]===game.scores[1]?"draw":teams[game.scores[0]>game.scores[1]?0:1].name+" wins")+". Reset to start a new match.");
+ else if(game.phase==="finished")say("Full time: "+(game.scores[0]===game.scores[1]?"draw":teams[game.scores[0]>game.scores[1]?0:1].name+" wins")+(game.league?". Complete MVP nominations in League teams & progression below.":". Reset to start a new match."));
  else if(game.phase==="play")say(teams[game.active].name+" to play. End team turn when finished; turnovers also advance play.");
  else say("Resolve the pending kickoff decision below.");
  coach.textContent=teams[game.active].name+" · Half "+game.half+" · Turn "+game.turns[game.active];
@@ -2461,7 +2534,7 @@ function renderMatch(){
 function renderRosters(){
  document.getElementById("rosters").innerHTML=teams.map((t,team)=>{
  const total=t.lineup.reduce((n,r)=>n+t.positions[r].cost,0);
- return '<article class="panel"><div class="roster-heading"><h2>'+t.name+'</h2><span class="badge">Tier '+t.tier+'</span></div><p class="team-summary">'+t.league+' · '+(t.special.length?t.special.join(" · "):"No team special rules listed")+'</p><div class="table-scroll"><table><caption>Available positions · click a position to inspect</caption><thead><tr>'+["Position","Limit","MA","ST","AG","PA","AV","Skills & traits","Primary","Secondary","Cost"].map(h=>'<th scope="col">'+h+'</th>').join("")+'</tr></thead><tbody>'+t.positions.map((p,r)=>'<tr><td><button class="role-button" data-team="'+team+'" data-role="'+r+'">'+p.name+'</button><br><small>'+p.traits+'</small></td><td>0–'+p.max+'</td>'+["ma","st","ag","pa","av"].map(k=>'<td>'+p[k]+'</td>').join("")+'<td class="skills">'+p.skills.join(", ")+'</td><td>'+p.primary+'</td><td>'+p.secondary+'</td><td>'+money(p.cost)+'</td></tr>').join("")+'</tbody></table></div><p class="team-summary"><strong>Demo lineup:</strong> '+t.positions.map((p,r)=>({p,count:t.lineup.filter(v=>v===r).length})).filter(v=>v.count).map(v=>v.count+" × "+v.p.name).join(" · ")+'<br>11 players: '+money(total)+'. With 2 re-rolls: '+money(total+2*t.reroll)+'. These are demonstration selections, not a roster builder.</p><p class="muted">Re-roll: '+money(t.reroll)+' · Apothecary: '+money(t.staff.apothecary)+' · Assistant coach: '+money(t.staff.assistantCoach)+' · Cheerleader: '+money(t.staff.cheerleader)+'</p><p class="muted">Advancement categories: A = Agility · D = Devious · G = General · P = Passing · S = Strength. Configure staff and basic inducements before an exhibition. Team building and league records are next; star players and their unique abilities are deferred.</p><a class="muted" href="'+t.source+'">Source of truth · reviewed '+t.reviewed+'</a></article>';
+ return '<article class="panel"><div class="roster-heading"><h2>'+t.name+'</h2><span class="badge">Tier '+t.tier+'</span></div><p class="team-summary">'+t.league+' · '+(t.special.length?t.special.join(" · "):"No team special rules listed")+'</p><div class="table-scroll"><table><caption>Available positions · click a position to inspect</caption><thead><tr>'+["Position","Limit","MA","ST","AG","PA","AV","Skills & traits","Primary","Secondary","Cost"].map(h=>'<th scope="col">'+h+'</th>').join("")+'</tr></thead><tbody>'+t.positions.map((p,r)=>'<tr><td><button class="role-button" data-team="'+team+'" data-role="'+r+'">'+p.name+'</button><br><small>'+p.traits+'</small></td><td>0–'+p.max+'</td>'+["ma","st","ag","pa","av"].map(k=>'<td>'+p[k]+'</td>').join("")+'<td class="skills">'+p.skills.join(", ")+'</td><td>'+p.primary+'</td><td>'+p.secondary+'</td><td>'+money(p.cost)+'</td></tr>').join("")+'</tbody></table></div><p class="team-summary"><strong>Demo lineup:</strong> '+t.positions.map((p,r)=>({p,count:t.lineup.filter(v=>v===r).length})).filter(v=>v.count).map(v=>v.count+" × "+v.p.name).join(" · ")+'<br>11 players: '+money(total)+'. With 2 re-rolls: '+money(total+2*t.reroll)+'. These are demonstration selections, not a roster builder.</p><p class="muted">Re-roll: '+money(t.reroll)+' · Apothecary: '+money(t.staff.apothecary)+' · Assistant coach: '+money(t.staff.assistantCoach)+' · Cheerleader: '+money(t.staff.cheerleader)+'</p><p class="muted">Advancement categories: A = Agility · D = Devious · G = General · P = Passing · S = Strength. Configure staff and basic inducements before an exhibition. Use League teams & progression to draft, save and develop your own team. Star players and their unique abilities are deferred.</p><a class="muted" href="'+t.source+'">Source of truth · reviewed '+t.reviewed+'</a></article>';
  }).join("");
  document.querySelectorAll(".role-button").forEach(button=>button.addEventListener("click",()=>{showProfile(Number(button.dataset.team),Number(button.dataset.role),null);document.getElementById("profile").scrollIntoView({behavior:"smooth",block:"center"});}));
 }
@@ -2484,6 +2557,47 @@ document.getElementById("end").addEventListener("click",()=>{game.endTurn();dest
 document.getElementById("reset").addEventListener("click",reset);
 document.getElementById("scenario").addEventListener("change",reset);
 renderRosters();renderSkillCoverage();reset();
+</script>
+<script id="league-ui">
+"use strict";
+// DOM-only roster UI; all entered/imported names are rendered as text.
+const LEAGUE_STORAGE_KEY="blood-bowl-leagues-v1";
+const demoLeagueTeams=JSON.parse(JSON.stringify(teams));
+globalThis.resetLeagueTeams=()=>teams.splice(0,teams.length,...JSON.parse(JSON.stringify(demoLeagueTeams)));
+let leagueStore,leagueSelected=null,leagueMessage="",leagueStorageError="",leagueRawBackup="",leagueStoredSnapshot=null;
+try{const saved=globalThis.localStorage?.getItem(LEAGUE_STORAGE_KEY);leagueRawBackup=saved||"";leagueStoredSnapshot=saved||null;leagueStore=new LeagueStore(demoLeagueTeams,saved?JSON.parse(saved):null);}catch(error){leagueStorageError="Saved league data could not be loaded: "+error.message+". Export or repair your backup before saving.";leagueStore=new LeagueStore(demoLeagueTeams);}
+const leaguePanel=document.createElement("section");leaguePanel.className="panel";leaguePanel.id="league-panel";document.getElementById("rosters").before(leaguePanel);
+function leagueElement(tag,text,parent=leaguePanel){const e=document.createElement(tag);if(text!=null)e.textContent=text;parent.append(e);return e;}
+function leagueButton(text,fn,parent=leaguePanel){const b=leagueElement("button",text,parent);b.className="control secondary";b.addEventListener("click",()=>leagueAction(fn));return b;}
+function leagueInput(label,value,parent=leaguePanel,type="text"){const wrap=leagueElement("label",label+" ",parent),input=leagueElement("input",null,wrap);input.type=type;input.value=value;input.setAttribute("aria-label",label);return input;}
+function leagueSelect(label,items,parent=leaguePanel){const wrap=leagueElement("label",label+" ",parent),s=leagueElement("select",null,wrap);s.setAttribute("aria-label",label);for(const [value,text] of items){const o=leagueElement("option",text,s);o.value=value;}s.value=items[0]?.[0]||"";return s;}
+function leagueSave(){if(leagueStorageError)throw Error(leagueStorageError);if(!globalThis.localStorage)throw Error("Browser storage is unavailable. Enable storage to save league teams.");if(globalThis.localStorage.getItem(LEAGUE_STORAGE_KEY)!==leagueStoredSnapshot)throw Error("League data changed in another tab. Reload before saving.");const serialized=JSON.stringify(leagueStore.data);globalThis.localStorage.setItem(LEAGUE_STORAGE_KEY,serialized);leagueStoredSnapshot=serialized;}
+function leagueAction(fn){const before=JSON.stringify(leagueStore.data);try{fn();leagueSave();leagueMessage="Saved in this browser. Export a backup to keep a copy.";}catch(error){leagueStore=new LeagueStore(demoLeagueTeams,JSON.parse(before));leagueMessage=error.message;}renderLeague();}
+function startLeagueMatch(fixture){teams.splice(0,teams.length,...JSON.parse(JSON.stringify(fixture.teams)));game=new MatchGame(teams);game.leagueFixtureId=fixture.id;document.getElementById("scenario").value="match";selected=null;destination=null;render();}
+function renderLeague(){
+ leaguePanel.replaceChildren();leagueElement("h2","League teams & progression");leagueElement("p",leagueStorageError||leagueMessage||"Draft a team with 1,000,000 gp, submit it, and enter a local league. Teams and completed results save in this browser. An unfinished fixture restarts from pre-game after reload.");
+ const backup=leagueElement("textarea");backup.setAttribute("aria-label","League backup JSON");backup.rows=3;backup.style&&(backup.style.width="100%");
+ const exportBackup=leagueElement("button","Export backup");exportBackup.className="control secondary";exportBackup.addEventListener("click",()=>{backup.value=leagueStorageError?leagueRawBackup:JSON.stringify(leagueStore.data,null,2);});
+ const importButton=leagueElement("button","Import backup");importButton.className="control secondary";importButton.addEventListener("click",()=>{try{if(leagueStore.data.active)throw Error("Finish the active fixture before importing");const incoming=new LeagueStore(demoLeagueTeams,JSON.parse(backup.value));if(!globalThis.localStorage)throw Error("Browser storage unavailable");globalThis.localStorage.setItem(LEAGUE_STORAGE_KEY,JSON.stringify(incoming.data));leagueStoredSnapshot=JSON.stringify(incoming.data);leagueStore=incoming;leagueStorageError="";leagueSelected=null;leagueMessage="Backup imported.";}catch(e){leagueMessage=e.message;}renderLeague();});
+ const roster=leagueSelect("Roster",demoLeagueTeams.map(t=>[t.id,t.name])),name=leagueInput("New team name",""),coach=leagueInput("Coach","");leagueButton("Create rookie team",()=>{leagueSelected=leagueStore.create(roster.value,name.value,coach.value).id;});
+ const leagueName=leagueInput("New league name","");leagueButton("Create league",()=>leagueStore.createLeague(leagueName.value));
+ if(leagueStore.data.teams.length){const choose=leagueSelect("Saved team",leagueStore.data.teams.map(t=>[t.id,t.name+(t.draft?" (draft)":"")]));choose.value=leagueSelected||choose.value;leagueSelected=choose.value;choose.addEventListener("change",()=>{leagueSelected=choose.value;renderLeague();});}
+ for(const l of leagueStore.data.leagues){leagueElement("h3",l.name);const table=leagueElement("table"),head=leagueElement("tr",null,table);for(const h of ["Team","P","W","D","L","TD","CAS","Points"])leagueElement("th",h,head);for(const t of l.teamIds.map(id=>leagueStore.team(id)).sort((a,b)=>b.record.points-a.record.points)){const row=leagueElement("tr",null,table);for(const v of [t.name,t.record.played,t.record.won,t.record.drawn,t.record.lost,t.record.tdFor+":"+t.record.tdAgainst,t.record.casualties,t.record.points])leagueElement("td",String(v),row);}if(l.teamIds.length>=2&&!leagueStore.data.active){const h=leagueSelect("Home",l.teamIds.map(id=>[id,leagueStore.team(id).name])),a=leagueSelect("Away",l.teamIds.map(id=>[id,leagueStore.team(id).name]));a.value=l.teamIds[1];leagueButton("Play league fixture",()=>{const f=leagueStore.startFixture(h.value,a.value);startLeagueMatch(f);});}}
+ const active=leagueStore.data.active;if(active){leagueElement("p","Active fixture: "+active.teams.map(t=>t.name).join(" vs "));if(game.leagueFixtureId!==active.id)leagueButton("Restart active fixture from pre-game",()=>startLeagueMatch(active));if(game.leagueFixtureId===active.id&&game.phase==="finished")renderLeaguePostgame();}
+ const t=leagueStore.data.teams.find(t=>t.id===leagueSelected);if(!t)return;const r=leagueStore.roster(t),locked=!!active?.teamIds.includes(t.id),v=leagueStore.values(t);leagueElement("h3",t.name+" · "+r.name);leagueElement("p",(t.draft?"Draft":"League roster")+" · Treasury "+money(t.treasury)+" · TV "+money(v.tv)+" · CTV "+money(v.ctv)+" · "+t.players.length+"/16 players");
+ if(locked){leagueElement("p","Roster locked until this fixture is recorded.");return;}
+ for(const [key,label,max] of [["teamRerolls","Team re-rolls",8],["apothecary","Apothecary",1],["assistants","Assistant coaches",6],["cheerleaders","Cheerleaders",6],["dedicatedFans","Dedicated Fans",t.draft?3:7]]){const line=leagueElement("div");leagueElement("span",label+": "+t.staff[key]+" ",line);if(key!=="dedicatedFans"||t.draft){if(t.staff[key]> (key==="dedicatedFans"?1:0))leagueButton("− "+label,()=>leagueStore.setStaff(t.id,key,t.staff[key]-1),line);if(t.staff[key]<max)leagueButton("+ "+label,()=>leagueStore.setStaff(t.id,key,t.staff[key]+1),line);}}
+ leagueElement("p",t.draft?"Re-rolls cost "+money(r.reroll)+"; extra fans 5,000 gp; coaches and cheerleaders 10,000 gp; apothecary 50,000 gp.":"New re-rolls cost "+money(r.reroll*2)+". Released players and staff give no refund.");
+ const role=leagueSelect("Hire position",r.positions.map((p,i)=>[String(i),p.name+" · "+money(p.cost)+" · 0–"+p.max])),playerName=leagueInput("Player name","");leagueButton("Hire player",()=>leagueStore.hire(t.id,Number(role.value),playerName.value));
+ for(const p of t.players){const article=leagueElement("details"),skills=p.profile.skills.join(" · ");leagueElement("summary","#"+p.number+" "+p.name+" · "+r.positions[p.role].name,article);leagueElement("p",["MA "+p.profile.ma,"ST "+p.profile.st,"AG "+p.profile.ag,"PA "+p.profile.pa,"AV "+p.profile.av].join(" · ")+" · "+money(p.value)+" · "+p.spp+" SPP · "+p.advances.length+"/6 advances"+(p.missNext?" · MISS NEXT GAME":"")+(p.retired?" · TEMPORARILY RETIRED":"")+" · NI "+p.nigglingInjuries,article);leagueElement("p",skills,article);if(p.injuries.length)leagueElement("p","Injuries: "+p.injuries.map(i=>i.result).join(", "),article);leagueElement("p","Career: "+p.stats.games+" games · "+p.stats.touchdown+" TD · "+p.stats.casualty+" CAS · "+p.earnedSpp+" earned SPP",article);leagueButton(t.draft?"Remove / refund":"Release player",()=>leagueStore.fire(t.id,p.id),article);
+ if(t.postgame&&p.lastLastingMatch===t.postgame.matchId&&!p.retired)leagueButton("Temporarily retire for this season",()=>leagueStore.temporarilyRetire(t.id,p.id),article);
+ if(!t.draft&&p.advances.length<6){const pending=t.pendingAdvance;if(pending?.playerId===p.id){const options=leagueSelect("Rolled advancement",pending.options.map(n=>[n,n.toUpperCase().length===2?n.toUpperCase():n]),article);leagueButton("Confirm rolled advancement",()=>leagueStore.advance(t.id,p.id,options.value),article);}else if(!pending){const cost=ADVANCEMENT_COSTS[p.advances.length];for(const secondary of [false,true]){const opts=leagueStore.skillOptions(p,secondary);if(opts.length){const select=leagueSelect(secondary?"Secondary skill":"Primary skill",opts.map(n=>[n,n+(ELITE_SKILLS.includes(n)?" (Elite)":"")]),article);const b=leagueButton("Learn "+(secondary?"Secondary":"Primary")+" · "+cost[secondary?2:1]+" SPP",()=>leagueStore.advance(t.id,p.id,select.value,secondary),article);b.disabled=p.spp<cost[secondary?2:1];}}const categories=Object.keys(LeagueSkills).filter(k=>k!=="Traits"&&p.profile.primary.split(/\s+/).includes(k[0])),cat=leagueSelect("Random Primary category",categories.map(k=>[k,k]),article);leagueButton("Roll two Primary skills · "+cost[0]+" SPP",()=>leagueStore.rollAdvance(t.id,p.id,"random",cat.value),article).disabled=p.spp<cost[0];leagueButton("Roll characteristic · "+cost[3]+" SPP",()=>leagueStore.rollAdvance(t.id,p.id,"characteristic"),article).disabled=p.spp<cost[3];}}}
+ if(t.draft)leagueButton("Submit legal rookie roster",()=>leagueStore.submit(t.id));else {if(!leagueStore.data.leagues.some(l=>l.teamIds.includes(t.id))&&leagueStore.data.leagues.length){const l=leagueSelect("Enter league",leagueStore.data.leagues.map(l=>[l.id,l.name]));leagueButton("Enter submitted team",()=>leagueStore.enterLeague(l.value,t.id));}if(t.postgame){for(const p of t.postgame.journeymen)leagueButton("Hire Journeyman #"+p.number+" ("+p.spp+" SPP) · "+money(r.positions[p.role].cost),()=>leagueStore.hireJourneyman(t.id,p.id));leagueButton("Finish post-game / roll Expensive Mistakes",()=>leagueStore.prepareNext(t.id));}if(t.lastMistake)leagueElement("p","Last Expensive Mistakes: "+t.lastMistake.result+" · lost "+money(t.lastMistake.loss));}
+}
+function renderLeaguePostgame(){leagueElement("h3","Record completed fixture");leagueElement("p","Nominate six eligible players per team for MVP, then record both teams together. Injury, SPP, winnings and fans update once.");const choices=[0,1].map(i=>{const box=leagueElement("fieldset");leagueElement("legend",game.teams[i].name,box);return game.players.filter(p=>p.team===i&&p.fieldedDrive!=null).map(p=>{const input=leagueInput("#"+p.number+" "+p.leagueRecord.name,"",box,"checkbox");return {p,input};});});leagueButton("Roll MVPs and save match result",()=>leagueStore.finishFixture(game,choices.map(list=>list.filter(v=>v.input.checked).map(v=>v.p.id))));}
+// Full-time can be reached through any of the existing action/recovery controls.
+const renderBeforeLeagues=render;render=function(){renderBeforeLeagues();renderLeague();};
+renderLeague();
 </script>
 </body>
 </html>
