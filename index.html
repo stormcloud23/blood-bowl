@@ -42,6 +42,13 @@ SOFTWARE.
 
 .square.push-option{background:linear-gradient(#ffd16680,#ffd16680) var(--turf);box-shadow:inset 0 0 0 3px #ffd166;cursor:pointer}.square.push-option:hover,.square.push-option:focus-visible{outline:3px solid #fff;outline-offset:-3px}.square.push-subject{outline:3px solid #ff7b82;outline-offset:-3px}.push-marker{position:absolute;left:1px;bottom:1px;color:#17242a;background:#ffd166;border-radius:3px;padding:0 2px;font-size:13px;font-weight:700;line-height:1.1;pointer-events:none}
 #league-panel{margin-top:24px}#league-panel label{display:inline-block;margin:8px 12px 8px 0}#league-panel input,#league-panel textarea{padding:8px;background:#101b20;color:#e7eeeb;border:1px solid #526a61;border-radius:4px}#league-panel details{padding:12px;margin-top:8px;border:1px solid #34474d;border-radius:5px}#league-panel summary{cursor:pointer;color:#e9bb69}#league-panel fieldset{margin:12px 0;border:1px solid #526a61}
+/* Keep keyboard focus clear without obscuring pitch destination markers. */
+:where(button:not(.square),a,input,select,textarea,summary):focus-visible{outline:3px solid #ffe0a0;outline-offset:3px}
+main>section,main>aside{min-width:0}
+select{max-width:100%}
+#league-panel input,#league-panel textarea,#league-panel select{max-width:100%}
+#league-panel fieldset{min-width:0}
+@media(max-width:600px){header{flex-wrap:wrap;gap:8px}button.control{min-height:44px;max-width:100%;white-space:normal}select,#league-panel input,#league-panel textarea{font-size:16px}#league-panel label{max-width:100%}}
 </style>
 </head>
 <body>
