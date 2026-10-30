@@ -1,15 +1,79 @@
 "use strict";
 const MatchBase=typeof module!=="undefined"?require("./skills.cjs").SkillGame:SkillGame;
+// Inducement prices/limits follow the pinned BB2025 FFB option factory.
+const MATCH_RESOURCES={
+ teamRerolls:{label:"Team re-rolls",group:"staff",max:8,initial:2},
+ apothecary:{label:"Team apothecary",group:"staff",max:1,initial:0},
+ assistants:{label:"Assistant coaches",group:"staff",max:6,cost:10000,initial:0},
+ cheerleaders:{label:"Cheerleaders",group:"staff",max:6,cost:10000,initial:0},
+ dedicatedFans:{label:"Dedicated Fans",group:"staff",min:1,max:6,cost:5000,initial:1},
+ bribes:{label:"Bribes",group:"inducement",max:3,cost:100000,initial:0},
+ kegs:{label:"Blitzer's Best Kegs",group:"inducement",max:2,cost:50000,initial:0},
+ extraTraining:{label:"Extra Training",group:"inducement",max:4,cost:100000,initial:0},
+ wanderingApothecaries:{label:"Wandering Apothecaries",group:"inducement",max:2,cost:100000,initial:0},
+ tempCoaches:{label:"Part-time Assistant Coaches",group:"inducement",max:3,cost:20000,initial:0},
+ tempCheerleaders:{label:"Temp Agency Cheerleaders",group:"inducement",max:4,cost:20000,initial:0},
+ masterChef:{label:"Halfling Master Chef",group:"inducement",max:1,cost:300000,initial:0}
+};
 class MatchGame extends MatchBase {
- constructor(teams,{dice=null,learning=false}={}){
+ constructor(teams,{dice=null,learning=false,resources=null}={}){
   super(teams,{dice});this.events=[];this.match=true;this.learning=learning;this.phase="fans";this.half=1;this.drive=0;this.scores=[0,0];this.turns=[0,0];
   this.fans=[0,0];this.dedicatedFans=[1,1];this.weather="Perfect Conditions";this.cheer=[false,false];this.driveBonus=[0,0];this.bribes=[0,0];this.skip=[false,false];this.ball={x:null,y:null,carrier:null};
-  this.players.forEach(p=>Object.assign(p,{x:null,y:null,status:"reserve"}));this.note("Exhibition match: 11 demo players, 1 Dedicated Fan, 2 team re-rolls, no purchased staff per team. League-only Journeymen and Inducements do not apply.");
+  this.resourceChoices=teams.map((t,i)=>({...Object.fromEntries(Object.entries(MATCH_RESOURCES).map(([key,spec])=>[key,spec.initial])),...(resources?.[i]||t.matchResources||{})}));
+  for(const team of [0,1])for(const [key,value] of Object.entries(this.resourceChoices[team]))if(!this.validResource(team,key,value))throw new Error("Invalid match resource: "+key);
+  this.refreshResources();this.chefHalf=0;this.chefHistory=[];
+  this.players.forEach(p=>Object.assign(p,{x:null,y:null,status:"reserve"}));this.note("Exhibition match: configure staff and basic inducements before determining fans. Star players and unique abilities are deferred.");
  }
+ hasTeamRule(team,name){return (this.teams[team].special||[]).some(rule=>rule.toLowerCase()===name.toLowerCase());}
+ resourceSpec(team,key){
+  const base=MATCH_RESOURCES[key];if(!base)return null;const spec={...base};
+  if(key==="teamRerolls")spec.cost=this.teams[team].reroll;
+  if(key==="apothecary"){spec.cost=this.teams[team].staff?.apothecary||0;if(!spec.cost)spec.max=0;}
+  if(key==="wanderingApothecaries"&&!this.teams[team].staff?.apothecary)spec.max=0;
+  if(key==="bribes"&&this.hasTeamRule(team,"Bribery and Corruption")){spec.cost=50000;spec.max=6;}
+  if(key==="masterChef"&&(this.teams[team].rosterKeywords||[]).some(k=>k.toLowerCase()==="master chef"))spec.cost=100000;
+  return spec;
+ }
+ validResource(team,key,value){if(![0,1].includes(team)||!Number.isInteger(value))return false;const spec=this.resourceSpec(team,key);return !!spec&&value>=(spec.min||0)&&value<=spec.max;}
+ setResource(team,key,value){
+  if(this.phase!=="fans"||this.pending||!this.validResource(team,key,value))return false;
+  this.resourceChoices[team][key]=value;this.refreshResources();return true;
+ }
+ configureResources(team){
+  if(this.phase!=="fans"||this.pending||![0,1].includes(team))return false;
+  const menu=()=>{
+   const keys=Object.keys(MATCH_RESOURCES).filter(key=>this.resourceSpec(team,key).max>0),options=keys.map(key=>this.resourceSpec(team,key).label+": "+this.resourceChoices[team][key]);
+   this.skillChoice("Staff and inducements — "+this.teams[team].name,team,[...options,"Done"],choice=>{
+    const key=keys[options.indexOf(choice)];if(!key)return;
+    const spec=this.resourceSpec(team,key),values=Array.from({length:spec.max-(spec.min||0)+1},(_,i)=>i+(spec.min||0)),labels=values.map(value=>value+" — "+((key==="dedicatedFans"?value-1:value)*spec.cost).toLocaleString()+" gp");
+    this.skillChoice(spec.label,team,[...labels,"Back"],label=>{const index=labels.indexOf(label);if(index>=0)this.setResource(team,key,values[index]);menu();});
+   });
+  };menu();return true;
+ }
+ refreshResources(){
+  this.baseRerolls=this.resourceChoices.map(r=>r.teamRerolls);
+  this.rerolls=this.resourceChoices.map(r=>r.teamRerolls+r.extraTraining);
+  this.apothecaries=this.resourceChoices.map(r=>r.apothecary+r.wanderingApothecaries);
+  this.bribes=this.resourceChoices.map(r=>r.bribes);this.dedicatedFans=this.resourceChoices.map(r=>r.dedicatedFans);
+  this.argueRerolls=this.resourceChoices.map((r,t)=>this.hasTeamRule(t,"Bribery and Corruption")?1:0);
+ }
+ resourceCosts(team){
+  let staff=0,inducements=0,fans=0;
+  for(const [key,value] of Object.entries(this.resourceChoices[team])){const spec=this.resourceSpec(team,key),cost=(key==="dedicatedFans"?value-1:value)*spec.cost;if(key==="dedicatedFans")fans+=cost;else if(spec.group==="staff")staff+=cost;else inducements+=cost;}
+  return {staff,inducements,fans,total:staff+inducements+fans};
+ }
+ staffCount(team,kind){const r=this.resourceChoices[team];return kind==="assistants"?r.assistants+r.tempCoaches:r.cheerleaders+r.tempCheerleaders;}
+ startHalfResources(){
+  if(this.chefHalf===this.half)return;this.chefHalf=this.half;
+  const successes=[0,0];
+  for(const team of [0,1])if(this.resourceChoices[team].masterChef){const dice=Array.from({length:3},()=>this.roll(this.teams[team].name+" Master Chef needs 4+"));successes[team]=dice.filter(n=>n>=4).length;this.chefHistory.push({half:this.half,team,dice,successes:successes[team]});}
+  const before=[...this.rerolls];this.rerolls=before.map((n,t)=>Math.max(0,n-successes[1-t])+successes[t]);
+  if(successes.some(Boolean))this.note("Master Chef: half "+this.half+" gains "+successes.join(" / ")+" re-rolls; opposing regular pools are reduced. Leader is granted afterwards.");
+ }
+ teamSppAwards(team){const brutes=this.hasTeamRule(team,"Brawlin' Brutes");return {touchdown:brutes?2:3,casualty:brutes?3:2,completion:1,interception:2,mvp:4};}
  profile(p){const base=super.profile(p);return p.snack?{...base,ma:Math.max(1,base.ma-1),av:Math.max(3,parseInt(base.av)-1)+"+"}:base;}
  setApothecary(team,enabled){
-  if(this.phase!=="fans"||this.pending||![0,1].includes(team)||!this.teams[team].staff?.apothecary)return false;
-  this.apothecaries[team]=enabled?1:0;return true;
+  return this.setResource(team,"apothecary",enabled?1:0);
  }
  right(team){return (team===0)===(this.half===1);}
  ownHalf(team,x){return this.inside(x,7)&&(this.right(team)?x<=12:x>=13);}
@@ -22,7 +86,7 @@ class MatchGame extends MatchBase {
    this.note("Fan Factors: "+this.fans.join(" / ")+".");this.phase="weather";return true;
   }
   if(this.phase==="weather"){if(!this.learning)this.rollWeather();this.phase="leagueSteps";return true;}
-  if(this.phase==="leagueSteps"){this.note("Exhibition: Journeymen and league Inducements skipped.");this.phase="rolloff";return true;}
+  if(this.phase==="leagueSteps"){this.note("Exhibition staff and selected basic inducements are locked. Automatic league cash, Journeymen and star players are deferred.");this.phase="rolloff";return true;}
   if(this.phase==="rolloff"){
    let a,b;do{a=this.roll(this.teams[0].name+" kick/receive roll-off");b=this.roll(this.teams[1].name+" kick/receive roll-off");}while(a===b);
    this.rolloffWinner=a>b?0:1;this.phase="kickChoice";this.note(this.teams[this.rolloffWinner].name+" chooses who kicks.");return true;
@@ -58,7 +122,7 @@ class MatchGame extends MatchBase {
   if(this.phase!=="setup"||this.setupErrors().length)return false;
   this.players.filter(p=>p.team===this.setupTeam&&this.onPitch(p)).forEach(p=>p.fieldedDrive=this.drive);
   if(this.setupTeam===this.kicking){this.setupTeam=this.receiving;this.active=this.receiving;this.autoSetup();}
-  else{this.phase="kicker";this.active=this.kicking;this.grantLeader(this.half);}return true;
+  else{this.phase="kicker";this.active=this.kicking;this.startHalfResources();this.grantLeader(this.half);}return true;
  }
  eligibleKickers(){const list=this.players.filter(p=>p.team===this.kicking&&this.onPitch(p)&&this.centre(p.y)),back=list.filter(p=>p.x!==this.line(p.team));return back.length?back:list;}
  nominateKicker(id){if(this.phase!=="kicker"||!this.eligibleKickers().some(p=>p.id===id))return false;this.kicker=id;this.phase="kickAim";return true;}
@@ -77,7 +141,7 @@ class MatchGame extends MatchBase {
  kickoffEvent(total){
   this.phase="kickEvent";this.note("Kick-off Event "+total+".");
   const finish=()=>this.landKick();
-  if(total===2){this.bribes=this.bribes.map(n=>n+1);this.note("Get the Ref: each team receives a Bribe (Foul actions are not yet available).");finish();}
+  if(total===2){this.bribes=this.bribes.map(n=>n+1);this.note("Get the Ref: each team receives an additional Bribe.");finish();}
   else if(total===3){const amount=this.turns[this.kicking]>=6?-1:1;this.turns=this.turns.map(n=>Math.max(0,n+amount));this.note("TIME-OUT: both Turn Markers "+(amount>0?"advance":"move back")+" one.");finish();}
   else if(total===4||total===9||total===10){
    const team=total===9?this.receiving:this.kicking,kind=total===4?"defence":total===9?"snap":"charge",limit=Math.ceil(this.roll("Kick-off selected player count")/2)+3;
@@ -88,7 +152,7 @@ class MatchGame extends MatchBase {
    const options=list.map(p=>"High Kick: #"+p.number);options.push("Skip High Kick");this.choice("High Kick",options,option=>{const p=list[options.indexOf(option)];if(p)Object.assign(p,this.kickLanding);finish();});
   }
   else if(total===6||total===7){
-   const a=this.roll(this.teams[0].name+(total===6?" Cheering Fans":" Brilliant Coaching")),b=this.roll(this.teams[1].name+(total===6?" Cheering Fans":" Brilliant Coaching"));
+   const kind=total===6?"cheerleaders":"assistants",a=this.roll(this.teams[0].name+(total===6?" Cheering Fans":" Brilliant Coaching"))+this.staffCount(0,kind),b=this.roll(this.teams[1].name+(total===6?" Cheering Fans":" Brilliant Coaching"))+this.staffCount(1,kind);
    for(const t of [0,1])if((t===0?a:b)>=(t===0?b:a)){if(total===6)this.cheer[t]=true;else{this.rerolls[t]++;this.driveBonus[t]++;}}
   this.note(total===6?"Cheering Fans: winning coach(es) gain an assist on their first Block next turn.":"Brilliant Coaching: winning coach(es) gain a Drive re-roll.");finish();
   }
@@ -202,13 +266,13 @@ class MatchGame extends MatchBase {
   if(weapon){weapon.weaponResolvedDrive=this.drive;this.sendOff(weapon,()=>this.continueDrive());return true;}
   const field=this.players.filter(p=>this.onPitch(p));for(const p of this.players)p.heatOut=false;
   if(this.weather==="Sweltering Heat"){const count=Math.ceil(this.roll("Sweltering Heat player count")/2);for(const t of [0,1])for(const p of this.randomPlayers(field.filter(q=>q.team===t),count,"Heat exhaustion")){p.heatOut=true;this.note("Heat: #"+p.number+" misses the next drive.");}}
-  for(const p of this.players){if(p.status==="knocked-out"&&this.roll("KO recovery #"+p.number)>=4){p.status="reserve";this.note("#"+p.number+" recovers from KO.");}p.snack=false;}
+  for(const p of this.players){if(p.status==="knocked-out"&&this.roll("KO recovery #"+p.number)+this.resourceChoices[p.team].kegs>=4){p.status="reserve";this.note("#"+p.number+" recovers from KO.");}p.snack=false;}
   for(const t of [0,1]){this.rerolls[t]=Math.max(0,this.rerolls[t]-this.driveBonus[t]);this.driveBonus[t]=0;}
   if(this.turns.every(n=>n>=8)){
    if(this.half===2){this.phase="finished";this.note(this.scores[0]===this.scores[1]?"Full time — draw.":"Full time — "+this.teams[this.scores[0]>this.scores[1]?0:1].name+" wins.");return true;}
-   this.half=2;this.turns=[0,0];this.rerolls=[2,2];this.skip=[false,false];this.note("HALF-TIME: change ends and replenish team re-rolls.");this.prepareDrive(this.firstReceiver);return true;
+   this.half=2;this.turns=[0,0];this.rerolls=this.resourceChoices.map(r=>r.teamRerolls+r.extraTraining);this.skip=[false,false];this.note("HALF-TIME: change ends and replenish purchased re-rolls and Extra Training.");this.prepareDrive(this.firstReceiver);return true;
   }
   this.prepareDrive(this.lastScorer??this.kicking);return true;
  }
 }
-if(typeof module!=="undefined")module.exports={MatchGame};
+if(typeof module!=="undefined")module.exports={MatchGame,MATCH_RESOURCES};

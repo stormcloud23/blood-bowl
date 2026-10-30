@@ -1,3 +1,9 @@
+Latest continuation: [basic resources](BASIC-RESOURCES.md) adds staff, basic
+inducements and current-team rule handling on main `491b0e8`. Current catalogue:
+105 implemented, 1 partial, 2 deferred. Owner decision: star players/unique
+abilities are late work and do not block team building or league progression.
+Older counts and star-player milestone statements below are historical.
+
 Latest continuation: [outlier skills](OUTLIER-SKILLS.md) implements Ball & Chain,
 Bloodlust and Bombardier on main `e08ef6c`. Current catalogue: 104 implemented,
 2 partial, 2 deferred; only the roster/progression entries remain deferred.

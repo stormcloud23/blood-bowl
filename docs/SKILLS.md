@@ -16,7 +16,7 @@ Build with `node build.cjs` and verify all suites with `node --test *.test.cjs`.
 
 Reviewed October 28, 2026 against the full [Blood Bowl 2025 Skills & Traits list](https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/), [current FAQ](https://bloodbowlbase.ru/bb2025/core_rules/latest_faq/), [Foul / Argue the Call rules](https://bloodbowlbase.ru/bb2025/core_rules/the_game_of_blood_bowl/#foul-actions), and [Bribes](https://bloodbowlbase.ru/bb2025/core_rules/inducements/#0-3-bribes-0-6-for-teams-with-the-bribery-and-corruption-special-rule).
 
-All 108 entries are accounted for: **104 implemented**, **2 partial**, **2 deferred**. Implemented describes support within the available actions and exhibition sequence, not missing league or inducement systems. Deferred abilities are not offered as laboratory additions. Each deferred row records the missing dependency for a future pass. This table and the app inventory share the same registry in skills.cjs.
+All 108 entries are accounted for: **105 implemented**, **1 partial**, **2 deferred**. Implemented describes support within the available actions and exhibition sequence, not missing league or inducement systems. Deferred abilities are not offered as laboratory additions. Each deferred row records the missing dependency for a future pass. This table and the app inventory share the same registry in skills.cjs.
 
 ## How to try them
 
@@ -90,7 +90,7 @@ Sources: [Throw Team-mate and landing](https://bloodbowlbase.ru/bb2025/core_rule
 | Dump-off | Passing | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Give and Go | Passing | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Hail Mary Pass | Passing | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
-| Leader | Passing | Passive | Partial | Exhibition re-roll and missing-Leader eligibility are supported; Halfling Master Chef interactions await inducements. |
+| Leader | Passing | Passive | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Nerves of Steel | Passing | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | On the Ball | Passing | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Pass | Passing | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
@@ -133,7 +133,7 @@ Sources: [Throw Team-mate and landing](https://bloodbowlbase.ru/bb2025/core_rule
 | Really Stupid | Traits | Passive * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Regeneration | Traits | Passive | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Right Stuff | Traits | Passive * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
-| Secret Weapon | Traits | Passive * | Partial | End-of-drive send-off, Argue the Call and available Bribes are supported; bribe-related roster special rules await inducements. |
+| Secret Weapon | Traits | Passive * | Partial | End-of-drive send-off, Argue the Call, Bribes and Bribery and Corruption are supported; grouped end-drive Argue allocation and Biased Referee exceptions remain outside the current resource batch. |
 | Stab | Traits | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Stunty | Traits | Passive * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Swoop | Traits | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
