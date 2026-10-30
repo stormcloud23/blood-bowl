@@ -36,3 +36,40 @@ test('a failed fixture save leaves the displayed game and team selection unchang
 test('a stale tab cannot import over a newer backup',()=>{const f=uiFixture();ready(f);const old=f.storage.get('blood-bowl-leagues-v1');input(f,'League backup JSON').value=old;f.storage.set('blood-bowl-leagues-v1','newer-tab-data');button(f,'Import backup').listeners.click();assert.equal(f.storage.get('blood-bowl-leagues-v1'),'newer-tab-data');assert.match(f.run('leagueMessage'),/another tab/);assert.equal(f.run('leagueStore.data.teams.length'),2);});
 
 test('repairing an invalid saved backup remains possible without losing its raw export',()=>{const f=uiFixture('match','invalid JSON');button(f,'Export backup').listeners.click();assert.equal(input(f,'League backup JSON').value,'invalid JSON');input(f,'League backup JSON').value=JSON.stringify({version:1,teams:[],matches:[],leagues:[],active:null});button(f,'Import backup').listeners.click();assert.equal(f.run('leagueStorageError'),'');assert.equal(JSON.parse(f.storage.get('blood-bowl-leagues-v1')).version,1);});
+
+test('league match skill controls include learned skills and retain disabled choices',()=>{
+ const f=uiFixture();ready(f);f.run('const t=leagueStore.data.teams[0];t.players[0].spp=6;leagueStore.advance(t.id,t.players[0].id,"Block");renderLeague()');button(f,'Play league fixture').listeners.click();f.run('selected=game.players[0].id;render()');
+ const control=descendants(f.get('skillcontrols')).find(e=>e.textContent==='✓ Block · Implemented');assert.ok(control);control.listeners.click();assert.equal(f.run('game.has(game.players[0],"Block")'),false);const disabled=descendants(f.get('skillcontrols')).find(e=>e.textContent==='Off · Block · Implemented');assert.ok(disabled);disabled.listeners.click();assert.equal(f.run('game.has(game.players[0],"Block")'),true);assert.equal(f.run('leagueStore.data.teams[0].players[0].profile.skills.includes("Block")'),true);
+});
+
+test('saved player names and current values appear in live profiles and pitch labels',()=>{
+ const f=uiFixture();ready(f);f.run('const p=leagueStore.data.teams[0].players[0];p.name="Captain Finch";p.value+=30000;p.profile.ma=5;p.nigglingInjuries=2;renderLeague()');button(f,'Play league fixture').listeners.click();f.run('game.phase="kickChoice";game.chooseKicking(0);selected=game.players[0].id;render()');const profile=f.get('profile').innerHTML;assert.match(profile,/Captain Finch/);assert.match(profile,/Imperial Retainer/);assert.match(profile,/Current value: 75,000 gp/);assert.match(profile,/<small>MA<\/small>5/);assert.match(profile,/Niggling Injuries: 2/);assert.ok(f.get('pitch').children.some(e=>e['aria-label']?.includes('Captain Finch')));assert.ok(f.get('matchflow').children.some(e=>e.textContent.includes('Captain Finch')));
+});
+
+test('selected profile refreshes temporary characteristic changes during render',()=>{
+ const f=uiFixture();ready(f);button(f,'Play league fixture').listeners.click();f.run('selected=game.players[0].id;render()');assert.match(f.get('profile').innerHTML,/<small>MA<\/small>6/);f.run('game.players[0].snack=true;render()');assert.match(f.get('profile').innerHTML,/<small>MA<\/small>5/);f.run('game.players[0].snack=false;render()');assert.match(f.get('profile').innerHTML,/<small>MA<\/small>6/);
+});
+
+test('imported names and profile text render as escaped text, with unsafe source links omitted',()=>{
+ const f=uiFixture();ready(f);f.run('const p=leagueStore.data.teams[0].players[0];p.name="<img src=x onerror=alert(1)>";p.profile.name="<b>Position</b>";p.profile.traits="<em>Human</em>";p.profile.skills.push("<script>alert(2)</script>");renderLeague()');button(f,'Play league fixture').listeners.click();f.run('game.teams[0].source="javascript:alert(3)";selected=game.players[0].id;render()');const profile=f.get('profile').innerHTML;assert.ok(profile.includes('&lt;img'));assert.ok(profile.includes('&lt;b&gt;Position'));assert.ok(profile.includes('&lt;script&gt;'));assert.ok(!profile.includes('<img'));assert.ok(!profile.includes('<script>'));assert.ok(!profile.includes('href="javascript:'));
+});
+
+test('starting a saved fixture clears old practice targeting state and profile',()=>{
+ const f=uiFixture();ready(f);f.run('blockMode=true;ballMode=true;throwDestination={x:14,y:7};destination={playerId:"old-player"};document.getElementById("profile").innerHTML="Old practice player"');button(f,'Play league fixture').listeners.click();assert.equal(f.run('blockMode'),false);assert.equal(f.run('ballMode'),false);assert.equal(f.run('throwDestination'),null);assert.equal(f.run('destination'),null);assert.ok(!f.get('profile').innerHTML.includes('Old practice player'));
+});
+
+test('league match instructions describe actual permanent staff and inducement funding',()=>{
+ const f=uiFixture();ready(f);button(f,'Play league fixture').listeners.click();assert.match(f.get('mode-notice').textContent,/League fixture/);f.run('game.advancePregame();game.advancePregame();render()');assert.ok(f.get('matchflow').children.some(e=>e.textContent.includes('Permanent staff are fixed')));assert.ok(!f.get('matchflow').children.some(e=>e.textContent.includes('will come with team management')));
+});
+
+test('completed fixture history shows saved scores and survives reload',()=>{
+ const f=uiFixture();ready(f);button(f,'Play league fixture').listeners.click();f.run('game.players.forEach(p=>p.fieldedDrive=1);game.phase="finished";game.fans=[3,3];game.scores=[2,1];leagueStore.finishFixture(game,[0,1].map(i=>game.players.filter(p=>p.team===i).slice(0,6).map(p=>p.id)));leagueSave();renderLeague()');let text=descendants(f.get('league-panel')).map(e=>e.textContent);assert.ok(text.includes('Completed fixtures'));assert.ok(text.includes('2–1'));const reload=uiFixture('match',f.storage.get('blood-bowl-leagues-v1'));text=descendants(reload.get('league-panel')).map(e=>e.textContent);assert.ok(text.includes('2–1'));assert.ok(text.includes('Club 0'));assert.ok(text.includes('Club 1'));
+});
+
+test('team and player detail edit controls persist names and shirt numbers across reload',()=>{
+ const f=uiFixture();ready(f);input(f,'Team name').value='Renamed Club';input(f,'Coach name').value='Coach Finch';button(f,'Save team details').listeners.click();input(f,'Edit player name').value='Star Finch';input(f,'Shirt number').value='42';button(f,'Save player details').listeners.click();const reload=uiFixture('match',f.storage.get('blood-bowl-leagues-v1'));assert.equal(reload.run('leagueStore.data.teams[0].name'),'Renamed Club');assert.equal(reload.run('leagueStore.data.teams[0].coach'),'Coach Finch');assert.equal(reload.run('leagueStore.data.teams[0].players[0].name'),'Star Finch');assert.equal(reload.run('leagueStore.data.teams[0].players[0].number'),42);
+});
+
+test('duplicate-number edits report the error and preserve both saved players',()=>{
+ const f=uiFixture();ready(f);input(f,'Edit player name').value='Unsaved rename';input(f,'Shirt number').value='2';button(f,'Save player details').listeners.click();assert.match(f.run('leagueMessage'),/unused positive shirt number/);assert.equal(f.run('leagueStore.data.teams[0].players[0].name'),'Name 0');assert.equal(f.run('leagueStore.data.teams[0].players[0].number'),1);
+});

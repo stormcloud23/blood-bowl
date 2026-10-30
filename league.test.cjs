@@ -113,3 +113,15 @@ test('pinned Right Stuff awards landing and Superb Throw credit after a successf
  g.rerolls=[0,0];a.extraSkills=['Kick Team-mate'];p.extraSkills=['Right Stuff'];g.start(a.id,'kick-team-mate');g.selectThrowMate(p.id);g.throwTeamMate(12,7);
  assert.equal(g.playerStats[p.id].landing,1);assert.equal(g.playerStats[a.id].completion,1);
 });
+
+test('editing team and player details preserves permanent identity, finances and progression',()=>{
+ const {s,ts:[t]}=setup(),p=t.players[0],pid=p.id,value=p.value,gold=t.treasury;p.spp=6;s.updateDetails(t.id,' Renamed Club ',' New Coach ');s.updatePlayerDetails(t.id,pid,' New Captain ',42);assert.equal(t.name,'Renamed Club');assert.equal(t.coach,'New Coach');assert.equal(p.name,'New Captain');assert.equal(p.number,42);assert.equal(p.id,pid);assert.equal(p.spp,6);assert.equal(p.value,value);assert.equal(t.treasury,gold);assert.doesNotThrow(()=>new LeagueStore(rosters,s.data));
+});
+
+test('duplicate or invalid shirt numbers and empty names leave saved details intact',()=>{
+ const {s,ts:[t]}=setup(),p=t.players[0],before=JSON.stringify(s.data);for(const number of [0,-1,1.5,NaN,t.players[1].number])assert.throws(()=>s.updatePlayerDetails(t.id,p.id,'Changed',number));assert.throws(()=>s.updatePlayerDetails(t.id,p.id,' ',42));assert.throws(()=>s.updateDetails(t.id,' ','Changed'));assert.equal(JSON.stringify(s.data),before);
+});
+
+test('active fixtures lock team names, coach names and player shirt details',()=>{
+ const {s,ts}=setup(),t=ts[0];s.startFixture(...ts.map(t=>t.id));assert.throws(()=>s.updateDetails(t.id,'Changed','Coach'),/active fixture/);assert.throws(()=>s.updatePlayerDetails(t.id,t.players[0].id,'Changed',42),/active fixture/);
+});
