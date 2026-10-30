@@ -19,6 +19,7 @@ A self-contained browser game targeting **Blood Bowl 2025 matches and local leag
 - Team Mascot re-roll choices, Weather Mages, and rule-gated Mortuary Assistants / Plague Doctors.
 - Casualty results, pregame team apothecaries, Regeneration treatment, Decay and Plague Ridden reserves.
 - Coach-controlled re-rolls and reaction choices, plus a skills laboratory and practice drills.
+- Clickable gold push destinations after Blocks, including Sidestep and chain pushes; the pushed player has a red outline. Side-panel buttons remain available for crowd pushes and Stand Firm.
 - **108 implemented, 0 partial, and 0 deferred** entries in the 108-skill/trait catalogue.
 
 These coverage labels describe available actions and local roster/progression behavior, not complete FFB parity. [Insignificant and Violent Innovator](docs/LEAGUE-SKILLS.md) now cover draft restrictions and special-action casualty SPP, including documented pinned exceptions. Exhibition interactions and several match systems still need further verification. League teams and completed results save in browser storage with JSON export/import. Unfinished fixtures restart from pre-game after reload. Live match save/resume and AI are not implemented. See [team creation and progression](docs/LEAGUES.md).
