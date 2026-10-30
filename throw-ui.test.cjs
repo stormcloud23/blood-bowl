@@ -64,6 +64,48 @@ test('Plague Doctor treatment control cures a casualty without spending an apoth
 function outlierUi(rolls,scenario='skills'){
  const f=uiFixture(scenario);f.run('game.players.forEach(p=>Object.assign(p,{status:"reserve",x:null,y:null,extraSkills:[],profileOverride:{name:"Fixture",cost:0,max:16,primary:"G",secondary:"A",ma:6,st:3,ag:"3+",pa:"3+",av:"9+",skills:[],traits:"Lineman, Human"}}));globalThis.a=game.players[0];globalThis.b=game.players[1];globalThis.d=game.players[11];Object.assign(a,{x:10,y:7,status:"standing"});Object.assign(b,{x:9,y:7,status:"standing"});Object.assign(d,{x:12,y:7,status:"standing"});game.rerolls=[0,0];game.ball={x:20,y:14,carrier:null};game.interceptionCandidates=()=>[];selected=a.id;globalThis.rolls='+JSON.stringify(rolls)+';game.dice=()=>rolls.shift();if(game.match){game.phase="play";game.turns=[1,0];}render()');return f;
 }
+
+test('actual Block push highlights legal pitch squares and clicking one resolves once',()=>{
+ const {get,run}=outlierUi([3]);run('d.x=11;game.block(a.id,d.id);game.selectBlockDie(0);render()');
+ assert.equal(run('game.pending.type'),'pushChoice');
+ const squares=get('pitch').children,options=JSON.parse(run('JSON.stringify(game.pending.options)'));
+ assert.equal(squares.filter(e=>e.className.includes('push-option')).length,options.length);
+ assert.ok(squares[7*26+11].className.includes('push-subject'));
+ const pos=options[0],cell=squares[pos.y*26+pos.x];assert.match(cell['aria-label'],/push destination/);
+ const selected=run('selected');squares[0].listeners.click();assert.equal(run('game.pending.type'),'pushChoice');assert.equal(run('selected'),selected);
+ cell.listeners.click();assert.equal(run('d.x'),pos.x);assert.equal(run('d.y'),pos.y);
+ const before=run('JSON.stringify([d.x,d.y,game.pending?.kind])');cell.listeners.click();assert.equal(run('JSON.stringify([d.x,d.y,game.pending?.kind])'),before);
+ assert.equal(get('pitch').children.filter(e=>e.className.includes('push-option')).length,0);
+});
+
+test('Sidestep destinations on the pitch follow the engine choices',()=>{
+ const {get,run}=outlierUi([3]);run('d.x=11;d.extraSkills=["Sidestep"];game.block(a.id,d.id);game.selectBlockDie(0);render()');
+ const options=JSON.parse(run('JSON.stringify(game.pending.options)'));assert.ok(options.some(p=>p.x===10));
+ for(const pos of options)assert.ok(get('pitch').children[pos.y*26+pos.x].className.includes('push-option'));
+ const pos=options.find(p=>p.x===10);get('pitch').children[pos.y*26+pos.x].listeners.click();assert.equal(run('d.x'),pos.x);assert.equal(run('d.y'),pos.y);
+});
+
+test('clickable chain pushes mark occupied destinations then transfer to the chained victim',()=>{
+ const {get,run}=outlierUi([3,3,3]);run('d.x=11;for(let i=0;i<3;i++)Object.assign(game.players[i+2],{x:12,y:6+i,status:"standing"});game.block(a.id,d.id);game.selectBlockDie(0);render()');
+ const old=get('pitch').children[7*26+12];assert.match(old.title,/chain push/);old.listeners.click();
+ assert.equal(run('game.pending.kind'),'Chain push');assert.ok(get('pitch').children[7*26+12].className.includes('push-subject'));
+ const before=run('game.pending');old.listeners.click();assert.equal(run('game.pending'),before);
+ const pos=JSON.parse(run('JSON.stringify(game.pending.options.find(p=>!p.standFirm))'));get('pitch').children[pos.y*26+pos.x].listeners.click();
+ assert.equal(run('d.x'),12);assert.equal(run('d.y'),7);
+});
+
+test('crowd pushes retain a working explicit button without highlighting an illegal pitch square',()=>{
+ const {get,run}=outlierUi([3,1,1]);run('a.x=24;d.x=25;game.block(a.id,d.id);game.selectBlockDie(0);render()');
+ assert.equal(get('pitch').children.filter(e=>e.className.includes('push-option')).length,0);
+ const crowd=get('choices').children.find(e=>e.textContent==='Push into the Crowd');assert.ok(crowd);crowd.listeners.click();assert.equal(run('d.x'),null);assert.equal(run('d.status'),'reserve');
+});
+
+test('Stand Firm remains available beside clickable chain-push destinations',()=>{
+ const {get,run}=outlierUi([3,3,3]);run('d.x=11;for(let i=0;i<3;i++)Object.assign(game.players[i+2],{x:12,y:6+i,status:"standing",extraSkills:["Stand Firm"]});game.block(a.id,d.id);game.selectBlockDie(0);render()');
+ get('pitch').children[7*26+12].listeners.click();assert.equal(run('game.pending.kind'),'Chain push');
+ assert.ok(get('pitch').children.some(e=>e.className.includes('push-option')));
+ const firm=get('choices').children.find(e=>e.textContent==='Use Stand Firm');assert.ok(firm);firm.listeners.click();assert.equal(run('d.x'),11);assert.equal(run('game.players[3].x'),12);
+});
 test('the skill laboratory offers parameterized Bloodlust and a Thrall eligibility button',()=>{
  const {get,run}=outlierUi([]);const panel=get('skillcontrols'),select=panel.children.find(e=>e['aria-label']==='Add a laboratory skill');assert.ok(select.children.some(e=>e.value==='Bloodlust (2+)'));select.value='Bloodlust (2+)';panel.children.find(e=>e.textContent==='Add skill to selected lab player').listeners.click();assert.equal(run('game.has(a,"Bloodlust (2+)")'),true);
  run('selected=b.id;render()');get('skillcontrols').children.find(e=>e.textContent==='Mark as Thrall').listeners.click();assert.equal(run('b.thrall'),true);
