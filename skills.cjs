@@ -338,7 +338,7 @@ class SkillGame extends SkillBase {
    }
    p.x=pos.x;p.y=pos.y;if(this.ball.carrier===p.id){this.ball.x=p.x;this.ball.y=p.y;}
    const fail=()=>this.fall(p,{turnover:false,prevented:()=>ok(),after:()=>end(forcedTurnover||carrying)});
-   const ok=(rolled=false)=>{if(rolled&&!kicked){this.recordStat(p,"landing");if(superbThrow)this.recordStat(a,"completion");}this.note("#"+p.number+" lands on their feet.");if(!this.ball.carrier&&this.ball.x===p.x&&this.ball.y===p.y)this.bounce(p.x,p.y,()=>end(forcedTurnover));else end(forcedTurnover);};
+   const ok=(rolled=false)=>{if(rolled){this.recordStat(p,"landing");if(superbThrow)this.recordStat(a,"completion");}this.note("#"+p.number+" lands on their feet.");if(!this.ball.carrier&&this.ball.x===p.x&&this.ball.y===p.y)this.bounce(p.x,p.y,()=>end(forcedTurnover));else end(forcedTurnover);};
    if(unable||crashed){fail();return;}
    p.swooping=usingSwoop;this.test(p,"Landing",parseInt(this.profile(p).ag)+(subpar?1:0)+this.marking(p),()=>{p.swooping=false;ok(true);},()=>{p.swooping=false;fail();});
   };

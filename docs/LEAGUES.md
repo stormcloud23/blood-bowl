@@ -32,6 +32,10 @@ Post-game includes winnings, fans, skills, characteristic improvements, recruitm
 
 Data saves under `blood-bowl-leagues-v1` in browser storage. Export/import uses JSON. Storage failures are reported and changes roll back. A stored active fixture can restart from pre-game after reload; live match decisions and callbacks are not serialized. Keep a backup when moving between browser profiles, origins or computers.
 
+Persistence audit: a fixture starts on screen only after its save succeeds. Both ordinary saves and imports refuse to overwrite a newer save from another tab. Invalid saved data remains available for raw export and repair. Backups validate player characteristics/statistics, unique player IDs and shirt numbers, match membership/history, pending advance options, and active fixture rosters/resources/CTV against the saved teams. Object key order does not affect validation. This checks local data consistency; backups are editable and are not authenticated competition records.
+
+The progression audit also preserves PA “–” through passing injuries, requires exactly six MVP nominations, and assigns a free shirt number when retaining a Journeyman after recruiting another player. The pinned `StepRightStuff` awards successful landing statistics and accurate-flight completion credit for kicked players as well as thrown players; the shared browser flight path now follows that behavior.
+
 ## Scope and validation
 
 Local membership, manually selected fixtures, result history and basic standings are supported. Automated season scheduling, divisions, play-offs, prizes, concessions, off-season recovery/redrafting, remote league sharing and AI remain separate work. The official league format recommends at least four teams; local fixture testing also allows two. Existing exhibition gaps and unimplemented inducements/star content remain documented in the exhibition audit. The skill catalogue labels are deliberately conservative and do not certify every progression interaction or future roster.
