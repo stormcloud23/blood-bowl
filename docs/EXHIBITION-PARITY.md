@@ -1,3 +1,5 @@
+Latest continuation (October 30, 2026): [Insignificant and Violent Innovator](LEAGUE-SKILLS.md) completes the two roster/progression entries. Current catalogue: **108 implemented, 0 partial, 0 deferred** within the documented scope; this does not certify full FFB parity. Older inventory counts below are historical.
+
 Latest continuation: [passing geometry and selected kickoff/drive corrections](PASSING-DRIVE-AUDIT.md) replaces the old ruler approximation and exactly-one-only fumble behavior with pinned executable FFB rules. An isolated Java-method oracle now verifies these calculations; older statements below about not running Java describe historical increments.
 
 Follow-on: [Mascots, Weather Mages and regeneration aids](INDUCEMENT-ACTIONS.md) adds those basic inducements and shared medical/re-roll choices. Older exclusions below are historical.
