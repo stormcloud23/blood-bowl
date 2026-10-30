@@ -1,3 +1,7 @@
+Follow-on: [Mascots, Weather Mages and regeneration aids](INDUCEMENT-ACTIONS.md) adds those basic inducements and shared medical/re-roll choices. Older exclusions below are historical.
+
+Latest continuation: [referees and Secret Weapons](REFEREES.md) adds Biased Referees and grouped drive-end argument/Bribe choices. Current catalogue: 106 implemented, 0 partial, 2 deferred. Older Secret Weapon boundaries below describe historical increments.
+
 # Exhibition parity — departure reactions
 
 The departure reaction increment added Shadowing and Arm Bar in PR #3.

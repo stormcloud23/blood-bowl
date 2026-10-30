@@ -13,7 +13,7 @@ const SKILL_DEFERRED={
  "Violent Innovator":"Requires Star Player Point attribution and league progression.",
  "Insignificant":"Requires the Team Draft List / roster builder.",
 };
-const SKILL_PARTIAL={"Secret Weapon":"End-of-drive send-off, Argue the Call, Bribes and Bribery and Corruption are supported; grouped end-drive Argue allocation and Biased Referee exceptions remain outside the current resource batch."};
+const SKILL_PARTIAL={};
 const PASSIVES=new Set(["Claws","Disturbing Presence","Foul Appearance","Iron Hard Skin","Leader","Thick Skull","Animal Savagery","Bloodlust (X+)","Bone Head","Decay","Drunkard","Hatred (X)","Insignificant","Kick Team-mate","Loner (X+)","My Ball","No Ball","Plague Ridden","Really Stupid","Regeneration","Right Stuff","Secret Weapon","Stunty","Take Root","Timmm-ber!","Titchy","Unchannelled Fury","Unsteady"]);
 const MANDATORY=new Set(["Frenzy","Disturbing Presence","Foul Appearance","Always Hungry","Animal Savagery","Animosity (X)","Ball & Chain","Bloodlust (X+)","Bone Head","Chainsaw","Decay","Drunkard","Hatred (X)","Insignificant","Loner (X+)","My Ball","No Ball","Really Stupid","Right Stuff","Secret Weapon","Stunty","Take Root","Titchy","Unchannelled Fury","Unsteady"]);
 const SKILL_CATALOG=Object.entries(SKILL_GROUPS).flatMap(([category,names])=>names.map(name=>({name,category,kind:PASSIVES.has(name)?"Passive":"Active",mandatory:MANDATORY.has(name),status:SKILL_DEFERRED[name]?"Deferred":SKILL_PARTIAL[name]?"Partial":"Implemented",notes:SKILL_DEFERRED[name]||SKILL_PARTIAL[name]||"Supported in the available actions. Optional abilities may be disabled before action resolution.",source:"https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/#"+name.toLowerCase().replace(/[^a-z0-9 ]/g,"").replaceAll(" ","-")})));
@@ -192,7 +192,7 @@ class SkillGame extends SkillBase {
    const failed=rows.filter(r=>!r.success&&!r.rerolled),choices=[];
    for(const row of failed){
     const reroll=()=>{row.roll=this.roll("Multiple Block "+kind+" re-roll");row.success=this.success(row.roll,row.required);offer();};
-    if(this.canTeamReroll(a))choices.push({label:"Team re-roll vs #"+row.target.number,run:()=>{row.rerolled=true;if(this.useTeamReroll(a))reroll();else offer();}});
+    for(const source of this.rerollSources(a))choices.push({label:this.rerollLabel(source)+" vs #"+row.target.number,run:()=>{row.rerolled=true;if(this.useRerollSource(a,source))reroll();else offer();}});
     if(this.has(a,"Pro")&&!a.proUsed)choices.push({label:"Pro vs #"+row.target.number,run:()=>{row.rerolled=true;this.attemptPro(a,reroll,offer);}});
    }
    if(!choices.length){done(rows);return;}
@@ -233,7 +233,7 @@ class SkillGame extends SkillBase {
    if(attackerPhase){
     if(b.chooserTeam!==team)choices.push({label:"Let defender choose "+label,run:()=>{b.delegated=true;b.poolLocked=true;this.multipleDiceChoice();}});
     if(!b.poolLocked){
-     if(this.canTeamReroll(a))choices.push({label:"Team re-roll pool "+label,run:()=>{b.poolLocked=true;if(this.useTeamReroll(a))b.dice=b.dice.map(()=>this.roll("Multiple Block team re-roll"));this.multipleDiceChoice();}});
+     for(const source of this.rerollSources(a))choices.push({label:this.rerollLabel(source)+" pool "+label,run:()=>{b.poolLocked=true;if(this.useRerollSource(a,source))b.dice=b.dice.map(()=>this.roll("Multiple Block "+source+" re-roll"));this.multipleDiceChoice();}});
      if(this.has(a,"Brawler")&&!c.brawlerUsed&&b.dice.includes(2))choices.push({label:"Brawler "+label,run:()=>{c.brawlerUsed=true;b.poolLocked=true;b.dice[b.dice.indexOf(2)]=this.roll("Multiple Block Brawler");this.multipleDiceChoice();}});
      if(this.has(a,"Pro")&&!a.proUsed)choices.push({label:"Pro "+label,run:()=>{b.poolLocked=true;this.attemptPro(a,()=>this.skillChoice("Multiple Block Pro die",a.team,b.dice.map((die,i)=>"Re-roll die "+(i+1)),option=>{const i=Number(option.match(/\d+/)[0])-1;b.dice[i]=this.roll("Multiple Block Pro re-roll");this.multipleDiceChoice();}),()=>this.multipleDiceChoice());}});
      const hatred=this.parameter(a,"Hatred");if(hatred&&this.keywords(b.target).includes(hatred.slice(hatred.indexOf("(")+1,-1).toLowerCase())&&b.dice.includes(1))choices.push({label:"Hatred "+label,run:()=>{b.poolLocked=true;b.dice[b.dice.indexOf(1)]=this.roll("Multiple Block Hatred");this.multipleDiceChoice();}});
@@ -265,13 +265,19 @@ class SkillGame extends SkillBase {
    if(teamIndex===2){done();return;}
    const team=teamIndex++===0?1-c.attacker.team:c.attacker.team,entries=c.injuries.filter(e=>e.p.team===team);let i=0;
    const regen=()=>{if(i===entries.length){i=0;retry();return;}entries[i++].regenerate(regen);};
-   const retry=()=>{if(i===entries.length){treat();return;}const entry=entries[i++];if(entry.retryRegeneration)entry.retryRegeneration(retry);else retry();};
+   const retry=()=>{
+    const remaining=entries.filter(e=>!e.retryProcessed),eligible=remaining.filter(e=>e.canRetryRegeneration?.());
+    const next=entry=>{entry.retryProcessed=true;if(entry.retryRegeneration)entry.retryRegeneration(retry);else retry();};
+    if(!remaining.length){treat();return;}
+    if(eligible.length>1){const options=eligible.map(e=>"Retry #"+e.p.number+" injury "+(c.injuries.indexOf(e)+1)+": "+e.record.selected.result);this.skillChoice((this.bombContext===c?"Bomb":"Multiple Block")+" Regeneration — choose injury to retry",team,options,option=>next(eligible[options.indexOf(option)]));return;}
+    next(eligible[0]||remaining[0]);
+   };
    const treat=()=>{
     const remaining=entries.filter(e=>!e.processed);if(!remaining.length){group();return;}
     const next=entry=>{entry.processed=true;entry.treat(treat);};
     const automatic=remaining.find(e=>!["casualty","knocked-out"].includes(e.record.medicalStatus)||e.record.treatment==="Saboteur");
     if(automatic){next(automatic);return;}
-    if(remaining.length===1||!this.apothecaries[team]){next(remaining[0]);return;}
+    if(remaining.length===1||!remaining.some(e=>this.medicalSources(e.p).length)){next(remaining[0]);return;}
     const options=remaining.map(e=>"Resolve #"+e.p.number+" injury "+(c.injuries.indexOf(e)+1)+": "+(e.record.medicalStatus==="casualty"?e.record.selected.result:e.record.medicalStatus));
     this.skillChoice((this.bombContext===c?"Bomb":"Multiple Block")+" medical — choose injury to resolve",team,options,option=>next(remaining[options.indexOf(option)]));
    };regen();
@@ -393,10 +399,10 @@ class SkillGame extends SkillBase {
   const q={type:"custom",kind,team,options,resolve:choice=>{if(this.pending!==q||!options.includes(choice))return false;this.pending=null;resolve(choice);return true;}};this.pending=q;return q;
  }
  rollChoice(p,kind,sides,done,skill=null){
-  const n=this.roll(kind,sides),options=["Keep "+n];if(this.canTeamReroll(p))options.push("Team re-roll");if(this.skill(p,"Pro")&&!p.proUsed)options.push("Pro");
+  const n=this.roll(kind,sides),sources=this.rerollSources(p),labels=sources.map(s=>this.rerollLabel(s)),options=["Keep "+n,...labels];if(this.skill(p,"Pro")&&!p.proUsed)options.push("Pro");
   if(skill&&this.skill(p,skill)&&!this.used(p,kind+" "+skill))options.push(skill);
   if(options.length===1){done(n);return;}
-  this.skillChoice(kind,p.team,options,choice=>{if(choice===skill){this.use(p,kind+" "+skill);done(this.roll(kind+" re-roll ("+skill+")",sides));}else if(choice==="Team re-roll")done(this.useTeamReroll(p)?this.roll(kind+" re-roll",sides):n);else if(choice==="Pro")this.attemptPro(p,()=>done(this.roll(kind+" re-roll",sides)),()=>done(n));else done(n);});
+  this.skillChoice(kind,p.team,options,choice=>{if(choice===skill){this.use(p,kind+" "+skill);done(this.roll(kind+" re-roll ("+skill+")",sides));}else if(labels.includes(choice))done(this.useRerollSource(p,sources[labels.indexOf(choice)])?this.roll(kind+" re-roll",sides):n);else if(choice==="Pro")this.attemptPro(p,()=>done(this.roll(kind+" re-roll",sides)),()=>done(n));else done(n);});
  }
  profile(p){const base=super.profile(p),skills=[...new Set([...base.skills,...(p.extraSkills||[])])].filter(s=>!(p.disabledSkills||[]).includes(s));return {...base,st:+(p.blockST??base.st)+(p.hornsBonus||0),skills};}
  skill(p,name){return !!p&&Number.isInteger(p.team)&&Number.isInteger(p.role)&&this.has(p,name)&&(p.status==="standing"&&!p.distracted||["Jump Up"].includes(name));}
@@ -502,7 +508,8 @@ class SkillGame extends SkillBase {
  syncLeader(){for(const t of [0,1])if(!this.leaderOnPitch(t))this.leaderPool[t]=false;}
  rerollsAvailable(team){return this.rerolls[team]+(this.leaderPool[team]&&this.leaderOnPitch(team)?1:0);}
  spendLeader(team){if(!this.driveBonus?.[team]&&this.leaderPool[team]&&this.leaderOnPitch(team)){this.leaderPool[team]=false;this.rerolls[team]++;this.note("Leader re-roll used.");}}
- canTeamReroll(p){if(this.dumpContext&&!this.moveContext||this.moveContext&&(!this.dumpContext||this.moveContext.ownHalf!==null))return false;return p.team===this.active&&this.rerollsAvailable(p.team)>0&&(!this.match||this.phase==="play");}
+ teamRerollAllowed(p){return !(this.dumpContext&&!this.moveContext||this.moveContext&&(!this.dumpContext||this.moveContext.ownHalf!==null))&&p.team===this.active&&(!this.match||this.phase==="play");}
+ canTeamReroll(p){return this.teamRerollAllowed(p)&&this.rerollsAvailable(p.team)>0;}
  useTeamReroll(p){if(!this.canTeamReroll(p))return false;this.spendLeader(p.team);return super.useTeamReroll(p);}
  disturbance(p){return this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&this.has(q,"Disturbing Presence")&&this.distance(q,p)<=3).length;}
  jumpTarget(p,fx,fy,x,y,diving=0){
@@ -813,7 +820,7 @@ class SkillGame extends SkillBase {
   const helpers=(team,victim,excluded,offensive)=>this.players.filter(q=>q.team===team&&q.id!==p.id&&q.id!==target.id&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&!q.gouged&&this.distance(q,victim)===1&&(this.markedByExcept(q,[excluded.id])===0||offensive&&this.skill(q,"Put the Boot In")&&!this.players.some(r=>r.team!==q.team&&r.team!==this.active&&this.skill(r,"Defensive")&&this.onPitch(r)&&this.distance(r,q)===1))).length;
   const offense=helpers(p.team,target,target,true),defense=helpers(target.team,p,p,false),modifier=this.has(target,"Iron Hard Skin")?0:offense-defense+(chainsaw?3:0);
   this.note("Foul: "+offense+" offensive and "+defense+" defensive assist(s).");let sent=false;
-  const finishNormal=()=>{if(after){after(false);return;}if(this.skill(p,"Quick Foul")){this.note("Quick Foul: remaining movement is available.");}else if(p.bloodlust)this.feed(p,()=>{this.mover=null;this.action=null;});else{this.mover=null;this.action=null;}},finish=()=>{if(sent)this.sendOff(p,turnover=>after?after(turnover):turnover?this.endTurn(true):finishNormal());else finishNormal();},rollArmour=(rerolled=false)=>{
+  const finishNormal=()=>{if(after){after(false);return;}if(this.skill(p,"Quick Foul")){this.note("Quick Foul: remaining movement is available.");}else if(p.bloodlust)this.feed(p,()=>{this.mover=null;this.action=null;});else{this.mover=null;this.action=null;}},finish=()=>{if(!sent&&(this.biasedRefs?.[1-p.team]||0)>0){const n=this.roll("Biased Referee spots foul on 5+");sent=n>=5;this.note("Biased Referee "+(sent?"spots":"does not spot")+" the foul.");}if(sent)this.sendOff(p,turnover=>after?after(turnover):turnover?this.endTurn(true):finishNormal());else finishNormal();},rollArmour=(rerolled=false)=>{
    const a=this.roll("Foul Armour"),b=this.roll("Foul Armour"),raw=a+b,dirty=this.skill(p,"Dirty Player"),skin=this.has(target,"Iron Hard Skin");
    const afterArmour=bonus=>{const broken=raw+modifier+bonus>=parseInt(this.profile(target).av);
     const keep=()=>{if(a===b&&(!this.skill(p,"Sneaky Git")||broken))sent=true;
@@ -844,7 +851,7 @@ class SkillGame extends SkillBase {
    if(choice!=="Argue the Call"){bribe();return;}
    let n=this.roll("Argue the Call");
    if(n===1&&(this.argueRerolls?.[p.team]||0)>0){this.argueRerolls[p.team]--;this.note("Bribery and Corruption: re-roll the natural-one Argue the Call.");n=this.roll("Bribery and Corruption Argue re-roll");}
-   if(n===6){this.note("Argue the Call succeeds; player remains, turnover still applies.");complete(true);return;}
+   if(n+(this.biasedRefs?.[p.team]||0)>=6){this.note("Argue the Call succeeds; player remains, turnover still applies.");complete(true);return;}
    if(n===1){this.argueBanned[p.team]=true;remove();return;}
    bribe();
   });

@@ -81,10 +81,10 @@ class MovementGame {
    resume();
   };
   const medical=()=>{
-   if(!["casualty","knocked-out"].includes(state)||!this.apothecaries[p.team]||state==="knocked-out"&&this.has(p,"Ball & Chain")){finish();return;}
-   this.treatmentChoice("Apothecary — #"+p.number+(record.selected?": "+record.selected.result:" knocked out"),p,["Use Apothecary","Decline treatment"],choice=>{
-    if(choice!=="Use Apothecary"){finish();return;}
-    this.apothecaries[p.team]--;record.treatment="Apothecary";
+   if(!["casualty","knocked-out"].includes(state)||!this.medicalSources(p).length||state==="knocked-out"&&this.has(p,"Ball & Chain")){finish();return;}
+   this.treatmentChoice("Apothecary — #"+p.number+(record.selected?": "+record.selected.result:" knocked out"),p,[...this.medicalSources(p),"Decline treatment"],choice=>{
+    if(!this.useMedicalSource(p,choice)){finish();return;}
+    record.treatment=choice==="Use Plague Doctor"?"Plague Doctor":"Apothecary";
     if(state==="knocked-out"||record.selected.result==="Badly hurt"){
      state=state==="knocked-out"&&!crowd&&!stunIsKo?"stunned":"reserve";finish();return;
     }
@@ -103,9 +103,10 @@ class MovementGame {
    update();next();
   };
   const retryRegeneration=next=>{
-   if(record.regenerationFailed&&this.canTeamReroll(p)){
-    this.treatmentChoice("Regeneration — #"+p.number,p,["Team re-roll Regeneration","Accept Regeneration failure"],choice=>{
-     if(choice==="Team re-roll Regeneration"&&this.useTeamReroll(p)){
+   const sources=this.regenerationSources(p),labels=sources.map(s=>this.rerollLabel(s)+" Regeneration");
+   if(record.regenerationFailed&&sources.length){
+    this.treatmentChoice("Regeneration — #"+p.number,p,[...labels,"Accept Regeneration failure"],choice=>{
+     const source=sources[labels.indexOf(choice)];if(source&&this.useRegenerationSource(p,source)){
       record.regenerationReroll=this.roll("Regeneration re-roll needs 4+");
       if(record.regenerationReroll>=4){state="reserve";record.treatment="Regeneration";}
      }
@@ -114,8 +115,12 @@ class MovementGame {
    }
    next();
   };
-  this.scheduleInjury({p,record,origin,regenerate,retryRegeneration,treat:next=>{resume=next;medical();}},done);
+  this.scheduleInjury({p,record,origin,regenerate,retryRegeneration,canRetryRegeneration:()=>record.regenerationFailed&&this.regenerationSources(p).length>0,treat:next=>{resume=next;medical();}},done);
  }
+ medicalSources(p){return this.apothecaries[p.team]>0?["Use Apothecary"]:[];}
+ useMedicalSource(p,choice){if(choice!=="Use Apothecary"||!this.apothecaries[p.team])return false;this.apothecaries[p.team]--;return true;}
+ regenerationSources(p){return this.rerollSources(p);}
+ useRegenerationSource(p,source){return this.useRerollSource(p,source);}
  scheduleInjury(entry,done){entry.regenerate(()=>entry.retryRegeneration(()=>entry.treat(done)));}
 
  has(p,skill){return this.profile(p).skills.includes(skill);}
@@ -132,13 +137,18 @@ class MovementGame {
   const loner=this.profile(p).skills.find(s=>s.startsWith("Loner ("));
   return !loner||this.roll("Loner needs "+loner.match(/\d+/)[0]+"+")>=Number(loner.match(/\d+/)[0]);
  }
+ rerollSources(p){return this.canTeamReroll(p)?["Team"]:[];}
+ isRerollSource(source){return source==="Team";}
+ rerollLabel(source){return source+" re-roll";}
+ useRerollSource(p,source){return source==="Team"&&this.useTeamReroll(p);}
  attemptPro(p,yes,no){
   p.proUsed=true;
   if(this.roll("Pro needs 3+")>=3){yes();return;}
-  if(!this.canTeamReroll(p)){no();return;}
-  this.pending={type:"custom",kind:"Pro",options:["Team re-roll Pro","Accept Pro failure"],resolve:choice=>{
-   this.pending=null;if(choice==="Team re-roll Pro"&&this.useTeamReroll(p)&&this.roll("Pro re-roll needs 3+")>=3)yes();else no();
-  }};
+  const sources=this.rerollSources(p);if(!sources.length){no();return;}
+  const labels=sources.map(s=>this.rerollLabel(s)+" Pro"),q={type:"custom",kind:"Pro",team:p.team,options:[...labels,"Accept Pro failure"],resolve:choice=>{
+   if(this.pending!==q||!q.options.includes(choice))return false;
+   this.pending=null;const source=sources[labels.indexOf(choice)];if(source&&this.useRerollSource(p,source)&&this.roll("Pro re-roll needs 3+")>=3)yes();else no();return true;
+  }};this.pending=q;
  }
  // Keep the interrupted action on the stack until its reaction (including nested
  // decisions) completes. Pop before resuming, so a continuation can interrupt again.
@@ -312,9 +322,8 @@ class MovementGame {
  blockFace(n){return ["","Player Down","Both Down","Push Back","Push Back","Stumble","POW"][n];}
  rerollBlock(source,index=null){
   const b=this.blockAction;if(!b||this.pending?.type!=="blockSelect"||b.poolLocked)return false;
-  if(source==="Team"){
-   if(!this.canTeamReroll(b.attacker))return false;
-   if(!this.useTeamReroll(b.attacker)){b.poolLocked=true;this.pending={type:"blockSelect"};this.note("Loner failed; the team re-roll is lost.");return true;}
+  if(this.rerollSources(b.attacker).includes(source)){
+   if(!this.useRerollSource(b.attacker,source)){b.poolLocked=true;this.pending={type:"blockSelect"};this.note("Loner failed; the team re-roll is lost.");return true;}
    b.poolLocked=true;b.dice=b.dice.map((_,i)=>this.roll("Block die "+(i+1)+" team re-roll"));
    this.pending={type:"blockSelect"};this.note("Team re-roll: re-rolled the Block Dice pool.");return true;
   }
@@ -474,7 +483,7 @@ class MovementGame {
    if(kind==="Pass"&&this.has(p,"Pass"))options.push("Pass");
    if(this.mover===p.id&&this.has(p,"Pro")&&!p.proUsed)options.push("Pro");
   }
-  if(this.canTeamReroll(p))options.push("Team");
+  options.push(...this.rerollSources(p));
   return options;
  }
  test(p,kind,target,yes,no){
@@ -497,8 +506,8 @@ class MovementGame {
   if(choice==="Accept"){if(q.accept)q.accept();else q.resolve(q.roll);return true;}
   if(choice==="Dodge")q.p.dodgeUsed=true;
   if(choice==="Pro"){this.attemptPro(q.p,()=>q.resolve(this.roll(q.kind+" re-roll (Pro)")),()=>{if(q.accept)q.accept();else q.resolve(q.roll);});return true;}
-  if(choice==="Team"){
-   if(!this.useTeamReroll(q.p)){q.resolve(q.roll);return true;}
+  if(this.isRerollSource(choice)){
+   if(!this.useRerollSource(q.p,choice)){q.resolve(q.roll);return true;}
   }
   // A re-rolled die is resolved directly; no further re-roll is offered.
   q.resolve(this.roll(q.kind+" re-roll ("+choice+")"));return true;

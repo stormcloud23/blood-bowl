@@ -1,3 +1,7 @@
+Follow-on: [Mascots, Weather Mages and regeneration aids](INDUCEMENT-ACTIONS.md) adds those basic inducements and shared medical/re-roll choices. Older exclusions below are historical.
+
+Follow-on: [referees and grouped Secret Weapon choices](REFEREES.md) completes those resource boundaries; older exclusions below are historical.
+
 # Basic match resources and current team rules
 
 Based on merged main `491b0e8` (outlier-skill PR #13). The application remains
