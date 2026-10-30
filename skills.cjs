@@ -13,7 +13,7 @@ const SKILL_DEFERRED={
  "Violent Innovator":"Requires Star Player Point attribution and league progression.",
  "Insignificant":"Requires the Team Draft List / roster builder.",
 };
-const SKILL_PARTIAL={"Leader":"Exhibition re-roll and missing-Leader eligibility are supported; Halfling Master Chef interactions await inducements.","Secret Weapon":"End-of-drive send-off, Argue the Call and available Bribes are supported; bribe-related roster special rules await inducements."};
+const SKILL_PARTIAL={"Secret Weapon":"End-of-drive send-off, Argue the Call, Bribes and Bribery and Corruption are supported; grouped end-drive Argue allocation and Biased Referee exceptions remain outside the current resource batch."};
 const PASSIVES=new Set(["Claws","Disturbing Presence","Foul Appearance","Iron Hard Skin","Leader","Thick Skull","Animal Savagery","Bloodlust (X+)","Bone Head","Decay","Drunkard","Hatred (X)","Insignificant","Kick Team-mate","Loner (X+)","My Ball","No Ball","Plague Ridden","Really Stupid","Regeneration","Right Stuff","Secret Weapon","Stunty","Take Root","Timmm-ber!","Titchy","Unchannelled Fury","Unsteady"]);
 const MANDATORY=new Set(["Frenzy","Disturbing Presence","Foul Appearance","Always Hungry","Animal Savagery","Animosity (X)","Ball & Chain","Bloodlust (X+)","Bone Head","Chainsaw","Decay","Drunkard","Hatred (X)","Insignificant","Loner (X+)","My Ball","No Ball","Really Stupid","Right Stuff","Secret Weapon","Stunty","Take Root","Titchy","Unchannelled Fury","Unsteady"]);
 const SKILL_CATALOG=Object.entries(SKILL_GROUPS).flatMap(([category,names])=>names.map(name=>({name,category,kind:PASSIVES.has(name)?"Passive":"Active",mandatory:MANDATORY.has(name),status:SKILL_DEFERRED[name]?"Deferred":SKILL_PARTIAL[name]?"Partial":"Implemented",notes:SKILL_DEFERRED[name]||SKILL_PARTIAL[name]||"Supported in the available actions. Optional abilities may be disabled before action resolution.",source:"https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/#"+name.toLowerCase().replace(/[^a-z0-9 ]/g,"").replaceAll(" ","-")})));
@@ -829,15 +829,25 @@ class SkillGame extends SkillBase {
   };rollArmour();
  }
  sendOff(p,done){
-  this.argueBanned||=[false,false];const options=["Accept send-off"];if(!this.argueBanned[p.team])options.unshift("Argue the Call");
-  this.pending={type:"custom",kind:"Sent-off — "+this.teams[p.team].name+" #"+p.number,options,resolve:choice=>{
-   this.pending=null;let saved=false,rolledOne=false;if(choice==="Argue the Call"){const n=this.roll("Argue the Call");saved=n===6;if(n===1){rolledOne=true;this.argueBanned[p.team]=true;}}
-   if(saved){this.note("Argue the Call succeeds; player remains, turnover still applies.");done(true);return;}
-   const remove=()=>{const x=p.x,y=p.y,carrying=this.ball.carrier===p.id;Object.assign(p,{x:null,y:null,status:"sent-off"});this.note("Player is Sent-off.");if(carrying){this.ball={x,y,carrier:null};this.bounce(x,y,()=>done(true));}else done(true);};
-   const bribe=()=>{if(rolledOne||(this.bribes?.[p.team]||0)<1){remove();return;}
-    this.pending={type:"custom",kind:"Bribe",options:["Use Bribe","Accept send-off"],resolve:option=>{this.pending=null;if(option==="Use Bribe"){this.bribes[p.team]--;if(this.roll("Bribe needs 2+")>=2){this.note("Bribe succeeds: no send-off or turnover.");done(false);return;}bribe();}else remove();}};
-   };bribe();
-  }};
+  this.argueBanned||=[false,false];let resolved=false;
+  const complete=turnover=>{if(resolved)return;resolved=true;done(turnover);};
+  const remove=()=>{const {x,y}=p,carrying=this.ball.carrier===p.id;Object.assign(p,{x:null,y:null,status:"sent-off"});this.note("Player is Sent-off.");if(carrying){this.ball={x,y,carrier:null};this.bounce(x,y,()=>complete(true));}else complete(true);};
+  const bribe=()=>{
+   if((this.bribes?.[p.team]||0)<1){remove();return;}
+   this.skillChoice("Bribe",p.team,["Use Bribe","Accept send-off"],option=>{
+    if(option!=="Use Bribe"){remove();return;}
+    this.bribes[p.team]--;if(this.roll("Bribe needs 2+")>=2){this.note("Bribe succeeds: no send-off or turnover.");complete(false);}else bribe();
+   });
+  };
+  const options=["Accept send-off"];if(!this.argueBanned[p.team]&&p.status!=="casualty")options.unshift("Argue the Call");
+  this.skillChoice("Sent-off — "+this.teams[p.team].name+" #"+p.number,p.team,options,choice=>{
+   if(choice!=="Argue the Call"){bribe();return;}
+   let n=this.roll("Argue the Call");
+   if(n===1&&(this.argueRerolls?.[p.team]||0)>0){this.argueRerolls[p.team]--;this.note("Bribery and Corruption: re-roll the natural-one Argue the Call.");n=this.roll("Bribery and Corruption Argue re-roll");}
+   if(n===6){this.note("Argue the Call succeeds; player remains, turnover still applies.");complete(true);return;}
+   if(n===1){this.argueBanned[p.team]=true;remove();return;}
+   bribe();
+  });
  }
  chooseLandingCatcher(x,y,delivery,done){
   if(!["pass","kickoff","throw-in"].includes(delivery.kind)){super.chooseLandingCatcher(x,y,delivery,done);return;}

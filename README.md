@@ -12,9 +12,10 @@ A self-contained browser game targeting **Blood Bowl 2025 exhibition matches**, 
 - Movement, Blocks, Blitz, passing, interceptions, fouls, thrown/kicked players, and supported special actions.
 - Ball & Chain movement/collisions, Bloodlust feeding, and recursive bomb throws with grouped blast treatment.
 - Multiple Block with two committed attacks, coach dice choices and grouped injury treatment.
+- Configurable staff and basic inducements, kickoff staff bonuses, Keg recovery, Master Chefs, and Bribery and Corruption.
 - Casualty results, pregame team apothecaries, Regeneration treatment, Decay and Plague Ridden reserves.
 - Coach-controlled re-rolls and reaction choices, plus a skills laboratory and practice drills.
-- **104 implemented, 2 partial, and 2 deferred** entries in the 108-skill/trait catalogue.
+- **105 implemented, 1 partial, and 2 deferred** entries in the 108-skill/trait catalogue.
 
 These coverage labels describe available actions, not complete FFB parity. The two deferred entries chiefly require roster/progression work; exhibition interactions and several match systems still need further verification. Games currently reset on reload; roster creation, save/resume, AI, and leagues are not implemented.
 
@@ -33,9 +34,10 @@ The rules engines are `movement.cjs`, `skills.cjs`, and `match.cjs`. The build e
 
 ## Planned features
 
-1. Finish exhibition rules: interaction audits, medical exceptions, staff and inducements, star abilities, and match-rule verification.
+1. Finish basic inducements, staff, relevant team rules and non-star exhibition verification.
 2. Add roster/team creation and broader team support.
 3. Add persistent league progression, including advances, recruitment, finances, and injuries.
+4. Add star players and their unique abilities late, once the core systems are largely complete.
 
 Save/resume/export and a computer opponent are also planned. Exhibition correctness comes first.
 

@@ -14,8 +14,10 @@ The [Multiple Block increment](MULTIPLE-BLOCK.md), based on main `634a179`,
 adds committed two-attack result groups and deferred medical choices.
 The [outlier increment](OUTLIER-SKILLS.md), based on main `e08ef6c`, adds
 Ball & Chain, Bloodlust and Bombardier.
-Current catalogue totals: **104 implemented,
-2 partial, 2 deferred**. These are feature inventory labels, not certification
+The [basic-resource increment](BASIC-RESOURCES.md), based on main `491b0e8`,
+adds configurable staff/basic inducements and current-team rule handling.
+Current catalogue totals: **105 implemented,
+1 partial, 2 deferred**. These are feature inventory labels, not certification
 of complete FFB parity. GitHub Pages continues to serve the committed standalone
 HTML; no backend, runtime package, or external rules request is required.
 
@@ -65,8 +67,8 @@ this does not certify interaction parity or complete the wider match systems.
 | --- | --- | --- |
 | Later roster/progression features | Insignificant, Violent Innovator | Draft-list counting and SPP from special-action casualties; retain match attribution where useful, postpone roster editing and advancement. |
 
-Partial entries: Leader and Secret Weapon still
-need applicable inducement/team-rule interactions. Existing implemented entries
+Leader now includes Master Chef interactions. Secret Weapon remains Partial
+for grouped Argue allocation and remaining referee/inducement exceptions. Existing implemented entries
 also need interaction audits as new actions arrive. Diving Tackle now suppresses
 Shadowing when used, preserves re-roll history, and keeps modifier selection
 before the defender's decision. New knockdown actions must route through the
@@ -82,13 +84,20 @@ context, grouped treatment and deferred cleanup. The outlier increment now suppl
 bomb resolution, including grouped blast injuries. Catalogue skill completion
 alone does not finish the wider exhibition milestone.
 
-Other exhibition blockers remain: medical inducement/team/star exceptions, other staff and
-applicable inducements, star abilities and team rules, full kickoff/drive audit,
+Other non-star exhibition work remains: medical inducement/team exceptions,
+remaining basic inducements and roster-specific rules, full kickoff/drive audit,
 interception ruler geometry, and competition-specific end-of-match options.
 The Rush-before-Tentacles discrepancy identified during PR #3 is now corrected,
 including failed Rushes, Steady Footing recovery, two-Rush leaps, and held ball
 carriers. See [the movement follow-on](DODGE-FOOTING.md) and
 [the earlier reaction increment](REACTIONS.md) for historical context.
+
+## Owner-prioritized completion order
+
+Star players and unique abilities are intentionally deferred until the core
+systems are largely finished. They do not block the pre-builder exhibition
+milestone. Complete basic staff/inducements, relevant team rules and non-star
+verification, then roster/team building, then league progression.
 
 ## Validation
 
