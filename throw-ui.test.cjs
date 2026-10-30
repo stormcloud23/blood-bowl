@@ -15,6 +15,35 @@ function uiFixture(scenario='throw-team-mate'){
  vm.runInContext(scripts,context);
  return {get,context,run:code=>vm.runInContext(code,context)};
 }
+function outlierUi(rolls,scenario='skills'){
+ const f=uiFixture(scenario);f.run('game.players.forEach(p=>Object.assign(p,{status:"reserve",x:null,y:null,extraSkills:[],profileOverride:{name:"Fixture",cost:0,max:16,primary:"G",secondary:"A",ma:6,st:3,ag:"3+",pa:"3+",av:"9+",skills:[],traits:"Lineman, Human"}}));globalThis.a=game.players[0];globalThis.b=game.players[1];globalThis.d=game.players[11];Object.assign(a,{x:10,y:7,status:"standing"});Object.assign(b,{x:9,y:7,status:"standing"});Object.assign(d,{x:12,y:7,status:"standing"});game.rerolls=[0,0];game.ball={x:20,y:14,carrier:null};game.interceptionCandidates=()=>[];selected=a.id;globalThis.rolls='+JSON.stringify(rolls)+';game.dice=()=>rolls.shift();if(game.match){game.phase="play";game.turns=[1,0];}render()');return f;
+}
+test('the skill laboratory offers parameterized Bloodlust and a Thrall eligibility button',()=>{
+ const {get,run}=outlierUi([]);const panel=get('skillcontrols'),select=panel.children.find(e=>e['aria-label']==='Add a laboratory skill');assert.ok(select.children.some(e=>e.value==='Bloodlust (2+)'));select.value='Bloodlust (2+)';panel.children.find(e=>e.textContent==='Add skill to selected lab player').listeners.click();assert.equal(run('game.has(a,"Bloodlust (2+)")'),true);
+ run('selected=b.id;render()');get('skillcontrols').children.find(e=>e.textContent==='Mark as Thrall').listeners.click();assert.equal(run('b.thrall'),true);
+});
+test('Bloodlust End Move UI feeds and cannot repeat the bite after a double click',()=>{
+ const {get,run}=outlierUi([1,1,1]);run('a.extraSkills=["Bloodlust (2+)"];b.thrall=true;render()');get('start').listeners.click();get('finish').listeners.click();const bite=get('choices').children.find(e=>e.textContent.startsWith('Bite #'));assert.ok(bite);bite.listeners.click();bite.listeners.click();assert.equal(run('b.status'),'stunned');assert.equal(run('game.injuryRecords.length'),1);assert.equal(run('game.mover'),null);
+});
+test('Bloodlust touchdown dialog precedes scoring in the match UI',()=>{
+ const {get,run}=outlierUi([1,1],'match');run('a.x=25;b.x=24;b.thrall=true;a.bloodlust=true;game.ball={x:25,y:7,carrier:a.id};game.checkScore();render()');assert.equal(run('game.scores[0]'),0);get('choices').children.find(e=>e.textContent.startsWith('Bite #')).listeners.click();assert.equal(run('game.scores[0]'),1);assert.equal(run('game.phase'),'endDrive');
+});
+test('Ball & Chain movement template buttons spend one movement and reject a stale direction click',()=>{
+ const {get,run}=outlierUi([3]);run('a.extraSkills=["Ball & Chain"];render()');get('start').listeners.click();const aim=get('choices').children.find(e=>e.textContent==='Aim East');assert.ok(aim);aim.listeners.click();aim.listeners.click();assert.equal(run('a.x'),11);assert.equal(run('a.spent'),1);assert.ok(get('choices').children.some(e=>e.textContent==='Aim North'));
+});
+test('Ball & Chain collision UI auto-follows and rejects a stale push button',()=>{
+ const {get,run}=outlierUi([3,3]);run('a.extraSkills=["Ball & Chain"];d.x=11;game.start(a.id);render()');get('choices').children.find(e=>e.textContent==='Aim East').listeners.click();get('choices').children.find(e=>e.textContent.startsWith('Die 1')).listeners.click();const push=get('choices').children.find(e=>e.textContent.startsWith('Push to '));push.listeners.click();push.listeners.click();assert.equal(run('a.x'),11);assert.equal(run('a.spent'),1);assert.ok(!get('choices').children.some(e=>e.textContent==='Follow up'));
+});
+test('Throw Bomb is available from the special-action menu and uses two-click pitch aiming',()=>{
+ const {get,run}=outlierUi([6,2]);run('a.extraSkills=["Bombardier"];globalThis.ballBefore=JSON.stringify(game.ball);render()');get('special').listeners.click();get('choices').children.find(e=>e.textContent==='Throw Bomb').listeners.click();assert.equal(run('game.action'),'bomb');assert.ok(get('choices').children.some(e=>e.textContent.includes('Choose a highlighted bomb target')));
+ get('pitch').children[7*26+16].listeners.click();get('pitch').children[7*26+16].listeners.click();assert.equal(run('game.bombContext'),null);assert.equal(run('JSON.stringify(game.ball)===ballBefore'),true);assert.equal(run('game.passUsed[0]'),false);
+});
+test('caught-bomb UI switches the coach, requires a rethrow and disables End Move',()=>{
+ const {get,run}=outlierUi([6,6]);run('a.extraSkills=["Bombardier"];game.start(a.id,"bomb");render()');get('pitch').children[7*26+12].listeners.click();get('pitch').children[7*26+12].listeners.click();assert.equal(run('game.bombActor().id'),run('d.id'));assert.match(get('coach').textContent,/Must rethrow bomb/);assert.ok(get('coach').textContent.startsWith(run('teams[1].name')));assert.equal(get('finish').disabled,true);assert.equal(get('end').disabled,true);assert.equal(run('d.used'),false);
+});
+test('bomb medical dialog displays the bomb action and resolves all injuries before cleanup',()=>{
+ const {get,run}=outlierUi([6,1,6,6,6,6,1,1,4,6,6,6,6,16,1,1,1]);run('a.extraSkills=["Bombardier"];Object.assign(b,{team:1,x:13,y:7});game.apothecaries[1]=1;game.start(a.id,"bomb");game.throwBomb(d.x,d.y);render()');assert.match(run('game.pending.kind'),/^Bomb medical/);get('choices').children.find(e=>e.textContent.startsWith('Resolve #2 injury')).listeners.click();get('choices').children.find(e=>e.textContent==='Use Apothecary').listeners.click();assert.equal(run('b.status'),'reserve');assert.equal(run('game.bombContext'),null);assert.equal(run('game.active'),0);
+});
 function multipleUi(rolls){
  const f=uiFixture('dodge');f.run('game.players.forEach(p=>Object.assign(p,{status:"reserve",x:null,y:null}));globalThis.a=game.players[0];globalThis.d=game.players[11];globalThis.e=game.players[12];for(const p of [a,d,e]){p.profileOverride={...game.profile(p),skills:[],st:p===a?5:3,traits:"Lineman, Human"};p.status="standing";}Object.assign(a,{x:10,y:7,extraSkills:["Multiple Block"]});Object.assign(d,{x:11,y:7});Object.assign(e,{x:10,y:8});game.rerolls=[0,0];game.ball={x:20,y:14,carrier:null};selected=a.id;globalThis.rolls='+JSON.stringify(rolls)+';game.dice=()=>rolls.shift();render()');return f;
 }

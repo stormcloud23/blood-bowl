@@ -120,14 +120,14 @@ test("all 108 source entries have an explicit coverage status and dependency not
  assert.equal(SKILL_CATALOG.length,108);assert.equal(new Set(SKILL_CATALOG.map(s=>s.name)).size,108);
  for(const [category,names] of Object.entries(SKILL_GROUPS))assert.equal(names.length,category==="Traits"?36:12);
  for(const s of SKILL_CATALOG){assert.ok(["Implemented","Partial","Deferred"].includes(s.status));assert.ok(s.notes.length>15);}
- assert.equal(SKILL_CATALOG.filter(s=>s.status==="Deferred").length,5);
+ assert.equal(SKILL_CATALOG.filter(s=>s.status==="Deferred").length,2);
 });
 test("all browser scripts compile together and the skill bundle equals source",()=>{
  assert.equal(html.match(/id="skills-engine">\n([\s\S]*?)<\/script>/)[1].trimEnd(),fs.readFileSync("skills.cjs","utf8").trimEnd());
  new vm.Script([...html.matchAll(/<script(?: id="(?:movement|skills|match)-engine")?>([\s\S]*?)<\/script>/g)].map(m=>m[1]).join("\n"));
 });
 test("laboratory enforces incompatible skills and mandatory traits cannot be disabled",()=>{
- const g=fixture([],"skills"),p=g.players[0];assert.ok(g.addSkill(p.id,"Frenzy"));assert.equal(g.addSkill(p.id,"Grab"),false);assert.equal(g.addSkill(p.id,"Pogo"),false);assert.equal(g.addSkill(p.id,"Bombardier"),false);
+ const g=fixture([],"skills"),p=g.players[0];assert.ok(g.addSkill(p.id,"Frenzy"));assert.equal(g.addSkill(p.id,"Grab"),false);assert.equal(g.addSkill(p.id,"Pogo"),false);assert.ok(g.addSkill(p.id,"Bombardier"));
  assert.equal(g.toggleSkill(p.id,"Frenzy"),false);assert.ok(g.toggleSkill(p.id,"Sprint"));assert.equal(g.has(p,"Sprint"),false);
 });
 test("Sprint permits exactly three Rushes and Sure Feet rerolls once per turn",()=>{

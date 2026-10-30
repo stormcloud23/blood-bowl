@@ -12,8 +12,10 @@ The [casualty/treatment increment](CASUALTY-TREATMENT.md), based on merged
 main `35117f8`, adds casualty results, team apothecaries, Decay and Plague Ridden.
 The [Multiple Block increment](MULTIPLE-BLOCK.md), based on main `634a179`,
 adds committed two-attack result groups and deferred medical choices.
-Current catalogue totals: **101 implemented,
-2 partial, 5 deferred**. These are feature inventory labels, not certification
+The [outlier increment](OUTLIER-SKILLS.md), based on main `e08ef6c`, adds
+Ball & Chain, Bloodlust and Bombardier.
+Current catalogue totals: **104 implemented,
+2 partial, 2 deferred**. These are feature inventory labels, not certification
 of complete FFB parity. GitHub Pages continues to serve the committed standalone
 HTML; no backend, runtime package, or external rules request is required.
 
@@ -55,13 +57,12 @@ Use executable BB2025 behavior, not the outdated Shadowing JavaDoc.
 
 ## Remaining exhibition skill dependencies
 
-All 5 deferred catalogue entries remain accounted for below. **3 have match
-effects that still block skill-complete exhibition play.** The other two chiefly
-depend on the deferred roster/progression systems.
+Both deferred catalogue entries chiefly depend on the deferred roster/progression
+systems. No deferred catalogue entry remains for the scoped exhibition actions;
+this does not certify interaction parity or complete the wider match systems.
 
 | Group | Remaining entries | Required shared work |
 | --- | --- | --- |
-| Special movement/actions | Ball & Chain, Bloodlust (X+), Bombardier | Random movement and friendly Blocks, feeding before scoring/passing, a separate bomb object with recursive caught-bomb throws and group damage. |
 | Later roster/progression features | Insignificant, Violent Innovator | Draft-list counting and SPP from special-action casualties; retain match attribution where useful, postpone roster editing and advancement. |
 
 Partial entries: Leader and Secret Weapon still
@@ -77,9 +78,9 @@ Hands, are recorded in the ball-handling audit.
 The current reaction/action batch includes parent-state restoration and bounded
 movement and per-Block knockdown outcomes for Saboteur, but it does not supply
 a serializable action stack. Multiple Block now adds a bounded two-attack
-context, grouped treatment and deferred cleanup. The remaining foundations are
-random movement, feeding gates and recursive bomb resolution. Catalogue skill
-completion alone will not finish the wider exhibition milestone.
+context, grouped treatment and deferred cleanup. The outlier increment now supplies random movement, feeding gates and recursive
+bomb resolution, including grouped blast injuries. Catalogue skill completion
+alone does not finish the wider exhibition milestone.
 
 Other exhibition blockers remain: medical inducement/team/star exceptions, other staff and
 applicable inducements, star abilities and team rules, full kickoff/drive audit,

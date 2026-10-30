@@ -62,11 +62,12 @@ class MovementGame {
  }
  // Treatment owns the continuation: no bounce, send-off or turn cleanup until
  // every medical decision for this injury has completed.
- resolveInjury(p,total,done=()=>{},{crowd=false,stunIsKo=false,stunty=true,source=null,plague=false}={}){
+ resolveInjury(p,total,done=()=>{},{crowd=false,stunIsKo=false,stunty=true,source=null,plague=false,automaticBadlyHurt=false}={}){
+  stunIsKo||=this.has(p,"Ball & Chain");
   const origin={x:p.x,y:p.y},small=stunty&&!this.has(p,"Iron Hard Skin")&&this.has(p,"Stunty"),thick=this.has(p,"Thick Skull"),stunMax=small?(thick?7:6):(thick?8:7),koMax=small?8:9;
   let state=total<=stunMax?(crowd?"reserve":stunIsKo?"knocked-out":"stunned"):total<=koMax?"knocked-out":"casualty";
   const record={playerId:p.id,team:p.team,injury:total,source:source?{...source}:null,original:null,selected:null,treatment:null};
-  if(state==="casualty")record.original=record.selected=small&&total===9?{result:"Badly hurt",automatic:true}:this.casualtyRoll(p);
+  if(state==="casualty")record.original=record.selected=automaticBadlyHurt||small&&total===9?{result:"Badly hurt",automatic:true}:this.casualtyRoll(p);
   let resume=done;
   const finish=()=>{
    p.status=state;p.rooted=false;this.onProne(p);
@@ -78,7 +79,7 @@ class MovementGame {
    resume();
   };
   const medical=()=>{
-   if(!["casualty","knocked-out"].includes(state)||!this.apothecaries[p.team]){finish();return;}
+   if(!["casualty","knocked-out"].includes(state)||!this.apothecaries[p.team]||state==="knocked-out"&&this.has(p,"Ball & Chain")){finish();return;}
    this.treatmentChoice("Apothecary — #"+p.number+(record.selected?": "+record.selected.result:" knocked out"),p,["Use Apothecary","Decline treatment"],choice=>{
     if(choice!=="Use Apothecary"){finish();return;}
     this.apothecaries[p.team]--;record.treatment="Apothecary";
@@ -400,7 +401,7 @@ class MovementGame {
     this.pending=null;const origin={x:d.x,y:d.y};this.pushPlayer(d,pos,ok=>this.afterPush(origin,knockTarget,ok));
    }};
   };
-  if(this.has(d,"Stand Firm")&&!d.distracted)this.pending={type:"custom",kind:"Stand Firm",options:["Stand Firm","Be pushed"],resolve:choice=>{
+  if(d.status==="standing"&&this.has(d,"Stand Firm")&&!d.distracted)this.pending={type:"custom",kind:"Stand Firm",options:["Stand Firm","Be pushed"],resolve:choice=>{
    this.pending=null;if(choice==="Stand Firm"){this.note("#"+d.number+" uses Stand Firm.");if(knockTarget)this.fall(d,{turnover:false,mightyBlowBy:a,after:()=>this.finishBlock()});else this.finishBlock();}else proceed();
   }};else proceed();
  }
@@ -416,7 +417,7 @@ class MovementGame {
   const occupant=this.at(destination.x,destination.y);
   if(occupant){
    const choices=this.pushSquares(from,occupant,false),free=choices.filter(pos=>this.inside(pos.x,pos.y)&&!this.at(pos.x,pos.y)),options=free.length?free:choices;
-   if(this.has(occupant,"Stand Firm")&&!occupant.distracted)options.unshift({standFirm:true});
+   if(occupant.status==="standing"&&this.has(occupant,"Stand Firm")&&!occupant.distracted)options.unshift({standFirm:true});
    this.pending={type:"pushChoice",kind:"Chain push",target:occupant,options,resolve:pos=>{
     this.pending=null;if(pos.standFirm){this.note("#"+occupant.number+" uses Stand Firm; the chain push stops.");done(false);return;}
     this.pushPlayer(occupant,pos,ok=>{if(!ok){done(false);return;}this.placePushed(victim,destination,done);},depth+1);
