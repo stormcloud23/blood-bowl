@@ -30,9 +30,9 @@ test("Subpar Throw applies a landing penalty without itself causing turnover",()
 test("natural one fumbles from thrower, with a penalized landing",()=>{
  const {g,p}=throwing([1,2,4]);g.throwTeamMate(12,7);assert.equal(p.x,10);assert.equal(p.y,6);assert.equal(p.status,"standing");assert.equal(g.active,0);
 });
-test("modified one fumbles but modified zero is Subpar; natural six is Superb",()=>{
+test("modified one and zero fumble under pinned FFB; natural six is Superb",()=>{
  const {g,a,p}=throwing([2,2,5]);Object.assign(g.players[11],{x:11,y:7});g.throwTeamMate(12,7);assert.equal(p.y,6);assert.ok(g.events.some(e=>e.startsWith("Fumbled Throw")));
- const b=throwing([2,5,5,5,6]);Object.assign(b.g.players[11],{x:11,y:7});b.g.throwTeamMate(14,7);assert.ok(b.g.events.includes("Subpar Throw."));
+ const b=throwing([2,2,5]);Object.assign(b.g.players[11],{x:11,y:7});b.g.throwTeamMate(14,7);assert.ok(b.g.events.some(e=>e.startsWith("Fumbled Throw")));
  const c=throwing([6,5,5,5,6]);c.g.throwTeamMate(16,7);assert.ok(c.g.events.includes("Superb Throw."));
 });
 test("failed carrier landing turns over after armour and ball bounce",()=>{
@@ -109,8 +109,8 @@ test("Sure Hands prevents Strip Ball from dropping possession",()=>{
 test("FFB Pro is limited to once per turn, including across different dice",()=>{
  const g=fixture([1,3,2,1]),p=g.players[0];grant(p,"Pro");g.start(p.id);let count=0;g.test(p,"Rush",2,()=>count++,()=>{});choose(g,"Pro");g.test(p,"Rush",2,()=>count++,()=>{});assert.equal(g.pending,null);assert.equal(count,1);assert.equal(p.proUsed,true);
 });
-test("negative modified pass is inaccurate, not modified-one fumble, under 2025 unclamped modifiers",()=>{
- const g=fixture([2,2,2,2,2],"pass"),p=g.players[0];p.role=0;g.start(p.id,"pass");g.pass(21,7);if(g.pending)choose(g,"Decline interception");assert.ok(g.events.some(s=>s.startsWith("Inaccurate Pass")));assert.equal(g.active,1);
+test("negative modified pass fumbles under pinned FFB",()=>{
+ const g=fixture([2,2,2,2,2],"pass"),p=g.players[0];p.role=0;g.start(p.id,"pass");g.pass(21,7);assert.ok(g.events.some(s=>s.startsWith("Fumbled Pass")));assert.equal(g.active,1);
 });
 test("Leader re-roll disappears when the last Leader leaves the pitch",()=>{const g=fixture(),p=g.players[0];grant(p,"Leader");g.grantLeader(1);assert.equal(g.rerollsAvailable(0),1);p.x=null;p.y=null;g.syncLeader();assert.equal(g.leaderPool[0],false);});
 test("failed Stab replacement on Blitz still spends one MA and ends the activation",()=>{

@@ -217,20 +217,27 @@ class MovementGame {
   this.beforePass(p,{x,y},()=>{this.ballActionDone=false;const finalPreview=this.passPreview(x,y)||preview;this.ballActionDone=true;this.resolvePass(p,x,y,finalPreview);});return true;
  }
  beforePass(p,target,done){done();}
+ classifyPass(pa,roll,modifier,safePass=false){
+  if(!Number.isFinite(pa)||pa<=0)return "FUMBLE";
+  if(roll===1)return safePass?"SAVED_FUMBLE":"FUMBLE";
+  if(roll===6||roll-modifier>=pa)return "ACCURATE";
+  return roll-modifier<=1?"FUMBLE":"INACCURATE";
+ }
  resolvePass(p,x,y,preview){
-  this.note("#"+p.number+" attempts a "+preview.name+" to "+(x+1)+", "+(y+1)+"; PA "+preview.target+"+.");
+  this.note("#"+p.number+" attempts a "+preview.name+" to "+(x+1)+", "+(y+1)+"; "+(Number.isFinite(preview.target)?"PA "+preview.target+"+":"PA –, automatic fumble")+".");
   this.passContext={p,preview,target:{x,y}};
   const modifier=preview.target-Number.parseInt(this.profile(p).pa),target=Number.parseInt(this.profile(p).pa),resolve=n=>{
-   this.pending=null;
-   if(n===1&&this.has(p,"Safe Pass")){this.note("Safe Pass: possession retained; activation ends.");this.mover=null;this.action=null;this.passContext=null;return;}
+   this.pending=null;const result=this.classifyPass(target,n,modifier,this.has(p,"Safe Pass"));
+   if(result==="SAVED_FUMBLE"){this.note("Safe Pass: possession retained; activation ends.");this.mover=null;this.action=null;this.passContext=null;return;}
    this.ball={x:p.x,y:p.y,carrier:null};
-   if(n===1||n-modifier===1&&n!==6){this.note("Fumbled Pass: ball bounces from the thrower; turnover.");this.bounce(p.x,p.y,()=>this.endTurn(true));return;}
-   const accurate=!preview.hail&&(n===6||n-modifier>=target);
+   if(result==="FUMBLE"){this.note("Fumbled Pass: ball bounces from the thrower; turnover.");this.bounce(p.x,p.y,()=>this.endTurn(true));return;}
+   const accurate=!preview.hail&&result==="ACCURATE";
    this.note(accurate?"Accurate Pass.":"Inaccurate Pass: Scatter (3).");
    const original=this.at(x,y),delivery={kind:"pass",target:{x,y},accurate,accurateToPlayer:accurate&&original?.status==="standing"&&!original.distracted};
    const land=(lx,ly)=>this.interceptPass(p,{x:lx,y:ly},accurate,()=>this.landBall(lx,ly,false,()=>this.finishBallAction(p,preview.band===0),true,delivery));
    if(accurate)land(x,y);else this.scatterPass(x,y,land,()=>this.throwIn(this.ball.x,this.ball.y,()=>this.finishBallAction(p,preview.band===0)));
   };
+  if(!Number.isFinite(target)){this.note("No Passing Ability: automatic fumble, without a passing die.");resolve(0);return true;}
   const roll=this.roll("Pass accuracy needs "+Math.min(6,preview.target)+"+");
   if(roll===6||roll!==1&&roll>=preview.target){resolve(roll);return true;}
   const options=this.options(p,"Pass");if(options.length)this.pending={p,kind:"Pass",target:preview.target,roll,options,resolve};else resolve(roll);return true;
@@ -240,22 +247,24 @@ class MovementGame {
   for(let i=0;i<3;i++){const [dx,dy]=dirs[this.roll("Pass scatter",8)-1];if(!this.inside(x+dx,y+dy)){this.ball={x,y,carrier:null};out();return;}x+=dx;y+=dy;}
   land(x,y);
  }
- interceptionCandidates(from,to){
-  const dx=to.x-from.x,dy=to.y-from.y,len=Math.hypot(dx,dy);if(!len)return [];
-  // Rectangle of the ruler (one square wide), tested against each player square using separating axes.
-  const ux=dx/len,uy=dy/len,mx=(from.x+to.x)/2,my=(from.y+to.y)/2;
-  return this.players.filter(p=>p.team!==from.team&&this.onPitch(p)&&p.status==="standing"&&!p.distracted&&
-   [[1,0],[0,1],[ux,uy],[-uy,ux]].every(([ax,ay])=>Math.abs((p.x-mx)*ax+(p.y-my)*ay)<.5*(Math.abs(ax)+Math.abs(ay))+len/2*Math.abs(ux*ax+uy*ay)+.5*Math.abs(-uy*ax+ux*ay)-1e-9));
+ interceptionSquare(from,to,point){
+  // Translated from pinned FFB UtilPassing.canIntercept (ruler width 1.74).
+  const rx=to.x-from.x,ry=to.y-from.y,ix=point.x-from.x,iy=point.y-from.y;
+  const toTarget=(rx-ix)**2+(ry-iy)**2,fromThrower=ix**2+iy**2,lengthSquared=rx**2+ry**2;
+  const corners=[Math.abs(ry*(ix+.5)-rx*(iy+.5)),Math.abs(ry*(ix+.5)-rx*(iy-.5)),Math.abs(ry*(ix-.5)-rx*(iy+.5)),Math.abs(ry*(ix-.5)-rx*(iy-.5))];
+  return lengthSquared>toTarget&&lengthSquared>fromThrower&&1.74>2*Math.min(...corners)/Math.sqrt(lengthSquared);
  }
+ interceptionCandidates(from,to){return this.players.filter(p=>p.team!==from.team&&this.onPitch(p)&&p.status==="standing"&&!p.distracted&&this.interceptionSquare(from,to,p));}
+
  interceptPass(p,to,accurate,land){
   const candidates=this.interceptionCandidates(p,to);if(!candidates.length){land();return;}
   const options=candidates.map(q=>"Intercept with #"+q.number);options.push("Decline interception");
-  this.pending={type:"custom",kind:this.teams[1-p.team].name+" interception",options,resolve:choice=>{
-   this.pending=null;const index=options.indexOf(choice);if(index===candidates.length){land();return;}
+  const decision={type:"custom",team:1-p.team,kind:this.teams[1-p.team].name+" interception",options,resolve:choice=>{
+   if(this.pending!==decision||!options.includes(choice))return false;this.pending=null;const index=options.indexOf(choice);if(index===candidates.length){land();return true;}
    const q=candidates[index];this.test(q,"Intercept",Number.parseInt(this.profile(q).ag)+(accurate?3:2)+this.marking(q),()=>{
     this.ball={x:q.x,y:q.y,carrier:q.id};this.recordStat(q,"interception");this.note("#"+q.number+" intercepts the pass.");this.checkScore();this.endTurn(true);
-   },land);
-  }};
+   },land);return true;
+  }};this.pending=decision;
  }
  finishBallAction(p,allowGiveAndGo,forcedTurnover=false){
   this.passContext=null;

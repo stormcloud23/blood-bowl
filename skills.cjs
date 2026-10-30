@@ -46,9 +46,10 @@ class SkillGame extends SkillBase {
   const c=this.bombContext;c.stage="flight";const pa=parseInt(this.profile(p).pa),modifier=preview.target-(Number.isFinite(pa)?pa:7),origin={x:p.x,y:p.y};
   const resolve=n=>{
    if(p===c.original)c.allowMove=preview.band===0&&this.has(p,"Give and Go")&&n!==1;
-   if(Number.isFinite(pa)&&n===1&&this.has(p,"Safe Pass")){this.note("Safe Pass: bomb retained safely; action ends.");this.finishBomb();return;}
-   if(!Number.isFinite(pa)||n===1||n!==6&&n-modifier<=1){this.note("Fumbled bomb: explosion in the thrower's square.");this.explodeBomb(origin.x,origin.y);return;}
-   const accurate=!preview.hail&&(n===6||n-modifier>=pa),delivery={kind:"pass",chooserTeam:p.team,accurate,accurateToPlayer:accurate&&this.at(x,y)?.status==="standing"};
+   const result=this.classifyPass(pa,n,modifier,this.has(p,"Safe Pass"));
+   if(result==="SAVED_FUMBLE"){this.note("Safe Pass: bomb retained safely; action ends.");this.finishBomb();return;}
+   if(result==="FUMBLE"){this.note("Fumbled bomb: explosion in the thrower's square.");this.explodeBomb(origin.x,origin.y);return;}
+   const accurate=!preview.hail&&result==="ACCURATE",delivery={kind:"pass",chooserTeam:p.team,accurate,accurateToPlayer:accurate&&this.at(x,y)?.status==="standing"};
    let lx=x,ly=y;if(!accurate)for(let i=0;i<3;i++){const pos=this.bombScatter(lx,ly,"Bomb scatter");lx=pos.x;ly=pos.y;if(!this.inside(lx,ly)){this.finishBomb();return;}}
    const land=()=>this.landBomb(lx,ly,delivery,true);
    if(preview.hail){land();return;}
@@ -57,7 +58,7 @@ class SkillGame extends SkillBase {
    const options=candidates.map(q=>"Intercept bomb with #"+q.number+" ("+q.id+")").concat("Decline interception");
    this.skillChoice("Bomb interception",1-p.team,options,choice=>{
     const q=candidates[options.indexOf(choice)];if(!q){land();return;}
-    const target=parseInt(this.profile(q).ag)+(accurate?3:2)+this.marking(q)+this.disturbance(q)-(this.skill(q,"Extra Arms")?1:0)-(this.skill(q,"Very Long Legs")?2:0);
+    const target=parseInt(this.profile(q).ag)+(accurate?3:2)+(this.skill(q,"Nerves of Steel")?0:this.marking(q))+this.disturbance(q)-(this.skill(q,"Extra Arms")?1:0)-(this.skill(q,"Very Long Legs")?2:0);
     this.test(q,"Bomb interception",target,()=>this.rethrowBomb(q),land);
    });
   };
@@ -354,9 +355,9 @@ class SkillGame extends SkillBase {
    this.note("Fumbled Throw: bounce from the throwing player.");airborne();land(drift(a,"Fumbled player bounce"),true,false,a);
   };
   const resolve=n=>{
-   const modifier=preview.target-parseInt(this.profile(a).pa);
-   if(n===1||n!==6&&n-modifier===1){fumble();return;}
-   const superb=this.success(n,preview.target);superbThrow=superb;this.note(superb?"Superb Throw.":"Subpar Throw.");
+   const pa=parseInt(this.profile(a).pa),modifier=preview.target-pa,result=this.classifyPass(pa,n,modifier);
+   if(result==="FUMBLE"){fumble();return;}
+   const superb=result==="ACCURATE";superbThrow=superb;this.note(superb?"Superb Throw.":"Subpar Throw.");
    const flight=skipScatter=>{airborne();let pos={x,y};
     if(!skipScatter&&this.skill(p,"Swoop")){
      this.skillChoice("Swoop",p.team,["North","East","South","West","Scatter normally"],choice=>{
@@ -375,7 +376,7 @@ class SkillGame extends SkillBase {
    else flight(false);
   };
   const accuracy=()=>{
-   const n=this.roll("Throw Team-mate accuracy #"+a.number);
+   const n=this.roll("Throw Team-mate accuracy #"+a.number);if(!Number.isFinite(parseInt(this.profile(a).pa))){resolve(n);return;}
    // A Subpar result is still a failed PA test; the thrower may re-roll it.
    if(this.success(n,preview.target)){resolve(n);return;}
    const options=this.options(a,"Throw Team-mate");if(!options.length){resolve(n);return;}
@@ -458,9 +459,9 @@ class SkillGame extends SkillBase {
  checkTarget(p,kind,target){
   if(["Catch","Pick up","Intercept"].includes(kind)&&this.skill(p,"Extra Arms"))target--;
   if(["Catch","Intercept"].includes(kind))target+=this.disturbance(p);
-  if(kind==="Catch"&&this.skill(p,"Nerves of Steel"))target-=this.marking(p);
+  if(["Catch","Intercept"].includes(kind)&&this.skill(p,"Nerves of Steel"))target-=this.marking(p);
   if(kind==="Pick up"&&this.skill(p,"Big Hand"))target=parseInt(this.profile(p).ag)-(this.skill(p,"Extra Arms")?1:0);
-  if(kind==="Intercept"){if(this.has(p,"Stunty"))target++;if(this.skill(p,"Very Long Legs"))target-=2;}
+  if(kind==="Intercept"&&this.skill(p,"Very Long Legs"))target-=2;
   if(kind==="Rush"&&this.has(p,"Drunkard"))target++;
   if(kind==="Stand up"&&this.has(p,"Timmm-ber!"))target-=this.players.filter(q=>q.team===p.team&&q.id!==p.id&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&this.distance(q,p)===1&&!this.marking(q)).length;
   return target;

@@ -489,20 +489,27 @@ class MovementGame {
   this.beforePass(p,{x,y},()=>{this.ballActionDone=false;const finalPreview=this.passPreview(x,y)||preview;this.ballActionDone=true;this.resolvePass(p,x,y,finalPreview);});return true;
  }
  beforePass(p,target,done){done();}
+ classifyPass(pa,roll,modifier,safePass=false){
+  if(!Number.isFinite(pa)||pa<=0)return "FUMBLE";
+  if(roll===1)return safePass?"SAVED_FUMBLE":"FUMBLE";
+  if(roll===6||roll-modifier>=pa)return "ACCURATE";
+  return roll-modifier<=1?"FUMBLE":"INACCURATE";
+ }
  resolvePass(p,x,y,preview){
-  this.note("#"+p.number+" attempts a "+preview.name+" to "+(x+1)+", "+(y+1)+"; PA "+preview.target+"+.");
+  this.note("#"+p.number+" attempts a "+preview.name+" to "+(x+1)+", "+(y+1)+"; "+(Number.isFinite(preview.target)?"PA "+preview.target+"+":"PA –, automatic fumble")+".");
   this.passContext={p,preview,target:{x,y}};
   const modifier=preview.target-Number.parseInt(this.profile(p).pa),target=Number.parseInt(this.profile(p).pa),resolve=n=>{
-   this.pending=null;
-   if(n===1&&this.has(p,"Safe Pass")){this.note("Safe Pass: possession retained; activation ends.");this.mover=null;this.action=null;this.passContext=null;return;}
+   this.pending=null;const result=this.classifyPass(target,n,modifier,this.has(p,"Safe Pass"));
+   if(result==="SAVED_FUMBLE"){this.note("Safe Pass: possession retained; activation ends.");this.mover=null;this.action=null;this.passContext=null;return;}
    this.ball={x:p.x,y:p.y,carrier:null};
-   if(n===1||n-modifier===1&&n!==6){this.note("Fumbled Pass: ball bounces from the thrower; turnover.");this.bounce(p.x,p.y,()=>this.endTurn(true));return;}
-   const accurate=!preview.hail&&(n===6||n-modifier>=target);
+   if(result==="FUMBLE"){this.note("Fumbled Pass: ball bounces from the thrower; turnover.");this.bounce(p.x,p.y,()=>this.endTurn(true));return;}
+   const accurate=!preview.hail&&result==="ACCURATE";
    this.note(accurate?"Accurate Pass.":"Inaccurate Pass: Scatter (3).");
    const original=this.at(x,y),delivery={kind:"pass",target:{x,y},accurate,accurateToPlayer:accurate&&original?.status==="standing"&&!original.distracted};
    const land=(lx,ly)=>this.interceptPass(p,{x:lx,y:ly},accurate,()=>this.landBall(lx,ly,false,()=>this.finishBallAction(p,preview.band===0),true,delivery));
    if(accurate)land(x,y);else this.scatterPass(x,y,land,()=>this.throwIn(this.ball.x,this.ball.y,()=>this.finishBallAction(p,preview.band===0)));
   };
+  if(!Number.isFinite(target)){this.note("No Passing Ability: automatic fumble, without a passing die.");resolve(0);return true;}
   const roll=this.roll("Pass accuracy needs "+Math.min(6,preview.target)+"+");
   if(roll===6||roll!==1&&roll>=preview.target){resolve(roll);return true;}
   const options=this.options(p,"Pass");if(options.length)this.pending={p,kind:"Pass",target:preview.target,roll,options,resolve};else resolve(roll);return true;
@@ -512,22 +519,24 @@ class MovementGame {
   for(let i=0;i<3;i++){const [dx,dy]=dirs[this.roll("Pass scatter",8)-1];if(!this.inside(x+dx,y+dy)){this.ball={x,y,carrier:null};out();return;}x+=dx;y+=dy;}
   land(x,y);
  }
- interceptionCandidates(from,to){
-  const dx=to.x-from.x,dy=to.y-from.y,len=Math.hypot(dx,dy);if(!len)return [];
-  // Rectangle of the ruler (one square wide), tested against each player square using separating axes.
-  const ux=dx/len,uy=dy/len,mx=(from.x+to.x)/2,my=(from.y+to.y)/2;
-  return this.players.filter(p=>p.team!==from.team&&this.onPitch(p)&&p.status==="standing"&&!p.distracted&&
-   [[1,0],[0,1],[ux,uy],[-uy,ux]].every(([ax,ay])=>Math.abs((p.x-mx)*ax+(p.y-my)*ay)<.5*(Math.abs(ax)+Math.abs(ay))+len/2*Math.abs(ux*ax+uy*ay)+.5*Math.abs(-uy*ax+ux*ay)-1e-9));
+ interceptionSquare(from,to,point){
+  // Translated from pinned FFB UtilPassing.canIntercept (ruler width 1.74).
+  const rx=to.x-from.x,ry=to.y-from.y,ix=point.x-from.x,iy=point.y-from.y;
+  const toTarget=(rx-ix)**2+(ry-iy)**2,fromThrower=ix**2+iy**2,lengthSquared=rx**2+ry**2;
+  const corners=[Math.abs(ry*(ix+.5)-rx*(iy+.5)),Math.abs(ry*(ix+.5)-rx*(iy-.5)),Math.abs(ry*(ix-.5)-rx*(iy+.5)),Math.abs(ry*(ix-.5)-rx*(iy-.5))];
+  return lengthSquared>toTarget&&lengthSquared>fromThrower&&1.74>2*Math.min(...corners)/Math.sqrt(lengthSquared);
  }
+ interceptionCandidates(from,to){return this.players.filter(p=>p.team!==from.team&&this.onPitch(p)&&p.status==="standing"&&!p.distracted&&this.interceptionSquare(from,to,p));}
+
  interceptPass(p,to,accurate,land){
   const candidates=this.interceptionCandidates(p,to);if(!candidates.length){land();return;}
   const options=candidates.map(q=>"Intercept with #"+q.number);options.push("Decline interception");
-  this.pending={type:"custom",kind:this.teams[1-p.team].name+" interception",options,resolve:choice=>{
-   this.pending=null;const index=options.indexOf(choice);if(index===candidates.length){land();return;}
+  const decision={type:"custom",team:1-p.team,kind:this.teams[1-p.team].name+" interception",options,resolve:choice=>{
+   if(this.pending!==decision||!options.includes(choice))return false;this.pending=null;const index=options.indexOf(choice);if(index===candidates.length){land();return true;}
    const q=candidates[index];this.test(q,"Intercept",Number.parseInt(this.profile(q).ag)+(accurate?3:2)+this.marking(q),()=>{
     this.ball={x:q.x,y:q.y,carrier:q.id};this.recordStat(q,"interception");this.note("#"+q.number+" intercepts the pass.");this.checkScore();this.endTurn(true);
-   },land);
-  }};
+   },land);return true;
+  }};this.pending=decision;
  }
  finishBallAction(p,allowGiveAndGo,forcedTurnover=false){
   this.passContext=null;
@@ -1042,9 +1051,10 @@ class SkillGame extends SkillBase {
   const c=this.bombContext;c.stage="flight";const pa=parseInt(this.profile(p).pa),modifier=preview.target-(Number.isFinite(pa)?pa:7),origin={x:p.x,y:p.y};
   const resolve=n=>{
    if(p===c.original)c.allowMove=preview.band===0&&this.has(p,"Give and Go")&&n!==1;
-   if(Number.isFinite(pa)&&n===1&&this.has(p,"Safe Pass")){this.note("Safe Pass: bomb retained safely; action ends.");this.finishBomb();return;}
-   if(!Number.isFinite(pa)||n===1||n!==6&&n-modifier<=1){this.note("Fumbled bomb: explosion in the thrower's square.");this.explodeBomb(origin.x,origin.y);return;}
-   const accurate=!preview.hail&&(n===6||n-modifier>=pa),delivery={kind:"pass",chooserTeam:p.team,accurate,accurateToPlayer:accurate&&this.at(x,y)?.status==="standing"};
+   const result=this.classifyPass(pa,n,modifier,this.has(p,"Safe Pass"));
+   if(result==="SAVED_FUMBLE"){this.note("Safe Pass: bomb retained safely; action ends.");this.finishBomb();return;}
+   if(result==="FUMBLE"){this.note("Fumbled bomb: explosion in the thrower's square.");this.explodeBomb(origin.x,origin.y);return;}
+   const accurate=!preview.hail&&result==="ACCURATE",delivery={kind:"pass",chooserTeam:p.team,accurate,accurateToPlayer:accurate&&this.at(x,y)?.status==="standing"};
    let lx=x,ly=y;if(!accurate)for(let i=0;i<3;i++){const pos=this.bombScatter(lx,ly,"Bomb scatter");lx=pos.x;ly=pos.y;if(!this.inside(lx,ly)){this.finishBomb();return;}}
    const land=()=>this.landBomb(lx,ly,delivery,true);
    if(preview.hail){land();return;}
@@ -1053,7 +1063,7 @@ class SkillGame extends SkillBase {
    const options=candidates.map(q=>"Intercept bomb with #"+q.number+" ("+q.id+")").concat("Decline interception");
    this.skillChoice("Bomb interception",1-p.team,options,choice=>{
     const q=candidates[options.indexOf(choice)];if(!q){land();return;}
-    const target=parseInt(this.profile(q).ag)+(accurate?3:2)+this.marking(q)+this.disturbance(q)-(this.skill(q,"Extra Arms")?1:0)-(this.skill(q,"Very Long Legs")?2:0);
+    const target=parseInt(this.profile(q).ag)+(accurate?3:2)+(this.skill(q,"Nerves of Steel")?0:this.marking(q))+this.disturbance(q)-(this.skill(q,"Extra Arms")?1:0)-(this.skill(q,"Very Long Legs")?2:0);
     this.test(q,"Bomb interception",target,()=>this.rethrowBomb(q),land);
    });
   };
@@ -1350,9 +1360,9 @@ class SkillGame extends SkillBase {
    this.note("Fumbled Throw: bounce from the throwing player.");airborne();land(drift(a,"Fumbled player bounce"),true,false,a);
   };
   const resolve=n=>{
-   const modifier=preview.target-parseInt(this.profile(a).pa);
-   if(n===1||n!==6&&n-modifier===1){fumble();return;}
-   const superb=this.success(n,preview.target);superbThrow=superb;this.note(superb?"Superb Throw.":"Subpar Throw.");
+   const pa=parseInt(this.profile(a).pa),modifier=preview.target-pa,result=this.classifyPass(pa,n,modifier);
+   if(result==="FUMBLE"){fumble();return;}
+   const superb=result==="ACCURATE";superbThrow=superb;this.note(superb?"Superb Throw.":"Subpar Throw.");
    const flight=skipScatter=>{airborne();let pos={x,y};
     if(!skipScatter&&this.skill(p,"Swoop")){
      this.skillChoice("Swoop",p.team,["North","East","South","West","Scatter normally"],choice=>{
@@ -1371,7 +1381,7 @@ class SkillGame extends SkillBase {
    else flight(false);
   };
   const accuracy=()=>{
-   const n=this.roll("Throw Team-mate accuracy #"+a.number);
+   const n=this.roll("Throw Team-mate accuracy #"+a.number);if(!Number.isFinite(parseInt(this.profile(a).pa))){resolve(n);return;}
    // A Subpar result is still a failed PA test; the thrower may re-roll it.
    if(this.success(n,preview.target)){resolve(n);return;}
    const options=this.options(a,"Throw Team-mate");if(!options.length){resolve(n);return;}
@@ -1454,9 +1464,9 @@ class SkillGame extends SkillBase {
  checkTarget(p,kind,target){
   if(["Catch","Pick up","Intercept"].includes(kind)&&this.skill(p,"Extra Arms"))target--;
   if(["Catch","Intercept"].includes(kind))target+=this.disturbance(p);
-  if(kind==="Catch"&&this.skill(p,"Nerves of Steel"))target-=this.marking(p);
+  if(["Catch","Intercept"].includes(kind)&&this.skill(p,"Nerves of Steel"))target-=this.marking(p);
   if(kind==="Pick up"&&this.skill(p,"Big Hand"))target=parseInt(this.profile(p).ag)-(this.skill(p,"Extra Arms")?1:0);
-  if(kind==="Intercept"){if(this.has(p,"Stunty"))target++;if(this.skill(p,"Very Long Legs"))target-=2;}
+  if(kind==="Intercept"&&this.skill(p,"Very Long Legs"))target-=2;
   if(kind==="Rush"&&this.has(p,"Drunkard"))target++;
   if(kind==="Stand up"&&this.has(p,"Timmm-ber!"))target-=this.players.filter(q=>q.team===p.team&&q.id!==p.id&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&this.distance(q,p)===1&&!this.marking(q)).length;
   return target;
@@ -2142,11 +2152,11 @@ class MatchGame extends MatchBase {
    if(this.rollWeather()==="Perfect Conditions"&&!this.kickTouchback){const dirs=[[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]];for(let i=0;i<3;i++){const [dx,dy]=dirs[this.roll("Airborne weather scatter",8)-1];this.kickLanding.x+=dx;this.kickLanding.y+=dy;this.checkKickBounds();if(this.kickTouchback)break;}}finish();
   }
   else if(total===11||total===12){
-   const a=this.roll(this.teams[0].name+" event contest")+(total===12?this.fans[0]:0),b=this.roll(this.teams[1].name+" event contest")+(total===12?this.fans[1]:0);
-   for(const t of [0,1])if((t===0?a:b)<=(t===0?b:a)){
-    const count=total===11?1:Math.ceil(this.roll("Pitch invasion player count")/2),list=this.randomPlayers(this.players.filter(p=>p.team===t&&this.onPitch(p)),count,"Random event player");
-    for(const p of list)if(total===12){p.status="stunned";this.note("Pitch invasion stuns #"+p.number+".");}else if(this.roll("Dodgy Snack")===1){Object.assign(p,{status:"reserve",x:null,y:null});this.note("Dodgy Snack removes #"+p.number+" for the drive.");}else{p.snack=true;this.note("Dodgy Snack: #"+p.number+" loses 1 MA and AV this drive.");}
-   }finish();
+   const a=this.roll(this.teams[0].name+" event contest")+(total===12?this.fans[0]:0),b=this.roll(this.teams[1].name+" event contest")+(total===12?this.fans[1]:0),count=total===12?Math.ceil(this.roll("Pitch invasion player count")/2):1;
+   // Commit every victim before any Snack effect or Ball & Chain treatment.
+   const victims=[0,1].flatMap(t=>(t===0?a:b)<=(t===0?b:a)?this.randomPlayers(this.players.filter(p=>p.team===t&&this.onPitch(p)&&(total!==12||p.status==="standing")),count,"Random event player"):[]);
+   if(total===11){for(const p of victims)if(this.roll("Dodgy Snack")===1){Object.assign(p,{status:"reserve",x:null,y:null});this.note("Dodgy Snack removes #"+p.number+" for the drive.");}else{p.snack=true;this.note("Dodgy Snack: #"+p.number+" loses 1 MA and AV this drive.");}finish();return;}
+   let index=0;const stun=()=>{if(index===victims.length){finish();return;}const p=victims[index++];if(this.has(p,"Ball & Chain")){this.chainDamage(p,stun,{placed:true});return;}p.status="stunned";p.rooted=false;this.onProne(p);this.note("Pitch invasion stuns #"+p.number+".");stun();};stun();
   }
  }
  eventPlace(id,x,y){
@@ -2192,7 +2202,7 @@ class MatchGame extends MatchBase {
  canBallAction(p,kind){return this.phase==="play"&&super.canBallAction(p,kind);}
  block(a,d){if(this.phase!=="play")return false;const p=this.players.find(p=>p.id===a);this.stallCandidate=p&&this.canScoreWithoutDice(p)?a:null;return super.block(a,d);}
  options(p,kind){const result=super.options(p,kind);return this.phase==="play"?result:result.filter(s=>s!=="Team");}
- test(p,kind,target,yes,no){if(this.weather==="Blizzard"&&kind==="Rush")target++;if(this.weather==="Pouring Rain"&&["Pick up","Catch","Intercept"].includes(kind))target++;super.test(p,kind,target,yes,no);}
+ test(p,kind,target,yes,no){if(this.weather==="Blizzard"&&kind==="Rush")target++;if(this.weather==="Pouring Rain"&&["Pick up","Catch","Intercept","Bomb interception"].includes(kind))target++;super.test(p,kind,target,yes,no);}
  passPreview(x,y){const result=super.passPreview(x,y);if(result&&this.weather==="Very Sunny"&&this.action!=="bomb")result.target++;return result;}
  throwPreview(x,y){const result=super.throwPreview(x,y);if(result&&this.weather==="Very Sunny")result.target++;return result;}
  passRange(from,to){const result=super.passRange(from,to);return this.weather==="Blizzard"&&result?.band>1?null:result;}
@@ -2291,13 +2301,13 @@ class MatchGame extends MatchBase {
  }
  continueDrive(){
   if(this.phase!=="endDrive"||this.pending)return false;
-  if(!this.turns.every(n=>n>=8)||this.half!==2){if(this.resolveSecretWeapons())return true;}
+  if(this.turns.every(n=>n>=8)&&this.half===2){this.phase="finished";this.note(this.scores[0]===this.scores[1]?"Full time — draw.":"Full time — "+this.teams[this.scores[0]>this.scores[1]?0:1].name+" wins.");return true;}
+  if(this.resolveSecretWeapons())return true;
   const field=this.players.filter(p=>this.onPitch(p));for(const p of this.players)p.heatOut=false;
-  if(this.weather==="Sweltering Heat"){const count=Math.ceil(this.roll("Sweltering Heat player count")/2);for(const t of [0,1])for(const p of this.randomPlayers(field.filter(q=>q.team===t),count,"Heat exhaustion")){p.heatOut=true;this.note("Heat: #"+p.number+" misses the next drive.");}}
   for(const p of this.players){if(p.status==="knocked-out"&&this.roll("KO recovery #"+p.number)+this.resourceChoices[p.team].kegs>=4){p.status="reserve";this.note("#"+p.number+" recovers from KO.");}p.snack=false;}
+  if(this.weather==="Sweltering Heat"){const count=Math.ceil(this.roll("Sweltering Heat player count")/2);for(const t of [0,1])for(const p of this.randomPlayers(field.filter(q=>q.team===t),count,"Heat exhaustion")){p.heatOut=true;this.note("Heat: #"+p.number+" misses the next drive.");}}
   for(const t of [0,1]){this.rerolls[t]=Math.max(0,this.rerolls[t]-this.driveBonus[t]);this.driveBonus[t]=0;}
   if(this.turns.every(n=>n>=8)){
-   if(this.half===2){this.phase="finished";this.note(this.scores[0]===this.scores[1]?"Full time — draw.":"Full time — "+this.teams[this.scores[0]>this.scores[1]?0:1].name+" wins.");return true;}
    this.half=2;this.turns=[0,0];this.rerolls=this.resourceChoices.map(r=>r.teamRerolls+r.extraTraining);this.skip=[false,false];this.note("HALF-TIME: change ends and replenish purchased re-rolls and Extra Training.");this.prepareDrive(this.firstReceiver);return true;
   }
   this.prepareDrive(this.lastScorer??this.kicking);return true;
@@ -2571,10 +2581,10 @@ function render(){
  const choices=document.getElementById("choices");choices.replaceChildren();
  if(chosen&&!ballMode){const remaining=document.createElement("p");remaining.textContent="From preview square "+(chosen.x+1)+", "+(chosen.y+1)+": "+Math.max(0,game.profile(planner).ma-chosen.spent)+" normal MA and "+Math.max(0,game.rushLimit(planner)-Math.max(0,chosen.spent-game.profile(planner).ma))+" Rush(es) remaining · "+rangeCount+" possible next destinations. The player has not moved.";choices.append(remaining);choices.append(button("Cancel movement preview",cancelMovementPreview));}
  if(ballMode&&["throw-team-mate","kick-team-mate"].includes(game.action)){
-  const p=document.createElement("p"),preview=throwDestination&&game.throwPreview(throwDestination.x,throwDestination.y);p.textContent=preview?preview.name+" · Superb Throw "+Math.min(6,preview.target)+"+. Click again to throw #"+preview.mate.number+". Both Superb and Subpar throws scatter before landing.":"Choose a highlighted square, then click it again to throw your team-mate.";choices.append(p);
+  const p=document.createElement("p"),preview=throwDestination&&game.throwPreview(throwDestination.x,throwDestination.y);p.textContent=preview?preview.name+" · "+(Number.isFinite(preview.target)?"Superb Throw "+Math.min(6,preview.target)+"+":"PA –: automatic fumble")+". Click again to throw #"+preview.mate.number+". Both Superb and Subpar throws scatter before landing.":"Choose a highlighted square, then click it again to throw your team-mate.";choices.append(p);
  }else if(ballMode){
   const p=document.createElement("p"),target=throwDestination&&game.at(throwDestination.x,throwDestination.y),preview=throwDestination&&game.passPreview(throwDestination.x,throwDestination.y);
-  p.textContent=throwDestination?(game.action==="handoff"?"Hand-off to #"+target.number+" · Catch "+Math.min(6,game.forecastTarget(target,"Catch",Number.parseInt(game.profile(target).ag)+game.marking(target)))+"+":preview.name+" · Pass "+Math.min(6,preview.target)+"+"+(target?" · Catch "+Math.min(6,Math.max(2,game.forecastTarget(target,"Catch",game.landingTarget(target,{kind:"pass",accurate:true,accurateToPlayer:true}))))+"+ (accurate delivery)":" · Diving Catch may apply before the ball bounces"))+". Click the same square again to commit.":"Click a highlighted ball target to preview, then click it again to commit. Click Choose ball target again to return to movement.";if(game.action==="bomb")p.textContent=(throwDestination?"Throw Bomb · "+preview.name+" · PA "+Math.min(6,Math.max(2,preview.target))+"+. Click the same square again to throw.":"Choose a highlighted bomb target. A caught bomb must be thrown again; the match ball stays separate.");choices.append(p);
+  p.textContent=throwDestination?(game.action==="handoff"?"Hand-off to #"+target.number+" · Catch "+Math.min(6,game.forecastTarget(target,"Catch",Number.parseInt(game.profile(target).ag)+game.marking(target)))+"+":preview.name+" · "+(Number.isFinite(preview.target)?"Pass "+Math.min(6,preview.target)+"+":"PA –: automatic fumble")+(target?" · Catch "+Math.min(6,Math.max(2,game.forecastTarget(target,"Catch",game.landingTarget(target,{kind:"pass",accurate:true,accurateToPlayer:true}))))+"+ (accurate delivery)":" · Diving Catch may apply before the ball bounces"))+". Click the same square again to commit.":"Click a highlighted ball target to preview, then click it again to commit. Click Choose ball target again to return to movement.";if(game.action==="bomb")p.textContent=(throwDestination?"Throw Bomb · "+preview.name+" · "+(Number.isFinite(preview.target)?"PA "+Math.min(6,Math.max(2,preview.target))+"+":"PA –: automatic fumble")+". Click the same square again to throw.":"Choose a highlighted bomb target. A caught bomb must be thrown again; the match ball stays separate.");choices.append(p);
  }
  if(game.pending){
   const q=game.pending;

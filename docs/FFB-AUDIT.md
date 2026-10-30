@@ -1,3 +1,5 @@
+Latest continuation: [passing geometry and selected kickoff/drive corrections](PASSING-DRIVE-AUDIT.md) replaces the old ruler approximation and exactly-one-only fumble behavior with pinned executable FFB rules. An isolated Java-method oracle now verifies these calculations; older statements below about not running Java describe historical increments.
+
 Latest continuation: [basic resources](BASIC-RESOURCES.md) adds staff, basic
 inducements and current-team rule handling on main `491b0e8`. Current catalogue:
 105 implemented, 1 partial, 2 deferred. Owner decision: star players/unique
