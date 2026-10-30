@@ -15,6 +15,31 @@ function uiFixture(scenario='throw-team-mate'){
  vm.runInContext(scripts,context);
  return {get,context,run:code=>vm.runInContext(code,context)};
 }
+function multipleUi(rolls){
+ const f=uiFixture('dodge');f.run('game.players.forEach(p=>Object.assign(p,{status:"reserve",x:null,y:null}));globalThis.a=game.players[0];globalThis.d=game.players[11];globalThis.e=game.players[12];for(const p of [a,d,e]){p.profileOverride={...game.profile(p),skills:[],st:p===a?5:3,traits:"Lineman, Human"};p.status="standing";}Object.assign(a,{x:10,y:7,extraSkills:["Multiple Block"]});Object.assign(d,{x:11,y:7});Object.assign(e,{x:10,y:8});game.rerolls=[0,0];game.ball={x:20,y:14,carrier:null};selected=a.id;globalThis.rolls='+JSON.stringify(rolls)+';game.dice=()=>rolls.shift();render()');return f;
+}
+test('Multiple Block is declared through the actual special-action and target-order buttons',()=>{
+ const {get,run}=multipleUi([3,3]);get('special').listeners.click();get('choices').children.find(e=>e.textContent==='Multiple Block').listeners.click();assert.equal(run('a.used'),false);
+ const pair=get('choices').children.find(e=>e.textContent==='#1 (1-1) then #2 (1-2)');assert.ok(pair);pair.listeners.click();pair.listeners.click();assert.equal(run('a.used'),true);assert.equal(run('game.multipleContext.pools.length'),2);assert.equal(run('rolls.length'),0);assert.ok(get('choices').children.some(e=>e.textContent.includes('Multiple Block dice')));
+});
+test('Multiple Block defending coach receives both uphill pool result buttons',()=>{
+ const {get,run}=multipleUi([3,3,3,3,3,3]);run('a.profileOverride.st=3;game.multipleBlock(a.id,[d.id,e.id]);render()');
+ get('choices').children.find(e=>e.textContent==='Let defender choose #1').listeners.click();get('choices').children.find(e=>e.textContent==='Let defender choose #2').listeners.click();assert.equal(run('game.pending.team'),1);assert.ok(get('choices').children.some(e=>e.textContent.startsWith(run('teams[1].name')+' — Multiple Block dice')));
+});
+test('Multiple Block UI preserves the second attack after Player Down and rejects a stale push click',()=>{
+ const {get,run}=multipleUi([1,6,1,1,1,1]);run('game.multipleBlock(a.id,[d.id,e.id]);render()');
+ get('choices').children.find(e=>e.textContent==='Choose #1 die 1: Player Down').listeners.click();get('choices').children.find(e=>e.textContent==='Choose #2 die 1: POW').listeners.click();assert.equal(run('game.active'),0);assert.equal(run('a.status'),'prone');
+ const push=get('choices').children.find(e=>e.textContent.startsWith('Push to '));assert.ok(push);push.listeners.click();assert.equal(run('game.active'),1);push.listeners.click();assert.equal(run('game.active'),1);assert.equal(run('game.multipleContext'),null);
+});
+test('Multiple Block medical UI lets the defender choose the fatal injury before spending the apothecary',()=>{
+ const {get,run}=multipleUi([6,6,6,6,6,6,1,1,6,6,6,6,16,1,1,1]);run('game.apothecaries[1]=1;game.multipleBlock(a.id,[d.id,e.id]);render()');
+ for(const target of [1,2])get('choices').children.find(e=>e.textContent==='Choose #'+target+' die 1: POW').listeners.click();
+ get('choices').children.find(e=>e.textContent.startsWith('Push to ')).listeners.click();get('choices').children.find(e=>e.textContent.startsWith('Push to ')).listeners.click();assert.equal(run('game.pending.team'),1);
+ get('choices').children.find(e=>e.textContent.startsWith('Resolve #2 injury')&&e.textContent.endsWith('Dead')).listeners.click();get('choices').children.find(e=>e.textContent==='Use Apothecary').listeners.click();assert.equal(run('e.status'),'reserve');assert.equal(run('d.status'),'casualty');assert.equal(run('game.apothecaries[1]'),0);assert.equal(run('game.multipleContext'),null);
+});
+test('Multiple Block Pro button opens a die choice and returns to the correct pool menu',()=>{
+ const {get,run}=multipleUi([1,3,3,3]);run('a.extraSkills.push("Pro");game.multipleBlock(a.id,[d.id,e.id]);render()');get('choices').children.find(e=>e.textContent==='Pro #1').listeners.click();get('choices').children.find(e=>e.textContent==='Re-roll die 1').listeners.click();assert.equal(run('game.multipleContext.pools[0].dice[0]'),3);assert.ok(get('choices').children.some(e=>e.textContent==='Choose #1 die 1: Push Back'));assert.ok(!get('choices').children.some(e=>e.textContent==='Pro #2'));
+});
 
 test('exhibition pregame buttons add and remove one apothecary per team',()=>{
  const {get,run}=uiFixture('match');

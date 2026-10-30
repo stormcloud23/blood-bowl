@@ -1,3 +1,7 @@
+Latest continuation: [Multiple Block](MULTIPLE-BLOCK.md) adds committed attack
+results and grouped injury treatment on main `634a179`. Current catalogue: 101
+implemented, 2 partial, 5 deferred. Older counts below are historical.
+
 Latest continuation: [casualties and treatment](CASUALTY-TREATMENT.md) adds team
 apothecaries, Decay and Plague Ridden on main `35117f8`. Current catalogue: 100
 implemented, 2 partial, 6 deferred. Older counts below describe prior increments.

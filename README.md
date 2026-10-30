@@ -10,11 +10,12 @@ A self-contained browser game targeting **Blood Bowl 2025 exhibition matches**, 
 - Guided exhibition flow through pregame, setup, kickoff, two halves, scoring, drive recovery, and full time.
 - Movement previews that prefer safer routes, explicit shortcuts and waypoints, and per-step risk highlights.
 - Movement, Blocks, Blitz, passing, interceptions, fouls, thrown/kicked players, and supported special actions.
+- Multiple Block with two committed attacks, coach dice choices and grouped injury treatment.
 - Casualty results, pregame team apothecaries, Regeneration treatment, Decay and Plague Ridden reserves.
 - Coach-controlled re-rolls and reaction choices, plus a skills laboratory and practice drills.
-- **100 implemented, 2 partial, and 6 deferred** entries in the 108-skill/trait catalogue.
+- **101 implemented, 2 partial, and 5 deferred** entries in the 108-skill/trait catalogue.
 
-These coverage labels describe available actions, not complete FFB parity. Four deferred skills still affect exhibition play, and several match systems need further work. Games currently reset on reload; roster creation, save/resume, AI, and leagues are not implemented.
+These coverage labels describe available actions, not complete FFB parity. Three deferred skills still affect exhibition play, and several match systems need further work. Games currently reset on reload; roster creation, save/resume, AI, and leagues are not implemented.
 
 ## Build and verify
 
