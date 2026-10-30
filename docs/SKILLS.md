@@ -16,7 +16,7 @@ Build with `node build.cjs` and verify all suites with `node --test *.test.cjs`.
 
 Reviewed October 28, 2026 against the full [Blood Bowl 2025 Skills & Traits list](https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/), [current FAQ](https://bloodbowlbase.ru/bb2025/core_rules/latest_faq/), [Foul / Argue the Call rules](https://bloodbowlbase.ru/bb2025/core_rules/the_game_of_blood_bowl/#foul-actions), and [Bribes](https://bloodbowlbase.ru/bb2025/core_rules/inducements/#0-3-bribes-0-6-for-teams-with-the-bribery-and-corruption-special-rule).
 
-All 108 entries are accounted for: **100 implemented**, **2 partial**, **6 deferred**. Implemented describes support within the available actions and exhibition sequence, not missing league or inducement systems. Deferred abilities are not offered as laboratory additions. Each deferred row records the missing dependency for a future pass. This table and the app inventory share the same registry in skills.cjs.
+All 108 entries are accounted for: **101 implemented**, **2 partial**, **5 deferred**. Implemented describes support within the available actions and exhibition sequence, not missing league or inducement systems. Deferred abilities are not offered as laboratory additions. Each deferred row records the missing dependency for a future pass. This table and the app inventory share the same registry in skills.cjs.
 
 ## How to try them
 
@@ -104,7 +104,7 @@ Sources: [Throw Team-mate and landing](https://bloodbowlbase.ru/bb2025/core_rule
 | Guard | Strength | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Juggernaut | Strength | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Mighty Blow | Strength | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
-| Multiple Block | Strength | Active | Deferred | Needs two simultaneous Block resolutions, both completed even if one causes a turnover. |
+| Multiple Block | Strength | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Stand Firm | Strength | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Strong Arm | Strength | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Thick Skull | Strength | Passive | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |

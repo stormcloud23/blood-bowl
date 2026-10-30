@@ -11,7 +11,6 @@ const SKILL_GROUPS={
 };
 const SKILL_DEFERRED={
  "Violent Innovator":"Requires Star Player Point attribution and league progression.",
- "Multiple Block":"Needs two simultaneous Block resolutions, both completed even if one causes a turnover.",
  "Ball & Chain":"Needs directional random movement, collision Blocks against either team and special injury handling.",
  "Bloodlust (X+)":"Needs Thrall selection, bite injury, action replacement and feeding before passing or scoring.",
  "Bombardier":"Needs a separate bomb object, explosions, recursive caught-bomb throws and simultaneous injuries.",
@@ -22,6 +21,134 @@ const PASSIVES=new Set(["Claws","Disturbing Presence","Foul Appearance","Iron Ha
 const MANDATORY=new Set(["Frenzy","Disturbing Presence","Foul Appearance","Always Hungry","Animal Savagery","Animosity (X)","Ball & Chain","Bloodlust (X+)","Bone Head","Chainsaw","Decay","Drunkard","Hatred (X)","Insignificant","Loner (X+)","My Ball","No Ball","Really Stupid","Right Stuff","Secret Weapon","Stunty","Take Root","Titchy","Unchannelled Fury","Unsteady"]);
 const SKILL_CATALOG=Object.entries(SKILL_GROUPS).flatMap(([category,names])=>names.map(name=>({name,category,kind:PASSIVES.has(name)?"Passive":"Active",mandatory:MANDATORY.has(name),status:SKILL_DEFERRED[name]?"Deferred":SKILL_PARTIAL[name]?"Partial":"Implemented",notes:SKILL_DEFERRED[name]||SKILL_PARTIAL[name]||"Supported in the available actions. Optional abilities may be disabled before action resolution.",source:"https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/#"+name.toLowerCase().replace(/[^a-z0-9 ]/g,"").replaceAll(" ","-")})));
 class SkillGame extends SkillBase {
+ multipleTargets(a){return a?this.players.filter(d=>d.team!==a.team&&d.status==="standing"&&this.onPitch(d)&&this.distance(a,d)===1):[];}
+ canMultipleBlock(a){return !this.multipleContext&&!!a&&this.canStart(a)&&this.has(a,"Multiple Block")&&!this.has(a,"Ball & Chain")&&(a.status==="standing"||a.status==="prone"&&this.has(a,"Jump Up"))&&this.multipleTargets(a).length>=2;}
+ chooseMultipleBlock(a){
+  if(!this.canMultipleBlock(a))return false;
+  const targets=this.multipleTargets(a),pairs=[];
+  for(let i=0;i<targets.length;i++)for(let j=i+1;j<targets.length;j++)pairs.push([targets[i],targets[j]],[targets[j],targets[i]]);
+  const options=pairs.map(pair=>pair.map(d=>"#"+d.number+" ("+d.id+")").join(" then "));
+  this.skillChoice("Multiple Block — choose two targets",a.team,[...options,"Cancel"],choice=>{const pair=pairs[options.indexOf(choice)];if(pair)this.multipleBlock(a.id,pair.map(d=>d.id));});return true;
+ }
+ multipleBlock(id,ids){
+  const a=this.players.find(p=>p.id===id),targets=ids?.map(id=>this.players.find(p=>p.id===id));
+  if(!this.canMultipleBlock(a)||targets?.length!==2||targets[0]===targets[1]||targets.some(d=>!this.multipleTargets(a).includes(d)))return false;
+  this.multipleContext={attacker:a,targets,pools:[],injuries:[],stage:"activation",index:0,turnover:false,targetSquares:targets.map(d=>({x:d.x,y:d.y})),ball:null};
+  this.scoreDeferrals=(this.scoreDeferrals||0)+1;this.note("Multiple Block: two committed attacks; -2 attacker ST, no follow-ups.");
+  return this.block(a.id,targets[0].id);
+ }
+ blockActivationFailed(){if(this.multipleContext)this.finishMultiple();}
+ multipleTests(kind,targets,minimum,done){
+  const a=this.multipleContext.attacker,rows=targets.map(target=>{const required=minimum(target),roll=this.roll("Multiple Block "+kind+" vs #"+target.number);return {target,required,roll,success:this.success(roll,required),rerolled:false};});
+  const offer=()=>{
+   const failed=rows.filter(r=>!r.success&&!r.rerolled),choices=[];
+   for(const row of failed){
+    const reroll=()=>{row.roll=this.roll("Multiple Block "+kind+" re-roll");row.success=this.success(row.roll,row.required);offer();};
+    if(this.canTeamReroll(a))choices.push({label:"Team re-roll vs #"+row.target.number,run:()=>{row.rerolled=true;if(this.useTeamReroll(a))reroll();else offer();}});
+    if(this.has(a,"Pro")&&!a.proUsed)choices.push({label:"Pro vs #"+row.target.number,run:()=>{row.rerolled=true;this.attemptPro(a,reroll,offer);}});
+   }
+   if(!choices.length){done(rows);return;}
+   this.skillChoice("Multiple Block "+kind+" — failed against "+rows.filter(r=>!r.success).map(r=>"#"+r.target.number).join(", "),a.team,[...choices.map(o=>o.label),"Accept failures"],choice=>{const selected=choices.find(o=>o.label===choice);if(selected)selected.run();else done(rows);});
+  };offer();
+ }
+ prepareMultiple(){
+  const c=this.multipleContext,a=c.attacker;c.stage="reactions";this.attackRoller=a.id;
+  const appearance=()=>this.multipleTests("Foul Appearance",c.targets.filter(d=>this.has(d,"Foul Appearance")),()=>2,rows=>{
+   const failed=new Set(rows.filter(r=>!r.success).map(r=>r.target.id));c.targets=c.targets.filter(d=>!failed.has(d.id));if(!c.targets.length){this.finishMultiple();return;}dump(0);
+  });
+  const dump=i=>{if(i===c.targets.length){dauntless(0);return;}this.dumpOff(a,c.targets[i],()=>dump(i+1));};
+  const dauntless=()=>{
+   const own=Math.max(1,+super.profile(a).st-2),targets=this.skill(a,"Dauntless")?c.targets.filter(d=>own<+this.profile(d).st&&own+6>+this.profile(d).st):[];
+   this.multipleTests("Dauntless",targets,d=>+this.profile(d).st-own+1,rows=>{c.dauntless=new Set(rows.filter(r=>r.success).map(r=>r.target.id));trick(0);});
+  };
+  const trick=i=>{if(i===c.targets.length){this.rollMultiple();return;}this.trickster(a,c.targets[i],()=>trick(i+1));};
+  const begin=()=>appearance();
+  if(a.status==="prone")this.test(a,"Jump Up Block",Math.max(2,parseInt(this.profile(a).ag)-1),()=>{a.status="standing";begin();},()=>this.finishMultiple());else begin();
+ }
+ rollMultiple(){
+  const c=this.multipleContext,a=c.attacker;c.stage="dice";this.attackRoller=null;
+  for(const d of c.targets){
+   const assists=this.assists(a,d),base=Math.max(1,+this.profile(a).st-2),aStrength=(c.dauntless?.has(d.id)?Math.max(base,+this.profile(d).st):base)+assists.offensive,dStrength=+this.profile(d).st+assists.defensive;
+   const count=aStrength===dStrength?1:Math.max(aStrength,dStrength)>2*Math.min(aStrength,dStrength)?3:2;
+   const b={attacker:a,target:d,assists,aStrength,dStrength,count,chooserTeam:aStrength>=dStrength?a.team:d.team,dice:Array.from({length:count},()=>this.roll("Multiple Block vs #"+d.number)),poolLocked:false,brawlerUsed:false,blitz:false,multiple:true};
+   c.pools.push(b);this.onBlockRolled(a);this.note("Multiple Block vs #"+d.number+": ST "+aStrength+" vs "+dStrength+"; "+count+" dice.");
+  }
+  this.multipleDiceChoice();
+ }
+ multipleDiceChoice(){
+  const c=this.multipleContext,a=c.attacker;
+  if(c.pools.every(b=>b.result)){c.stage="effects";c.index=0;this.resolveMultipleNext();return;}
+  const attackerPhase=c.pools.some(b=>!b.result&&!b.delegated),team=attackerPhase?a.team:1-a.team,choices=[];
+  for(const b of c.pools.filter(b=>!b.result&&(attackerPhase?!b.delegated:b.delegated))){
+   const label="#"+b.target.number;
+   if(b.chooserTeam===team)b.dice.forEach((die,index)=>choices.push({label:"Choose "+label+" die "+(index+1)+": "+this.blockFace(die),run:()=>{b.result=this.blockFace(die);b.poolLocked=true;this.multipleDiceChoice();}}));
+   if(attackerPhase){
+    if(b.chooserTeam!==team)choices.push({label:"Let defender choose "+label,run:()=>{b.delegated=true;b.poolLocked=true;this.multipleDiceChoice();}});
+    if(!b.poolLocked){
+     if(this.canTeamReroll(a))choices.push({label:"Team re-roll pool "+label,run:()=>{b.poolLocked=true;if(this.useTeamReroll(a))b.dice=b.dice.map(()=>this.roll("Multiple Block team re-roll"));this.multipleDiceChoice();}});
+     if(this.has(a,"Brawler")&&!c.brawlerUsed&&b.dice.includes(2))choices.push({label:"Brawler "+label,run:()=>{c.brawlerUsed=true;b.poolLocked=true;b.dice[b.dice.indexOf(2)]=this.roll("Multiple Block Brawler");this.multipleDiceChoice();}});
+     if(this.has(a,"Pro")&&!a.proUsed)choices.push({label:"Pro "+label,run:()=>{b.poolLocked=true;this.attemptPro(a,()=>this.skillChoice("Multiple Block Pro die",a.team,b.dice.map((die,i)=>"Re-roll die "+(i+1)),option=>{const i=Number(option.match(/\d+/)[0])-1;b.dice[i]=this.roll("Multiple Block Pro re-roll");this.multipleDiceChoice();}),()=>this.multipleDiceChoice());}});
+     const hatred=this.parameter(a,"Hatred");if(hatred&&this.keywords(b.target).includes(hatred.slice(hatred.indexOf("(")+1,-1).toLowerCase())&&b.dice.includes(1))choices.push({label:"Hatred "+label,run:()=>{b.poolLocked=true;b.dice[b.dice.indexOf(1)]=this.roll("Multiple Block Hatred");this.multipleDiceChoice();}});
+    }
+   }
+  }
+  this.blockAction=null;
+  const pools=c.pools.map(b=>"#"+b.target.number+" ["+b.dice.map(n=>this.blockFace(n)).join(", ")+"]").join("; ");
+  this.skillChoice("Multiple Block dice — "+pools,team,choices.map(o=>o.label),option=>choices.find(o=>o.label===option).run());
+ }
+ resolveMultipleNext(){
+  const c=this.multipleContext;
+  if(c.index>=c.pools.length){this.blockAction=null;c.stage="medical";this.multipleMedical();return;}
+  const b=c.pools[c.index];this.blockAction=b;this.note("Resolve Multiple Block against #"+b.target.number+": "+b.result+".");this.applyBlockResult(b.result);this.guardMultipleDecision();
+ }
+ guardMultipleDecision(){
+  const q=this.pending;if(!this.multipleContext||!q||q.multipleGuard||!["custom","pushChoice"].includes(q.type))return;
+  q.multipleGuard=true;const resolve=q.resolve;
+  q.resolve=value=>{if(this.pending!==q||!q.options.includes(value))return false;const result=resolve(value);this.guardMultipleDecision();return result;};
+ }
+ scheduleInjury(entry,done){
+  const c=this.multipleContext;if(c?.stage==="effects"){c.injuries.push(entry);done();return;}
+  super.scheduleInjury(entry,done);
+ }
+ multipleMedical(){
+  const c=this.multipleContext;let teamIndex=0;
+  const group=()=>{
+   if(teamIndex===2){this.finishMultiple();return;}
+   const team=teamIndex++===0?1-c.attacker.team:c.attacker.team,entries=c.injuries.filter(e=>e.p.team===team);let i=0;
+   const regen=()=>{if(i===entries.length){i=0;retry();return;}entries[i++].regenerate(regen);};
+   const retry=()=>{if(i===entries.length){treat();return;}const entry=entries[i++];if(entry.retryRegeneration)entry.retryRegeneration(retry);else retry();};
+   const treat=()=>{
+    const remaining=entries.filter(e=>!e.processed);if(!remaining.length){group();return;}
+    const next=entry=>{entry.processed=true;entry.treat(treat);};
+    const automatic=remaining.find(e=>!["casualty","knocked-out"].includes(e.record.medicalStatus)||e.record.treatment==="Saboteur");
+    if(automatic){next(automatic);return;}
+    if(remaining.length===1||!this.apothecaries[team]){next(remaining[0]);return;}
+    const options=remaining.map(e=>"Resolve #"+e.p.number+" injury "+(c.injuries.indexOf(e)+1)+": "+(e.record.medicalStatus==="casualty"?e.record.selected.result:e.record.medicalStatus));
+    this.skillChoice("Multiple Block medical — choose injury to resolve",team,options,option=>next(remaining[options.indexOf(option)]));
+   };regen();
+  };group();
+ }
+ finishMultiple(){
+  const c=this.multipleContext;if(!c)return;
+  // One successful cure must not overwrite a second untreated injury.
+  const rank=e=>e.record.status==="casualty"?(e.record.selected.result==="Dead"?6:e.record.selected.result==="Badly hurt"?4:5):({"knocked-out":3,stunned:2,prone:1,reserve:0}[e.record.status]??0);
+  for(const p of new Set(c.injuries.map(e=>e.p))){
+   const entries=c.injuries.filter(e=>e.p===p&&e.record.status),worst=entries.reduce((a,b)=>!a||rank(b)>rank(a)?b:a,null);
+   if(!worst)continue;p.status=worst.record.status;p.casualties=entries.filter(e=>e.record.status==="casualty").map(e=>e.record.selected);p.casualty=p.casualties.length?worst.record.selected:null;
+   if(["casualty","knocked-out","reserve"].includes(p.status)){p.x=null;p.y=null;}else Object.assign(p,worst.origin);
+   if(worst.record.source)p.casualtySource={...worst.record.source};
+  }
+  this.multipleContext=null;this.blockAction=null;this.attackRoller=null;this.mover=null;this.action=null;
+  const finish=()=>{this.scoreDeferrals--;this.syncLeader();this.note("Multiple Block action resolved.");this.checkScore();if(!this.finished&&c.turnover)this.endTurn(true);else this.checkStalling?.(c.attacker);};
+  if(c.ball){const {kind,x,y}=c.ball;if(kind==="throwIn")super.throwIn(x,y,finish);else super.bounce(x,y,finish);}else finish();
+ }
+ multipleEndTurn(turnover){
+  const c=this.multipleContext;if(!c)return false;
+  if(!turnover||this.pending)return true;
+  c.turnover=true;if(c.stage==="effects")this.finishBlock();else if(c.stage!=="medical")this.finishMultiple();return true;
+ }
+ bounce(x,y,done){const c=this.multipleContext;if(c?.stage==="effects"){c.ball||={kind:"bounce",x,y};done();return;}super.bounce(x,y,done);}
+ throwIn(x,y,done){const c=this.multipleContext;if(c?.stage==="effects"){c.ball||={kind:"throwIn",x,y};done();return;}super.throwIn(x,y,done);}
  raisePlaguePlayer(victim,source,done){
   const attacker=this.players.find(p=>p.id===source?.playerId),team=attacker?.team;
   if(!attacker||attacker.team===victim.team||!this.has(attacker,"Plague Ridden")||this.plagueUsed[team]||["Decay","Regeneration","Stunty"].some(s=>this.has(victim,s))||this.keywords(victim).includes("big guy")){done();return;}
@@ -129,7 +256,7 @@ class SkillGame extends SkillBase {
  keywords(p){return this.profile(p).traits.split(",").map(s=>s.trim().toLowerCase());}
  toggleSkill(id,name){const p=this.players.find(q=>q.id===id),entry=SKILL_CATALOG.find(s=>s.name===name||name.startsWith(s.name.split(" (")[0]+" ("));if(!p||!entry||entry.mandatory||this.pending)return false;p.disabledSkills||=[];p.disabledSkills=p.disabledSkills.includes(name)?p.disabledSkills.filter(s=>s!==name):p.disabledSkills.concat(name);return true;}
  addSkill(id,name){const p=this.players.find(q=>q.id===id),entry=SKILL_CATALOG.find(s=>s.name===name||s.name.includes("(X")&&name.startsWith(s.name.split(" (")[0]+" ("));if(!this.lab||!p||!entry||entry.status==="Deferred"||name.includes("(X"))return false;
-  const conflicts={Frenzy:["Grab","Hit and Run","Multiple Block"],"Hit and Run":["Frenzy"],Grab:["Frenzy"],Leap:["Pogo"],Pogo:["Leap"]},owned=[...super.profile(p).skills,...(p.extraSkills||[])];if((conflicts[name]||[]).some(s=>owned.includes(s))||["Bullseye","Strong Arm"].includes(name)&&!owned.includes("Throw Team-mate")||name==="Lethal Flight"&&!owned.includes("Right Stuff")||name==="Saboteur"&&!owned.includes("Secret Weapon"))return false;p.extraSkills=[...new Set([...(p.extraSkills||[]),name])];return true;}
+  const conflicts={Frenzy:["Grab","Hit and Run"],"Hit and Run":["Frenzy"],Grab:["Frenzy"],Leap:["Pogo"],Pogo:["Leap"]},owned=[...super.profile(p).skills,...(p.extraSkills||[])];if((conflicts[name]||[]).some(s=>owned.includes(s))||["Bullseye","Strong Arm"].includes(name)&&!owned.includes("Throw Team-mate")||name==="Lethal Flight"&&!owned.includes("Right Stuff")||name==="Saboteur"&&!owned.includes("Secret Weapon"))return false;p.extraSkills=[...new Set([...(p.extraSkills||[]),name])];return true;}
  used(p,name){return p.skillUses?.[name]===this.skillTurn;}
  use(p,name){p.skillUses||={};p.skillUses[name]=this.skillTurn;this.note("#"+p.number+" uses "+name+".");}
  resetSkillTurn(){this.skillTurn++;this.shadowingCounts={};this.throwUsed||=[false,false];this.throwUsed[this.active]=false;this.kickUsed||=[false,false];this.kickUsed[this.active]=false;this.puntUsed||=[false,false];this.puntUsed[this.active]=false;this.throwMate=null;}
@@ -141,7 +268,7 @@ class SkillGame extends SkillBase {
  canBlock(a,d){if(typeof a==="string")a=this.players.find(p=>p.id===a);if(typeof d==="string")d=this.players.find(p=>p.id===d);return super.canBlock(a,d)||!!(this.canStart(a)&&a.status==="prone"&&this.has(a,"Jump Up")&&d&&d.team!==a.team&&d.status==="standing"&&this.onPitch(d)&&this.distance(a,d)===1);}
  activationExtra(p,action,ready,failed){
   const root=()=>{if(this.has(p,"Take Root")&&p.status==="standing"&&!p.rooted)this.test(p,"Take Root",2,ready,()=>{p.rooted=true;this.note("#"+p.number+" is Rooted.");ready();});else ready();};
-  const fury=()=>{if(this.has(p,"Unchannelled Fury"))this.test(p,"Unchannelled Fury",["block","blitz"].includes(action)?2:4,root,()=>{this.mover=null;this.action=null;this.note("Unchannelled Fury ends the activation.");});else root();};
+  const fury=()=>{if(this.has(p,"Unchannelled Fury"))this.test(p,"Unchannelled Fury",["block","blitz"].includes(action)?2:4,root,()=>{this.mover=null;this.action=null;this.note("Unchannelled Fury ends the activation.");this.blockActivationFailed();});else root();};
   if(!this.has(p,"Animal Savagery")){fury();return;}
   this.test(p,"Animal Savagery",["block","blitz"].includes(action)?2:4,fury,()=>{
    const targets=this.players.filter(q=>q.id!==p.id&&q.team===p.team&&this.onPitch(q)&&q.status==="standing"&&this.distance(p,q)===1);
@@ -311,10 +438,11 @@ class SkillGame extends SkillBase {
  canMightyArmour(by,p){return !this.has(p,"Iron Hard Skin")&&this.canMighty(by,p);}
  assists(a,d){
   const guard=p=>this.skill(p,"Guard")&&!this.players.some(q=>q.team!==p.team&&q.team!==this.active&&this.onPitch(q)&&this.skill(q,"Defensive")&&this.distance(p,q)===1);
-  const eligible=(p,target,excluded)=>p.id!==a.id&&p.id!==d.id&&this.onPitch(p)&&p.status==="standing"&&!p.distracted&&!p.gouged&&this.distance(p,target)===1&&(this.markedByExcept(p,[excluded.id])===0||guard(p));
+  const eligible=(p,target,excluded)=>p.id!==a.id&&p.id!==d.id&&!this.multipleContext?.targets.includes(p)&&this.onPitch(p)&&p.status==="standing"&&!p.distracted&&!p.gouged&&this.distance(p,target)===1&&(this.markedByExcept(p,[excluded.id])===0||guard(p));
   return {offensive:this.players.filter(p=>p.team===a.team&&eligible(p,d,d)).length,defensive:this.players.filter(p=>p.team===d.team&&eligible(p,a,a)).length};
  }
  rollBlock(a,d,blitz=false){
+  if(this.multipleContext?.stage==="activation"){this.prepareMultiple();return;}
   if(a.status==="prone"&&this.has(a,"Jump Up")){this.mover=a.id;this.test(a,"Jump Up Block",Math.max(2,parseInt(this.profile(a).ag)-1),()=>{a.status="standing";this.mover=null;this.rollBlock(a,d,blitz);},()=>{this.mover=null;this.action=null;});return;}
   const round=this.nextFrenzyRound||1;this.nextFrenzyRound=null;this.attackRoller=a.id;
   const roll=()=>{super.rollBlock(a,d,blitz);this.blockAction.frenzyRound=round;this.attackRoller=null;a.blockST=null;a.hornsBonus=0;
@@ -328,12 +456,18 @@ class SkillGame extends SkillBase {
  }
  resolvePush(knock){const b=this.blockAction;b.pushResolved=true;if(b.target.rooted||this.isChomped(b.target)){if(knock)this.fall(b.target,{turnover:false,mightyBlowBy:b.attacker,after:()=>this.finishBlock()});else this.finishBlock();return;}super.resolvePush(knock);}
  pushSquares(a,d,grab=false){
-  const b=this.blockAction;if(this.skill(d,"Sidestep")&&!(b&&d.team!==b.attacker.team&&this.skill(b.attacker,"Grab"))){const open=[];for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)if((dx||dy)&&this.inside(d.x+dx,d.y+dy)&&!this.at(d.x+dx,d.y+dy))open.push({x:d.x+dx,y:d.y+dy});if(open.length)return open;}
-  return super.pushSquares(a,d,grab);
+  const allowed=squares=>this.multipleContext?squares.filter(pos=>!this.multipleContext.targetSquares.some(s=>s.x===pos.x&&s.y===pos.y)):squares;
+  const b=this.blockAction;if(this.skill(d,"Sidestep")&&!(b&&d.team!==b.attacker.team&&this.skill(b.attacker,"Grab"))){const open=[];for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)if((dx||dy)&&this.inside(d.x+dx,d.y+dy)&&!this.at(d.x+dx,d.y+dy))open.push({x:d.x+dx,y:d.y+dy});const valid=allowed(open);if(valid.length)return valid;}
+  if(!this.multipleContext)return super.pushSquares(a,d,grab);
+  // Exclude reserved squares before choosing free squares over chain pushes.
+  if(grab){const open=allowed(this.adjacentEmpty(d));if(open.length)return open;}
+  const dx=Math.sign(d.x-a.x),dy=Math.sign(d.y-a.y),coords=!dy?[-1,0,1].map(y=>({x:d.x+dx,y:d.y+y})):!dx?[-1,0,1].map(x=>({x:d.x+x,y:d.y+dy})):[{x:d.x+dx,y:d.y+dy},{x:d.x+dx,y:d.y},{x:d.x,y:d.y+dy}];
+  const valid=allowed(coords),open=valid.filter(pos=>this.inside(pos.x,pos.y)&&!this.at(pos.x,pos.y));return open.length?open:valid;
  }
  pushPlayer(p,pos,done,depth=0){if(p.rooted||this.isChomped(p)){done(false);return;}super.pushPlayer(p,pos,done,depth);}
  placePushed(p,pos,done){const b=this.blockAction;if(b&&p.id===b.target.id&&this.skill(b.attacker,"Eye Gouge"))p.gouged=true;super.placePushed(p,pos,ok=>{this.refreshChomps();done(ok);});}
  afterPush(origin,knock,pushed){const b=this.blockAction;super.afterPush(origin,knock,pushed);const q=this.pending;if(!b||!q||q.kind!=="Follow-up")return;
+  if(this.multipleContext){q.resolve("Stay");return;}
   if(b.attacker.rooted||this.isChomped(b.attacker)){q.resolve("Stay");return;}
   if(this.skill(b.attacker,"Frenzy")){q.resolve("Follow up");return;}
   if(this.skill(b.target,"Taunt")){q.options.push("Defender uses Taunt");const old=q.resolve;q.resolve=option=>old(option==="Defender uses Taunt"?"Follow up":option);}
@@ -342,6 +476,10 @@ class SkillGame extends SkillBase {
  applyBlockResult(result){const b=this.blockAction;if(result==="Both Down"&&b.blitz&&this.skill(b.attacker,"Juggernaut")){this.pending={type:"custom",kind:"Juggernaut",options:["Treat as Push Back","Apply Both Down"],resolve:choice=>{this.pending=null;super.applyBlockResult(choice==="Treat as Push Back"?"Push Back":"Both Down");}};return;}super.applyBlockResult(result);}
  finishBlock(){
   const b=this.blockAction;
+  if(this.multipleContext?.stage==="effects"){
+   const c=this.multipleContext;c.turnover||=!!b?.turnover;
+   c.index++;this.resolveMultipleNext();return;
+  }
   if(b?.saboteurTriggered&&b.attacker.status!=="standing"&&!b.turnover){b.blitz=false;this.mover=null;}
   if(b&&!b.pileChecked){
    b.pileChecked=true;const a=b.attacker,d=b.target;
@@ -365,7 +503,7 @@ class SkillGame extends SkillBase {
   }super.finishBlock();
  }
  resolveBothDownChoice(choice){if(choice.includes("Wrestle")){this.blockAction.attacker.rooted=false;this.blockAction.target.rooted=false;}super.resolveBothDownChoice(choice);}
- specialActions(p){if(!p)return [];const result=[];if(this.skill(p,"Monstrous Mouth")&&(this.canStart(p)||this.action==="blitz"&&this.canBlitzBlock()))result.push("Chomp");if(this.canPunt(p))result.push("Punt");if(this.canStart(p)&&!this.foulUsed[this.active])result.push("Foul");for(const name of ["Stab","Projectile Vomit","Hypnotic Gaze","Breathe Fire","Chainsaw"])if(this.has(p,name)&&(p.status==="standing"||name==="Hypnotic Gaze")&&(this.canStart(p)||this.action==="blitz"&&this.canBlitzBlock()))result.push(name);return result;}
+ specialActions(p){if(!p)return [];const result=[];if(this.canMultipleBlock(p))result.push("Multiple Block");if(this.skill(p,"Monstrous Mouth")&&(this.canStart(p)||this.action==="blitz"&&this.canBlitzBlock()))result.push("Chomp");if(this.canPunt(p))result.push("Punt");if(this.canStart(p)&&!this.foulUsed[this.active])result.push("Foul");for(const name of ["Stab","Projectile Vomit","Hypnotic Gaze","Breathe Fire","Chainsaw"])if(this.has(p,name)&&(p.status==="standing"||name==="Hypnotic Gaze")&&(this.canStart(p)||this.action==="blitz"&&this.canBlitzBlock()))result.push(name);return result;}
  specialTargets(){const p=this.players.find(q=>q.id===this.mover);if(!p||this.pending||p.specialDone)return [];if(this.action!=="foul"&&!this.action?.startsWith("special:"))return [];return this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&this.distance(p,q)===1&&(this.action==="foul"?["prone","stunned"].includes(q.status):q.status==="standing"));}
  performSpecial(targetId,blitzName=null){
   const p=this.players.find(q=>q.id===this.mover),target=this.players.find(q=>q.id===targetId);if(!p||!target)return false;
@@ -568,6 +706,12 @@ class SkillGame extends SkillBase {
    const finish=()=>{if(completed)return;completed=true;const holder=this.players.find(q=>q.id===b.carrierBeforeDowns);if(holder?.team===this.active&&b.downOutcomes.get(holder.id)===true)b.turnover=true;this.scoreDeferrals--;resume(false);};
    const knockOut=()=>{
     b.downOutcomes.set(p.id,true);if(p.id===b.target.id)b.targetKnocked=true;p.status="knocked-out";p.x=null;p.y=null;p.rooted=false;this.onProne(p);this.syncLeader();this.note("Saboteur: #"+p.number+" is automatically Knocked Out without armour or injury.");
+    if(this.multipleContext?.stage==="effects"){
+     const record={playerId:p.id,team:p.team,source:{playerId:p.id,cause:"Saboteur"},original:null,selected:null,medicalStatus:"knocked-out",treatment:"Saboteur"};
+     this.multipleContext.injuries.push({p,record,origin,regenerate:next=>next(),treat:next=>{record.status="knocked-out";p.status="knocked-out";p.x=null;p.y=null;this.injuryRecords.push(record);next();}});
+     // The KO is committed, but keep the actor's square for the other attack.
+     if(p===this.multipleContext.attacker){p.status="prone";Object.assign(p,origin);}
+    }
     this.releaseProneBall(p,origin,()=>{
      if(!this.onPitch(other)||other.status!=="standing"&& !b.downOutcomes.has(other.id)){finish();return;}
      this.fall(other,{turnover:false,blockBlast:true,after:finish,prevented:finish});
@@ -588,7 +732,7 @@ class SkillGame extends SkillBase {
   },saved=>{if(saved){this.note("Steady Footing: #"+p.number+" stays standing.");yes();}else no();});
  }
  resolveFall(p,options={}){p.rooted=false;const b=this.blockAction;if(b&&(options.blockBlast||options.mightyBlowBy?.team!==undefined&&options.mightyBlowBy.team!==p.team)&&(p.id===b.attacker.id||p.id===b.target.id)){b.downOutcomes||=new Map();b.downOutcomes.set(p.id,true);}if(b&&p.id===b.target.id&&options.mightyBlowBy?.id===b.attacker.id)b.targetKnocked=true;const old=options.after;return super.resolveFall(p,{...options,after:()=>{this.syncLeader();if(old)old();}});}
- endTurn(turnover=false){if(this.moveContext)return this.finishBoundedMove(true);if(this.dumpContext)return this.finishDumpOff();const previous=this.active,result=super.endTurn(turnover);if(result){this.resetSkillTurn();this.foulUsed[this.active]=false;this.pickMeUp(previous);}return result;}
+ endTurn(turnover=false){if(this.moveContext)return this.finishBoundedMove(true);if(this.dumpContext)return this.finishDumpOff();if(this.multipleEndTurn(turnover))return false;const previous=this.active,result=super.endTurn(turnover);if(result){this.resetSkillTurn();this.foulUsed[this.active]=false;this.pickMeUp(previous);}return result;}
  pickMeUp(endingTeam){const sources=this.players.filter(p=>p.team===1-endingTeam&&this.onPitch(p)&&this.skill(p,"Pick-me-up")),eligible=this.players.filter(p=>p.team===1-endingTeam&&p.status==="prone"&&this.onPitch(p)&&sources.some(q=>this.distance(q,p)<=3));for(const p of eligible)if(this.roll("Pick-me-up #"+p.number)>=5)p.status="standing";}
 }
 if(typeof module!=="undefined")module.exports={SkillGame,SKILL_CATALOG,SKILL_GROUPS};
