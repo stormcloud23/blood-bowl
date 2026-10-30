@@ -22,6 +22,8 @@ Reference paths under FFB:
 
 The pinned FFB ownership behavior allows Frenzy and Multiple Block on the same player, although they cannot be used together. The builder preserves that existing project decision despite the printed restriction.
 
+The [Insignificant and Violent Innovator audit](LEAGUE-SKILLS.md) completes their catalogue coverage: draft ratios, special-action prerequisites, Kick Team-mate/Lethal Flight shared credit, and persistent casualty SPP. It also records the pinned Projectile Vomit exception (no casualty SPP even with Violent Innovator).
+
 ## Progression and persistence
 
 `league.cjs` owns versioned roster records, membership, fixtures and post-game changes. `league-ui.cjs` supplies the browser controls; `build.cjs` embeds both in the standalone HTML. No server or runtime dependencies were added.

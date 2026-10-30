@@ -9,14 +9,16 @@ const SKILL_GROUPS={
  Strength:["Arm Bar","Brawler","Break Tackle","Bullseye","Grab","Guard","Juggernaut","Mighty Blow","Multiple Block","Stand Firm","Strong Arm","Thick Skull"],
  Traits:["Always Hungry","Animal Savagery","Animosity (X)","Ball & Chain","Bloodlust (X+)","Bombardier","Bone Head","Breathe Fire","Chainsaw","Decay","Drunkard","Hatred (X)","Hypnotic Gaze","Insignificant","Kick Team-mate","Loner (X+)","My Ball","No Ball","Pick-me-up","Plague Ridden","Pogo","Projectile Vomit","Really Stupid","Regeneration","Right Stuff","Secret Weapon","Stab","Stunty","Swoop","Take Root","Throw Team-mate","Timmm-ber!","Titchy","Trickster","Unchannelled Fury","Unsteady"]
 };
-const SKILL_DEFERRED={
- "Violent Innovator":"Requires Star Player Point attribution and league progression.",
- "Insignificant":"Requires the Team Draft List / roster builder.",
+const SPECIAL_ACTION_TRAITS=["Breathe Fire","Chainsaw","Stab","Projectile Vomit","Bombardier","Ball & Chain","Hypnotic Gaze","Kick Team-mate"];
+const SKILL_DEFERRED={};
+const SKILL_NOTES={
+ "Violent Innovator":"Special-action casualty SPP, including Kick Team-mate collisions and shared Lethal Flight credit. Requires a special-action trait; pinned Projectile Vomit grants no SPP. See LEAGUE-SKILLS.md.",
+ "Insignificant":"A rookie Team Draft List cannot contain more Insignificant players than other players. Enforced on roster submission; no in-match effect. See LEAGUE-SKILLS.md."
 };
 const SKILL_PARTIAL={};
-const PASSIVES=new Set(["Claws","Disturbing Presence","Foul Appearance","Iron Hard Skin","Leader","Thick Skull","Animal Savagery","Bloodlust (X+)","Bone Head","Decay","Drunkard","Hatred (X)","Insignificant","Kick Team-mate","Loner (X+)","My Ball","No Ball","Plague Ridden","Really Stupid","Regeneration","Right Stuff","Secret Weapon","Stunty","Take Root","Timmm-ber!","Titchy","Unchannelled Fury","Unsteady"]);
+const PASSIVES=new Set(["Claws","Disturbing Presence","Foul Appearance","Iron Hard Skin","Violent Innovator","Leader","Thick Skull","Animal Savagery","Bloodlust (X+)","Bone Head","Decay","Drunkard","Hatred (X)","Insignificant","Kick Team-mate","Loner (X+)","My Ball","No Ball","Plague Ridden","Really Stupid","Regeneration","Right Stuff","Secret Weapon","Stunty","Take Root","Timmm-ber!","Titchy","Unchannelled Fury","Unsteady"]);
 const MANDATORY=new Set(["Frenzy","Disturbing Presence","Foul Appearance","Always Hungry","Animal Savagery","Animosity (X)","Ball & Chain","Bloodlust (X+)","Bone Head","Chainsaw","Decay","Drunkard","Hatred (X)","Insignificant","Loner (X+)","My Ball","No Ball","Really Stupid","Right Stuff","Secret Weapon","Stunty","Take Root","Titchy","Unchannelled Fury","Unsteady"]);
-const SKILL_CATALOG=Object.entries(SKILL_GROUPS).flatMap(([category,names])=>names.map(name=>({name,category,kind:PASSIVES.has(name)?"Passive":"Active",mandatory:MANDATORY.has(name),status:SKILL_DEFERRED[name]?"Deferred":SKILL_PARTIAL[name]?"Partial":"Implemented",notes:SKILL_DEFERRED[name]||SKILL_PARTIAL[name]||"Supported in the available actions. Optional abilities may be disabled before action resolution.",source:"https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/#"+name.toLowerCase().replace(/[^a-z0-9 ]/g,"").replaceAll(" ","-")})));
+const SKILL_CATALOG=Object.entries(SKILL_GROUPS).flatMap(([category,names])=>names.map(name=>({name,category,kind:PASSIVES.has(name)?"Passive":"Active",mandatory:MANDATORY.has(name),status:SKILL_DEFERRED[name]?"Deferred":SKILL_PARTIAL[name]?"Partial":"Implemented",notes:SKILL_DEFERRED[name]||SKILL_PARTIAL[name]||SKILL_NOTES[name]||"Supported in the available actions. Optional abilities may be disabled before action resolution.",source:"https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/#"+name.toLowerCase().replace(/[^a-z0-9 ]/g,"").replaceAll(" ","-")})));
 class SkillGame extends SkillBase {
  canBomb(p){return !!p&&this.canStart(p)&&p.status==="standing"&&this.has(p,"Bombardier")&&!this.has(p,"Ball & Chain")&&!this.bombUsed?.[p.team];}
  beginBomb(p){
@@ -341,7 +343,10 @@ class SkillGame extends SkillBase {
    if(victim){
     this.note("Thrown #"+p.number+" crashes into #"+victim.number+".");
     const resume=()=>land(drift(pos,"Collision bounce"),subpar,true,pos);
-    this.fall(victim,{turnover:false,impactBy:victim.team!==p.team&&this.skill(p,"Lethal Flight")?p:null,prevented:resume,after:()=>{if(victim.team===this.active)forcedTurnover=true;resume();}});return;
+    const impact=victim.team!==p.team&&this.skill(p,"Lethal Flight")?p:null;
+    // FFB credits both the passenger and kicker when both permissions apply.
+    const injurySource=kicked&&victim.team!==a.team&&this.has(a,"Violent Innovator")?{playerId:impact?p.id:a.id,cause:impact?"Lethal Flight":"Kick Team-mate",...(impact?{kickerId:a.id}:{})}:null;
+    this.fall(victim,{turnover:false,impactBy:impact,injurySource,prevented:resume,after:()=>{if(victim.team===this.active)forcedTurnover=true;resume();}});return;
    }
    p.x=pos.x;p.y=pos.y;if(this.ball.carrier===p.id){this.ball.x=p.x;this.ball.y=p.y;}
    const fail=()=>this.fall(p,{turnover:false,prevented:()=>ok(),after:()=>end(forcedTurnover||carrying)});
@@ -412,7 +417,7 @@ class SkillGame extends SkillBase {
  keywords(p){return this.profile(p).traits.split(",").map(s=>s.trim().toLowerCase());}
  toggleSkill(id,name){const p=this.players.find(q=>q.id===id),entry=SKILL_CATALOG.find(s=>s.name===name||name.startsWith(s.name.split(" (")[0]+" ("));if(!p||!entry||entry.mandatory||this.pending)return false;p.disabledSkills||=[];p.disabledSkills=p.disabledSkills.includes(name)?p.disabledSkills.filter(s=>s!==name):p.disabledSkills.concat(name);return true;}
  addSkill(id,name){const p=this.players.find(q=>q.id===id),entry=SKILL_CATALOG.find(s=>s.name===name||s.name.includes("(X")&&name.startsWith(s.name.split(" (")[0]+" ("));if(!this.lab||!p||!entry||entry.status==="Deferred"||name.includes("(X"))return false;
-  const conflicts={Frenzy:["Grab","Hit and Run"],"Hit and Run":["Frenzy"],Grab:["Frenzy"],Leap:["Pogo"],Pogo:["Leap"]},owned=[...super.profile(p).skills,...(p.extraSkills||[])];const chainConflicts=["Diving Tackle","Defensive","Frenzy","Grab","Hit and Run","Leap","Multiple Block","On the Ball","Shadowing","Steady Footing"];if(name==="Ball & Chain"&&chainConflicts.some(s=>owned.includes(s))||owned.includes("Ball & Chain")&&chainConflicts.includes(name))return false;if((conflicts[name]||[]).some(s=>owned.includes(s))||["Bullseye","Strong Arm"].includes(name)&&!owned.includes("Throw Team-mate")||name==="Lethal Flight"&&!owned.includes("Right Stuff")||name==="Saboteur"&&!owned.includes("Secret Weapon"))return false;p.extraSkills=[...new Set([...(p.extraSkills||[]),name])];return true;}
+  const conflicts={Frenzy:["Grab","Hit and Run"],"Hit and Run":["Frenzy"],Grab:["Frenzy"],Leap:["Pogo"],Pogo:["Leap"]},owned=[...super.profile(p).skills,...(p.extraSkills||[])];const chainConflicts=["Diving Tackle","Defensive","Frenzy","Grab","Hit and Run","Leap","Multiple Block","On the Ball","Shadowing","Steady Footing"];if(name==="Ball & Chain"&&chainConflicts.some(s=>owned.includes(s))||owned.includes("Ball & Chain")&&chainConflicts.includes(name))return false;if(name==="Violent Innovator"&&!SPECIAL_ACTION_TRAITS.some(s=>owned.includes(s)))return false;if((conflicts[name]||[]).some(s=>owned.includes(s))||["Bullseye","Strong Arm"].includes(name)&&!owned.includes("Throw Team-mate")||name==="Lethal Flight"&&!owned.includes("Right Stuff")||name==="Saboteur"&&!owned.includes("Secret Weapon"))return false;p.extraSkills=[...new Set([...(p.extraSkills||[]),name])];return true;}
  used(p,name){return p.skillUses?.[name]===this.skillTurn;}
  use(p,name){p.skillUses||={};p.skillUses[name]=this.skillTurn;this.note("#"+p.number+" uses "+name+".");}
  resetSkillTurn(){this.skillTurn++;this.bombUsed||=[false,false];this.bombUsed[this.active]=false;for(const p of this.players)if(p.team===this.active){p.bloodlust=false;p.bloodlustChecked=false;}this.shadowingCounts={};this.throwUsed||=[false,false];this.throwUsed[this.active]=false;this.kickUsed||=[false,false];this.kickUsed[this.active]=false;this.puntUsed||=[false,false];this.puntUsed[this.active]=false;this.throwMate=null;}
@@ -940,4 +945,4 @@ class SkillGame extends SkillBase {
  endTurn(turnover=false){if(this.bombContext){if(turnover)this.bombContext.turnover=true;return false;}if(this.moveContext)return this.finishBoundedMove(true);if(this.dumpContext)return this.finishDumpOff();if(this.multipleEndTurn(turnover))return false;if(this.pending||this.finished)return false;if(this.bloodlustEndTurn(turnover))return false;this.chainContext=null;const previous=this.active,result=super.endTurn(turnover);if(result){this.resetSkillTurn();this.foulUsed[this.active]=false;this.pickMeUp(previous);}return result;}
  pickMeUp(endingTeam){const sources=this.players.filter(p=>p.team===1-endingTeam&&this.onPitch(p)&&this.skill(p,"Pick-me-up")),eligible=this.players.filter(p=>p.team===1-endingTeam&&p.status==="prone"&&this.onPitch(p)&&sources.some(q=>this.distance(q,p)<=3));for(const p of eligible)if(this.roll("Pick-me-up #"+p.number)>=5)p.status="standing";}
 }
-if(typeof module!=="undefined")module.exports={SkillGame,SKILL_CATALOG,SKILL_GROUPS};
+if(typeof module!=="undefined")module.exports={SkillGame,SKILL_CATALOG,SKILL_GROUPS,SPECIAL_ACTION_TRAITS};

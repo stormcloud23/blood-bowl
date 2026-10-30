@@ -20,6 +20,16 @@ function uiFixture(scenario='match',saved=null){
 function descendants(e){return [e,...e.children.flatMap(descendants)];}
 function button(f,text){const b=descendants(f.get('league-panel')).find(e=>e.textContent===text&&e.listeners.click);assert.ok(b,'Button '+text);return b;}
 function input(f,label){const e=descendants(f.get('league-panel')).find(e=>e['aria-label']===label);assert.ok(e,'Input '+label);return e;}
+
+test('embedded catalogue completes both league skills and shares their prerequisites with the laboratory',()=>{
+ const f=uiFixture('skills');
+ assert.equal(f.run('SKILL_CATALOG.filter(s=>s.status==="Implemented").length'),108);
+ assert.equal(f.run('game.addSkill(game.players[0].id,"Violent Innovator")'),false);
+ assert.equal(f.run('game.addSkill(game.players[0].id,"Kick Team-mate")'),true);
+ assert.equal(f.run('game.addSkill(game.players[0].id,"Violent Innovator")'),true);
+ assert.equal(f.run('game.addSkill(game.players[0].id,"Insignificant")'),true);
+ assert.equal(f.run('game.toggleSkill(game.players[0].id,"Insignificant")'),false);
+});
 function ready(f){f.run(`const l=leagueStore.createLeague('League');for(let i=0;i<2;i++){const t=leagueStore.create(demoLeagueTeams[i].id,'Club '+i);for(let n=0;n<11;n++)leagueStore.hire(t.id,0,'Name '+n);leagueStore.submit(t.id);leagueStore.enterLeague(l.id,t.id);}leagueSave();renderLeague();`);}
 test('actual league UI creates, hires and submits a persisted team',()=>{const f=uiFixture();input(f,'New team name').value='My Nobles';button(f,'Create rookie team').listeners.click();assert.equal(f.run('leagueStore.data.teams[0].name'),'My Nobles');for(let i=0;i<11;i++)button(f,'Hire player').listeners.click();button(f,'Submit legal rookie roster').listeners.click();assert.equal(f.run('leagueStore.data.teams[0].draft'),false);assert.equal(JSON.parse(f.storage.get('blood-bowl-leagues-v1')).teams[0].players.length,11);});
 test('export leaves backup text visible and reload restores roster data',()=>{const f=uiFixture();ready(f);button(f,'Export backup').listeners.click();const backup=input(f,'League backup JSON').value;assert.equal(JSON.parse(backup).teams.length,2);const reload=uiFixture('match',backup);assert.equal(reload.run('leagueStore.data.teams[0].name'),'Club 0');});

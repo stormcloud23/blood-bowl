@@ -1,6 +1,6 @@
 # BB2025 skill source map
 
-Static source index prepared October 29, 2026. See [the comparison scope and findings](FFB-AUDIT.md). This maps all 108 browser catalogue entries to BB2025-selected Java definitions where found; class availability is not verification of equivalent behavior. Server Steps and skill behaviours can contain additional rules. No Java code or source checkout is needed at runtime.
+Static source index updated October 30, 2026. See [the comparison scope and findings](FFB-AUDIT.md). This maps all 108 browser catalogue entries to BB2025-selected Java definitions where found; class availability is not verification of equivalent behavior. Server Steps and skill behaviours can contain additional rules. No Java code or source checkout is needed at runtime.
 
 | Skill / trait | Browser coverage | FFB definition | Comparison status |
 | --- | --- | --- | --- |
@@ -27,7 +27,7 @@ Static source index prepared October 29, 2026. See [the comparison scope and fin
 | Saboteur | Implemented | [Java source](https://github.com/christerk/ffb/blob/bf3f89d96b5143a8730910a841e7430791094492/ffb-common/src/main/java/com/fumbbl/ffb/skill/bb2025/Saboteur.java) | Targeted action/context scenarios; see SPECIAL-ACTIONS.md |
 | Shadowing | Implemented | [Java source](https://github.com/christerk/ffb/blob/bf3f89d96b5143a8730910a841e7430791094492/ffb-common/src/main/java/com/fumbbl/ffb/skill/bb2025/Shadowing.java) | Targeted source-derived scenarios; see movement reaction audits |
 | Sneaky Git | Implemented | [Java source](https://github.com/christerk/ffb/blob/bf3f89d96b5143a8730910a841e7430791094492/ffb-common/src/main/java/com/fumbbl/ffb/skill/bb2025/SneakyGit.java) | Not individually parity-audited |
-| Violent Innovator | Deferred | [Java source](https://github.com/christerk/ffb/blob/bf3f89d96b5143a8730910a841e7430791094492/ffb-common/src/main/java/com/fumbbl/ffb/skill/bb2025/ViolentInnovator.java) | Dependency still deferred |
+| Violent Innovator | Implemented | [Java source](https://github.com/christerk/ffb/blob/bf3f89d96b5143a8730910a841e7430791094492/ffb-common/src/main/java/com/fumbbl/ffb/skill/bb2025/ViolentInnovator.java) | Targeted roster/SPP scenarios; see [league skills](LEAGUE-SKILLS.md) |
 | Block | Implemented | [Java source](https://github.com/christerk/ffb/blob/bf3f89d96b5143a8730910a841e7430791094492/ffb-common/src/main/java/com/fumbbl/ffb/skill/common/Block.java) | Not individually parity-audited |
 | Dauntless | Implemented | [Java source](https://github.com/christerk/ffb/blob/bf3f89d96b5143a8730910a841e7430791094492/ffb-common/src/main/java/com/fumbbl/ffb/skill/common/Dauntless.java) | Not individually parity-audited |
 | Fend | Implemented | [Java source](https://github.com/christerk/ffb/blob/bf3f89d96b5143a8730910a841e7430791094492/ffb-common/src/main/java/com/fumbbl/ffb/skill/common/Fend.java) | Not individually parity-audited |
@@ -89,7 +89,7 @@ Static source index prepared October 29, 2026. See [the comparison scope and fin
 | Drunkard | Implemented | [Java source](https://github.com/christerk/ffb/blob/bf3f89d96b5143a8730910a841e7430791094492/ffb-common/src/main/java/com/fumbbl/ffb/skill/mixed/Drunkard.java) | Not individually parity-audited |
 | Hatred (X) | Implemented | [Java source](https://github.com/christerk/ffb/blob/bf3f89d96b5143a8730910a841e7430791094492/ffb-common/src/main/java/com/fumbbl/ffb/skill/bb2025/Hatred.java) | Not individually parity-audited |
 | Hypnotic Gaze | Implemented | [Java source](https://github.com/christerk/ffb/blob/bf3f89d96b5143a8730910a841e7430791094492/ffb-common/src/main/java/com/fumbbl/ffb/skill/bb2025/HypnoticGaze.java) | Not individually parity-audited |
-| Insignificant | Deferred | [Java source](https://github.com/christerk/ffb/blob/bf3f89d96b5143a8730910a841e7430791094492/ffb-common/src/main/java/com/fumbbl/ffb/skill/bb2025/Insignificant.java) | Dependency still deferred |
+| Insignificant | Implemented | [Java source](https://github.com/christerk/ffb/blob/bf3f89d96b5143a8730910a841e7430791094492/ffb-common/src/main/java/com/fumbbl/ffb/skill/bb2025/Insignificant.java) | Targeted roster/SPP scenarios; see [league skills](LEAGUE-SKILLS.md) |
 | Kick Team-mate | Implemented | [Java source](https://github.com/christerk/ffb/blob/bf3f89d96b5143a8730910a841e7430791094492/ffb-common/src/main/java/com/fumbbl/ffb/skill/mixed/KickTeamMate.java) | Targeted action/context scenarios; see SPECIAL-ACTIONS.md |
 | Loner (X+) | Implemented | [Java source](https://github.com/christerk/ffb/blob/bf3f89d96b5143a8730910a841e7430791094492/ffb-common/src/main/java/com/fumbbl/ffb/skill/mixed/Loner.java) | Not individually parity-audited |
 | My Ball | Implemented | [Java source](https://github.com/christerk/ffb/blob/bf3f89d96b5143a8730910a841e7430791094492/ffb-common/src/main/java/com/fumbbl/ffb/skill/mixed/MyBall.java) | Not individually parity-audited |

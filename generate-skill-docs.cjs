@@ -3,7 +3,7 @@ const {SKILL_CATALOG}=require('./skills.cjs');
 const counts=SKILL_CATALOG.reduce((r,s)=>(r[s.status]=(r[s.status]||0)+1,r),{});
 const intro=`# Skills and traits coverage — v0.0.14
 
-Updated October 29, 2026 using the owner's requested FFB BB2025 baseline. FFB code takes priority where it conflicts with earlier browser behavior. See [the comparison and remaining gaps](FFB-AUDIT.md), [all 108 FFB skill definitions](FFB-SKILL-MAP.md), and [FFB attribution](../THIRD_PARTY_NOTICES.md). This is a targeted port, not a claim of complete FFB parity.
+Updated October 30, 2026 using the owner's requested FFB BB2025 baseline. FFB code takes priority where it conflicts with earlier browser behavior. See [the comparison and remaining gaps](FFB-AUDIT.md), [all 108 FFB skill definitions](FFB-SKILL-MAP.md), and [FFB attribution](../THIRD_PARTY_NOTICES.md). This is a targeted port, not a claim of complete FFB parity.
 
 The latest exhibition batch implements Kick Team-mate, Swoop, Lethal Flight, Animal Savagery, Trickster, Hit and Run, Dump-off, Punt, Monstrous Mouth, Pile Driver, On the Ball and Saboteur, and completes Chainsaw foul use. These share guarded decisions, attack/pass suspension, bounded reaction movement, per-Block knockdown outcomes, damage attribution and relocation restrictions. See [special actions and reaction contexts](SPECIAL-ACTIONS.md) for implementation boundaries, source paths, defaults and tests.
 
@@ -19,7 +19,7 @@ Build with \`node build.cjs\` and verify all suites with \`node --test *.test.cj
 
 Reviewed October 28, 2026 against the full [Blood Bowl 2025 Skills & Traits list](https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/), [current FAQ](https://bloodbowlbase.ru/bb2025/core_rules/latest_faq/), [Foul / Argue the Call rules](https://bloodbowlbase.ru/bb2025/core_rules/the_game_of_blood_bowl/#foul-actions), and [Bribes](https://bloodbowlbase.ru/bb2025/core_rules/inducements/#0-3-bribes-0-6-for-teams-with-the-bribery-and-corruption-special-rule).
 
-All ${SKILL_CATALOG.length} entries are accounted for: **${counts.Implemented} implemented**, **${counts.Partial} partial**, **${counts.Deferred} deferred**. Implemented describes support within the available actions and exhibition sequence, not missing league or inducement systems. Deferred abilities are not offered as laboratory additions. Each deferred row records the missing dependency for a future pass. This table and the app inventory share the same registry in skills.cjs.
+All ${SKILL_CATALOG.length} entries are accounted for: **${counts.Implemented||0} implemented**, **${counts.Partial||0} partial**, **${counts.Deferred||0} deferred**. Implemented describes support within the available actions, roster builder and local league progression. It does not certify complete FFB parity or every future roster interaction. Insignificant and Violent Innovator now have focused roster/SPP coverage; see [league skills](LEAGUE-SKILLS.md). This table and the app inventory share the same registry in skills.cjs.
 
 ## How to try them
 
@@ -31,7 +31,7 @@ The **Foul / special action** button declares Foul, Stab, Projectile Vomit, Hypn
 
 ## Coverage inventory
 
-Throw Team-mate, Right Stuff, and Always Hungry now support declaration, movement before throwing, adjacent passenger selection, Quick/Short range, accuracy re-rolls, three-square scatter, fumbles, landing re-rolls, collision chains, crowd injury, carried balls, touchdowns, and the Troll's eating sequence. Select **Throw Team-mate practice** for a Troll and Goblin drill. Declare the action, choose the passenger in the side panel, then click a highlighted target twice. Throwing uses a separate once-per-turn allowance from Pass. Eaten players remain unavailable on later drives. Permanent league roster deletion awaits league persistence.
+Throw Team-mate, Right Stuff, and Always Hungry now support declaration, movement before throwing, adjacent passenger selection, Quick/Short range, accuracy re-rolls, three-square scatter, fumbles, landing re-rolls, collision chains, crowd injury, carried balls, touchdowns, and the Troll's eating sequence. Select **Throw Team-mate practice** for a Troll and Goblin drill. Declare the action, choose the passenger in the side panel, then click a highlighted target twice. Throwing uses a separate once-per-turn allowance from Pass. Eaten players remain unavailable on later drives. Eaten players leave permanent rosters when the completed league fixture is saved.
 
 Kick Team-mate uses a separate declaration allowance and shares the passenger/target controls. Swoop offers cardinal template and direction/distance choices; Lethal Flight supplies an opponent-only damage window. Dump-off, Trickster, On the Ball, Hit and Run and Pile Driver display the deciding coach and pause the parent action. Movement choices use square coordinates in the side panel. See SPECIAL-ACTIONS.md for FFB exceptions and remaining scope.
 
@@ -46,7 +46,7 @@ fs.writeFileSync('docs/SKILLS.md',intro+rows+`\n
 
 Run \`node build.cjs\`, then \`node --test movement.test.cjs match.test.cjs skills.test.cjs\`. Tests use injected dice for movement, passing, activation traits, Block timing, Foul modifiers, send-offs, Bribes, end-of-drive Secret Weapon handling, Leader pools, and catalogue completeness. All browser engines are checked against their source and compiled together.
 
-The in-memory interruption stack and explicit reaction contexts support the current departures, catches, placements, nested Quick Pass and bounded defensive movement. Simultaneous explosions/Blocks still need group resolution; bombs need their own airborne object and caught-bomb continuations. Casualty-dependent match effects need actual Casualty Table results and treatment timing. Roster creation and league progression remain later work. No deferred skill is treated as implemented merely because its name appears on a roster.
+The in-memory interruption stack supports current reactions and airborne bomb continuations. Grouped damage, casualties/treatment, roster creation and local league progression have dedicated regression suites. Remaining exhibition and progression boundaries are recorded in EXHIBITION-PARITY.md and LEAGUES.md; coverage labels do not certify complete rules parity.
 
-The source now permits negative modified D6 results: a modified pass result of exactly 1 (or natural 1) fumbles; a negative failed result scatters as inaccurate. This corrects the older engine's one-or-less fumble assumption. Stunty's interception penalty, Tackle's Dodge re-roll restriction, Jump Up standing cost, and the three legal straight push squares were also corrected during this audit.
+The latest pinned passing audit fumbles natural ones and modified totals below one, preserves PA 1+ success at modified one, and uses FFB interception geometry without an unsupported Stunty interception penalty. See PASSING-DRIVE-AUDIT.md for the executable-source comparison and fixtures.
 `);

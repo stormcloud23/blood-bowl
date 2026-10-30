@@ -69,7 +69,12 @@ class MovementGame {
   let state=total<=stunMax?(crowd?"reserve":stunIsKo?"knocked-out":"stunned"):total<=koMax?"knocked-out":"casualty";
   const record={playerId:p.id,team:p.team,injury:total,source:source?{...source}:null,original:null,selected:null,treatment:null};
   if(state==="casualty")record.original=record.selected=automaticBadlyHurt||small&&total===9?{result:"Badly hurt",automatic:true}:this.casualtyRoll(p);
-  if(record.original&&source){const by=this.players.find(q=>q.id===source.playerId);if(by&&by.team!==p.team&&(["Block","Arm Bar","Lethal Flight"].includes(source.cause)||this.has(by,"Violent Innovator")&&["Bomb","Chainsaw","Stab","Breathe Fire","Projectile Vomit","Ball & Chain collision"].includes(source.cause)))this.recordStat(by,"casualty");}
+  if(record.original&&source){
+   const by=this.players.find(q=>q.id===source.playerId);
+   if(by&&by.team!==p.team&&(["Block","Arm Bar","Lethal Flight"].includes(source.cause)||this.has(by,"Violent Innovator")&&["Bomb","Chainsaw","Stab","Breathe Fire","Ball & Chain collision","Kick Team-mate"].includes(source.cause)))this.recordStat(by,"casualty");
+   const kicker=this.players.find(q=>q.id===source.kickerId);
+   if(source.cause==="Lethal Flight"&&kicker&&kicker!==by&&kicker.team!==p.team&&this.has(kicker,"Violent Innovator"))this.recordStat(kicker,"casualty");
+  }
   let resume=done;
   const finish=()=>{
    p.status=state;p.rooted=false;this.onProne(p);
