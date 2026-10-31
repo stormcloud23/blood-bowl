@@ -42,7 +42,7 @@ function playerQuickInfo(p){
 function showPitchTooltip(cell){
  if(popup.matches(":popover-open"))return;
  const i=Array.from(pitch.children).indexOf(cell),p=game.at(i%26,Math.floor(i/26));
- const text=p?playerQuickInfo(p):(cell.dataset.hint||cell.title);
+ const hint=cell.dataset.hint||cell.title,text=p?playerQuickInfo(p)+(cell.className.includes("push-option")?"\n"+hint:""):hint;
  if(!text||text==="empty"){hidePitchTooltip();return;}
  hidePitchTooltip();hoverSquare=cell;cell.setAttribute("aria-describedby","pitch-tooltip");tooltip.textContent=text;
  tooltip.showPopover();placePitchOverlay(tooltip,cell);
@@ -127,10 +127,17 @@ document.addEventListener("keydown",event=>{
 });
 addEventListener("resize",()=>{closePitchPopup();hidePitchTooltip();});
 document.addEventListener("scroll",hidePitchTooltip,true);
+document.getElementById("pitch-scale").addEventListener("change",event=>{
+ const scale=Number(event.target.value);if(![1,1.5,2].includes(scale))return;
+ closePitchPopup();hidePitchTooltip();pitch.style.minWidth=(650*scale)+"px";
+ const p=game.players.find(p=>p.id===selected&&game.onPitch(p));if(p)pitch.children[p.y*26+p.x].scrollIntoView({block:"nearest",inline:"center"});
+});
 function refreshWorkspace(){
  closePitchPopup();hidePitchTooltip();
  const pregame=game.match&&["fans","weather","leagueSteps","rolloff","kickChoice"].includes(game.phase),overview=document.getElementById("pregame-overview");
  overview.hidden=!pregame;document.getElementById("pitch-board").hidden=!!pregame;document.getElementById("mobile-pitch-help").hidden=!!pregame;document.getElementById("pitch-hint").hidden=!!pregame;
+ document.getElementById("pitch-tools").hidden=!!pregame;
+ selection.hidden=!!pregame;document.getElementById("movement").hidden=!!pregame;document.getElementById("player-details").hidden=!!pregame;
  if(pregame){
   overview.replaceChildren();const heading=document.createElement("h2");heading.textContent="Prepare for kick-off";overview.append(heading);const intro=document.createElement("p");intro.textContent="Both coaches share this browser. Complete the current step in the coach panel, then arrange your players on the pitch.";overview.append(intro);
   const steps=document.createElement("ol");steps.className="pregame-steps";overview.append(steps);const phaseIndex={fans:0,weather:1,leagueSteps:2,rolloff:3,kickChoice:3}[game.phase];

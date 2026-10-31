@@ -51,7 +51,7 @@ test('repairing an invalid saved backup remains possible without losing its raw 
 
 test('league match skill controls include learned skills and retain disabled choices',()=>{
  const f=uiFixture();ready(f);f.run('const t=leagueStore.data.teams[0];t.players[0].spp=6;leagueStore.advance(t.id,t.players[0].id,"Block");renderLeague()');button(f,'Play league fixture').listeners.click();f.run('selected=game.players[0].id;render()');
- const control=descendants(f.get('skillcontrols')).find(e=>e.textContent==='✓ Block · Implemented');assert.ok(control);control.listeners.click();assert.equal(f.run('game.has(game.players[0],"Block")'),false);const disabled=descendants(f.get('skillcontrols')).find(e=>e.textContent==='Off · Block · Implemented');assert.ok(disabled);disabled.listeners.click();assert.equal(f.run('game.has(game.players[0],"Block")'),true);assert.equal(f.run('leagueStore.data.teams[0].players[0].profile.skills.includes("Block")'),true);
+ const control=descendants(f.get('skillcontrols')).find(e=>e.textContent==='✓ Block');assert.ok(control);assert.equal(control['aria-pressed'],'true');control.listeners.click();assert.equal(f.run('game.has(game.players[0],"Block")'),false);const disabled=descendants(f.get('skillcontrols')).find(e=>e.textContent==='Off · Block');assert.ok(disabled);assert.equal(disabled['aria-pressed'],'false');disabled.listeners.click();assert.equal(f.run('game.has(game.players[0],"Block")'),true);assert.equal(f.run('leagueStore.data.teams[0].players[0].profile.skills.includes("Block")'),true);
 });
 
 test('saved player names and current values appear in live profiles and pitch labels',()=>{

@@ -22,10 +22,12 @@ details>summary{cursor:pointer;color:#d4dfdb;font-size:13px;font-weight:600;padd
 #player-details{border-top:1px solid #34474d;margin-top:12px}
 #profile{margin:0;padding-top:4px;border:0}#profile p{margin:8px 0}
 #skillcontrols .control{font-size:12px;padding:8px}
+#skillcontrols .mandatory-skill:disabled{opacity:.85;background:#31474f;color:#c8d7d2;cursor:default!important}
 .pitch{padding:6px;min-width:650px}.token{font-size:clamp(11px,1vw,15px);width:90%;height:90%;text-shadow:none}
 .token.prone{border-radius:25%;transform:rotate(-12deg)}.token.stunned{border-radius:25%;box-shadow:0 0 0 1px #ff6b70}
 .token.used{opacity:.58}.ball{font-size:14px;color:#fff2c7;text-shadow:0 1px 3px #000}
 #pitch-hint{margin:8px 0;font-size:12px;line-height:1.5}
+#pitch-tools{display:flex;justify-content:flex-end;gap:8px;align-items:center;margin-bottom:8px;font-size:12px;color:#b8c9c7}#pitch-tools select{padding:5px 8px;font-size:12px}
 #action-disclosure{display:inline-block;vertical-align:top;margin-right:12px}
 #action-disclosure[open]{display:block;border:1px solid #34474d;border-radius:6px;padding:0 12px;margin-bottom:8px}
 .turn-controls{display:inline-flex;flex-wrap:wrap;gap:4px}#end{background:#e9bb69;color:#17242a}#reset{background:transparent;border:1px solid #526a61}
@@ -74,3 +76,4 @@ main>aside #matchflow .control{max-width:100%}
 @media(max-width:850px){main{grid-template-columns:1fr}main>aside{position:static;max-height:none;grid-row:1}.league-creation{grid-template-columns:1fr}.pitch{min-width:650px}#choices{max-height:50dvh;overflow:auto}.mobile-pitch-help{display:block;font-size:12px;color:#b8c9c7;margin:0 0 8px}}
 @media(max-width:600px){body{padding:12px}h1{font-size:24px}.badge{font-size:11px;padding:6px 9px}.workspace-tabs{gap:0;margin-top:8px}.workspace-tabs button{font-size:13px;padding:12px}.mode-toolbar{gap:8px}.mode-toolbar .muted{font-size:11px}#mode-notice{font-size:12px}#matchflow{padding:12px}#matchflow h2{font-size:17px}.turn-controls{display:flex}.turn-controls .control{flex:1;min-height:44px}#reset{flex-basis:100%}.token{font-size:12px}#pitch-popup .control{min-height:44px}.league-creation>section{padding:12px}footer{line-height:1.7}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+@media(max-width:600px){header{flex-wrap:nowrap;align-items:center;gap:8px}header>div{min-width:0}header .eyebrow{font-size:9px;letter-spacing:.7px}header h1{font-size:22px}header .badge{max-width:125px;line-height:1.4}}
