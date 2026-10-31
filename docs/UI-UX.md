@@ -78,7 +78,7 @@ legality checks. It does not copy FFB's Swing UI or introduce a backend.
 
 ## Validation and limits
 
-Final local validation: **841 tests pass**, including 21 complete-workspace
+Final local validation: **842 tests pass**, including 22 complete-workspace
 scenarios and five additional league-UI scenarios. Generated outputs and
 whitespace checks pass.
 

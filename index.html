@@ -2937,11 +2937,11 @@ renderLeague();
 // Presentation only. Engine guards remain the authority for every offered action.
 const workspaceTabs=["play","teams","rosters","reference"];
 const workspaceScroll={};
-let workspaceView="play",pitchFocus=0,popupAnchor=null,popupEpoch=0,hoverSquare=null,staffDetailsOpen=false;
+let workspaceView="play",pitchFocus=0,popupAnchor=null,popupEpoch=0,hoverSquare=null,staffDetailsOpen=false,popoverTransition=false;
 const popup=document.getElementById("pitch-popup"),tooltip=document.getElementById("pitch-tooltip");
 function closePitchPopup(restore=false){
- popupEpoch++;if(popup.matches(":popover-open"))popup.hidePopover();
- if(restore&&popupAnchor?.isConnected)popupAnchor.focus({preventScroll:true});popupAnchor=null;
+ popupEpoch++;popoverTransition=true;
+ try{if(popup.matches(":popover-open"))popup.hidePopover();if(restore&&popupAnchor?.isConnected)popupAnchor.focus({preventScroll:true});popupAnchor=null;}finally{popoverTransition=false;}
 }
 function hidePitchTooltip(){
  if(tooltip.matches(":popover-open"))tooltip.hidePopover();
@@ -2979,7 +2979,7 @@ function playerQuickInfo(p){
  return teams[p.team].name+" · #"+p.number+" "+playerLabel(p)+"\n"+["ma","st","ag","pa","av"].map(k=>k.toUpperCase()+" "+profile[k]).join(" · ")+"\n"+p.status+(p.used?" · activated":"")+(p.distracted?" · distracted":"")+(game.ball.carrier===p.id?" · ball carrier":"")+"\n"+profile.skills.join(" · ");
 }
 function showPitchTooltip(cell){
- if(popup.matches(":popover-open"))return;
+ if(popoverTransition||popup.matches(":popover-open"))return;
  const i=Array.from(pitch.children).indexOf(cell),p=game.at(i%26,Math.floor(i/26));
  const hint=cell.dataset.hint||cell.title,text=p?playerQuickInfo(p)+(cell.className.includes("push-option")?"\n"+hint:""):hint;
  if(!text||text==="empty"){hidePitchTooltip();return;}

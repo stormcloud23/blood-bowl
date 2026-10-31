@@ -92,3 +92,6 @@ test('kick aiming highlights the receiving half and directions swap at halftime'
 test('the movement popup discloses required checks before committing a risky route',()=>{
  const f=workspaceFixture('dodge');f.run('selected=game.players[0].id;game.start(selected);render();choose(10,8)');const text=f.get('pitch-popup').children.map(e=>e.textContent).join('\n');assert.match(text,/Planned: 1 step/);assert.match(text,/Step 1: Dodge/);assert.equal(f.run('game.players[0].spent'),0);
 });
+test('native popover focus restoration cannot reenter tooltip opening during hide',()=>{
+ const f=workspaceFixture(),p=JSON.parse(f.run('JSON.stringify(game.players.find(p=>p.id===selected))'));f.cell(p.x,p.y).click();let hiding=false;f.get('pitch-tooltip').showPopover=()=>{if(hiding)throw Error('Native popover transition reentered');};f.get('pitch-popup').hidePopover=function(){this.popoverOpen=false;hiding=true;f.get('pitch').emit('focusin',{target:f.cell(p.x,p.y)});hiding=false;};assert.doesNotThrow(()=>f.popup().find(b=>b['aria-label']==='Close pitch actions').click());assert.equal(f.get('pitch-popup').popoverOpen,false);assert.equal(f.get('pitch-tooltip').popoverOpen,false);
+});
