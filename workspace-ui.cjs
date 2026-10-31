@@ -42,7 +42,7 @@ function playerQuickInfo(p){
 function showPitchTooltip(cell){
  if(popup.matches(":popover-open"))return;
  const i=Array.from(pitch.children).indexOf(cell),p=game.at(i%26,Math.floor(i/26));
- const text=p?playerQuickInfo(p):cell.title;
+ const text=p?playerQuickInfo(p):(cell.dataset.hint||cell.title);
  if(!text||text==="empty"){hidePitchTooltip();return;}
  hidePitchTooltip();hoverSquare=cell;cell.setAttribute("aria-describedby","pitch-tooltip");tooltip.textContent=text;
  tooltip.showPopover();placePitchOverlay(tooltip,cell);
@@ -66,10 +66,10 @@ function showPitchPopup(cell,title,details,actions){
  const close=button("×",()=>closePitchPopup(true));close.className="popup-close";close.setAttribute("aria-label","Close pitch actions");popup.append(close);
  for(const line of details.split("\n")){if(!line)continue;const p=document.createElement("p");p.textContent=line;popup.append(p);}
  const list=document.createElement("div");list.className="popup-actions";popup.append(list);
- for(const action of actions){list.append(button(action.label,()=>{
+ for(const [i,action] of actions.entries()){const b=button(action.label,()=>{
   if(epoch!==popupEpoch||game!==currentGame||game.pending!==currentPending||!popup.matches(":popover-open"))return;
   closePitchPopup();action.run();
- }));}
+ });if(i>0)b.className+=" secondary";list.append(b);}
  popup.showPopover();placePitchOverlay(popup,cell);
  (list.querySelector("button")||close).focus();
 }
@@ -87,7 +87,7 @@ choose=function(x,y,pushDecision=game.pending){
  chooseBeforeWorkspace(x,y,pushDecision);
  const cell=pitch.children[pitchFocus];
  if(!wasTargeting&&target&&(!game.match||["play","charge"].includes(phase))){
-  const actions=playerContextActions(target);showPitchPopup(cell,"#"+target.number+" · "+playerLabel(target),playerQuickInfo(target),actions.length?actions:[{label:"Show full profile",run:()=>{document.getElementById("player-details").open=true;}}]);
+  const actions=playerContextActions(target);actions.push({label:"Show full profile & skills",run:()=>{document.getElementById("player-details").open=true;}});showPitchPopup(cell,"#"+target.number+" · "+playerLabel(target),playerQuickInfo(target),actions);
  }else if(!wasTargeting&&!target&&destination&&game.mover){
   showPitchPopup(cell,"Movement preview",document.getElementById("movement").textContent,[{label:"Commit planned route",run:commitRoute},{label:"Cancel movement preview",run:cancelMovementPreview}]);
  }
@@ -121,7 +121,7 @@ addEventListener("resize",()=>{closePitchPopup();hidePitchTooltip();});
 document.addEventListener("scroll",hidePitchTooltip,true);
 function refreshWorkspace(){
  closePitchPopup();hidePitchTooltip();
- Array.from(pitch.children).forEach((cell,i)=>{cell.tabIndex=i===pitchFocus?0:-1;});
+ Array.from(pitch.children).forEach((cell,i)=>{cell.tabIndex=i===pitchFocus?0:-1;cell.dataset.hint=cell.title;cell.removeAttribute("title");});
  for(const id of playerActionIds){const b=document.getElementById(id);if(id!=="finish")b.hidden=b.disabled;}
  document.getElementById("finish").hidden=document.getElementById("finish").disabled;
  document.getElementById("action-disclosure").hidden=game.match&&!["play","charge"].includes(game.phase)||!!game.pending;
@@ -131,6 +131,7 @@ function refreshWorkspace(){
  // Keep the decision column reachable on small screens without obscuring the pitch.
  const choices=document.getElementById("choices");choices.setAttribute("aria-label",game.pending?"Required coach decision":"Action choices");
  const flow=document.getElementById("matchflow"),resources=Array.from(flow.children).filter(e=>/resource-summary|resource-control/.test(e.className));
+ const score=document.getElementById("match-scoreboard");score.replaceChildren();if(game.match)score.append(...Array.from(flow.children).slice(0,2));
  if(resources.length){const details=document.createElement("details"),summary=document.createElement("summary");summary.textContent=game.league?"Inducement purchases — required before continuing":"Staff & inducements · optional";details.append(summary,...resources);details.open=staffDetailsOpen||!!game.league;details.addEventListener("toggle",()=>{staffDetailsOpen=details.open;});flow.append(details);}
  const setupPlayers=Array.from(flow.children).filter(e=>e.className.includes("setup-player"));
  if(setupPlayers.length){const details=document.createElement("details"),summary=document.createElement("summary");summary.textContent="Select a player from the roster (or click on the pitch)";details.append(summary,...setupPlayers);flow.append(details);}
