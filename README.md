@@ -4,6 +4,38 @@ A self-contained browser game targeting **Blood Bowl 2025 matches and local leag
 
 **[Play on GitHub Pages](https://stormcloud23.github.io/blood-bowl/)** — no installation, Java server, or backend required. You can also open `index.html` locally.
 
+## Visual review follow-up — October 30, 2026
+
+**Updated October 31:** v0.0.16 addresses this review with workspace tabs,
+contextual tile actions, hover/focus information, compact match decisions,
+keyboard pitch navigation, adjustable pitch size, and clearer team/backup tools.
+See [the workspace guide and validation scope](docs/UI-UX.md). The notes below
+are retained as the original baseline findings.
+
+Browser screenshots now work. A brief desktop review of the published v0.0.15
+covered exhibition pregame, Block practice layout, and the empty league form
+and roster table. This was not a complete interaction or accessibility audit.
+No application code was changed during this review.
+
+Priorities after the usage reset:
+
+- Fix visible metadata: coverage shows “undefined partial / undefined deferred”;
+  footer feedback version is v0.0.14 while the header is v0.0.15.
+- Keep pitch and current actions closer together; shorten the large instruction
+  paragraph into contextual help plus an expandable reference.
+- Reduce pregame clutter from zero-valued resources and repeated staff text;
+  make the current step and next action easier to find.
+- Separate team creation, league creation, and backup tools. The blank backup
+  textarea dominates the form and needs a visible label/help.
+- Give relevant actions clearer emphasis in each practice mode; inspect small
+  token numerals while preserving the readable palette and roster alignment.
+
+Still to review visually: mobile/tablet wrapping and scrolling, keyboard focus
+and pitch navigation, Block dice/push interactions, movement previews, populated
+team creation/errors, and saved fixture/postgame flows. Existing automated tests
+do not establish visual correctness. Detailed continuation notes are in the
+workspace `HANDOFF.md`; work paused at 99% weekly usage.
+
 ## Current capabilities
 
 - Two-player hotseat play with Imperial Nobility and Black Orc teams.
