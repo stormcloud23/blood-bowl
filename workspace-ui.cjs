@@ -130,6 +130,8 @@ function refreshWorkspace(){
  const skillPanel=document.getElementById("skillcontrols"),details=document.getElementById("player-details");if(skillPanel&&skillPanel.parentElement!==details)details.append(skillPanel);
  // Keep the decision column reachable on small screens without obscuring the pitch.
  const choices=document.getElementById("choices");choices.setAttribute("aria-label",game.pending?"Required coach decision":"Action choices");
+ const faces={"Attacker Down":["☠","Attacker knocked down."],"Both Down":["↔","Both players may fall; Block and Wrestle can affect this result."],"Push":["↪","Push the defender to a legal destination."],"Defender Stumbles":["✦","Defender falls unless an applicable ability such as Dodge prevents it."],"Defender Down":["✹","Defender knocked down."]};
+ for(const b of choices.querySelectorAll("button")){const face=Object.keys(faces).find(name=>b.textContent.startsWith("Die ")&&b.textContent.endsWith(" · "+name));if(face){b.className+=" block-die";b.dataset.glyph=faces[face][0];b.title=faces[face][1];}else if(/^(Use |Re-roll |Cancel |Accept |Keep )/.test(b.textContent))b.className+=" secondary";}
  const flow=document.getElementById("matchflow"),resources=Array.from(flow.children).filter(e=>/resource-summary|resource-control/.test(e.className));
  const score=document.getElementById("match-scoreboard");score.replaceChildren();if(game.match)score.append(...Array.from(flow.children).slice(0,2));
  if(resources.length){const details=document.createElement("details"),summary=document.createElement("summary");summary.textContent=game.league?"Inducement purchases — required before continuing":"Staff & inducements · optional";details.append(summary,...resources);details.open=staffDetailsOpen||!!game.league;details.addEventListener("toggle",()=>{staffDetailsOpen=details.open;});flow.append(details);}
@@ -138,7 +140,23 @@ function refreshWorkspace(){
  if(game.match&&game.phase==="finished"&&game.league)flow.append(button("Record result in Teams & leagues",()=>switchWorkspace("teams",true)));
 }
 const renderBeforeWorkspace=render;
-render=function(){const focused=document.activeElement?.closest?.(".square"),index=focused?Array.from(pitch.children).indexOf(focused):-1;renderBeforeWorkspace();refreshWorkspace();if(index>=0)pitch.children[index]?.focus({preventScroll:true});};
+render=function(){const focused=document.activeElement?.closest?.(".square"),index=focused?Array.from(pitch.children).indexOf(focused):-1,logTop=log.scrollTop,followLog=log.scrollHeight-log.scrollTop-log.clientHeight<24;renderBeforeWorkspace();refreshWorkspace();log.scrollTop=followLog?log.scrollHeight:logTop;if(index>=0)pitch.children[index]?.focus({preventScroll:true});};
 const startLeagueMatchBeforeWorkspace=startLeagueMatch;
 startLeagueMatch=function(fixture){switchWorkspace("play");startLeagueMatchBeforeWorkspace(fixture);};
+const leagueDisclosureKey=e=>e.querySelector("summary")?.textContent.split(" · ")[0]||"";
+const renderLeagueBeforeWorkspace=renderLeague;
+renderLeague=function(){
+ const details=Array.from(leaguePanel.querySelectorAll("details")),open=new Set(details.filter(e=>e.open).map(leagueDisclosureKey));
+ const focused=document.activeElement,focusKey=focused?.closest?.("details"),focusLabel=focused?.tagName==="BUTTON"?focused.textContent:null;
+ renderLeagueBeforeWorkspace();
+ const updated=Array.from(leaguePanel.querySelectorAll("details"));for(const e of updated)if(open.has(leagueDisclosureKey(e)))e.open=true;
+ if(focusLabel){const parent=focusKey?updated.find(e=>leagueDisclosureKey(e)===leagueDisclosureKey(focusKey)):leaguePanel;Array.from(parent?.querySelectorAll("button")||[]).find(e=>e.textContent===focusLabel)?.focus({preventScroll:true});}
+};
+const coverage=document.getElementById("skillcoverage"),coverageTable=coverage.querySelector("table");
+if(coverageTable){
+ const label=document.createElement("label");label.className="skill-search";label.textContent="Find a skill or trait ";const input=document.createElement("input");input.type="search";input.placeholder="Name, category or behavior";label.append(input);coverage.querySelector("summary").after(label);
+ const status=document.createElement("p");status.className="muted";status.setAttribute("role","status");label.after(status);
+ const rows=Array.from(coverageTable.querySelectorAll("tr")).slice(1);
+ input.addEventListener("input",()=>{const query=input.value.trim().toLocaleLowerCase();for(const row of rows)row.hidden=!row.textContent.toLocaleLowerCase().includes(query);const count=rows.filter(r=>!r.hidden).length;status.textContent=count+" of "+rows.length+" entries";});
+}
 switchWorkspace("play");refreshWorkspace();

@@ -1,12 +1,12 @@
 [hidden]{display:none!important}
-body{padding:18px 24px;max-width:1600px}
-header{min-height:62px}h1{font-size:28px}.eyebrow{font-size:11px}
-.workspace-tabs{display:flex;gap:6px;border-bottom:1px solid #34474d;margin:14px 0 18px;overflow:auto}
+body{padding:14px 24px;max-width:1600px}
+header{min-height:48px}h1{font-size:26px}.eyebrow{font-size:11px}
+.workspace-tabs{display:flex;gap:6px;border-bottom:1px solid #34474d;margin:8px 0 12px;overflow:auto;position:sticky;top:0;z-index:4;background:#101b20}
 .workspace-tabs button{flex-shrink:0;font:inherit;font-weight:650;background:transparent;color:#b8c9c7;border:0;border-bottom:3px solid transparent;padding:13px 18px;cursor:pointer}
 .workspace-tabs button[aria-selected=true]{color:#ffe0a0;border-bottom-color:#e9bb69;background:#e9bb690c}
 .workspace-tabs button:hover{background:#ffffff09;color:#fff}
 [role=tabpanel]{min-width:0}
-#mode-notice{margin:0 0 12px;padding:8px 12px;font-size:13px}
+#mode-notice{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
 .mode-toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
 .mode-toolbar label{font-size:13px;font-weight:650}
 main{grid-template-columns:minmax(0,1fr) 310px;gap:16px;align-items:start}
@@ -16,6 +16,7 @@ main>aside h2{font-size:18px;margin:10px 0}main>aside p{font-size:13px;line-heig
 #choices{border-radius:6px}#choices:not(:empty){padding:12px;background:#101b20;border:1px solid #698065;margin:12px 0}
 #choices p:first-child{margin-top:0;color:#ffe0a0}#choices p{margin:8px 0}
 #choices .control{width:100%;text-align:left;margin:4px 0;min-height:40px}
+#choices .block-die{display:flex;align-items:center;gap:12px;font-size:14px}#choices .block-die::before{content:attr(data-glyph);font-size:25px;line-height:1;display:grid;place-items:center;width:38px;height:38px;background:#fff8de;border:2px solid #17242a;border-radius:7px;color:#17242a}
 button.control{font-size:13px;padding:10px 12px}button.control:hover:not(:disabled){filter:brightness(1.12)}
 details>summary{cursor:pointer;color:#d4dfdb;font-size:13px;font-weight:600;padding:10px 0}
 #player-details{border-top:1px solid #34474d;margin-top:12px}
@@ -37,6 +38,7 @@ details>summary{cursor:pointer;color:#d4dfdb;font-size:13px;font-weight:600;padd
 #matchflow .resource-control{background:#31474f;color:#e7eeeb}
 #matchflow .next-step{display:inline-block;margin-top:8px}
 #rosters{margin-top:0}#reference-view{display:grid;gap:16px}#skillcoverage{margin:0}
+.skill-search{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0;font-size:13px}.skill-search input{background:#101b20;color:#e7eeeb;border:1px solid #526a61;border-radius:4px;padding:10px;min-width:230px;max-width:100%}
 #reference-profile:empty{display:none}
 #league-panel{margin-top:0;display:flex;flex-direction:column}#league-panel>p{max-width:900px;font-size:13px}
 .league-creation{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin:16px 0}
@@ -55,6 +57,7 @@ details>summary{cursor:pointer;color:#d4dfdb;font-size:13px;font-weight:600;padd
 #pitch-popup .popup-close{position:absolute;right:6px;top:6px;background:transparent;border:0;color:#b8c9c7;font-size:21px;cursor:pointer;width:32px;height:32px}
 #pitch-tooltip{width:270px;pointer-events:none;font-size:12px;line-height:1.5;white-space:pre-line;border-color:#526a61}
 .pitch-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:#b8c9c7;margin-top:8px}.pitch-legend span::before{content:'';display:inline-block;width:9px;height:9px;border:1px solid #a0e3ad;background:#69c58b40;margin-right:6px}.pitch-legend span:nth-child(2)::before{border-color:#e4a247;background:#e4a24755}.pitch-legend span:nth-child(3)::before{border-color:#cc96ed;background:#cc96ed55}
+.mobile-pitch-help{display:none}
 footer{padding-top:14px;border-top:1px solid #34474d;font-size:11px;margin-top:24px}
 /* Preserve square cells: max-height on individual cells leaves gaps in grid rows. */
 #match-scoreboard{margin:0 0 12px;padding:10px 14px;background:#19282e;border:1px solid #34474d;border-radius:6px}
@@ -65,6 +68,6 @@ main>aside #matchflow .control{max-width:100%}
 .league-creation section>.control{vertical-align:bottom;margin-bottom:8px}
 @media(min-width:1100px){.pitch-wrap{max-width:max(650px,calc((100dvh - 320px)*26/15));margin-inline:auto}}
 @media(max-width:1050px){main{grid-template-columns:minmax(0,1fr) 270px}.panel{padding:16px}}
-@media(max-width:850px){main{grid-template-columns:1fr}main>aside{position:static;max-height:none}.league-creation{grid-template-columns:1fr}.pitch{min-width:650px}}
+@media(max-width:850px){main{grid-template-columns:1fr}main>aside{position:static;max-height:none;grid-row:1}.league-creation{grid-template-columns:1fr}.pitch{min-width:650px}#choices{max-height:50dvh;overflow:auto}.mobile-pitch-help{display:block;font-size:12px;color:#b8c9c7;margin:0 0 8px}}
 @media(max-width:600px){body{padding:12px}h1{font-size:24px}.badge{font-size:11px;padding:6px 9px}.workspace-tabs{gap:0;margin-top:8px}.workspace-tabs button{font-size:13px;padding:12px}.mode-toolbar{gap:8px}.mode-toolbar .muted{font-size:11px}#mode-notice{font-size:12px}#matchflow{padding:12px}#matchflow h2{font-size:17px}.turn-controls{display:flex}.turn-controls .control{flex:1;min-height:44px}#reset{flex-basis:100%}.token{font-size:12px}#pitch-popup .control{min-height:44px}.league-creation>section{padding:12px}footer{line-height:1.7}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
