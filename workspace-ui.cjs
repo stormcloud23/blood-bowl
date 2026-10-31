@@ -87,7 +87,7 @@ function showPitchPopup(cell,title,details,actions){
   if(epoch!==popupEpoch||game!==currentGame||game.pending!==currentPending||!popup.matches(":popover-open"))return;
   closePitchPopup();action.run();
  });if(i>0)b.className+=" secondary";list.append(b);}
- popup.showPopover();placePitchOverlay(popup,cell);
+ const pageX=globalThis.scrollX||0,pageY=globalThis.scrollY||0;popup.showPopover();globalThis.scrollTo?.({left:pageX,top:pageY,behavior:"instant"});placePitchOverlay(popup,cell);
  (list.querySelector("button")||close).focus({preventScroll:true});
 }
 const chooseBeforeWorkspace=choose;
