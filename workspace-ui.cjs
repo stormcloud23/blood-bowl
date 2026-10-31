@@ -1,6 +1,7 @@
 "use strict";
 // Presentation only. Engine guards remain the authority for every offered action.
 const workspaceTabs=["play","teams","rosters","reference"];
+const workspaceScroll={};
 let workspaceView="play",pitchFocus=0,popupAnchor=null,popupEpoch=0,hoverSquare=null,staffDetailsOpen=false;
 const popup=document.getElementById("pitch-popup"),tooltip=document.getElementById("pitch-tooltip");
 function closePitchPopup(restore=false){
@@ -13,9 +14,10 @@ function hidePitchTooltip(){
 }
 function switchWorkspace(view,focus=false){
  if(!workspaceTabs.includes(view))return;
- closePitchPopup();hidePitchTooltip();workspaceView=view;
+ workspaceScroll[workspaceView]=globalThis.scrollY||0;closePitchPopup();hidePitchTooltip();workspaceView=view;
  for(const key of workspaceTabs){const tab=document.getElementById("tab-"+key),panel=document.getElementById(key==="rosters"?key:key+"-view");tab.setAttribute("aria-selected",String(key===view));tab.tabIndex=key===view?0:-1;panel.hidden=key!==view;}
- if(focus)document.getElementById("tab-"+view).focus();
+ if(focus)document.getElementById("tab-"+view).focus({preventScroll:true});
+ globalThis.scrollTo?.({top:workspaceScroll[view]||0,behavior:"instant"});
 }
 for(const view of workspaceTabs){
  const tab=document.getElementById("tab-"+view);
@@ -26,8 +28,8 @@ for(const view of workspaceTabs){
  });
 }
 globalThis.inspectRosterPosition=()=>{
- document.getElementById("reference-profile").innerHTML=document.getElementById("profile").innerHTML;
- switchWorkspace("reference");document.getElementById("tab-reference").focus();
+ const profile=document.getElementById("reference-profile");profile.innerHTML=document.getElementById("profile").innerHTML;profile.hidden=false;document.getElementById("reference-view").prepend(profile);
+ switchWorkspace("reference");document.getElementById("tab-reference").focus({preventScroll:true});profile.scrollIntoView({block:"start"});
 };
 function placePitchOverlay(element,anchor){
  const r=anchor.getBoundingClientRect(),box=element.getBoundingClientRect(),gap=8;
@@ -155,7 +157,7 @@ function refreshWorkspace(){
  const choices=document.getElementById("choices");choices.setAttribute("aria-label",game.pending?"Required coach decision":"Action choices");
  if(game.pending){const owner=document.createElement("p");owner.className="decision-owner";owner.textContent=decisionCoachLabel(game.pending);choices.prepend(owner);}
  const faces={"Player Down":["☠","Attacker knocked down."],"Both Down":["↔","Both players may fall; Block and Wrestle can affect this result."],"Push Back":["↪","Push the defender to a legal destination."],"Stumble":["✦","Defender falls unless an applicable ability such as Dodge prevents it."],"POW":["✹","Defender knocked down."]};
- for(const b of choices.querySelectorAll("button")){const face=Object.keys(faces).find(name=>b.textContent.startsWith("Die ")&&b.textContent.endsWith(" · "+name));if(face){b.className+=" block-die";b.dataset.glyph=faces[face][0];b.title=faces[face][1];}else if(/^(Use |Re-roll |Cancel |Accept |Keep )/.test(b.textContent))b.className+=" secondary";}
+ for(const b of choices.querySelectorAll("button")){const face=Object.keys(faces).find(name=>b.textContent.startsWith("Die ")&&b.textContent.endsWith(" · "+name));if(face){b.className+=" block-die";b.dataset.glyph=faces[face][0];b.title=faces[face][1];b.setAttribute("aria-label",b.textContent);}else if(/^(Use |Re-roll |Cancel |Accept |Keep )/.test(b.textContent))b.className+=" secondary";}
  const flow=document.getElementById("matchflow"),resources=Array.from(flow.children).filter(e=>/resource-summary|resource-control/.test(e.className));
  const score=document.getElementById("match-scoreboard");score.replaceChildren();if(game.match)score.append(...Array.from(flow.children).slice(0,2));
  if(resources.length){const details=document.createElement("details"),summary=document.createElement("summary");summary.textContent=game.league?"Inducement purchases — required before continuing":"Staff & inducements · optional";details.append(summary,...resources);details.open=staffDetailsOpen||!!game.league;details.addEventListener("toggle",()=>{staffDetailsOpen=details.open;});flow.append(details);}
