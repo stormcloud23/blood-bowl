@@ -32,7 +32,7 @@ SOFTWARE.
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Blood Bowl · Development pitch</title>
+<title>Blood Bowl · Match day</title>
 <style>
 :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101b20;color:#e7eeeb}*{box-sizing:border-box}body{margin:0;padding:28px;max-width:1500px;margin-inline:auto}header{display:flex;justify-content:space-between;gap:20px;align-items:center}h1{font-size:32px;margin:8px 0}h2{font-size:18px}p{line-height:1.6;color:#b8c9c7}.eyebrow{color:#e9bb69;font-size:12px;letter-spacing:2px;text-transform:uppercase}.badge{padding:8px 12px;border:1px solid #45595e;border-radius:20px;font-size:12px}.notice{border-left:3px solid #e9bb69;padding:12px 18px;background:#202d30;margin:24px 0}main{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:24px}.pitch-wrap{overflow:auto;border:1px solid #526a61;border-radius:8px}.pitch{display:grid;grid-template-columns:repeat(26,1fr);min-width:650px;background:#284f40;padding:8px}.square{aspect-ratio:1;border:1px solid #ffffff16;--turf:#2d573b;background:var(--turf);padding:0;min-width:0;font-size:12px;cursor:pointer;color:white;position:relative}.square.turf-light{--turf:#47794b}.square.endzone-left{--turf:#c5343d}.square.endzone-left.turf-light{--turf:#f8f8f4}.square.endzone-right{--turf:#3264b8}.square.endzone-right.turf-light{--turf:#f8f8f4}.square.middle{border-right:2px solid #ffffff80}.square.wide{border-bottom:2px dashed #ffffff70}.square:hover{background:linear-gradient(#ffffff25,#ffffff25) var(--turf)}.square:focus-visible{outline:3px solid #ffe0a0;z-index:2}.token{display:grid;place-items:center;width:85%;height:85%;margin:auto;border-radius:50%;background:#dbac60;color:#17242a;font-weight:bold;border:2px solid #ffdfaa}.token.blue{background:#8abacb;border-color:#c4e5ed}.selected{outline:3px solid white;outline-offset:-3px}.panel{background:#19282e;border:1px solid #34474d;border-radius:8px;padding:20px}button.control{padding:11px 16px;background:#e9bb69;border:0;border-radius:5px;color:#17242a;font-weight:650;cursor:pointer;margin:4px 4px 4px 0}button.secondary{background:#31474f;color:#e7eeeb}#log{padding-left:20px;font-size:13px;line-height:1.7;max-height:220px;overflow:auto}a{color:#b5d9df}footer{font-size:13px;margin-top:24px;color:#9aafae}.muted{font-size:13px}@media(max-width:950px){main{grid-template-columns:1fr}body{padding:16px}header{align-items:flex-start}h1{font-size:25px}}
 
@@ -50,14 +50,80 @@ select{max-width:100%}
 #league-panel fieldset{min-width:0}
 @media(max-width:600px){header{flex-wrap:wrap;gap:8px}button.control{min-height:44px;max-width:100%;white-space:normal}select,#league-panel input,#league-panel textarea{font-size:16px}#league-panel label{max-width:100%}}
 </style>
+<style id="workspace-style">
+[hidden]{display:none!important}
+body{padding:18px 24px;max-width:1600px}
+header{min-height:62px}h1{font-size:28px}.eyebrow{font-size:11px}
+.workspace-tabs{display:flex;gap:6px;border-bottom:1px solid #34474d;margin:14px 0 18px;overflow:auto}
+.workspace-tabs button{flex-shrink:0;font:inherit;font-weight:650;background:transparent;color:#b8c9c7;border:0;border-bottom:3px solid transparent;padding:13px 18px;cursor:pointer}
+.workspace-tabs button[aria-selected=true]{color:#ffe0a0;border-bottom-color:#e9bb69;background:#e9bb690c}
+.workspace-tabs button:hover{background:#ffffff09;color:#fff}
+[role=tabpanel]{min-width:0}
+#mode-notice{margin:0 0 12px;padding:8px 12px;font-size:13px}
+.mode-toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.mode-toolbar label{font-size:13px;font-weight:650}
+main{grid-template-columns:minmax(0,1fr) 310px;gap:16px;align-items:start}
+main>aside{padding:16px;max-height:calc(100dvh - 160px);overflow:auto;position:sticky;top:12px}
+main>aside h2{font-size:18px;margin:10px 0}main>aside p{font-size:13px;line-height:1.5}
+#selection{color:#f2f6f1;font-weight:600}#movement{font-size:13px;color:#b8c9c7}
+#choices{border-radius:6px}#choices:not(:empty){padding:12px;background:#101b20;border:1px solid #698065;margin:12px 0}
+#choices p:first-child{margin-top:0;color:#ffe0a0}#choices p{margin:8px 0}
+#choices .control{width:100%;text-align:left;margin:4px 0;min-height:40px}
+button.control{font-size:13px;padding:10px 12px}button.control:hover:not(:disabled){filter:brightness(1.12)}
+details>summary{cursor:pointer;color:#d4dfdb;font-size:13px;font-weight:600;padding:10px 0}
+#player-details{border-top:1px solid #34474d;margin-top:12px}
+#profile{margin:0;padding-top:4px;border:0}#profile p{margin:8px 0}
+#skillcontrols .control{font-size:12px;padding:8px}
+.pitch{padding:6px;min-width:650px}.token{font-size:clamp(11px,1vw,15px);width:90%;height:90%;text-shadow:none}
+.token.prone{border-radius:25%;transform:rotate(-12deg)}.token.stunned{border-radius:25%;box-shadow:0 0 0 1px #ff6b70}
+.token.used{opacity:.58}.ball{font-size:14px;color:#fff2c7;text-shadow:0 1px 3px #000}
+#pitch-hint{margin:8px 0;font-size:12px;line-height:1.5}
+#action-disclosure{display:inline-block;vertical-align:top;margin-right:12px}
+#action-disclosure[open]{display:block;border:1px solid #34474d;border-radius:6px;padding:0 12px;margin-bottom:8px}
+.turn-controls{display:inline-flex;flex-wrap:wrap;gap:4px}#end{background:#e9bb69;color:#17242a}#reset{background:transparent;border:1px solid #526a61}
+#matchflow{margin:0 0 14px;padding:12px 16px;border-radius:6px;font-size:13px}
+#matchflow h2{margin:0 0 6px;font-size:19px}#matchflow p{margin:6px 0;line-height:1.45}
+#matchflow .match-meta{color:#9fb6b3;font-size:12px}
+#matchflow .phase-instruction{font-weight:650;color:#f3f4e9}
+#matchflow .setup-player{padding:6px 9px;min-height:34px;background:#31474f;color:#e7eeeb}
+#matchflow .resource-summary{font-size:12px;color:#9fb6b3}
+#matchflow .resource-control{background:#31474f;color:#e7eeeb}
+#matchflow .next-step{display:inline-block;margin-top:8px}
+#rosters{margin-top:0}#reference-view{display:grid;gap:16px}#skillcoverage{margin:0}
+#reference-profile:empty{display:none}
+#league-panel{margin-top:0}#league-panel>p{max-width:900px;font-size:13px}
+.league-creation{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin:16px 0}
+.league-creation>section{background:#101b20;border:1px solid #34474d;border-radius:6px;padding:16px}
+.league-creation h3{font-size:16px;margin-top:0}
+#league-panel label{display:inline-flex;flex-direction:column;gap:6px;font-size:13px;vertical-align:top}
+#league-panel input:not([type=checkbox]),#league-panel select{min-height:40px}
+#league-panel .backup-tools{margin:18px 0;background:#101b20}
+.backup-tools textarea{width:100%;display:block;font-family:ui-monospace,monospace;font-size:12px}
+#league-panel table{display:block;overflow:auto}#league-panel .league-status{padding:12px;border-left:3px solid #e9bb69;background:#202d30}
+#pitch-popup,#pitch-tooltip{background:#17282e;color:#e7eeeb;border:1px solid #69847f;border-radius:10px;box-shadow:0 16px 50px #0009;margin:0;position:fixed;padding:14px;inset:auto;max-width:calc(100vw - 16px)}
+#pitch-popup{width:280px;max-height: min(480px,calc(100dvh - 24px));overflow:auto}
+#pitch-popup::backdrop{background:transparent}
+#pitch-popup h3{font-size:15px;margin:0 24px 8px 0}#pitch-popup p{font-size:12px;line-height:1.5;margin:6px 0}
+#pitch-popup .popup-actions{display:grid;gap:5px;margin-top:10px}#pitch-popup .control{margin:0;text-align:left;min-height:40px}
+#pitch-popup .popup-close{position:absolute;right:6px;top:6px;background:transparent;border:0;color:#b8c9c7;font-size:21px;cursor:pointer;width:32px;height:32px}
+#pitch-tooltip{width:270px;pointer-events:none;font-size:12px;line-height:1.5;white-space:pre-line;border-color:#526a61}
+.pitch-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:#b8c9c7;margin-top:8px}.pitch-legend span::before{content:'';display:inline-block;width:9px;height:9px;border:1px solid #a0e3ad;background:#69c58b40;margin-right:6px}.pitch-legend span:nth-child(2)::before{border-color:#e4a247;background:#e4a24755}.pitch-legend span:nth-child(3)::before{border-color:#cc96ed;background:#cc96ed55}
+footer{padding-top:14px;border-top:1px solid #34474d;font-size:11px;margin-top:24px}
+@media(min-width:1100px){.pitch{min-width:650px}.square{max-height:calc((100dvh - 310px)/15)}}
+@media(max-width:1050px){main{grid-template-columns:minmax(0,1fr) 270px}.panel{padding:16px}}
+@media(max-width:850px){main{grid-template-columns:1fr}main>aside{position:static;max-height:none}.league-creation{grid-template-columns:1fr}.pitch{min-width:650px}}
+@media(max-width:600px){body{padding:12px}h1{font-size:24px}.badge{font-size:11px;padding:6px 9px}.workspace-tabs{gap:0;margin-top:8px}.workspace-tabs button{font-size:13px;padding:12px}.mode-toolbar{gap:8px}.mode-toolbar .muted{font-size:11px}#mode-notice{font-size:12px}#matchflow{padding:12px}#matchflow h2{font-size:17px}.turn-controls{display:flex}.turn-controls .control{flex:1;min-height:44px}#reset{flex-basis:100%}.token{font-size:12px}#pitch-popup .control{min-height:44px}.league-creation>section{padding:12px}footer{line-height:1.7}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
 </head>
 <body>
-<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>The development pitch</h1></div><span class="badge">v0.0.15 · Teams & leagues</span></header>
-<div class="notice" id="mode-notice"><strong>Movement and ball action practice</strong><br><span class="muted">Preview movement and its checks, resolve Block dice, pushes, and follow-ups, or secure a loose ball. Perfect Conditions. This remains a practice drive, not a complete match.</span></div>
-<p><a href="#league-panel">Create a team / manage league progression</a></p>
-<label for="scenario">Game mode </label><select id="scenario"><option value="match">Exhibition match — pre-game</option><option value="match-learning">Learning match — simplified kickoff</option><option value="skills">Skills laboratory</option><option value="teams">Both teams</option><option value="dodge">Dodge practice</option><option value="jump">Jump & stand up</option><option value="pickup">Ball pickup</option><option value="throw-team-mate">Throw Team-mate practice</option><option value="traits">Ogre & Troll traits</option><option value="handoff">Hand-off practice</option><option value="pass">Pass & interception practice</option><option value="blitz">Blitz practice</option><option value="block">Block practice</option><option value="secure">Secure the Ball practice</option></select><p class="muted">Changing the mode starts a new game or practice. Direction template: 1 NW · 2 N · 3 NE · 4 W · 5 E · 6 SW · 7 S · 8 SE.</p><div id="matchflow" class="notice" aria-live="polite"></div><main><section><div class="pitch-wrap"><div id="pitch" class="pitch" role="group" aria-label="Development pitch"></div></div><p class="muted">Select a player and choose an action. For movement, click a destination to preview the remaining range from there. Click another highlighted tile to extend the route. Declare the action, then click the selected destination again to commit; Cancel movement preview restores the current range. For Pass or Hand-off, declare the action, move as needed, then choose a ball target. For Blitz, choose Declare Blitz and a highlighted target, move adjacent, then choose Blitz Block (1 MA). During Block, click a highlighted target. After choosing a push result, click a gold push square; the player being pushed has a red outline. Crowd pushes remain in the side panel. Green = no roll on that step; amber = a check on that step or an action target; purple border = jump. Earlier route steps may still require rolls.</p><button class="control" id="start">Declare Move</button><button class="control secondary" id="handoff">Declare Hand-off</button><button class="control secondary" id="pass">Declare Pass</button><button class="control secondary" id="throw-mate">Declare Throw Team-mate</button><button class="control secondary" id="kick-mate">Declare Kick Team-mate</button><button class="control secondary" id="transfer">Choose ball target</button><button class="control secondary" id="blitz">Declare Blitz</button><button class="control secondary" id="block">Block</button><button class="control secondary" id="special">Foul / special action</button><button class="control secondary" id="secure">Secure the Ball</button><button class="control secondary" id="finish">End Move</button><button class="control secondary" id="end">End team turn</button><button class="control secondary" id="reset">Reset practice</button></section>
-<aside class="panel"><div class="eyebrow">Movement & action practice</div><h2 id="coach"></h2><p id="selection" role="status" aria-live="polite"></p><div id="movement" aria-live="polite"></div><div id="choices"></div><div id="profile"></div><div id="dugout"></div><h2>Session log</h2><ol id="log"></ol><p class="muted">League teams and completed results save in this browser. Unfinished games restart from pre-game. Match re-rolls replenish at half-time.</p></aside></main><section id="rosters" aria-label="Team rosters"></section>
-<footer>FFB-derived corrections: <a href="docs/FFB-AUDIT.md">comparison and scope</a> · <a href="THIRD_PARTY_NOTICES.md">MIT attribution</a> · Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.14 with feedback.</footer>
+<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>Match day</h1></div><span class="badge">v0.0.16 · Match workspace</span></header>
+<nav class="workspace-tabs" role="tablist" aria-label="Game workspace"><button id="tab-play" role="tab" aria-controls="play-view" aria-selected="true">Play</button><button id="tab-teams" role="tab" aria-controls="teams-view" aria-selected="false" tabindex="-1">Teams & leagues</button><button id="tab-rosters" role="tab" aria-controls="rosters" aria-selected="false" tabindex="-1">Rosters</button><button id="tab-reference" role="tab" aria-controls="reference-view" aria-selected="false" tabindex="-1">Reference</button></nav>
+<section id="play-view" role="tabpanel" aria-labelledby="tab-play"><div class="notice" id="mode-notice"><strong>Movement and ball action practice</strong><br><span class="muted">Preview movement and its checks, resolve Block dice, pushes, and follow-ups, or secure a loose ball. Perfect Conditions. This remains a practice drive, not a complete match.</span></div>
+<div class="mode-toolbar">
+<label for="scenario">Game mode </label><select id="scenario"><option value="match">Exhibition match — pre-game</option><option value="match-learning">Learning match — simplified kickoff</option><option value="skills">Skills laboratory</option><option value="teams">Both teams</option><option value="dodge">Dodge practice</option><option value="jump">Jump & stand up</option><option value="pickup">Ball pickup</option><option value="throw-team-mate">Throw Team-mate practice</option><option value="traits">Ogre & Troll traits</option><option value="handoff">Hand-off practice</option><option value="pass">Pass & interception practice</option><option value="blitz">Blitz practice</option><option value="block">Block practice</option><option value="secure">Secure the Ball practice</option></select><span class="muted">Changing mode starts a new game.</span></div><div id="matchflow" class="notice" aria-live="polite"></div><main><section><div class="pitch-wrap"><div id="pitch" class="pitch" role="group" aria-label="Development pitch"></div></div><p id="pitch-hint" class="muted">Click a player for actions. Hover or focus a square for details.</p><details id="action-disclosure"><summary>Player actions</summary><div id="action-controls"><button class="control" id="start">Declare Move</button><button class="control secondary" id="handoff">Declare Hand-off</button><button class="control secondary" id="pass">Declare Pass</button><button class="control secondary" id="throw-mate">Declare Throw Team-mate</button><button class="control secondary" id="kick-mate">Declare Kick Team-mate</button><button class="control secondary" id="transfer">Choose ball target</button><button class="control secondary" id="blitz">Declare Blitz</button><button class="control secondary" id="block">Block</button><button class="control secondary" id="special">Foul / special action</button><button class="control secondary" id="secure">Secure the Ball</button></div></details><div class="turn-controls"><button class="control secondary" id="finish">End Move</button><button class="control secondary" id="end">End team turn</button><button class="control secondary" id="reset">New game / reset</button></div></section>
+<aside class="panel"><div class="eyebrow">Coach’s desk</div><h2 id="coach"></h2><p id="selection" role="status" aria-live="polite"></p><div id="movement" aria-live="polite"></div><div id="choices"></div><details id="player-details"><summary>Player profile & optional skills</summary><div id="profile"></div></details><div id="dugout"></div><details><summary>Session log</summary><ol id="log"></ol></details><p class="muted">League teams and completed results save in this browser. Unfinished games restart from pre-game. Match re-rolls replenish at half-time.</p></aside></main></section><section id="teams-view" role="tabpanel" aria-labelledby="tab-teams" hidden></section><section id="rosters" role="tabpanel" aria-labelledby="tab-rosters" hidden></section><section id="reference-view" role="tabpanel" aria-labelledby="tab-reference" hidden><article class="panel"><h2>Playing guide</h2><p class="muted">Select a player and choose an action. For movement, click a destination to preview the remaining range from there. Click another highlighted tile to extend the route. Declare the action, then click the selected destination again to commit; Cancel movement preview restores the current range. For Pass or Hand-off, declare the action, move as needed, then choose a ball target. For Blitz, choose Declare Blitz and a highlighted target, move adjacent, then choose Blitz Block (1 MA). During Block, click a highlighted target. After choosing a push result, click a gold push square; the player being pushed has a red outline. Crowd pushes remain in the side panel. Green = no roll on that step; amber = a check on that step or an action target; purple border = jump. Earlier route steps may still require rolls.</p><p class="muted">Direction template: 1 NW · 2 N · 3 NE · 4 W · 5 E · 6 SW · 7 S · 8 SE. Green is a step without a roll; amber is a check or action target; purple marks a jump. Earlier route steps can still require rolls.</p><p class="muted">Use arrow keys to navigate the pitch. Enter opens actions or selects a square. Escape closes a popup or cancels targeting. Hover information is also available by keyboard focus; touch a player for the same information and actions.</p></article><div id="reference-profile" class="panel"><h2>Position details</h2><p>Select a position in Rosters to inspect it here.</p></div></section><div id="pitch-popup" popover="auto" role="dialog" aria-label="Pitch actions"></div><div id="pitch-tooltip" popover="manual" role="tooltip"></div>
+<footer>FFB-derived corrections: <a href="docs/FFB-AUDIT.md">comparison and scope</a> · <a href="THIRD_PARTY_NOTICES.md">MIT attribution</a> · Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.16 with feedback.</footer>
 <script id="team-data" type="application/json">[
   {
     "id": "imperial-nobility",
@@ -2549,6 +2615,7 @@ function choose(x,y,pushDecision=game.pending){
   else selection.textContent="Choose a highlighted Standing opponent next to the selected player.";
   return;
  }
+ if(game.pending)return;
  if(p){selected=p.id;destination=null;showProfile(p.team,p.role,p.number);render();return;}
  const mover=planningPlayer(),previous=previewRoute(mover);
  if(previous?.x===x&&previous?.y===y){if(game.mover)commitRoute();else render();return;}
@@ -2706,36 +2773,36 @@ function renderSkillControls(){
  if(game.match&&game.phase!=="play"&&game.action!=="blitz")document.getElementById("special").disabled=true;
 }
 function renderSkillCoverage(){
- const section=document.createElement("details");section.className="panel";section.id="skillcoverage";const summary=document.createElement("summary"),counts={};SKILL_CATALOG.forEach(s=>counts[s.status]=(counts[s.status]||0)+1);summary.textContent="Skills & traits coverage · "+SKILL_CATALOG.length+" audited · "+counts.Implemented+" implemented · "+counts.Partial+" partial · "+counts.Deferred+" deferred";section.append(summary);
+ const section=document.createElement("details");section.className="panel";section.id="skillcoverage";const summary=document.createElement("summary"),counts={Implemented:0,Partial:0,Deferred:0};SKILL_CATALOG.forEach(s=>counts[s.status]=(counts[s.status]||0)+1);summary.textContent="Skills & traits coverage · "+SKILL_CATALOG.length+" audited · "+counts.Implemented+" implemented · "+counts.Partial+" partial · "+counts.Deferred+" deferred";section.append(summary);
  const intro=document.createElement("p");intro.textContent="The Skills laboratory can add supported abilities to individual practice players. Partial and deferred entries below describe the missing dependencies. Optional abilities default on; their owner can turn them off before a roll.";section.append(intro);
  const table=document.createElement("table"),head=document.createElement("tr");for(const label of ["Skill / Trait","Category","Use","Status","Coverage / next dependency"]){const th=document.createElement("th");th.textContent=label;head.append(th);}table.append(head);
- for(const s of SKILL_CATALOG){const row=document.createElement("tr");for(const value of [s.name,s.category,s.kind+(s.mandatory?" · mandatory":""),s.status,s.notes]){const td=document.createElement("td");td.textContent=value;row.append(td);}table.append(row);}const wrap=document.createElement("div");wrap.className="table-scroll";wrap.append(table);section.append(wrap);document.getElementById("rosters").before(section);
+ for(const s of SKILL_CATALOG){const row=document.createElement("tr");for(const value of [s.name,s.category,s.kind+(s.mandatory?" · mandatory":""),s.status,s.notes]){const td=document.createElement("td");td.textContent=value;row.append(td);}table.append(row);}const wrap=document.createElement("div");wrap.className="table-scroll";wrap.append(table);section.append(wrap);document.getElementById("reference-view").append(section);
 }
 function matchRun(fn){fn();destination=null;blockMode=false;ballMode=false;throwDestination=null;render();}
 function renderMatch(){
  const panel=document.getElementById("matchflow");panel.hidden=false;panel.replaceChildren();
  const title=document.createElement("h2");title.textContent=teams[0].name+" "+game.scores[0]+" – "+game.scores[1]+" "+teams[1].name;panel.append(title);
- const info=document.createElement("p");info.textContent="Half "+game.half+" · Drive "+game.drive+" · Turn markers "+game.turns.join(" / ")+" · "+game.weather+" · Fan Factors "+game.fans.join(" / ")+" · Apothecaries "+game.apothecaries.join(" / ")+" · Bribes "+game.bribes.join(" / ")+" · Mortuary Assistants "+game.mortuaryAssistants.join(" / ")+" · Plague Doctors "+game.plagueDoctors.join(" / ")+" · Mascots "+game.mascots.join(" / ")+" · Weather Mages "+game.weatherMages.join(" / ")+" · Biased Referees "+game.biasedRefs.join(" / ")+" · Kegs "+game.resourceChoices.map(r=>r.kegs).join(" / ")+(game.learning?" · Learning rules: configured Dedicated Fans, Perfect Conditions, no Kick-off Event.":"");panel.append(info);
- const say=text=>{const p=document.createElement("p");p.textContent=text;panel.append(p);};
- const add=(label,fn)=>panel.append(button(label,()=>matchRun(fn)));
+ const info=document.createElement("p");info.className="match-meta";const resources=[["Apothecaries",game.apothecaries],["Bribes",game.bribes],["Mortuary Assistants",game.mortuaryAssistants],["Plague Doctors",game.plagueDoctors],["Mascots",game.mascots],["Weather Mages",game.weatherMages],["Biased Referees",game.biasedRefs],["Kegs",game.resourceChoices.map(r=>r.kegs)]].filter(([,values])=>values.some(n=>n>0));info.textContent="Half "+game.half+" · Drive "+game.drive+" · Turn markers "+game.turns.join(" / ")+" · "+game.weather+" · Fan Factors "+game.fans.join(" / ")+resources.map(([name,values])=>" · "+name+" "+values.join(" / ")).join("")+(game.learning?" · Learning rules: configured Dedicated Fans, Perfect Conditions, no Kick-off Event.":"");panel.append(info);
+ const say=(text,kind="")=>{const p=document.createElement("p");p.textContent=text;p.className=kind;panel.append(p);};
+ const add=(label,fn,kind="")=>{const b=button(label,()=>matchRun(fn));if(kind)b.className+=" "+kind;panel.append(b);};
  if(["fans","weather","leagueSteps","rolloff"].includes(game.phase)){
-  say(game.phase==="fans"?"Pre-game 1: determine the fans in attendance.":game.phase==="weather"?"Pre-game 2: determine the weather.":game.phase==="leagueSteps"?"Pre-game 3–4: league fixtures include Journeymen and funded inducements. Exhibitions use configured resources.":"Pre-game 5: roll off. The winning coach chooses which team kicks.");
+  say(game.phase==="fans"?"Pre-game 1: determine the fans in attendance.":game.phase==="weather"?"Pre-game 2: determine the weather.":game.phase==="leagueSteps"?"Pre-game 3–4: league fixtures include Journeymen and funded inducements. Exhibitions use configured resources.":"Pre-game 5: roll off. The winning coach chooses which team kicks.","phase-instruction");
   if(game.phase==="fans"&&!game.league||game.phase==="leagueSteps"&&game.league){
-   say(game.league?"Permanent staff are fixed. Buy supported inducements in CTV order using Petty Cash and permitted Treasury spending.":"Choose staff and supported inducements for this exhibition. Costs are shown; exhibition selections do not spend a saved team Treasury.");
+   say(game.league?"Permanent staff are fixed. Buy supported inducements in CTV order using Petty Cash and permitted Treasury spending.":"Choose staff and supported inducements for this exhibition. Costs are shown; exhibition selections do not spend a saved team Treasury.","resource-summary");
    for(const team of [0,1]){
     const costs=game.resourceCosts(team),r=game.resourceChoices[team];
-    say(teams[team].name+": "+r.teamRerolls+" team re-rolls, "+r.assistants+" assistant coaches, "+r.cheerleaders+" cheerleaders, "+r.dedicatedFans+" Dedicated Fans. Selected staff/re-rolls "+money(costs.staff)+", fan improvements "+money(costs.fans)+", inducements "+money(costs.inducements)+".");
-    if(!game.league||game.leaguePurchaseOrder[game.leaguePurchaseStep]===team){if(game.league)say("Available inducement budget: "+money(game.leagueBudget(team))+". The higher CTV team completes purchases first. Choose Done to lock purchases.");add("Configure staff and inducements — "+teams[team].name,()=>game.configureResources(team));}
-    if(!game.league&&teams[team].staff?.apothecary){say(teams[team].name+" apothecaries: "+game.apothecaries[team]);add((r.apothecary?"Remove":"Add")+" apothecary — "+teams[team].name,()=>game.setApothecary(team,!r.apothecary));}
+    say(teams[team].name+": "+r.teamRerolls+" team re-rolls, "+r.assistants+" assistant coaches, "+r.cheerleaders+" cheerleaders, "+r.dedicatedFans+" Dedicated Fans. Selected staff/re-rolls "+money(costs.staff)+", fan improvements "+money(costs.fans)+", inducements "+money(costs.inducements)+".","resource-summary");
+    if(!game.league||game.leaguePurchaseOrder[game.leaguePurchaseStep]===team){if(game.league)say("Available inducement budget: "+money(game.leagueBudget(team))+". The higher CTV team completes purchases first. Choose Done to lock purchases.","resource-summary");add("Configure staff and inducements — "+teams[team].name,()=>game.configureResources(team),"resource-control");}
+    if(!game.league&&teams[team].staff?.apothecary){say(teams[team].name+" apothecaries: "+game.apothecaries[team],"resource-summary");add((r.apothecary?"Remove":"Add")+" apothecary — "+teams[team].name,()=>game.setApothecary(team,!r.apothecary),"resource-control");}
    }
   }
-  add(game.phase==="fans"?"Determine fans":game.phase==="weather"?"Determine weather":game.phase==="leagueSteps"?(game.league?"Continue league pre-game":"Continue exhibition pre-game"):"Roll for kick or receive",()=>game.advancePregame());
+  add(game.phase==="fans"?"Determine fans":game.phase==="weather"?"Determine weather":game.phase==="leagueSteps"?(game.league?"Continue league pre-game":"Continue exhibition pre-game"):"Roll for kick or receive",()=>game.advancePregame(),"next-step");
  }else if(game.phase==="kickChoice"){
   say(teams[game.rolloffWinner].name+" won the roll-off. Choose who kicks first.");for(const t of [0,1])add(teams[t].name+" kicks",()=>game.chooseKicking(t));
  }else if(game.phase==="setup"){
   say(teams[game.setupTeam].name+" sets up. Select a player, then an empty square in their own half. Central LOS needs three players; each Wide Zone permits two.");
   say(game.setupErrors().join(" ")||"Formation is legal. Confirm when ready.");
-  for(const p of game.available(game.setupTeam))add("Select #"+p.number+" · "+playerLabel(p),()=>{selected=p.id;showProfile(p.team,p.role,p.number);});
+  for(const p of game.available(game.setupTeam))add("Select #"+p.number+" · "+playerLabel(p),()=>{selected=p.id;showProfile(p.team,p.role,p.number);},"setup-player");
   add("Use suggested formation",()=>game.autoSetup());add("Confirm formation",()=>game.confirmSetup());
  }else if(game.phase==="kicker"){
   say(teams[game.kicking].name+": nominate a kicker outside the Wide Zones and away from the LOS when possible.");for(const p of game.eligibleKickers())add("Kicker #"+p.number+" · "+playerLabel(p),()=>game.nominateKicker(p.id));
@@ -2759,7 +2826,7 @@ function renderRosters(){
  const total=t.lineup.reduce((n,r)=>n+t.positions[r].cost,0);
  return '<article class="panel"><div class="roster-heading"><h2>'+t.name+'</h2><span class="badge">Tier '+t.tier+'</span></div><p class="team-summary">'+t.league+' · '+(t.special.length?t.special.join(" · "):"No team special rules listed")+'</p><div class="table-scroll"><table><caption>Available positions · click a position to inspect</caption><thead><tr>'+["Position","Limit","MA","ST","AG","PA","AV","Skills & traits","Primary","Secondary","Cost"].map(h=>'<th scope="col">'+h+'</th>').join("")+'</tr></thead><tbody>'+t.positions.map((p,r)=>'<tr><td><button class="role-button" data-team="'+team+'" data-role="'+r+'">'+p.name+'</button><br><small>'+p.traits+'</small></td><td>0–'+p.max+'</td>'+["ma","st","ag","pa","av"].map(k=>'<td>'+p[k]+'</td>').join("")+'<td class="skills">'+p.skills.join(", ")+'</td><td>'+p.primary+'</td><td>'+p.secondary+'</td><td>'+money(p.cost)+'</td></tr>').join("")+'</tbody></table></div><p class="team-summary"><strong>Demo lineup:</strong> '+t.positions.map((p,r)=>({p,count:t.lineup.filter(v=>v===r).length})).filter(v=>v.count).map(v=>v.count+" × "+v.p.name).join(" · ")+'<br>11 players: '+money(total)+'. With 2 re-rolls: '+money(total+2*t.reroll)+'. These are demonstration selections, not a roster builder.</p><p class="muted">Re-roll: '+money(t.reroll)+' · Apothecary: '+money(t.staff.apothecary)+' · Assistant coach: '+money(t.staff.assistantCoach)+' · Cheerleader: '+money(t.staff.cheerleader)+'</p><p class="muted">Advancement categories: A = Agility · D = Devious · G = General · P = Passing · S = Strength. Configure staff and basic inducements before an exhibition. Use League teams & progression to draft, save and develop your own team. Star players and their unique abilities are deferred.</p><a class="muted" href="'+t.source+'">Source of truth · reviewed '+t.reviewed+'</a></article>';
  }).join("");
- document.querySelectorAll(".role-button").forEach(button=>button.addEventListener("click",()=>{showProfile(Number(button.dataset.team),Number(button.dataset.role),null);document.getElementById("profile").scrollIntoView({behavior:"smooth",block:"center"});}));
+ document.querySelectorAll(".role-button").forEach(button=>button.addEventListener("click",()=>{showProfile(Number(button.dataset.team),Number(button.dataset.role),null);if(globalThis.inspectRosterPosition)globalThis.inspectRosterPosition();else document.getElementById("profile").scrollIntoView({behavior:"smooth",block:"center"});}));
 }
 
 document.getElementById("special").addEventListener("click",()=>{
@@ -2789,7 +2856,7 @@ const demoLeagueTeams=JSON.parse(JSON.stringify(teams));
 globalThis.resetLeagueTeams=()=>teams.splice(0,teams.length,...JSON.parse(JSON.stringify(demoLeagueTeams)));
 let leagueStore,leagueSelected=null,leagueMessage="",leagueStorageError="",leagueRawBackup="",leagueStoredSnapshot=null;
 try{const saved=globalThis.localStorage?.getItem(LEAGUE_STORAGE_KEY);leagueRawBackup=saved||"";leagueStoredSnapshot=saved||null;leagueStore=new LeagueStore(demoLeagueTeams,saved?JSON.parse(saved):null);}catch(error){leagueStorageError="Saved league data could not be loaded: "+error.message+". Export or repair your backup before saving.";leagueStore=new LeagueStore(demoLeagueTeams);}
-const leaguePanel=document.createElement("section");leaguePanel.className="panel";leaguePanel.id="league-panel";document.getElementById("rosters").before(leaguePanel);
+const leaguePanel=document.createElement("section");leaguePanel.className="panel";leaguePanel.id="league-panel";document.getElementById("teams-view").append(leaguePanel);
 function leagueElement(tag,text,parent=leaguePanel){const e=document.createElement(tag);if(text!=null)e.textContent=text;parent.append(e);return e;}
 function leagueButton(text,fn,parent=leaguePanel){const b=leagueElement("button",text,parent);b.className="control secondary";b.addEventListener("click",()=>leagueAction(fn));return b;}
 function leagueInput(label,value,parent=leaguePanel,type="text"){const wrap=leagueElement("label",label+" ",parent),input=leagueElement("input",null,wrap);input.type=type;input.value=value;input.setAttribute("aria-label",label);return input;}
@@ -2803,12 +2870,14 @@ function renderLeagueResults(league){
  for(const m of [...matches].reverse()){const row=leagueElement("tr",null,table);for(const value of [typeof m.date==="string"?m.date.slice(0,10):"Recorded",leagueStore.team(m.teamIds[0]).name,m.scores.join("–"),leagueStore.team(m.teamIds[1]).name])leagueElement("td",value,row);}
 }
 function renderLeague(){
- leaguePanel.replaceChildren();leagueElement("h2","League teams & progression");leagueElement("p",leagueStorageError||leagueMessage||"Draft a team with 1,000,000 gp, submit it, and enter a local league. Teams and completed results save in this browser. An unfinished fixture restarts from pre-game after reload.");
- const backup=leagueElement("textarea");backup.setAttribute("aria-label","League backup JSON");backup.rows=3;backup.style&&(backup.style.width="100%");
- const exportBackup=leagueElement("button","Export backup");exportBackup.className="control secondary";exportBackup.addEventListener("click",()=>{backup.value=leagueStorageError?leagueRawBackup:JSON.stringify(leagueStore.data,null,2);});
- const importButton=leagueElement("button","Import backup");importButton.className="control secondary";importButton.addEventListener("click",()=>{try{if(leagueStore.data.active)throw Error("Finish the active fixture before importing");const incoming=new LeagueStore(demoLeagueTeams,JSON.parse(backup.value));if(!globalThis.localStorage)throw Error("Browser storage unavailable");if(globalThis.localStorage.getItem(LEAGUE_STORAGE_KEY)!==leagueStoredSnapshot)throw Error("League data changed in another tab. Reload before importing.");globalThis.localStorage.setItem(LEAGUE_STORAGE_KEY,JSON.stringify(incoming.data));leagueStoredSnapshot=JSON.stringify(incoming.data);leagueStore=incoming;leagueStorageError="";leagueSelected=null;leagueMessage="Backup imported.";}catch(e){leagueMessage=e.message;}renderLeague();});
- const roster=leagueSelect("Roster",demoLeagueTeams.map(t=>[t.id,t.name])),name=leagueInput("New team name",""),coach=leagueInput("Coach","");leagueButton("Create rookie team",()=>{leagueSelected=leagueStore.create(roster.value,name.value,coach.value).id;});
- const leagueName=leagueInput("New league name","");leagueButton("Create league",()=>leagueStore.createLeague(leagueName.value));
+ leaguePanel.replaceChildren();leagueElement("h2","League teams & progression");const status=leagueElement("p",leagueStorageError||leagueMessage||"Draft a team with 1,000,000 gp, submit it, and enter a local league. Teams and completed results save in this browser. An unfinished fixture restarts from pre-game after reload.");status.className="league-status";status.setAttribute("role","status");
+ const creation=leagueElement("div");creation.className="league-creation";const teamForm=leagueElement("section",null,creation),leagueForm=leagueElement("section",null,creation);leagueElement("h3","Create a team",teamForm);leagueElement("h3","Create a league",leagueForm);
+ const roster=leagueSelect("Roster",demoLeagueTeams.map(t=>[t.id,t.name]),teamForm),name=leagueInput("New team name","",teamForm),coach=leagueInput("Coach","",teamForm);leagueButton("Create rookie team",()=>{leagueSelected=leagueStore.create(roster.value,name.value,coach.value).id;},teamForm);
+ const leagueName=leagueInput("New league name","",leagueForm);leagueButton("Create league",()=>leagueStore.createLeague(leagueName.value),leagueForm);
+ const backupTools=leagueElement("details");backupTools.className="backup-tools";leagueElement("summary","Backup & restore",backupTools);leagueElement("p","Export your data, then copy the JSON below to a file. To restore, paste a backup and choose Import backup. Import replaces this browser’s teams and leagues.",backupTools);
+ const backupLabel=leagueElement("label","League backup JSON",backupTools),backup=leagueElement("textarea",null,backupLabel);backup.setAttribute("aria-label","League backup JSON");backup.rows=5;backup.style&&(backup.style.width="100%");
+ const exportBackup=leagueElement("button","Export backup",backupTools);exportBackup.className="control secondary";exportBackup.addEventListener("click",()=>{backup.value=leagueStorageError?leagueRawBackup:JSON.stringify(leagueStore.data,null,2);});
+ const importButton=leagueElement("button","Import backup",backupTools);importButton.className="control secondary";importButton.addEventListener("click",()=>{try{if(leagueStore.data.active)throw Error("Finish the active fixture before importing");const incoming=new LeagueStore(demoLeagueTeams,JSON.parse(backup.value));if(!globalThis.localStorage)throw Error("Browser storage unavailable");if(globalThis.localStorage.getItem(LEAGUE_STORAGE_KEY)!==leagueStoredSnapshot)throw Error("League data changed in another tab. Reload before importing.");globalThis.localStorage.setItem(LEAGUE_STORAGE_KEY,JSON.stringify(incoming.data));leagueStoredSnapshot=JSON.stringify(incoming.data);leagueStore=incoming;leagueStorageError="";leagueSelected=null;leagueMessage="Backup imported.";}catch(e){leagueMessage=e.message;}renderLeague();});
  if(leagueStore.data.teams.length){const choose=leagueSelect("Saved team",leagueStore.data.teams.map(t=>[t.id,t.name+(t.draft?" (draft)":"")]));choose.value=leagueSelected||choose.value;leagueSelected=choose.value;choose.addEventListener("change",()=>{leagueSelected=choose.value;renderLeague();});}
  for(const l of leagueStore.data.leagues){leagueElement("h3",l.name);const table=leagueElement("table"),head=leagueElement("tr",null,table);for(const h of ["Team","P","W","D","L","TD","CAS","Points"])leagueElement("th",h,head);for(const t of l.teamIds.map(id=>leagueStore.team(id)).sort((a,b)=>b.record.points-a.record.points)){const row=leagueElement("tr",null,table);for(const v of [t.name,t.record.played,t.record.won,t.record.drawn,t.record.lost,t.record.tdFor+":"+t.record.tdAgainst,t.record.casualties,t.record.points])leagueElement("td",String(v),row);}renderLeagueResults(l);if(l.teamIds.length>=2&&!leagueStore.data.active){const h=leagueSelect("Home",l.teamIds.map(id=>[id,leagueStore.team(id).name])),a=leagueSelect("Away",l.teamIds.map(id=>[id,leagueStore.team(id).name]));a.value=l.teamIds[1];leagueButton("Play league fixture",()=>{const f=leagueStore.startFixture(h.value,a.value);return ()=>startLeagueMatch(f);});}}
  const active=leagueStore.data.active;if(active){leagueElement("p","Active fixture: "+active.teams.map(t=>t.name).join(" vs "));if(game.leagueFixtureId!==active.id)leagueButton("Restart active fixture from pre-game",()=>()=>startLeagueMatch(active));if(game.leagueFixtureId===active.id&&game.phase==="finished")renderLeaguePostgame();}
@@ -2827,6 +2896,151 @@ function renderLeaguePostgame(){leagueElement("h3","Record completed fixture");l
 // Full-time can be reached through any of the existing action/recovery controls.
 const renderBeforeLeagues=render;render=function(){renderBeforeLeagues();renderLeague();};
 renderLeague();
+</script>
+<script id="workspace-ui">
+"use strict";
+// Presentation only. Engine guards remain the authority for every offered action.
+const workspaceTabs=["play","teams","rosters","reference"];
+let workspaceView="play",pitchFocus=0,popupAnchor=null,popupEpoch=0,hoverSquare=null,staffDetailsOpen=false;
+const popup=document.getElementById("pitch-popup"),tooltip=document.getElementById("pitch-tooltip");
+function closePitchPopup(restore=false){
+ popupEpoch++;if(popup.matches(":popover-open"))popup.hidePopover();
+ if(restore&&popupAnchor?.isConnected)popupAnchor.focus();popupAnchor=null;
+}
+function hidePitchTooltip(){
+ if(tooltip.matches(":popover-open"))tooltip.hidePopover();
+ if(hoverSquare)hoverSquare.removeAttribute("aria-describedby");hoverSquare=null;
+}
+function switchWorkspace(view,focus=false){
+ if(!workspaceTabs.includes(view))return;
+ closePitchPopup();hidePitchTooltip();workspaceView=view;
+ for(const key of workspaceTabs){const tab=document.getElementById("tab-"+key),panel=document.getElementById(key==="rosters"?key:key+"-view");tab.setAttribute("aria-selected",String(key===view));tab.tabIndex=key===view?0:-1;panel.hidden=key!==view;}
+ if(focus)document.getElementById("tab-"+view).focus();
+}
+for(const view of workspaceTabs){
+ const tab=document.getElementById("tab-"+view);
+ tab.addEventListener("click",()=>switchWorkspace(view));
+ tab.addEventListener("keydown",event=>{
+  const i=workspaceTabs.indexOf(view),next=event.key==="ArrowRight"?(i+1)%4:event.key==="ArrowLeft"?(i+3)%4:event.key==="Home"?0:event.key==="End"?3:null;
+  if(next!==null){event.preventDefault();switchWorkspace(workspaceTabs[next],true);}
+ });
+}
+globalThis.inspectRosterPosition=()=>{
+ document.getElementById("reference-profile").innerHTML=document.getElementById("profile").innerHTML;
+ switchWorkspace("reference");document.getElementById("tab-reference").focus();
+};
+function placePitchOverlay(element,anchor){
+ const r=anchor.getBoundingClientRect(),box=element.getBoundingClientRect(),gap=8;
+ const left=Math.max(gap,Math.min(r.right+gap,innerWidth-box.width-gap));
+ const top=Math.max(gap,Math.min(r.top,innerHeight-box.height-gap));
+ element.style.left=left+"px";element.style.top=top+"px";
+}
+function playerQuickInfo(p){
+ const profile=game.profile(p);
+ return teams[p.team].name+" · #"+p.number+" "+playerLabel(p)+"\n"+["ma","st","ag","pa","av"].map(k=>k.toUpperCase()+" "+profile[k]).join(" · ")+"\n"+p.status+(p.used?" · activated":"")+(p.distracted?" · distracted":"")+(game.ball.carrier===p.id?" · ball carrier":"")+"\n"+profile.skills.join(" · ");
+}
+function showPitchTooltip(cell){
+ if(popup.matches(":popover-open"))return;
+ const i=Array.from(pitch.children).indexOf(cell),p=game.at(i%26,Math.floor(i/26));
+ const text=p?playerQuickInfo(p):cell.title;
+ if(!text||text==="empty"){hidePitchTooltip();return;}
+ hidePitchTooltip();hoverSquare=cell;cell.setAttribute("aria-describedby","pitch-tooltip");tooltip.textContent=text;
+ tooltip.showPopover();placePitchOverlay(tooltip,cell);
+}
+const playerActionIds=["start","block","blitz","handoff","pass","throw-mate","kick-mate","secure","special","transfer","finish"];
+function playerContextActions(p){
+ if(game.pending||game.finished||!p||p.id!==selected||game.mover&&game.mover!==p.id)return [];
+ return playerActionIds.map(id=>document.getElementById(id)).filter(b=>!b.disabled).map(b=>({label:b.textContent,run:()=>b.click()}));
+}
+function targetContextActions(actor,target){
+ const actions=[];
+ if(!actor||!target||game.pending||game.finished)return actions;
+ if(game.canBlock(actor,target))actions.push({label:"Block #"+target.number,run:()=>{game.block(actor.id,target.id);destination=null;render();}});
+ if(game.canBlitz(actor,target))actions.push({label:"Declare Blitz on #"+target.number,run:()=>{game.startBlitz(actor.id,target.id);destination=null;render();}});
+ if(game.specialTargets().some(p=>p.id===target.id))actions.push({label:(game.action==="foul"?"Foul":game.action.slice(8))+" #"+target.number,run:()=>{game.performSpecial(target.id);destination=null;render();}});
+ return actions;
+}
+function showPitchPopup(cell,title,details,actions){
+ closePitchPopup();hidePitchTooltip();popupAnchor=cell;const epoch=popupEpoch,currentGame=game,currentPending=game.pending;
+ popup.replaceChildren();const heading=document.createElement("h3");heading.textContent=title;popup.append(heading);
+ const close=button("×",()=>closePitchPopup(true));close.className="popup-close";close.setAttribute("aria-label","Close pitch actions");popup.append(close);
+ for(const line of details.split("\n")){if(!line)continue;const p=document.createElement("p");p.textContent=line;popup.append(p);}
+ const list=document.createElement("div");list.className="popup-actions";popup.append(list);
+ for(const action of actions){list.append(button(action.label,()=>{
+  if(epoch!==popupEpoch||game!==currentGame||game.pending!==currentPending||!popup.matches(":popover-open"))return;
+  closePitchPopup();action.run();
+ }));}
+ popup.showPopover();placePitchOverlay(popup,cell);
+ (list.querySelector("button")||close).focus();
+}
+const chooseBeforeWorkspace=choose;
+choose=function(x,y,pushDecision=game.pending){
+ closePitchPopup();hidePitchTooltip();pitchFocus=y*26+x;
+ const target=game.at(x,y),actor=game.players.find(p=>p.id===selected),wasTargeting=!!(blockMode||ballMode||game.pending),phase=game.phase;
+ const targetActions=!wasTargeting&&target?.team!==actor?.team?targetContextActions(actor,target):[];
+ if(!wasTargeting&&target&&game.match&&phase==="kicker"&&game.eligibleKickers().includes(target)){
+  showPitchPopup(pitch.children[pitchFocus],"Kicker #"+target.number,playerQuickInfo(target),[{label:"Nominate kicker #"+target.number,run:()=>matchRun(()=>game.nominateKicker(target.id))}]);return;
+ }
+ if(targetActions.length){
+  const cell=pitch.children[pitchFocus];showPitchPopup(cell,"Target #"+target.number,playerQuickInfo(target),[...targetActions,{label:"Inspect player",run:()=>{chooseBeforeWorkspace(x,y);document.getElementById("player-details").open=true;}}]);return;
+ }
+ chooseBeforeWorkspace(x,y,pushDecision);
+ const cell=pitch.children[pitchFocus];
+ if(!wasTargeting&&target&&(!game.match||["play","charge"].includes(phase))){
+  const actions=playerContextActions(target);showPitchPopup(cell,"#"+target.number+" · "+playerLabel(target),playerQuickInfo(target),actions.length?actions:[{label:"Show full profile",run:()=>{document.getElementById("player-details").open=true;}}]);
+ }else if(!wasTargeting&&!target&&destination&&game.mover){
+  showPitchPopup(cell,"Movement preview",document.getElementById("movement").textContent,[{label:"Commit planned route",run:commitRoute},{label:"Cancel movement preview",run:cancelMovementPreview}]);
+ }
+};
+pitch.addEventListener("keydown",event=>{
+ const cell=event.target.closest(".square");if(!cell)return;
+ const index=Array.from(pitch.children).indexOf(cell),x=index%26,y=Math.floor(index/26);
+ let next=null;
+ if(event.key==="ArrowLeft")next=y*26+Math.max(0,x-1);
+ if(event.key==="ArrowRight")next=y*26+Math.min(25,x+1);
+ if(event.key==="ArrowUp")next=Math.max(0,y-1)*26+x;
+ if(event.key==="ArrowDown")next=Math.min(14,y+1)*26+x;
+ if(event.key==="Home")next=y*26;if(event.key==="End")next=y*26+25;
+ if(next!==null){event.preventDefault();pitch.children[index].tabIndex=-1;pitchFocus=next;pitch.children[next].tabIndex=0;pitch.children[next].focus();}
+});
+pitch.addEventListener("pointerover",e=>{if(e.pointerType==="touch")return;const cell=e.target.closest(".square");if(cell&&cell!==hoverSquare)showPitchTooltip(cell);});
+pitch.addEventListener("focusin",e=>{const cell=e.target.closest(".square");if(cell)showPitchTooltip(cell);});
+pitch.addEventListener("pointerleave",hidePitchTooltip);
+pitch.addEventListener("focusout",hidePitchTooltip);
+popup.addEventListener("keydown",event=>{
+ if(event.key==="Escape"){event.preventDefault();closePitchPopup(true);return;}
+ const buttons=Array.from(popup.querySelectorAll("button"));let i=buttons.indexOf(document.activeElement);
+ if(event.key==="ArrowDown"||event.key==="ArrowUp"){event.preventDefault();buttons[(i+(event.key==="ArrowDown"?1:buttons.length-1))%buttons.length].focus();}
+});
+document.addEventListener("keydown",event=>{
+ if(event.key!=="Escape")return;hidePitchTooltip();
+ if(popup.matches(":popover-open")){closePitchPopup(true);return;}
+ if(workspaceView==="play"&&!game.pending&&(blockMode||ballMode||destination)){blockMode=false;ballMode=false;destination=null;throwDestination=null;render();}
+});
+addEventListener("resize",()=>{closePitchPopup();hidePitchTooltip();});
+document.addEventListener("scroll",hidePitchTooltip,true);
+function refreshWorkspace(){
+ closePitchPopup();hidePitchTooltip();
+ Array.from(pitch.children).forEach((cell,i)=>{cell.tabIndex=i===pitchFocus?0:-1;});
+ for(const id of playerActionIds){const b=document.getElementById(id);if(id!=="finish")b.hidden=b.disabled;}
+ document.getElementById("finish").hidden=document.getElementById("finish").disabled;
+ document.getElementById("action-disclosure").hidden=game.match&&!["play","charge"].includes(game.phase)||!!game.pending;
+ const hint=document.getElementById("pitch-hint");
+ hint.textContent=game.pending?"Decision required — resolve the coach’s desk before continuing.":blockMode?"Click a red highlighted opponent to declare the action. Escape cancels targeting.":ballMode?"Click a highlighted target to preview; click it again to commit. Escape returns to movement.":destination?"Click another highlighted square to extend the route, or repeat the destination to commit. Escape clears the preview.":game.match&&game.phase==="setup"?"Select a player, then place them in an empty square in their own half.":"Click a player for legal actions. Hover or focus a square for stats and step checks.";
+ const skillPanel=document.getElementById("skillcontrols"),details=document.getElementById("player-details");if(skillPanel&&skillPanel.parentElement!==details)details.append(skillPanel);
+ // Keep the decision column reachable on small screens without obscuring the pitch.
+ const choices=document.getElementById("choices");choices.setAttribute("aria-label",game.pending?"Required coach decision":"Action choices");
+ const flow=document.getElementById("matchflow"),resources=Array.from(flow.children).filter(e=>/resource-summary|resource-control/.test(e.className));
+ if(resources.length){const details=document.createElement("details"),summary=document.createElement("summary");summary.textContent=game.league?"Inducement purchases — required before continuing":"Staff & inducements · optional";details.append(summary,...resources);details.open=staffDetailsOpen||!!game.league;details.addEventListener("toggle",()=>{staffDetailsOpen=details.open;});flow.append(details);}
+ const setupPlayers=Array.from(flow.children).filter(e=>e.className.includes("setup-player"));
+ if(setupPlayers.length){const details=document.createElement("details"),summary=document.createElement("summary");summary.textContent="Select a player from the roster (or click on the pitch)";details.append(summary,...setupPlayers);flow.append(details);}
+ if(game.match&&game.phase==="finished"&&game.league)flow.append(button("Record result in Teams & leagues",()=>switchWorkspace("teams",true)));
+}
+const renderBeforeWorkspace=render;
+render=function(){const focused=document.activeElement?.closest?.(".square"),index=focused?Array.from(pitch.children).indexOf(focused):-1;renderBeforeWorkspace();refreshWorkspace();if(index>=0)pitch.children[index]?.focus({preventScroll:true});};
+const startLeagueMatchBeforeWorkspace=startLeagueMatch;
+startLeagueMatch=function(fixture){switchWorkspace("play");startLeagueMatchBeforeWorkspace(fixture);};
+switchWorkspace("play");refreshWorkspace();
 </script>
 </body>
 </html>
