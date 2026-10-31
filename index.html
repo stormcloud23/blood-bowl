@@ -2941,7 +2941,7 @@ let workspaceView="play",pitchFocus=0,popupAnchor=null,popupEpoch=0,hoverSquare=
 const popup=document.getElementById("pitch-popup"),tooltip=document.getElementById("pitch-tooltip");
 function closePitchPopup(restore=false){
  popupEpoch++;if(popup.matches(":popover-open"))popup.hidePopover();
- if(restore&&popupAnchor?.isConnected)popupAnchor.focus();popupAnchor=null;
+ if(restore&&popupAnchor?.isConnected)popupAnchor.focus({preventScroll:true});popupAnchor=null;
 }
 function hidePitchTooltip(){
  if(tooltip.matches(":popover-open"))tooltip.hidePopover();
@@ -2958,6 +2958,7 @@ for(const view of workspaceTabs){
  const tab=document.getElementById("tab-"+view);
  tab.addEventListener("click",()=>switchWorkspace(view));
  tab.addEventListener("keydown",event=>{
+  if(event.altKey||event.ctrlKey||event.metaKey)return;
   const i=workspaceTabs.indexOf(view),next=event.key==="ArrowRight"?(i+1)%4:event.key==="ArrowLeft"?(i+3)%4:event.key==="Home"?0:event.key==="End"?3:null;
   if(next!==null){event.preventDefault();switchWorkspace(workspaceTabs[next],true);}
  });
@@ -3022,7 +3023,7 @@ function showPitchPopup(cell,title,details,actions){
   closePitchPopup();action.run();
  });if(i>0)b.className+=" secondary";list.append(b);}
  popup.showPopover();placePitchOverlay(popup,cell);
- (list.querySelector("button")||close).focus();
+ (list.querySelector("button")||close).focus({preventScroll:true});
 }
 const chooseBeforeWorkspace=choose;
 choose=function(x,y,pushDecision=game.pending){
