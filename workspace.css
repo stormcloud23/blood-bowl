@@ -48,6 +48,7 @@ details>summary{cursor:pointer;color:#d4dfdb;font-size:13px;font-weight:600;padd
 #league-panel input:not([type=checkbox]),#league-panel select{min-height:40px}
 #league-panel .backup-tools{margin:18px 0;background:#101b20;order:100}
 .backup-tools textarea{width:100%;display:block;font-family:ui-monospace,monospace;font-size:12px}
+.backup-tools label{width:100%}
 #league-panel table{display:block;overflow:auto}#league-panel .league-status{padding:12px;border-left:3px solid #e9bb69;background:#202d30}
 #pitch-popup,#pitch-tooltip{background:#17282e;color:#e7eeeb;border:1px solid #69847f;border-radius:10px;box-shadow:0 16px 50px #0009;margin:0;position:fixed;padding:14px;inset:auto;max-width:calc(100vw - 16px)}
 #pitch-popup{width:280px;max-height: min(480px,calc(100dvh - 24px));overflow:auto}
@@ -58,6 +59,8 @@ details>summary{cursor:pointer;color:#d4dfdb;font-size:13px;font-weight:600;padd
 #pitch-tooltip{width:270px;pointer-events:none;font-size:12px;line-height:1.5;white-space:pre-line;border-color:#526a61}
 .pitch-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:#b8c9c7;margin-top:8px}.pitch-legend span::before{content:'';display:inline-block;width:9px;height:9px;border:1px solid #a0e3ad;background:#69c58b40;margin-right:6px}.pitch-legend span:nth-child(2)::before{border-color:#e4a247;background:#e4a24755}.pitch-legend span:nth-child(3)::before{border-color:#cc96ed;background:#cc96ed55}
 .mobile-pitch-help{display:none}
+#pregame-overview{padding:24px;max-width:720px;margin-inline:auto}#pregame-overview h2{margin:0;font-size:23px}#pregame-overview p{font-size:14px;max-width:560px}
+.pregame-steps{list-style:none;counter-reset:step;padding:0;display:grid;gap:10px;margin:24px 0 0}.pregame-steps li{counter-increment:step;display:flex;gap:12px;align-items:center;padding:10px 12px;background:#101b20;border:1px solid #34474d;border-radius:6px;color:#8ca4a2;font-size:14px}.pregame-steps li::before{content:counter(step);display:grid;place-items:center;width:28px;height:28px;border:1px solid #526a61;border-radius:50%;font-weight:700}.pregame-steps .current{border-color:#e9bb69;color:#ffe0a0;background:#e9bb6910}.pregame-steps .complete::before{content:'✓';color:#a0e3ad;border-color:#698065}
 footer{padding-top:14px;border-top:1px solid #34474d;font-size:11px;margin-top:24px}
 /* Preserve square cells: max-height on individual cells leaves gaps in grid rows. */
 #match-scoreboard{margin:0 0 12px;padding:10px 14px;background:#19282e;border:1px solid #34474d;border-radius:6px}

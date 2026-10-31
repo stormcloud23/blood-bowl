@@ -48,6 +48,13 @@ function showPitchTooltip(cell){
  tooltip.showPopover();placePitchOverlay(tooltip,cell);
 }
 const playerActionIds=["start","block","blitz","handoff","pass","throw-mate","kick-mate","secure","special","transfer","finish"];
+function decisionCoachLabel(q){
+ if(!q)return "";
+ const block=game.blockAction;
+ if(q.kind==="Both Down")return "Both coaches — choose the applicable result";
+ const team=Number.isInteger(q.team)?q.team:q.p?q.p.team:q.type==="blockSelect"?block?.chooserTeam:q.type==="pushChoice"?(game.has(q.target,"Sidestep")?q.target.team:block?.attacker.team):q.kind==="Stand Firm"?block?.target.team:game.players.find(p=>p.id===game.mover)?.team??game.active;
+ return Number.isInteger(team)?teams[team].name+" — decision required":"Coach decision required";
+}
 function playerContextActions(p){
  if(game.pending||game.finished||!p||p.id!==selected||game.mover&&game.mover!==p.id)return [];
  return playerActionIds.map(id=>document.getElementById(id)).filter(b=>!b.disabled).map(b=>({label:b.textContent,run:()=>b.click()}));
@@ -58,6 +65,7 @@ function targetContextActions(actor,target){
  if(game.canBlock(actor,target))actions.push({label:"Block #"+target.number,run:()=>{game.block(actor.id,target.id);destination=null;render();}});
  if(game.canBlitz(actor,target))actions.push({label:"Declare Blitz on #"+target.number,run:()=>{game.startBlitz(actor.id,target.id);destination=null;render();}});
  if(game.specialTargets().some(p=>p.id===target.id))actions.push({label:(game.action==="foul"?"Foul":game.action.slice(8))+" #"+target.number,run:()=>{game.performSpecial(target.id);destination=null;render();}});
+ if(game.throwActor()&&game.throwCandidates().some(p=>p.id===target.id))actions.push({label:(game.action==="kick-team-mate"?"Kick":"Throw")+" team-mate #"+target.number,run:()=>{game.selectThrowMate(target.id);ballMode=true;throwDestination=null;destination=null;render();}});
  return actions;
 }
 function showPitchPopup(cell,title,details,actions){
@@ -77,7 +85,7 @@ const chooseBeforeWorkspace=choose;
 choose=function(x,y,pushDecision=game.pending){
  closePitchPopup();hidePitchTooltip();pitchFocus=y*26+x;
  const target=game.at(x,y),actor=game.players.find(p=>p.id===selected),wasTargeting=!!(blockMode||ballMode||game.pending),phase=game.phase;
- const targetActions=!wasTargeting&&target?.team!==actor?.team?targetContextActions(actor,target):[];
+ const targetActions=!wasTargeting&&target&&target.id!==actor?.id?targetContextActions(actor,target):[];
  if(!wasTargeting&&target&&game.match&&phase==="kicker"&&game.eligibleKickers().includes(target)){
   showPitchPopup(pitch.children[pitchFocus],"Kicker #"+target.number,playerQuickInfo(target),[{label:"Nominate kicker #"+target.number,run:()=>matchRun(()=>game.nominateKicker(target.id))}]);return;
  }
@@ -108,7 +116,7 @@ pitch.addEventListener("focusin",e=>{const cell=e.target.closest(".square");if(c
 pitch.addEventListener("pointerleave",hidePitchTooltip);
 pitch.addEventListener("focusout",hidePitchTooltip);
 popup.addEventListener("keydown",event=>{
- if(event.key==="Escape"){event.preventDefault();closePitchPopup(true);return;}
+ if(event.key==="Escape"){event.preventDefault();event.stopPropagation();closePitchPopup(true);return;}
  const buttons=Array.from(popup.querySelectorAll("button"));let i=buttons.indexOf(document.activeElement);
  if(event.key==="ArrowDown"||event.key==="ArrowUp"){event.preventDefault();buttons[(i+(event.key==="ArrowDown"?1:buttons.length-1))%buttons.length].focus();}
 });
@@ -121,16 +129,25 @@ addEventListener("resize",()=>{closePitchPopup();hidePitchTooltip();});
 document.addEventListener("scroll",hidePitchTooltip,true);
 function refreshWorkspace(){
  closePitchPopup();hidePitchTooltip();
+ const pregame=game.match&&["fans","weather","leagueSteps","rolloff","kickChoice"].includes(game.phase),overview=document.getElementById("pregame-overview");
+ overview.hidden=!pregame;document.getElementById("pitch-board").hidden=!!pregame;document.getElementById("mobile-pitch-help").hidden=!!pregame;document.getElementById("pitch-hint").hidden=!!pregame;
+ if(pregame){
+  overview.replaceChildren();const heading=document.createElement("h2");heading.textContent="Prepare for kick-off";overview.append(heading);const intro=document.createElement("p");intro.textContent="Both coaches share this browser. Complete the current step in the coach panel, then arrange your players on the pitch.";overview.append(intro);
+  const steps=document.createElement("ol");steps.className="pregame-steps";overview.append(steps);const phaseIndex={fans:0,weather:1,leagueSteps:2,rolloff:3,kickChoice:3}[game.phase];
+  ["Fans in attendance","Weather","Staff & inducements","Kick or receive","Set up your team"].forEach((name,i)=>{const li=document.createElement("li");li.textContent=name;li.className=i<phaseIndex?"complete":i===phaseIndex?"current":"";if(i===phaseIndex)li.setAttribute("aria-current","step");steps.append(li);});
+ }
  Array.from(pitch.children).forEach((cell,i)=>{cell.tabIndex=i===pitchFocus?0:-1;cell.dataset.hint=cell.title;cell.removeAttribute("title");});
  for(const id of playerActionIds){const b=document.getElementById(id);if(id!=="finish")b.hidden=b.disabled;}
  document.getElementById("finish").hidden=document.getElementById("finish").disabled;
+ document.getElementById("end").hidden=document.getElementById("end").disabled;
  document.getElementById("action-disclosure").hidden=game.match&&!["play","charge"].includes(game.phase)||!!game.pending;
  const hint=document.getElementById("pitch-hint");
  hint.textContent=game.pending?"Decision required — resolve the coach’s desk before continuing.":blockMode?"Click a red highlighted opponent to declare the action. Escape cancels targeting.":ballMode?"Click a highlighted target to preview; click it again to commit. Escape returns to movement.":destination?"Click another highlighted square to extend the route, or repeat the destination to commit. Escape clears the preview.":game.match&&game.phase==="setup"?"Select a player, then place them in an empty square in their own half.":"Click a player for legal actions. Hover or focus a square for stats and step checks.";
  const skillPanel=document.getElementById("skillcontrols"),details=document.getElementById("player-details");if(skillPanel&&skillPanel.parentElement!==details)details.append(skillPanel);
  // Keep the decision column reachable on small screens without obscuring the pitch.
  const choices=document.getElementById("choices");choices.setAttribute("aria-label",game.pending?"Required coach decision":"Action choices");
- const faces={"Attacker Down":["☠","Attacker knocked down."],"Both Down":["↔","Both players may fall; Block and Wrestle can affect this result."],"Push":["↪","Push the defender to a legal destination."],"Defender Stumbles":["✦","Defender falls unless an applicable ability such as Dodge prevents it."],"Defender Down":["✹","Defender knocked down."]};
+ if(game.pending){const owner=document.createElement("p");owner.className="decision-owner";owner.textContent=decisionCoachLabel(game.pending);choices.prepend(owner);}
+ const faces={"Player Down":["☠","Attacker knocked down."],"Both Down":["↔","Both players may fall; Block and Wrestle can affect this result."],"Push Back":["↪","Push the defender to a legal destination."],"Stumble":["✦","Defender falls unless an applicable ability such as Dodge prevents it."],"POW":["✹","Defender knocked down."]};
  for(const b of choices.querySelectorAll("button")){const face=Object.keys(faces).find(name=>b.textContent.startsWith("Die ")&&b.textContent.endsWith(" · "+name));if(face){b.className+=" block-die";b.dataset.glyph=faces[face][0];b.title=faces[face][1];}else if(/^(Use |Re-roll |Cancel |Accept |Keep )/.test(b.textContent))b.className+=" secondary";}
  const flow=document.getElementById("matchflow"),resources=Array.from(flow.children).filter(e=>/resource-summary|resource-control/.test(e.className));
  const score=document.getElementById("match-scoreboard");score.replaceChildren();if(game.match)score.append(...Array.from(flow.children).slice(0,2));
