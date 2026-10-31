@@ -78,6 +78,10 @@ legality checks. It does not copy FFB's Swing UI or introduce a backend.
 
 ## Validation and limits
 
+Final local validation: **841 tests pass**, including 21 complete-workspace
+scenarios and five additional league-UI scenarios. Generated outputs and
+whitespace checks pass.
+
 `workspace-ui.test.cjs` runs the actual bundled workspace code in a DOM event
 harness. It covers tab/game preservation, legal player and target menus, stale
 callbacks, decisions, keyboard navigation, focus tooltips, pregame, Foul and
@@ -99,3 +103,8 @@ purchases, team submission, league entry, actual backup download/file selection
 and import; and a complete two-half 0–0 league fixture, MVP nominations, result
 recording, postgame completion and persistence after reload. The idle fixture
 validates those screens and transitions, not every gameplay interaction.
+
+Phone checks also confirmed movement commitment and 50-pixel tiles with Extra
+large pitch size. Movement popups enumerate the route's required checks before
+the commit action. Overlay placement accounts for the visible viewport and its
+scrollbars.

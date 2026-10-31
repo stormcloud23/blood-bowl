@@ -2968,8 +2968,9 @@ globalThis.inspectRosterPosition=()=>{
 };
 function placePitchOverlay(element,anchor){
  const r=anchor.getBoundingClientRect(),box=element.getBoundingClientRect(),gap=8;
- const left=Math.max(gap,Math.min(r.right+gap,innerWidth-box.width-gap));
- const top=Math.max(gap,Math.min(r.top,innerHeight-box.height-gap));
+ const width=document.documentElement?.clientWidth||innerWidth,height=document.documentElement?.clientHeight||innerHeight;
+ const left=Math.max(gap,Math.min(r.right+gap,width-box.width-gap));
+ const top=Math.max(gap,Math.min(r.top,height-box.height-gap));
  element.style.left=left+"px";element.style.top=top+"px";
 }
 function playerQuickInfo(p){
@@ -3039,7 +3040,8 @@ choose=function(x,y,pushDecision=game.pending){
  if(!wasTargeting&&target&&(!game.match||["play","charge"].includes(phase))){
   const actions=playerContextActions(target);actions.push({label:"Show full profile & skills",run:()=>{document.getElementById("player-details").open=true;}});showPitchPopup(cell,"#"+target.number+" · "+playerLabel(target),playerQuickInfo(target),actions);
  }else if(!wasTargeting&&!target&&destination&&game.mover){
-  showPitchPopup(cell,"Movement preview",document.getElementById("movement").textContent,[{label:"Commit planned route",run:commitRoute},{label:"Cancel movement preview",run:cancelMovementPreview}]);
+  const planner=planningPlayer(),route=previewRoute(planner),checks=route.path.flatMap((step,i)=>planChecks(step.plan,planner).map(check=>"Step "+(i+1)+": "+check)),summary="Planned: "+route.path.length+" step(s) · "+(route.spent-planner.spent)+" MA\n"+(checks.length?checks.join("\n"):"No rolls on this route.");
+  showPitchPopup(cell,"Movement preview",summary,[{label:"Commit planned route",run:commitRoute},{label:"Cancel movement preview",run:cancelMovementPreview}]);
  }
 };
 pitch.addEventListener("keydown",event=>{

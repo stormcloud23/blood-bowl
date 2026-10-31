@@ -89,3 +89,6 @@ test('league pregame shows that purchases must finish before continuing',()=>{
 test('kick aiming highlights the receiving half and directions swap at halftime',()=>{
  const f=workspaceFixture('match');f.run('game.phase="kickAim";game.receiving=0;game.half=1;render()');assert.equal(f.get('pitch').children.filter(e=>e.className.includes('kick-target')).length,195);assert.match(f.get('pitch-hint').textContent,/left half/);assert.match(f.cell(0,0)['aria-label'],/valid kick target/);assert.match(f.get('pitch-direction').textContent,/Imperial Nobility →/);f.run('game.half=2;render()');assert.match(f.get('pitch-hint').textContent,/right half/);assert.match(f.get('pitch-direction').textContent,/Imperial Nobility ←/);assert.ok(!f.cell(0,0).className.includes('kick-target'));
 });
+test('the movement popup discloses required checks before committing a risky route',()=>{
+ const f=workspaceFixture('dodge');f.run('selected=game.players[0].id;game.start(selected);render();choose(10,8)');const text=f.get('pitch-popup').children.map(e=>e.textContent).join('\n');assert.match(text,/Planned: 1 step/);assert.match(text,/Step 1: Dodge/);assert.equal(f.run('game.players[0].spent'),0);
+});
