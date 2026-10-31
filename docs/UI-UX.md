@@ -25,6 +25,8 @@ workspace's scroll position. Changing the game mode still starts a fresh game.
   step and collapses the reserve/player-selection list.
 - **Pitch size** enlarges the board without altering game state. Narrow screens
   place the coach panel before the pitch and allow horizontal field scrolling.
+- Team attack directions are shown above the field and reverse at halftime.
+  Kick aiming highlights the actual receiving half, with accessible tile labels.
 - Optional action buttons remain in **Player actions** as a discoverable
   alternative to tile menus. Profile, skill switches and session history use
   disclosures. The history follows new events when already scrolled to the end.
@@ -51,6 +53,11 @@ Selecting a JSON file loads the text; **Import backup** is still required to
 replace stored data. Parse errors keep the entered text. Import validation,
 active-fixture protection and protection against overwriting another tab's save
 remain in force. Errors are announced and stay visible while scrolling.
+
+MVP nominations use large selectable rows and per-team counts. Saving waits for
+six nominees per team; selections survive presentation rerenders. League-entry
+and postgame actions appear before the player list, and saved-team options mark
+teams that still need postgame work.
 
 Rosters open the selected position in Reference. Skill coverage is searchable by
 name, category or description. The zero partial/deferred counts and feedback
@@ -84,3 +91,11 @@ are reviewed alongside real controls. Automated rules tests remain distinct from
 visual verification. This is not an exhaustive audit of every random event,
 skill combination, screen reader or browser engine. Live unfinished-game
 save/resume and AI remain outside this change.
+
+Observed browser flows include pregame, both setups, kicker selection, aimed
+kicks, Block dice, Stand Firm, gold push tiles and follow-up; player menus,
+reference filtering and roster inspection; repeated recruitment, staff
+purchases, team submission, league entry, actual backup download/file selection
+and import; and a complete two-half 0–0 league fixture, MVP nominations, result
+recording, postgame completion and persistence after reload. The idle fixture
+validates those screens and transitions, not every gameplay interaction.

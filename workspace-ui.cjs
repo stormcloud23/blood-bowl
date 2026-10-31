@@ -57,6 +57,11 @@ function decisionCoachLabel(q){
  const team=Number.isInteger(q.team)?q.team:q.p?q.p.team:q.type==="blockSelect"?block?.chooserTeam:q.type==="pushChoice"?(game.has(q.target,"Sidestep")?q.target.team:block?.attacker.team):q.kind==="Stand Firm"?block?.target.team:game.players.find(p=>p.id===game.mover)?.team??game.active;
  return Number.isInteger(team)?teams[team].name+" — decision required":"Coach decision required";
 }
+function refreshRecordedResult(){
+ if(!game.league||game.phase!=="finished"||!leagueStore.data.matches.some(m=>m.id===game.leagueFixtureId))return;
+ const flow=document.getElementById("matchflow");for(const p of flow.querySelectorAll("p"))if(p.textContent.startsWith("Full time:"))p.textContent=p.textContent.split(". ")[0]+". Result recorded; review team progression in Teams & leagues.";
+ const link=flow.querySelector("button");if(link)link.textContent="View result in Teams & leagues";
+}
 function playerContextActions(p){
  if(game.pending||game.finished||!p||p.id!==selected||game.mover&&game.mover!==p.id)return [];
  return playerActionIds.map(id=>document.getElementById(id)).filter(b=>!b.disabled).map(b=>({label:b.textContent,run:()=>b.click()}));
@@ -139,11 +144,12 @@ function refreshWorkspace(){
  const pregame=game.match&&["fans","weather","leagueSteps","rolloff","kickChoice"].includes(game.phase),overview=document.getElementById("pregame-overview");
  overview.hidden=!pregame;document.getElementById("pitch-board").hidden=!!pregame;document.getElementById("mobile-pitch-help").hidden=!!pregame;document.getElementById("pitch-hint").hidden=!!pregame;
  document.getElementById("pitch-tools").hidden=!!pregame;
+ document.getElementById("pitch-legend").hidden=!!pregame||!!game.pending||game.match&&!["play","charge"].includes(game.phase);
  selection.hidden=!!pregame;document.getElementById("movement").hidden=!!pregame;document.getElementById("player-details").hidden=!!pregame;
  if(pregame){
   overview.replaceChildren();const heading=document.createElement("h2");heading.textContent="Prepare for kick-off";overview.append(heading);const intro=document.createElement("p");intro.textContent="Both coaches share this browser. Complete the current step in the coach panel, then arrange your players on the pitch.";overview.append(intro);
   const steps=document.createElement("ol");steps.className="pregame-steps";overview.append(steps);const phaseIndex={fans:0,weather:1,leagueSteps:2,rolloff:3,kickChoice:3}[game.phase];
-  ["Fans in attendance","Weather","Staff & inducements","Kick or receive","Set up your team"].forEach((name,i)=>{const li=document.createElement("li");li.textContent=name;li.className=i<phaseIndex?"complete":i===phaseIndex?"current":"";if(i===phaseIndex)li.setAttribute("aria-current","step");steps.append(li);});
+  ["Fans in attendance","Weather",game.league?"Inducement purchases":"Pre-game checks","Kick or receive","Set up your team"].forEach((name,i)=>{const li=document.createElement("li");li.textContent=name;li.className=i<phaseIndex?"complete":i===phaseIndex?"current":"";if(i===phaseIndex)li.setAttribute("aria-current","step");steps.append(li);});
  }
  Array.from(pitch.children).forEach((cell,i)=>{cell.tabIndex=i===pitchFocus?0:-1;cell.dataset.hint=cell.title;cell.removeAttribute("title");});
  for(const id of playerActionIds){const b=document.getElementById(id);if(id!=="finish")b.hidden=b.disabled;}
@@ -152,6 +158,8 @@ function refreshWorkspace(){
  document.getElementById("action-disclosure").hidden=game.match&&!["play","charge"].includes(game.phase)||!!game.pending;
  const hint=document.getElementById("pitch-hint");
  hint.textContent=game.pending?"Decision required — resolve the coach’s desk before continuing.":blockMode?"Click a red highlighted opponent to declare the action. Escape cancels targeting.":ballMode?"Click a highlighted target to preview; click it again to commit. Escape returns to movement.":destination?"Click another highlighted square to extend the route, or repeat the destination to commit. Escape clears the preview.":game.match&&game.phase==="setup"?"Select a player, then place them in an empty square in their own half.":"Click a player for legal actions. Hover or focus a square for stats and step checks.";
+ if(game.match&&game.phase==="kickAim")hint.textContent="Aim in the highlighted "+(game.ownHalf(game.receiving,0)?"left":"right")+" half ("+teams[game.receiving].name+"). Click once to preview; click the same square again to kick.";
+ const direction=document.getElementById("pitch-direction"),attacksRight=i=>game.match?game.right(i):i===0;direction.textContent=teams.map((team,i)=>team.name+" "+(attacksRight(i)?"→":"←")).join(" · ");direction.setAttribute("aria-label",teams.map((team,i)=>team.name+" attacks "+(attacksRight(i)?"right":"left")).join("; "));
  const skillPanel=document.getElementById("skillcontrols"),details=document.getElementById("player-details");if(skillPanel&&skillPanel.parentElement!==details)details.append(skillPanel);
  // Keep the decision column reachable on small screens without obscuring the pitch.
  const choices=document.getElementById("choices");choices.setAttribute("aria-label",game.pending?"Required coach decision":"Action choices");
@@ -160,10 +168,12 @@ function refreshWorkspace(){
  for(const b of choices.querySelectorAll("button")){const face=Object.keys(faces).find(name=>b.textContent.startsWith("Die ")&&b.textContent.endsWith(" · "+name));if(face){b.className+=" block-die";b.dataset.glyph=faces[face][0];b.title=faces[face][1];b.setAttribute("aria-label",b.textContent);}else if(/^(Use |Re-roll |Cancel |Accept |Keep )/.test(b.textContent))b.className+=" secondary";}
  const flow=document.getElementById("matchflow"),resources=Array.from(flow.children).filter(e=>/resource-summary|resource-control/.test(e.className));
  const score=document.getElementById("match-scoreboard");score.replaceChildren();if(game.match)score.append(...Array.from(flow.children).slice(0,2));
+ if(game.league&&game.phase==="leagueSteps"&&game.leaguePurchaseStep<game.leaguePurchaseOrder.length){const next=Array.from(flow.children).find(e=>e.className.split(" ").includes("next-step"));if(next){next.disabled=true;next.textContent="Complete inducement purchases first";}}
  if(resources.length){const details=document.createElement("details"),summary=document.createElement("summary");summary.textContent=game.league?"Inducement purchases — required before continuing":"Staff & inducements · optional";details.append(summary,...resources);details.open=staffDetailsOpen||!!game.league;details.addEventListener("toggle",()=>{staffDetailsOpen=details.open;});flow.append(details);}
  const setupPlayers=Array.from(flow.children).filter(e=>e.className.includes("setup-player"));
  if(setupPlayers.length){const details=document.createElement("details"),summary=document.createElement("summary");summary.textContent="Select a player from the roster (or click on the pitch)";details.append(summary,...setupPlayers);flow.append(details);}
  if(game.match&&game.phase==="finished"&&game.league)flow.append(button("Record result in Teams & leagues",()=>switchWorkspace("teams",true)));
+ refreshRecordedResult();
 }
 const renderBeforeWorkspace=render;
 render=function(){const focused=document.activeElement?.closest?.(".square"),index=focused?Array.from(pitch.children).indexOf(focused):-1,logTop=log.scrollTop,followLog=log.scrollHeight-log.scrollTop-log.clientHeight<24;renderBeforeWorkspace();refreshWorkspace();log.scrollTop=followLog?log.scrollHeight:logTop;if(index>=0)pitch.children[index]?.focus({preventScroll:true});};
@@ -175,6 +185,7 @@ renderLeague=function(){
  const details=Array.from(leaguePanel.querySelectorAll("details")),open=new Set(details.filter(e=>e.open).map(leagueDisclosureKey));
  const focused=document.activeElement,focusKey=focused?.closest?.("details"),focusLabel=focused?.tagName==="BUTTON"?focused.textContent:null;
  renderLeagueBeforeWorkspace();
+ refreshRecordedResult();
  const updated=Array.from(leaguePanel.querySelectorAll("details"));for(const e of updated)if(open.has(leagueDisclosureKey(e)))e.open=true;
  if(focusLabel){const parent=focusKey?updated.find(e=>leagueDisclosureKey(e)===leagueDisclosureKey(focusKey)):leaguePanel;Array.from(parent?.querySelectorAll("button")||[]).find(e=>e.textContent===focusLabel)?.focus({preventScroll:true});}
 };
