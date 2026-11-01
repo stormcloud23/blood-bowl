@@ -3,8 +3,10 @@
 const workspaceTabs=["play","teams","rosters","reference"];
 const workspaceScroll={};
 let workspaceView="play",pitchFocus=0,popupAnchor=null,popupEpoch=0,hoverSquare=null,staffDetailsOpen=false,popoverTransition=false;
+let displayedDecision=null,displayedPhase="";
 const popup=document.getElementById("pitch-popup"),tooltip=document.getElementById("pitch-tooltip");
-for(const [id,index] of [["exhibition-home",0],["exhibition-away",1]]){const select=document.getElementById(id);for(const roster of rosterCatalog){const option=document.createElement("option");option.value=roster.id;option.textContent=roster.name;select.append(option);}select.value=practiceLeagueTeams[index].id;select.addEventListener("change",reset);}
+function exhibitionRosterChoices(side){const roster=rosterCatalog.find(r=>r.id===document.getElementById("exhibition-"+side).value);for(const [kind,options] of [["league",roster.leagues||[roster.league]],["alignment",roster.alignments||[]]]){const select=document.getElementById("exhibition-"+side+"-"+kind),previous=select.value;select.replaceChildren();for(const name of options){const option=document.createElement("option");option.value=name;option.textContent=name;select.append(option);}select.value=options.includes(previous)?previous:options[0]||"";select.hidden=options.length<2;document.getElementById("exhibition-"+side+"-"+kind+"-label").hidden=select.hidden;}}
+for(const [id,index] of [["exhibition-home",0],["exhibition-away",1]]){const select=document.getElementById(id),side=index?"away":"home";for(const roster of rosterCatalog){const option=document.createElement("option");option.value=roster.id;option.textContent=roster.name;select.append(option);}select.value=practiceLeagueTeams[index].id;exhibitionRosterChoices(side);select.addEventListener("change",()=>{exhibitionRosterChoices(side);reset();});for(const kind of ["league","alignment"])document.getElementById(id+"-"+kind).addEventListener("change",reset);}
 function closePitchPopup(restore=false){
  popupEpoch++;popoverTransition=true;
  try{if(popup.matches(":popover-open"))popup.hidePopover();if(restore&&popupAnchor?.isConnected)popupAnchor.focus({preventScroll:true});popupAnchor=null;}finally{popoverTransition=false;}
@@ -33,6 +35,8 @@ globalThis.inspectRosterPosition=()=>{
  const profile=document.getElementById("reference-profile");profile.innerHTML=document.getElementById("profile").innerHTML;profile.hidden=false;document.getElementById("reference-view").prepend(profile);
  switchWorkspace("reference");document.getElementById("tab-reference").focus({preventScroll:true});profile.scrollIntoView({block:"start"});
 };
+function filterRosterBrowser(){const query=document.getElementById("roster-search").value.trim().toLocaleLowerCase(),cards=Array.from(document.getElementById("roster-list").querySelectorAll("article"));for(const card of cards)card.hidden=!card.dataset.rosterName.toLocaleLowerCase().includes(query);document.getElementById("roster-search-count").textContent=cards.filter(card=>!card.hidden).length+" / "+rosterCatalog.length+" rosters";}
+document.getElementById("roster-search").addEventListener("input",filterRosterBrowser);filterRosterBrowser();
 function placePitchOverlay(element,anchor){
  const r=anchor.getBoundingClientRect(),box=element.getBoundingClientRect(),gap=8;
  const width=document.documentElement?.clientWidth||innerWidth,height=document.documentElement?.clientHeight||innerHeight;
@@ -42,7 +46,7 @@ function placePitchOverlay(element,anchor){
 }
 function playerQuickInfo(p){
  const profile=game.profile(p);
- return teams[p.team].name+" · #"+p.number+" "+playerLabel(p)+"\n"+["ma","st","ag","pa","av"].map(k=>k.toUpperCase()+" "+profile[k]).join(" · ")+"\n"+p.status+(p.used?" · activated":"")+(p.distracted?" · distracted":"")+(game.ball.carrier===p.id?" · ball carrier":"")+"\n"+profile.skills.join(" · ");
+ return teams[p.team].name+" · #"+p.number+" "+playerLabel(p)+"\n"+["ma","st","ag","pa","av"].map(k=>k.toUpperCase()+" "+profile[k]).join(" · ")+"\n"+p.status+(p.captain?" · Team Captain":"")+(p.used?" · activated":"")+(p.distracted?" · distracted":"")+(game.ball.carrier===p.id?" · ball carrier":"")+"\n"+profile.skills.join(" · ");
 }
 function showPitchTooltip(cell){
  if(popoverTransition||popup.matches(":popover-open"))return;
@@ -164,6 +168,7 @@ function refreshWorkspace(){
  const hint=document.getElementById("pitch-hint");
  hint.textContent=game.pending?"Decision required — resolve the coach’s desk before continuing.":blockMode?"Click a red highlighted opponent to declare the action. Escape cancels targeting.":ballMode?"Click a highlighted target to preview; click it again to commit. Escape returns to movement.":destination?"Click another highlighted square to extend the route, or repeat the destination to commit. Escape clears the preview.":game.match&&game.phase==="setup"?"Select a player, then place them in an empty square in their own half.":"Click a player for legal actions. Hover or focus a square for stats and step checks.";
  if(game.match&&game.phase==="kickAim")hint.textContent="Aim in the highlighted "+(game.ownHalf(game.receiving,0)?"left":"right")+" half ("+teams[game.receiving].name+"). Click once to preview; click the same square again to kick.";
+ if(game.match&&game.phase==="swarming")hint.textContent="Swarming: select a reserve Lineman in the coach panel, then place them in an empty square in their own half.";
  const direction=document.getElementById("pitch-direction"),attacksRight=i=>game.match?game.right(i):i===0;direction.textContent=teams.map((team,i)=>team.name+" "+(attacksRight(i)?"→":"←")).join(" · ");direction.setAttribute("aria-label",teams.map((team,i)=>team.name+" attacks "+(attacksRight(i)?"right":"left")).join("; "));
  const skillPanel=document.getElementById("skillcontrols"),details=document.getElementById("player-details");if(skillPanel&&skillPanel.parentElement!==details)details.append(skillPanel);
  // Keep the decision column reachable on small screens without obscuring the pitch.
@@ -179,9 +184,11 @@ function refreshWorkspace(){
  if(setupPlayers.length){const details=document.createElement("details"),summary=document.createElement("summary");summary.textContent="Select a player from the roster (or click on the pitch)";details.append(summary,...setupPlayers);flow.append(details);}
  if(game.match&&game.phase==="finished"&&game.league)flow.append(button("Record result in Teams & leagues",()=>switchWorkspace("teams",true)));
  refreshRecordedResult();
+ const phaseKey=[game.phase,game.setupTeam,game.swarmState?.team].join(":"),coachPanel=document.getElementById("coach-panel");if(displayedPhase!==phaseKey||displayedDecision&&!game.pending)coachPanel.scrollTop=0;displayedPhase=phaseKey;
+ if(game.pending&&game.pending!==displayedDecision){choices.tabIndex=-1;choices.focus({preventScroll:true});choices.scrollIntoView({block:"start",inline:"nearest"});}displayedDecision=game.pending;
 }
 const renderBeforeWorkspace=render;
-render=function(){const focused=document.activeElement?.closest?.(".square"),index=focused?Array.from(pitch.children).indexOf(focused):-1,logTop=log.scrollTop,followLog=log.scrollHeight-log.scrollTop-log.clientHeight<24;renderBeforeWorkspace();refreshWorkspace();log.scrollTop=followLog?log.scrollHeight:logTop;if(index>=0)pitch.children[index]?.focus({preventScroll:true});};
+render=function(){const focused=document.activeElement?.closest?.(".square"),index=focused?Array.from(pitch.children).indexOf(focused):-1,logTop=log.scrollTop,followLog=log.scrollHeight-log.scrollTop-log.clientHeight<24;renderBeforeWorkspace();refreshWorkspace();log.scrollTop=followLog?log.scrollHeight:logTop;if(index>=0&&!game.pending)pitch.children[index]?.focus({preventScroll:true});};
 const startLeagueMatchBeforeWorkspace=startLeagueMatch;
 startLeagueMatch=function(fixture){switchWorkspace("play");startLeagueMatchBeforeWorkspace(fixture);};
 const leagueDisclosureKey=e=>e.querySelector("summary")?.textContent.split(" · ")[0]||"";

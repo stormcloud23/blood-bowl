@@ -13,7 +13,8 @@ jobs:
       - name: Verify generated documentation and browser bundle
         run: |
           node generate-skill-docs.cjs
+          node generate-roster-docs.cjs
           node build.cjs
-          git diff --exit-code -- index.html docs/SKILLS.md
+          git diff --exit-code -- index.html docs/SKILLS.md docs/ROSTERS.md
       - name: Run rules and inline browser UI scenarios
         run: node --test *.test.cjs

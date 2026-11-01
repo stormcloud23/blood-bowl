@@ -36,15 +36,18 @@ team creation/errors, and saved fixture/postgame flows. Existing automated tests
 do not establish visual correctness. Detailed continuation notes are in the
 workspace `HANDOFF.md`; work paused at 99% weekly usage.
 
-## New rosters — v0.0.18
+## Complete roster catalogue — v0.0.19
 
-Nurgle and Dark Elf join Skaven, Dwarf, Lizardmen, Elven Union and the original two rosters. Draft
+All 30 rosters in the checked BB2025 team index are now available. Draft
 them in Teams & leagues, inspect them in Rosters, or choose exhibition home
 and away rosters in Play. See [roster data, team rules and scope](docs/ROSTERS.md).
 
+Team Captain, Swarming, Low Cost Linemen and Masters of Undeath support are
+included, along with shared Big Guy caps and saved league/alignment choices.
+
 ## Current capabilities
 
-- Two-player hotseat play with eight roster choices.
+- Two-player hotseat play with 30 roster choices.
 - A team creator with draft budgets, positional limits, staff, saved rosters and local league entry.
 - Persistent match results, SPP, injuries, skills, characteristic advances, recruitment, finances and standings.
 - Guided exhibition flow through pregame, setup, kickoff, two halves, scoring, drive recovery, and full time.
