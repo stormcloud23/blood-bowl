@@ -50,6 +50,16 @@ test('mercenary purchase controls hire a labeled reserve, then the dugout places
  assert.equal(f.run('game.players.filter(p=>p.mercenary).length'),1);assert.equal(f.run('game.resourceCosts(0).inducements'),125000);
  f.run("game.phase='setup';game.setupTeam=0;render();");const id=f.run('game.players.find(p=>p.mercenary).id'),card=f.get('dugout').querySelectorAll('button').find(b=>b.dataset.playerId===id);assert.ok(card);assert.ok(card['aria-label'].includes('Mercenary'));card.click();f.action('Select for setup').click();f.cell(5,7).click();assert.equal(f.run('game.players.find(p=>p.mercenary).x'),5);
 });
+
+test('automatic prayers keep the pregame overview visible and expose the owning coach choice',()=>{
+ const f=workspaceFixture('match');f.run("game.teams[0].ctv=900000;game.teams[1].ctv=950000;game.dice=()=>4;game.phase='leagueSteps';game.advancePregame();render();");assert.equal(f.run('game.phase'),'prayers');assert.equal(f.get('pregame-overview').hidden,false);assert.equal(f.get('pitch-board').hidden,true);assert.equal(f.document.activeElement,f.get('choices'));assert.equal(f.run('game.pending.team'),0);const button=f.get('choices').querySelectorAll('button')[0];button.click();assert.equal(f.run('game.phase'),'rolloff');assert.ok(dugoutNodes(f.get('matchflow')).some(e=>e.textContent==='Active prayers · last until full time'));
+});
+test('trapdoor squares are marked, accessible and included in committed-route check summaries',()=>{
+ const f=workspaceFixture('match');f.run("game.applyPrayer(0,'Treacherous Trapdoor');game.phase='play';game.players.forEach(p=>Object.assign(p,{x:null,y:null,status:'reserve'}));Object.assign(game.players[0],{x:5,y:1,status:'standing'});selected=game.players[0].id;render();");const cell=f.cell(6,1);assert.ok(cell.className.includes('trapdoor'));assert.ok(cell['aria-label'].includes('trapdoor (2+ to cross)'));assert.equal(f.cell(7,1).className.includes('trapdoor'),false);assert.ok(f.run('planChecks({x:6,y:1,rushes:0},game.players[0]).includes("Trapdoor 2+")'));
+});
+test('Rock-only decisions use a Rock label and skipping preserves both the resource and turn count',()=>{
+ const f=workspaceFixture('match');f.run("game.applyPrayer(0,'Throw a Rock');game.phase='play';game.turns=[1,1];game.active=1;game.endTurn();render();");assert.ok(f.run('game.pending.kind.startsWith("Throw a Rock")'));const keep=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Keep Rock');assert.ok(keep);keep.click();assert.equal(f.run('game.rocks[0]'),1);assert.equal(f.run('game.turns[0]'),2);assert.equal(f.run('game.pending'),null);
+});
 test('workspace tabs preserve the exact game and support arrow-key selection',()=>{
  const f=workspaceFixture();f.run('globalThis.before=game');f.get('tab-teams').click();assert.equal(f.run('workspaceView'),'teams');assert.equal(f.get('play-view').hidden,true);assert.equal(f.get('teams-view').hidden,false);f.get('tab-teams').emit('keydown',{key:'ArrowRight'});assert.equal(f.run('workspaceView'),'rosters');assert.equal(f.get('tab-rosters').tabIndex,0);assert.equal(f.get('tab-play').tabIndex,-1);f.get('tab-play').click();assert.equal(f.run('game===before'),true);
 });

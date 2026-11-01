@@ -71,7 +71,7 @@ class MovementGame {
   if(state==="casualty")record.original=record.selected=automaticBadlyHurt||small&&total===9?{result:"Badly hurt",automatic:true}:this.casualtyRoll(p);
   if(record.original&&source){
    const by=this.players.find(q=>q.id===source.playerId);
-   if(by&&by.team!==p.team&&(["Block","Arm Bar","Lethal Flight"].includes(source.cause)||this.has(by,"Violent Innovator")&&["Bomb","Chainsaw","Stab","Breathe Fire","Ball & Chain collision","Kick Team-mate"].includes(source.cause)))this.recordStat(by,"casualty");
+   if(by&&by.team!==p.team&&(this.prayerCasualtySpp?.(p,source)||["Block","Arm Bar","Lethal Flight"].includes(source.cause)||this.has(by,"Violent Innovator")&&["Bomb","Chainsaw","Stab","Breathe Fire","Ball & Chain collision","Kick Team-mate"].includes(source.cause)))this.recordStat(by,"casualty");
    const kicker=this.players.find(q=>q.id===source.kickerId);
    if(source.cause==="Lethal Flight"&&kicker&&kicker!==by&&kicker.team!==p.team&&this.has(kicker,"Violent Innovator"))this.recordStat(kicker,"casualty");
   }
@@ -439,7 +439,7 @@ class MovementGame {
    const carrying=this.ball.carrier===victim.id;this.note("#"+victim.number+" is pushed into the Crowd.");victim.x=null;victim.y=null;
    if(victim.team===this.active&&this.blockAction)this.blockAction.turnover=true;
    const injury=this.roll("Crowd injury")+this.roll("Crowd injury");
-   this.resolveInjury(victim,injury,()=>{const after=()=>done(true);if(carrying){this.ball={x:from.x,y:from.y,carrier:null};this.throwIn(from.x,from.y,after);}else after();},{crowd:true});return;
+   this.resolveInjury(victim,injury,()=>{const after=()=>done(true);if(carrying){this.ball={x:from.x,y:from.y,carrier:null};this.throwIn(from.x,from.y,after);}else after();},{crowd:true,source:this.crowdSource?.(victim)});return;
   }
   const occupant=this.at(destination.x,destination.y);
   if(occupant){
@@ -461,7 +461,7 @@ class MovementGame {
   if(!pushed){if(knockTarget)this.fall(d,{turnover:false,mightyBlowBy:a,after:()=>this.finishBlock()});else this.finishBlock();return;}
   const mayFollow=!this.has(d,"Fend")||d.distracted;
   const continueBlock=follow=>{
-   if(follow){a.x=origin.x;a.y=origin.y;this.note("#"+a.number+" follows up.");}
+   if(follow){a.x=origin.x;a.y=origin.y;this.note("#"+a.number+" follows up.");this.onFollowed?.(a);}
    this.afterFollow(a,d,knockTarget,()=>{if(knockTarget&&d.x!==null)this.fall(d,{turnover:false,mightyBlowBy:a,after:()=>this.finishBlock()});else this.finishBlock();});
   };
   if(mayFollow)this.pending={type:"custom",kind:"Follow-up",options:["Follow up","Stay"],resolve:choice=>{this.pending=null;continueBlock(choice==="Follow up");}};else continueBlock(false);
@@ -582,6 +582,8 @@ class MovementGame {
  }
  movementOutcome(p,plan,origin,failure,done){done({});}
  movementCompleted(p){}
+ afterArrival(p,done){done();}
+ beforeThrownLanding(p,done){done(false);}
  beforeMovement(p,plan,origin){}
  beforeDepartureTests(p,plan,origin,done){done();}
  departureTest(p,plan,origin,kind,target,yes,no){this.test(p,kind,target,yes,no);}
@@ -597,9 +599,9 @@ class MovementGame {
    const pickup=!this.ball.carrier&&this.ball.x===p.x&&this.ball.y===p.y;
    if(pickup&&this.action==="secure")this.secureBall(p,p.x,p.y);
    else if(pickup)this.test(p,"Pick up",Number.parseInt(this.profile(p).ag)+this.marking(p),()=>{
-    this.ball.carrier=p.id;this.note("#"+p.number+" picks up the ball.");this.checkScore();this.movementCompleted(p);
-   },()=>{this.note("Failed pickup: turnover regardless of subsequent catches.");this.bounce(p.x,p.y,()=>this.endTurn(true));});
-   else {this.checkScore();this.movementCompleted(p);}
+    this.ball.carrier=p.id;this.note("#"+p.number+" picks up the ball.");this.afterArrival(p,()=>{this.checkScore();this.movementCompleted(p);});
+   },()=>{this.note("Failed pickup: turnover regardless of subsequent catches.");this.afterArrival(p,()=>this.bounce(p.x,p.y,()=>this.endTurn(true)));});
+   else this.afterArrival(p,()=>{this.checkScore();this.movementCompleted(p);});
    });
   };
   const fail=(kind,n,recover)=>this.preventFall(p,recover,()=>this.movementOutcome(p,plan,origin,{kind,roll:n},context=>this.fall(p,{...context,skipPrevention:true})));
@@ -721,7 +723,7 @@ class MovementGame {
     const cx=p.x,cy=p.y;this.ball={x:cx,y:cy,carrier:null};
     this.test(p,"Catch",this.landingTarget(p,delivery),()=>{
      if(delivery.kind==="pass"&&delivery.accurate&&this.passContext?.p?.team===p.team&&this.passContext.p.id!==p.id&&cx===delivery.target.x&&cy===delivery.target.y)this.recordStat(this.passContext.p,"completion");
-     this.ball={x:cx,y:cy,carrier:p.id};this.note("#"+p.number+" catches the ball.");this.checkScore();done();
+     this.ball={x:cx,y:cy,carrier:p.id};this.note("#"+p.number+" catches the ball.");this.onBallCaught?.(p,delivery);this.checkScore();done();
     },()=>this.bounce(cx,cy,done));
    }else if(p||thrown||direct)this.bounce(x,y,done);
    else done();

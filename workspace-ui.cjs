@@ -157,7 +157,7 @@ document.getElementById("pitch-scale").addEventListener("change",event=>{
 function refreshWorkspace(){
  closePitchPopup();hidePitchTooltip();
  document.getElementById("exhibition-rosters").hidden=!game.match||!!game.league;
- const pregame=game.match&&["fans","weather","leagueSteps","rolloff","kickChoice"].includes(game.phase),overview=document.getElementById("pregame-overview");
+ const pregame=game.match&&["fans","weather","leagueSteps","prayers","rolloff","kickChoice"].includes(game.phase),overview=document.getElementById("pregame-overview");
  overview.hidden=!pregame;document.getElementById("pitch-board").hidden=!!pregame;document.getElementById("mobile-pitch-help").hidden=!!pregame;document.getElementById("pitch-hint").hidden=!!pregame;
  document.getElementById("pitch-tools").hidden=!!pregame;
  renderDugouts(pregame);
@@ -165,7 +165,7 @@ function refreshWorkspace(){
  selection.hidden=!!pregame;document.getElementById("movement").hidden=!!pregame;document.getElementById("player-details").hidden=!!pregame;
  if(pregame){
   overview.replaceChildren();const heading=document.createElement("h2");heading.textContent="Prepare for kick-off";overview.append(heading);const intro=document.createElement("p");intro.textContent="Both coaches share this browser. Complete the current step in the coach panel, then arrange your players on the pitch.";overview.append(intro);
-  const steps=document.createElement("ol");steps.className="pregame-steps";overview.append(steps);const phaseIndex={fans:0,weather:1,leagueSteps:2,rolloff:3,kickChoice:3}[game.phase];
+  const steps=document.createElement("ol");steps.className="pregame-steps";overview.append(steps);const phaseIndex={fans:0,weather:1,leagueSteps:2,prayers:2,rolloff:3,kickChoice:3}[game.phase];
   ["Fans in attendance","Weather",game.league?"Inducement purchases":"Pre-game checks","Kick or receive","Set up your team"].forEach((name,i)=>{const li=document.createElement("li");li.textContent=name;li.className=i<phaseIndex?"complete":i===phaseIndex?"current":"";if(i===phaseIndex)li.setAttribute("aria-current","step");steps.append(li);});
  }
  Array.from(pitch.children).forEach((cell,i)=>{cell.tabIndex=i===pitchFocus?0:-1;cell.dataset.hint=cell.title;cell.removeAttribute("title");});

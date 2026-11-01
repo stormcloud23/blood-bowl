@@ -47,8 +47,9 @@ included, along with shared Big Guy caps and saved league/alignment choices.
 
 ## Current capabilities
 
-v0.0.21 adds [Wizards and mercenaries](docs/WIZARDS-MERCENARIES.md), including
-Fireball/Zap targeting and funded temporary-player construction. Visual team
+v0.0.22 adds [automatic underdog prayers and all sixteen effects](docs/PRAYERS.md).
+[Wizards and mercenaries](docs/WIZARDS-MERCENARIES.md) include Fireball/Zap
+targeting and funded temporary-player construction. Visual team
 dugouts, Solid Defence redeployment and Riotous Rookies are included.
 [The match-system audit](docs/MATCH-SYSTEM-AUDIT.md) records
 verified scope and the remaining inducement gaps; inducements are not complete.
