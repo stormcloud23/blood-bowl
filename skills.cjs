@@ -67,13 +67,14 @@ class SkillGame extends SkillBase {
   if(!Number.isFinite(pa))resolve(1);else this.test(p,"Pass",preview.target,resolve,resolve);return true;
  }
  bombScatter(x,y,label){const dirs=[[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]],[dx,dy]=dirs[this.roll(label,8)-1];return {x:x+dx,y:y+dy};}
+ beforeBombCatch(p,done){done();}
  landBomb(x,y,delivery,mayBounce){
   if(!this.inside(x,y)){this.note("Bomb leaves the pitch.");this.finishBomb();return;}
   this.bomb={x,y,carrier:null};
   const catchWith=p=>{
    if(p?.status==="standing"&&!p.distracted){
     this.bomb={x:p.x,y:p.y,carrier:null};const c=this.bombContext;c.catchTest=p.id;
-    const end=fn=>{c.catchTest=null;fn();};this.test(p,"Catch",this.landingTarget(p,delivery),()=>end(()=>this.rethrowBomb(p)),()=>end(()=>this.explodeBomb(p.x,p.y)));return;
+    const end=fn=>{c.catchTest=null;fn();};this.beforeBombCatch(p,()=>this.test(p,"Catch",this.landingTarget(p,delivery),()=>end(()=>this.rethrowBomb(p)),()=>end(()=>this.explodeBomb(p.x,p.y))),{x,y});return;
    }
    if(!this.at(x,y)&&mayBounce){const pos=this.bombScatter(x,y,"Bomb bounce");this.landBomb(pos.x,pos.y,{kind:"bomb"},false);}else this.explodeBomb(x,y);
   };
@@ -712,8 +713,9 @@ class SkillGame extends SkillBase {
   if(blitzName){if(!this.canBlitzBlock()||target.id!==this.blitzTarget||!this.skill(p,blitzName==="Chomp"?"Monstrous Mouth":blitzName)||!["Stab","Projectile Vomit","Breathe Fire","Chainsaw","Chomp"].includes(blitzName))return false;p.spent++;this.blitzBlocked=true;const run=()=>this.specialAttack(p,target,blitzName);if(p.spent>this.profile(p).ma)this.test(p,"Rush",2,run,()=>this.fall(p,{prevented:run}));else run();return true;}
   if(!this.specialTargets().includes(target))return false;p.specialDone=true;if(this.action==="foul")this.foul(p,target);else this.specialAttack(p,target,this.action.slice(8));return true;
  }
+ afterSpecialAttack(p,target,name,done){done();}
  specialAttack(p,target,name){
-  const finish=()=>{const cleanup=()=>{if(p.bloodlust&&(name!=="Chomp"||this.action!=="blitz")){this.feed(p,cleanup);return;}if(name!=="Chomp"||this.action!=="blitz"){this.mover=null;this.action=null;}this.checkScore();};if(name==="Stab")this.hitAndRun(p,cleanup);else cleanup();},perform=()=>{
+  const finish=()=>this.afterSpecialAttack(p,target,name,()=>{const cleanup=()=>{if(p.bloodlust&&(name!=="Chomp"||this.action!=="blitz")){this.feed(p,cleanup);return;}if(this.action!=="blitz"||!["Chomp","Chainsaw"].includes(name)){this.mover=null;this.action=null;}this.checkScore();};if(name==="Stab")this.hitAndRun(p,cleanup);else cleanup();}),perform=()=>{
    if(name==="Chomp"){this.test(p,"Chomp",3,()=>{target.chompers=[...new Set([...(target.chompers||[]),p.id])];this.note("#"+target.number+" is Chomped.");finish();},finish);return;}
    if(name==="Hypnotic Gaze"){this.test(p,"Hypnotic Gaze",3,()=>{target.distracted=true;this.refreshChomps();finish();},finish);return;}
    const medical={source:{playerId:p.id,cause:name},plague:this.action==="blitz"};

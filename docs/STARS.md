@@ -1,6 +1,6 @@
 # Named star players — first supported group
 
-Seventeen named players (sixteen hiring entries) are available through **Configure staff and inducements →
+Nineteen named players (eighteen hiring entries) are available through **Configure staff and inducements →
 Star players**. The menu offers only stars eligible for the team's selected
 roster league or matching special rule. Alternate roster leagues must be chosen
 before the match. Selecting a star previews their actual profile and skills,
@@ -8,6 +8,8 @@ then asks for confirmation; removing a pregame hire refunds the fee.
 
 | Star | Fee | Eligibility | Unique ability |
 | --- | ---: | --- | --- |
+| Max Spleenripper | 130K | Favoured of Khorne | Maximum Carnage: once per game, a second Chainsaw attack against a different opponent |
+| Bomber Dribblesnot | 80K | Badlands Brawl or Underworld Challenge | Kaboom!: once per game, explode a bomb before an eligible catch |
 | The Swift Twins (Lucien and Valen) | 300K pair | Elven Kingdoms League | Working in Tandem: partner-marked Block re-roll and special passing distance |
 | Morg 'n' Thorg | 340K | Any league except Sylvanian Spotlight | The Ballista: once per game, re-roll failed PA in Pass/Throw Team-mate windows |
 | Fungus the Loon | 80K | Badlands Brawl or Underworld Challenge | Whirling Dervish: once per turn, re-roll movement direction |
@@ -177,3 +179,24 @@ The v0.0.25 audit also fixes medical treatment of Zapped Frogs: BB2025
 `mechanics/ApothecaryMechanic.apothecaryTypes` returns no source for a
 `ZappedPlayer`, including Team/Wandering Apothecaries and Plague Doctors.
 The browser now skips treatment and rejects direct source spending on Frogs.
+
+## v0.0.26 — Max and Bomber
+
+[Max](https://bloodbowlbase.ru/bb2025/starplayers/Max_Spleenripper/) and
+[Bomber](https://bloodbowlbase.ru/bb2025/starplayers/Bomber_Dribblesnot/) retain
+normal Secret Weapon handling and temporary-star restrictions. Maximum Carnage
+offers only a different adjacent standing opponent after Chainsaw resolution;
+declining or having no target preserves it. A Blitz extra attack spends another
+movement point, including Rush when needed, and remaining Blitz movement is
+preserved. The once-per-game use is spent on selecting the second attack.
+
+Kaboom follows BB2025 StepInitBomb/StepRecheckExplodeSkill: the thrower may
+force explosion before an eligible selected catch, skipping the catch die;
+the executable window is not restricted to opposing catchers. Declining leaves
+the normal catch/rethrow flow and preserves the use. A fumble/out-of-bounds
+throw has no catch window. Nested rethrows use the current thrower.
+
+Pinned sources: mixed MaximumCarnage/Kaboom definitions; BB2025
+block/StepEndBlocking, block/StepBlockChainsaw and the two bomb steps above.
+Focused deterministic and actual bundled UI cases cover use, decline, target
+restrictions, Blitz movement, halftime and stale callbacks.

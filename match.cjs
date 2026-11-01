@@ -4,6 +4,8 @@ const MatchSkillGroups=typeof module!=="undefined"?require("./skills.cjs").SKILL
 const MATCH_PRAYERS=["Treacherous Trapdoor","Friends with the Ref","Stiletto","Iron Man","Knuckle Dusters","Bad Habits","Greasy Cleats","Blessing of Nuffle","Moles under the Pitch","Perfect Passing","Dazzling Catching","Fan Interaction","Fouling Frenzy","Throw a Rock","Under Scrutiny","Intensive Training"];
 // BB2025 profile data; unique ability behavior follows pinned FFB.
 const MATCH_STARS=[
+ {id:"bomber-dribblesnot",name:"Bomber Dribblesnot",cost:80000,ma:6,st:2,ag:"3+",pa:"3+",av:"8+",traits:"Goblin, Special",skills:["Accurate","Bombardier","Dodge","Loner (4+)","Right Stuff","Secret Weapon","Stunty","Kaboom!"],leagues:["Badlands Brawl","Underworld Challenge"],primary:"",secondary:"",max:1},
+ {id:"max-spleenripper",name:"Max Spleenripper",cost:130000,ma:5,st:4,ag:"4+",pa:"-",av:"9+",traits:"Human, Special",skills:["Chainsaw","Loner (4+)","No Ball","Secret Weapon","Maximum Carnage"],leagues:[],special:["Favoured of Khorne"],primary:"",secondary:"",max:1},
  {id:"swift-twins",name:"The Swift Twins",cost:300000,leagues:["Elven Kingdoms League"],players:[
   {id:"lucien-swift",name:"Lucien Swift",ma:7,st:3,ag:"2+",pa:"3+",av:"9+",traits:"Blitzer, Elf",skills:["Block","Loner (4+)","Mighty Blow","Tackle","Working in Tandem (block)"]},
   {id:"valen-swift",name:"Valen Swift",ma:7,st:3,ag:"2+",pa:"2+",av:"9+",traits:"Elf, Thrower",skills:["Accurate","Loner (4+)","Nerves of Steel","Pass","Safe Pass","Sure Hands","Working in Tandem (pass)"]}
@@ -128,6 +130,14 @@ class MatchGame extends MatchBase {
   if(this.starsFinalized)return;this.starsFinalized=true;
   const duplicates=this.selectedStars[0].filter(id=>this.selectedStars[1].includes(id));
   for(const id of duplicates){this.players=this.players.filter(p=>p.star!==id);this.note(MATCH_STARS.find(s=>s.id===id).name+" was hired by both teams and plays for neither; both fees remain spent.");}
+ }
+ beforeBombCatch(p,done,origin=p){const thrower=this.bombContext?.thrower;if(!thrower||!this.has(thrower,"Kaboom!")||thrower.kaboomUsed){done();return;}this.skillChoice("Kaboom! — explode before "+this.teams[p.team].name+" #"+p.number+" catches",thrower.team,["Use Kaboom!","Keep Kaboom!"],choice=>{if(choice==="Use Kaboom!"){thrower.kaboomUsed=true;this.bombContext.catchTest=null;this.explodeBomb(origin.x,origin.y);}else done();});}
+ afterSpecialAttack(p,target,name,done){
+  if(name!=="Chainsaw"||!this.has(p,"Maximum Carnage")||p.maximumCarnageUsed||p.status!=="standing"||p.distracted||this.finished){done();return;}
+  const blitz=this.action==="blitz",limit=this.movementAllowance(p)+this.rushLimit(p);if(blitz&&p.spent>=limit&&!p.rooted){done();return;}
+  const targets=this.players.filter(q=>q!==target&&q.team!==p.team&&this.onPitch(q)&&q.status==="standing"&&this.distance(p,q)===1);if(!targets.length){done();return;}
+  const labels=targets.map(q=>"Chainsaw "+this.teams[q.team].name+" #"+q.number);
+  this.skillChoice("Maximum Carnage — choose a different opponent",p.team,[...labels,"Keep Maximum Carnage"],choice=>{const q=targets[labels.indexOf(choice)];if(!q){done();return;}p.maximumCarnageUsed=true;const hit=()=>this.specialAttack(p,q,"Chainsaw");if(blitz&&!p.rooted){p.spent++;if(p.spent>this.movementAllowance(p))this.test(p,"Rush",2,hit,()=>this.fall(p));else hit();}else hit();});
  }
  chainDirection(p,direction,done){
   const n=this.roll("Ball & Chain direction");if(!this.has(p,"Whirling Dervish")||this.used(p,"Whirling Dervish")){done(n);return;}
