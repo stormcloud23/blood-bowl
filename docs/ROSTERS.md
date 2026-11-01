@@ -1,7 +1,7 @@
 # BB2025 roster catalogue
 
 The catalogue now includes Imperial Nobility, Black Orcs, **Skaven**, **Dwarf**,
-**Lizardmen** and **Elven Union**. All six can be drafted for local leagues or
+**Lizardmen**, **Elven Union**, **Nurgle** and **Dark Elf**. All eight can be drafted for local leagues or
 selected independently for the home and away sides of an exhibition. Changing
 an exhibition selection restarts that exhibition. Practice drills retain the
 original two fixtures. Existing league backups keep their original roster IDs.
@@ -16,12 +16,23 @@ Profiles were checked on October 31, 2026 against these BB2025 roster tables:
 - [Dwarf](https://bloodbowlbase.ru/bb2025/teams/Dwarf/)
 - [Lizardmen](https://bloodbowlbase.ru/bb2025/teams/Lizardmen/)
 - [Elven Union](https://bloodbowlbase.ru/bb2025/teams/Elven_Union/)
+- [Nurgle](https://bloodbowlbase.ru/bb2025/teams/Nurgle/)
+- [Dark Elf](https://bloodbowlbase.ru/bb2025/teams/Dark_Elf/)
 
 The data uses the 2025 profiles, prices, caps and advancement access, including
 two Stab Gutter Runners, Defensive Dwarf linemen, Diving Tackle Dwarf blitzers,
 Juggernaut/Unsteady Saurus, and Fumblerooski Elf linemen. Each demonstration
 lineup has eleven players and fits a million-gold draft with two re-rolls.
 All starting skills map to existing implemented catalogue entries.
+
+Nurgle uses the existing Favoured of Nurgle Plague Doctor availability and
+Brawlin' Brutes SPP awards. Apothecaries and Wandering Apothecaries are
+unavailable. The 2025 roster has two Pestigors, Steady Footing/Thick Skull on
+Pestigors and Pick-me-up on the Rotspawn. Rotters remain the roster's eligible
+Plague Ridden lineman profile. Dark Elves have no roster-wide special rule;
+their 2025 profile includes two Blitzers, Punt on Runners and Hit and Run on
+Assassins. Both new demonstration lineups fit a million-gold draft with two
+re-rolls. Stars and further inducement support remain out of scope.
 
 Dwarfs use the existing Brawlin' Brutes SPP awards (2 per touchdown and 3 per
 eligible casualty) and Bribery and Corruption discounts/argument re-roll. The
