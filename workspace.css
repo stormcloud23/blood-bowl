@@ -1,4 +1,6 @@
 [hidden]{display:none!important}
+.square.trapdoor{outline:2px dashed #f4cb74;outline-offset:-3px}
+.trapdoor-marker{position:absolute;left:2px;bottom:0;color:#ffe0a1;font-size:12px;line-height:1;pointer-events:none}
 body{padding:14px 24px;max-width:1600px}
 header{min-height:48px}h1{font-size:26px}.eyebrow{font-size:11px}
 .workspace-tabs{display:flex;gap:6px;border-bottom:1px solid #34474d;margin:8px 0 12px;overflow:auto;position:sticky;top:0;z-index:4;background:#101b20}

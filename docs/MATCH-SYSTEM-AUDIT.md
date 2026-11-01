@@ -1,4 +1,4 @@
-# Match-system audit — updated for v0.0.21
+# Match-system audit — updated for v0.0.22
 
 **Inducements are not complete.** This audit compares the browser with FFB
 commit `bf3f89d96b5143a8730910a841e7430791094492`; older completion counts
@@ -12,7 +12,7 @@ Biased Referee, Mortuary Assistant and Plague Doctor. Their existing focused
 tests cover ownership, costs, roster gates, consumption, rerolls and recovery.
 The team's permanent staff are separate from purchased inducements.
 
-This update adds **Riotous Rookies**: one 100K group, available with Low Cost
+Supported **Riotous Rookies**: one 100K group, available with Low Cost
 Linemen, rolling 2D3+1 reserve Linemen with Loner (4+) after purchases and before
 coin choice. They are temporary Journeymen, may exceed sixteen during the
 match, can receive normal participant SPP and use existing postgame hiring
@@ -22,14 +22,17 @@ the saved permanent roster. Source: common `step/phase/inducement/StepRiotousRoo
 
 Wizards (Fireball/Zap) and mercenary construction are now supported; see
 [WIZARDS-MERCENARIES.md](WIZARDS-MERCENARIES.md) for source references,
-verification and remaining spell/medical sequencing limits.
+verification and remaining interaction audit limits.
 
-Still missing: purchased and automatic underdog prayers/effects;
-named coaching staff; named star players/unique
+Automatic underdog prayers and all sixteen pinned effects are now supported;
+see [PRAYERS.md](PRAYERS.md) for allocation, effect boundaries and audit limits.
+Purchased prayers remain unavailable under the pinned maximum of zero.
+
+Still missing: named coaching staff; named star players/unique
 abilities and other special inducement players. These are intentionally not
 offered as inert purchases. Prayers' pinned purchased maximum is zero, but
-the underdog-prayer option is enabled, so zero purchasable prayers does not
-mean the prayer system is complete. General non-star inducements still need work.
+the underdog-prayer option is enabled and now implemented. General non-star
+inducements still need work.
 
 Pinned FFB prices/caps are retained, including historical differences from
 printed tables (Weather Mage 30K, temporary cheerleaders 20K/max four, temporary
@@ -41,8 +44,8 @@ stay within FFB combined limits given the browser's permanent staff caps.
 Checked FFB StartGame/Kickoff generators: fans, weather, Petty Cash/purchases,
 post-purchase additions, coin/receive choice, normal setups, Swarming, Chef,
 kick, deviation/return, kickoff result and landing/touchback. The browser has
-those supported phases and league funding safeguards. Unsupported prayers and
-special inducement sequences remain gaps, not completed no-op steps.
+those supported phases, automatic prayers and league funding safeguards.
+Unsupported special inducement sequences remain gaps, not completed no-op steps.
 
 Equal-CTV Treasury inducements remain unavailable under the pinned default;
 FFB's optional allow-spending-on-equal-CTV setting is not exposed. Journeymen
@@ -61,7 +64,7 @@ and team-rules.test.cjs. This pass does not certify every ability combination.
 | 2 Get the Ref | Additional Bribe per team, not capped by purchase limit |
 | 3 Time-out | Shared marker change, kicking marker six threshold |
 | 4 Solid Defence | Snapshot Open eligibility and D3+3 limit; selected players can now be lifted and swapped/redeployed before formation validation |
-| 5 High Kick | Optional Open-player placement; touchback/occupied-target skip |
+| 5 High Kick | Optional Open-player placement; touchback/occupied-target skip; receiving-coach ownership and guarded callbacks |
 | 6 Cheering Fans | Staff contest, ties, ownership-based Mascot natural-one retry, first-Block bonus |
 | 7 Brilliant Coaching | Staff contest, ties, expiring Drive reroll |
 | 8 Changing Weather | Shared weather; perfect-weather airborne scatter and boundary checks |

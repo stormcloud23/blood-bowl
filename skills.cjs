@@ -350,10 +350,12 @@ class SkillGame extends SkillBase {
     this.fall(victim,{turnover:false,impactBy:impact,injurySource,prevented:resume,after:()=>{if(victim.team===this.active)forcedTurnover=true;resume();}});return;
    }
    p.x=pos.x;p.y=pos.y;if(this.ball.carrier===p.id){this.ball.x=p.x;this.ball.y=p.y;}
+   const resolveLanding=()=>{
    const fail=()=>this.fall(p,{turnover:false,prevented:()=>ok(),after:()=>end(forcedTurnover||carrying)});
    const ok=(rolled=false)=>{if(rolled){this.recordStat(p,"landing");if(superbThrow)this.recordStat(a,"completion");}this.note("#"+p.number+" lands on their feet.");if(!this.ball.carrier&&this.ball.x===p.x&&this.ball.y===p.y)this.bounce(p.x,p.y,()=>end(forcedTurnover));else end(forcedTurnover);};
    if(unable||crashed){fail();return;}
    p.swooping=usingSwoop;this.test(p,"Landing",parseInt(this.profile(p).ag)+(subpar?1:0)+this.marking(p),()=>{p.swooping=false;ok(true);},()=>{p.swooping=false;fail();});
+   };this.beforeThrownLanding(p,fell=>{if(fell)end(true);else resolveLanding();});
   };
   const carrying=this.ball.carrier===p.id;
   const fumble=()=>{
@@ -637,7 +639,7 @@ class SkillGame extends SkillBase {
  afterPush(origin,knock,pushed){const b=this.blockAction;
   if(this.chainContext){
    const c=this.chainContext,a=b.attacker,d=b.target;
-   if(pushed){a.x=origin.x;a.y=origin.y;this.note("Ball & Chain follows up.");}
+   if(pushed){a.x=origin.x;a.y=origin.y;this.note("Ball & Chain follows up.");this.onFollowed?.(a);}
    this.afterFollow(a,d,knock,()=>{
     if(c.ground&&this.onPitch(d)){
      const old=d.status;this.armourOnly(d,()=>{if(d.status==="standing"||d.status==="prone")d.status=old;this.finishBlock();},{source:{playerId:a.id,cause:"Ball & Chain collision"}});
@@ -830,7 +832,7 @@ class SkillGame extends SkillBase {
   const finishNormal=()=>{if(after){after(false);return;}if(this.skill(p,"Quick Foul")){this.note("Quick Foul: remaining movement is available.");}else if(p.bloodlust)this.feed(p,()=>{this.mover=null;this.action=null;});else{this.mover=null;this.action=null;}},finish=()=>{if(!sent&&(this.biasedRefs?.[1-p.team]||0)>0){const n=this.roll("Biased Referee spots foul on 5+");sent=n>=5;this.note("Biased Referee "+(sent?"spots":"does not spot")+" the foul.");}if(sent)this.sendOff(p,turnover=>after?after(turnover):turnover?this.endTurn(true):finishNormal());else finishNormal();},rollArmour=(rerolled=false)=>{
    const a=this.roll("Foul Armour"),b=this.roll("Foul Armour"),raw=a+b,dirty=this.skill(p,"Dirty Player"),skin=this.has(target,"Iron Hard Skin");
    const afterArmour=bonus=>{const broken=raw+modifier+bonus>=parseInt(this.profile(target).av);
-    const keep=()=>{if(a===b&&(!this.skill(p,"Sneaky Git")||broken))sent=true;
+    const keep=()=>{if(a===b&&(!this.skill(p,"Sneaky Git")||broken)||broken&&this.foulSpottedOnBreak?.(p.team))sent=true;
      if(!broken){finish();return;}
      const c=this.roll("Foul Injury"),d=this.roll("Foul Injury");if(c===d)sent=true;
      const apply=add=>this.injuryResult(target,c+d+add,finish,{source:{playerId:p.id,cause:"Foul"}});if(dirty&&!bonus)this.pending={type:"custom",kind:"Dirty Player",options:["Add +1 to Injury","No modifier"],resolve:choice=>{this.pending=null;apply(choice==="Add +1 to Injury"?1:0);}};else apply(0);
@@ -858,7 +860,7 @@ class SkillGame extends SkillBase {
    if(choice!=="Argue the Call"){bribe();return;}
    let n=this.roll("Argue the Call");
    if(n===1&&(this.argueRerolls?.[p.team]||0)>0){this.argueRerolls[p.team]--;this.note("Bribery and Corruption: re-roll the natural-one Argue the Call.");n=this.roll("Bribery and Corruption Argue re-roll");}
-   if(n+(this.biasedRefs?.[p.team]||0)>=6){this.note("Argue the Call succeeds; player remains, turnover still applies.");complete(true);return;}
+   if(n+(this.biasedRefs?.[p.team]||0)+(this.argueModifier?.(p.team,n)||0)>=6){this.note("Argue the Call succeeds; player remains, turnover still applies.");complete(true);return;}
    if(n===1){this.argueBanned[p.team]=true;remove();return;}
    bribe();
   });
