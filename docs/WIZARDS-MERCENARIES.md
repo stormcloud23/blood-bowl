@@ -74,8 +74,13 @@ checks and postgame exclusion. The complete inline UI tests exercise purchase
 controls, mercenary dugout placement and spell targeting/confirmation.
 
 These are source-derived tests, not a Java/JavaScript differential runner.
-Browser automation was disabled in Work settings during this session; no new
-desktop/mobile screenshots or visual certification are claimed. Fireball
+After the owner enabled the Chrome connector, desktop visual review of the
+published PR build verified Wizard pricing, mercenary skill selection and cost,
+reserve information and setup substitution, Fireball highlighting and mixed-team
+confirmation, cancellation into Zap targeting, and a real Fireball through
+injuries and the next turn. No console errors were captured. Screenshot:
+workspace `.codex-attachments/wizard-visual/fireball-result.png`. Mobile layout
+and a successful Zap transformation remain visually unverified. Fireball
 prepares injury placement and resolves the ball before medical treatment,
 following FFB's spell sequence. Rare spell/skill chains are not exhaustively
 certified.
