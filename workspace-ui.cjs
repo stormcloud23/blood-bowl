@@ -4,6 +4,7 @@ const workspaceTabs=["play","teams","rosters","reference"];
 const workspaceScroll={};
 let workspaceView="play",pitchFocus=0,popupAnchor=null,popupEpoch=0,hoverSquare=null,staffDetailsOpen=false,popoverTransition=false;
 const popup=document.getElementById("pitch-popup"),tooltip=document.getElementById("pitch-tooltip");
+for(const [id,index] of [["exhibition-home",0],["exhibition-away",1]]){const select=document.getElementById(id);for(const roster of rosterCatalog){const option=document.createElement("option");option.value=roster.id;option.textContent=roster.name;select.append(option);}select.value=practiceLeagueTeams[index].id;select.addEventListener("change",reset);}
 function closePitchPopup(restore=false){
  popupEpoch++;popoverTransition=true;
  try{if(popup.matches(":popover-open"))popup.hidePopover();if(restore&&popupAnchor?.isConnected)popupAnchor.focus({preventScroll:true});popupAnchor=null;}finally{popoverTransition=false;}
@@ -144,6 +145,7 @@ document.getElementById("pitch-scale").addEventListener("change",event=>{
 });
 function refreshWorkspace(){
  closePitchPopup();hidePitchTooltip();
+ document.getElementById("exhibition-rosters").hidden=!game.match||!!game.league;
  const pregame=game.match&&["fans","weather","leagueSteps","rolloff","kickChoice"].includes(game.phase),overview=document.getElementById("pregame-overview");
  overview.hidden=!pregame;document.getElementById("pitch-board").hidden=!!pregame;document.getElementById("mobile-pitch-help").hidden=!!pregame;document.getElementById("pitch-hint").hidden=!!pregame;
  document.getElementById("pitch-tools").hidden=!!pregame;

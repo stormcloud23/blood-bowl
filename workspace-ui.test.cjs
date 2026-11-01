@@ -24,6 +24,7 @@ function workspaceFixture(scenario='block'){
  const get=id=>{if(!elements.has(id)){const e=new Element(id.startsWith('tab-')?'button':'div');e.id=id;elements.set(id,e);}return elements.get(id);};
  const document={getElementById:get,createElement:tag=>new Element(tag),querySelectorAll:()=>[],listeners:{},addEventListener(k,f){(this.listeners[k]??=[]).push(f);},activeElement:null};
  get('team-data').textContent=html.match(/type="application\/json">([\s\S]*?)<\/script>/)[1];get('scenario').value=scenario;get('player-details').append(get('profile'));
+ get('roster-data').textContent=html.match(/id="roster-data" type="application\/json">([\s\S]*?)<\/script>/)[1];
  const storage=new Map();context=vm.createContext({document,console,innerWidth:1200,innerHeight:800,addEventListener(){},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)}});
  const scripts=[...html.matchAll(/<script(?: id="(?:(?:movement|skills|match|league)-engine|league-ui|workspace-ui)")?>([\s\S]*?)<\/script>/g)].map(m=>m[1]).join('\n');vm.runInContext(scripts,context);
  const run=code=>vm.runInContext(code,context),popup=()=>get('pitch-popup').querySelectorAll('button'),action=label=>{const b=popup().find(b=>b.textContent===label);assert.ok(b,'Popup action '+label);return b;};
@@ -94,4 +95,7 @@ test('the movement popup discloses required checks before committing a risky rou
 });
 test('native popover focus restoration cannot reenter tooltip opening during hide',()=>{
  const f=workspaceFixture(),p=JSON.parse(f.run('JSON.stringify(game.players.find(p=>p.id===selected))'));f.cell(p.x,p.y).click();let hiding=false;f.get('pitch-tooltip').showPopover=()=>{if(hiding)throw Error('Native popover transition reentered');};f.get('pitch-popup').hidePopover=function(){this.popoverOpen=false;hiding=true;f.get('pitch').emit('focusin',{target:f.cell(p.x,p.y)});hiding=false;};assert.doesNotThrow(()=>f.popup().find(b=>b['aria-label']==='Close pitch actions').click());assert.equal(f.get('pitch-popup').popoverOpen,false);assert.equal(f.get('pitch-tooltip').popoverOpen,false);
+});
+test('exhibition roster selectors create exactly two teams and practice reset restores original fixtures',()=>{
+ const f=workspaceFixture('match');assert.equal(f.get('exhibition-home').children.length,6);f.get('exhibition-home').value='lizardmen';f.get('exhibition-away').value='dwarf';f.get('exhibition-home').emit('change');assert.equal(f.run('teams.length'),2);assert.equal(f.run('game.teams[0].id'),'lizardmen');assert.equal(f.run('game.teams[1].id'),'dwarf');f.get('scenario').value='block';f.get('scenario').emit('change');assert.equal(f.run('teams[0].id'),'imperial-nobility');assert.equal(f.run('teams[1].id'),'black-orc');assert.equal(f.get('exhibition-rosters').hidden,true);
 });

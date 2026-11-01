@@ -124,6 +124,7 @@ footer{padding-top:14px;border-top:1px solid #34474d;font-size:11px;margin-top:2
 #match-scoreboard{margin:0 0 12px;padding:10px 14px;background:#19282e;border:1px solid #34474d;border-radius:6px}
 #match-scoreboard h2{font-size:18px;margin:0 0 4px}#match-scoreboard p{font-size:12px;margin:0;line-height:1.4}
 #match-scoreboard:empty{display:none}
+#exhibition-rosters{padding:0 12px;margin:0 0 12px;font-size:13px}#exhibition-rosters select{margin:0 8px 10px 0}
 main>aside #matchflow{padding:0 0 12px;border:0;border-bottom:1px solid #34474d;background:transparent;border-radius:0}
 main>aside #matchflow .control{max-width:100%}
 .league-creation section>.control{vertical-align:bottom;margin-bottom:8px}
@@ -137,13 +138,13 @@ main>aside #matchflow .control{max-width:100%}
 </style>
 </head>
 <body>
-<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>Match day</h1></div><span class="badge">v0.0.16 · Match workspace</span></header>
+<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>Match day</h1></div><span class="badge">v0.0.17 · Six rosters</span></header>
 <nav class="workspace-tabs" role="tablist" aria-label="Game workspace"><button id="tab-play" role="tab" aria-controls="play-view" aria-selected="true">Play</button><button id="tab-teams" role="tab" aria-controls="teams-view" aria-selected="false" tabindex="-1">Teams & leagues</button><button id="tab-rosters" role="tab" aria-controls="rosters" aria-selected="false" tabindex="-1">Rosters</button><button id="tab-reference" role="tab" aria-controls="reference-view" aria-selected="false" tabindex="-1">Reference</button></nav>
 <section id="play-view" role="tabpanel" aria-labelledby="tab-play"><div class="notice" id="mode-notice"><strong>Movement and ball action practice</strong><br><span class="muted">Preview movement and its checks, resolve Block dice, pushes, and follow-ups, or secure a loose ball. Perfect Conditions. This remains a practice drive, not a complete match.</span></div>
 <div class="mode-toolbar">
-<label for="scenario">Game mode </label><select id="scenario"><option value="match">Exhibition match — pre-game</option><option value="match-learning">Learning match — simplified kickoff</option><option value="skills">Skills laboratory</option><option value="teams">Both teams</option><option value="dodge">Dodge practice</option><option value="jump">Jump & stand up</option><option value="pickup">Ball pickup</option><option value="throw-team-mate">Throw Team-mate practice</option><option value="traits">Ogre & Troll traits</option><option value="handoff">Hand-off practice</option><option value="pass">Pass & interception practice</option><option value="blitz">Blitz practice</option><option value="block">Block practice</option><option value="secure">Secure the Ball practice</option></select><span class="muted">Changing mode starts a new game.</span></div><div id="match-scoreboard" aria-live="polite"></div><main><section><div id="pregame-overview" class="panel" hidden></div><div id="pitch-tools"><span id="pitch-direction"></span><label for="pitch-scale">Pitch size </label><select id="pitch-scale"><option value="1">Fit</option><option value="1.5">Large</option><option value="2">Extra large</option></select></div><p id="mobile-pitch-help" class="mobile-pitch-help">Swipe the pitch sideways to see the whole field.</p><div id="pitch-board" class="pitch-wrap"><div id="pitch" class="pitch" role="group" aria-label="Development pitch"></div></div><div id="pitch-legend" class="pitch-legend" aria-label="Movement highlight key"><span>No roll on this step</span><span>Check on this step</span><span>Jump</span></div><p id="pitch-hint" class="muted">Click a player for actions. Hover or focus a square for details.</p><details id="action-disclosure"><summary>Player actions</summary><div id="action-controls"><button class="control" id="start">Declare Move</button><button class="control secondary" id="handoff">Declare Hand-off</button><button class="control secondary" id="pass">Declare Pass</button><button class="control secondary" id="throw-mate">Declare Throw Team-mate</button><button class="control secondary" id="kick-mate">Declare Kick Team-mate</button><button class="control secondary" id="transfer">Choose ball target</button><button class="control secondary" id="blitz">Declare Blitz</button><button class="control secondary" id="block">Block</button><button class="control secondary" id="special">Foul / special action</button><button class="control secondary" id="secure">Secure the Ball</button></div></details><div class="turn-controls"><button class="control secondary" id="finish">End Move</button><button class="control secondary" id="end">End team turn</button><button class="control secondary" id="reset">New game / reset</button></div></section>
+<label for="scenario">Game mode </label><select id="scenario"><option value="match">Exhibition match — pre-game</option><option value="match-learning">Learning match — simplified kickoff</option><option value="skills">Skills laboratory</option><option value="teams">Both teams</option><option value="dodge">Dodge practice</option><option value="jump">Jump & stand up</option><option value="pickup">Ball pickup</option><option value="throw-team-mate">Throw Team-mate practice</option><option value="traits">Ogre & Troll traits</option><option value="handoff">Hand-off practice</option><option value="pass">Pass & interception practice</option><option value="blitz">Blitz practice</option><option value="block">Block practice</option><option value="secure">Secure the Ball practice</option></select><span class="muted">Changing mode starts a new game.</span></div><details id="exhibition-rosters" class="panel"><summary>Exhibition teams · changing a roster starts a new exhibition</summary><label for="exhibition-home">Home roster </label><select id="exhibition-home"></select><label for="exhibition-away"> Away roster </label><select id="exhibition-away"></select></details><div id="match-scoreboard" aria-live="polite"></div><main><section><div id="pregame-overview" class="panel" hidden></div><div id="pitch-tools"><span id="pitch-direction"></span><label for="pitch-scale">Pitch size </label><select id="pitch-scale"><option value="1">Fit</option><option value="1.5">Large</option><option value="2">Extra large</option></select></div><p id="mobile-pitch-help" class="mobile-pitch-help">Swipe the pitch sideways to see the whole field.</p><div id="pitch-board" class="pitch-wrap"><div id="pitch" class="pitch" role="group" aria-label="Development pitch"></div></div><div id="pitch-legend" class="pitch-legend" aria-label="Movement highlight key"><span>No roll on this step</span><span>Check on this step</span><span>Jump</span></div><p id="pitch-hint" class="muted">Click a player for actions. Hover or focus a square for details.</p><details id="action-disclosure"><summary>Player actions</summary><div id="action-controls"><button class="control" id="start">Declare Move</button><button class="control secondary" id="handoff">Declare Hand-off</button><button class="control secondary" id="pass">Declare Pass</button><button class="control secondary" id="throw-mate">Declare Throw Team-mate</button><button class="control secondary" id="kick-mate">Declare Kick Team-mate</button><button class="control secondary" id="transfer">Choose ball target</button><button class="control secondary" id="blitz">Declare Blitz</button><button class="control secondary" id="block">Block</button><button class="control secondary" id="special">Foul / special action</button><button class="control secondary" id="secure">Secure the Ball</button></div></details><div class="turn-controls"><button class="control secondary" id="finish">End Move</button><button class="control secondary" id="end">End team turn</button><button class="control secondary" id="reset">New game / reset</button></div></section>
 <aside class="panel"><div class="eyebrow">Coach’s desk</div><h2 id="coach"></h2><div id="matchflow" class="notice" aria-live="polite"></div><p id="selection" role="status" aria-live="polite"></p><div id="movement" aria-live="polite"></div><div id="choices"></div><details id="player-details"><summary>Player profile & optional skills</summary><div id="profile"></div></details><div id="dugout"></div><details><summary>Session log</summary><ol id="log"></ol></details></aside></main></section><section id="teams-view" role="tabpanel" aria-labelledby="tab-teams" hidden></section><section id="rosters" role="tabpanel" aria-labelledby="tab-rosters" hidden></section><section id="reference-view" role="tabpanel" aria-labelledby="tab-reference" hidden><article class="panel"><h2>Playing guide</h2><p class="muted">Select a player and choose an action. For movement, click a destination to preview the remaining range from there. Click another highlighted tile to extend the route. Declare the action, then click the selected destination again to commit; Cancel movement preview restores the current range. For Pass or Hand-off, declare the action, move as needed, then choose a ball target. For Blitz, choose Declare Blitz and a highlighted target, move adjacent, then choose Blitz Block (1 MA). During Block, click a highlighted target. After choosing a push result, click a gold push square; the player being pushed has a red outline. Crowd pushes remain in the side panel. Green = no roll on that step; amber = a check on that step or an action target; purple border = jump. Earlier route steps may still require rolls.</p><p class="muted">Direction template: 1 NW · 2 N · 3 NE · 4 W · 5 E · 6 SW · 7 S · 8 SE. Green is a step without a roll; amber is a check or action target; purple marks a jump. Earlier route steps can still require rolls.</p><p class="muted">Use arrow keys to navigate the pitch. Enter opens actions or selects a square. Escape closes a popup or cancels targeting. Hover information is also available by keyboard focus; touch a player for the same information and actions.</p></article><div id="reference-profile" class="panel" hidden><h2>Position details</h2><p>Select a position in Rosters to inspect it here.</p></div></section><div id="pitch-popup" popover="auto" role="dialog" aria-label="Pitch actions"></div><div id="pitch-tooltip" popover="manual" role="tooltip"></div>
-<footer>FFB-derived corrections: <a href="docs/FFB-AUDIT.md">comparison and scope</a> · <a href="THIRD_PARTY_NOTICES.md">MIT attribution</a> · Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.16 with feedback.</footer>
+<footer>FFB-derived corrections: <a href="docs/FFB-AUDIT.md">comparison and scope</a> · <a href="THIRD_PARTY_NOTICES.md">MIT attribution</a> · Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.17 with feedback.</footer>
 <script id="team-data" type="application/json">[
   {
     "id": "imperial-nobility",
@@ -363,6 +364,692 @@ main>aside #matchflow .control{max-width:100%}
     }
   }
 ]</script>
+<script id="roster-data" type="application/json">
+[
+  {
+    "id": "imperial-nobility",
+    "name": "Imperial Nobility",
+    "tier": 2,
+    "league": "Old World Classic",
+    "special": [],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Imperial_Nobility/",
+    "reroll": 60000,
+    "positions": [
+      {
+        "id": "retainer",
+        "name": "Imperial Retainer",
+        "traits": "Lineman, Human",
+        "max": 16,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Fend"
+        ],
+        "primary": "G",
+        "secondary": "A S",
+        "cost": 45000
+      },
+      {
+        "id": "thrower",
+        "name": "Imperial Thrower",
+        "traits": "Thrower, Human",
+        "max": 2,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "2+",
+        "av": "9+",
+        "skills": [
+          "Give and Go",
+          "Pass",
+          "Pro"
+        ],
+        "primary": "G P",
+        "secondary": "A S",
+        "cost": 75000
+      },
+      {
+        "id": "bodyguard",
+        "name": "Bodyguard",
+        "traits": "Blocker, Human",
+        "max": 4,
+        "ma": 5,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "9+",
+        "skills": [
+          "Stand Firm",
+          "Wrestle"
+        ],
+        "primary": "G S",
+        "secondary": "A",
+        "cost": 85000
+      },
+      {
+        "id": "blitzer",
+        "name": "Noble Blitzer",
+        "traits": "Blitzer, Human",
+        "max": 2,
+        "ma": 7,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "9+",
+        "skills": [
+          "Block",
+          "Catch",
+          "Pro"
+        ],
+        "primary": "A G",
+        "secondary": "P S",
+        "cost": 90000
+      },
+      {
+        "id": "ogre",
+        "name": "Ogre",
+        "traits": "Big Guy, Ogre",
+        "max": 1,
+        "ma": 5,
+        "st": 5,
+        "ag": "4+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Bone Head",
+          "Loner (3+)",
+          "Mighty Blow",
+          "Thick Skull",
+          "Throw Team-mate"
+        ],
+        "primary": "S",
+        "secondary": "A G",
+        "cost": 140000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      1,
+      2,
+      2,
+      2,
+      3,
+      3,
+      4
+    ],
+    "reviewed": "2026-10-28",
+    "staff": {
+      "cheerleader": 10000,
+      "assistantCoach": 10000,
+      "apothecary": 50000
+    }
+  },
+  {
+    "id": "black-orc",
+    "name": "Black Orcs",
+    "tier": 3,
+    "league": "Badlands Brawl",
+    "special": [
+      "Bribery and Corruption",
+      "Brawlin' Brutes"
+    ],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Black_Orc/",
+    "reroll": 60000,
+    "positions": [
+      {
+        "id": "goblin",
+        "name": "Goblin Bruiser",
+        "traits": "Lineman, Goblin",
+        "max": 16,
+        "ma": 6,
+        "st": 2,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Dodge",
+          "Right Stuff",
+          "Stunty",
+          "Thick Skull"
+        ],
+        "primary": "A D",
+        "secondary": "G P S",
+        "cost": 45000
+      },
+      {
+        "id": "black-orc",
+        "name": "Black Orc",
+        "traits": "Blocker, Orc",
+        "max": 6,
+        "ma": 4,
+        "st": 4,
+        "ag": "4+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Brawler",
+          "Grab"
+        ],
+        "primary": "G S",
+        "secondary": "A D",
+        "cost": 90000
+      },
+      {
+        "id": "troll",
+        "name": "Trained Troll",
+        "traits": "Big Guy, Troll",
+        "max": 1,
+        "ma": 4,
+        "st": 5,
+        "ag": "5+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Always Hungry",
+          "Mighty Blow",
+          "Projectile Vomit",
+          "Really Stupid",
+          "Regeneration",
+          "Throw Team-mate"
+        ],
+        "primary": "S",
+        "secondary": "A G P",
+        "cost": 115000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2
+    ],
+    "reviewed": "2026-10-28",
+    "staff": {
+      "cheerleader": 10000,
+      "assistantCoach": 10000,
+      "apothecary": 50000
+    }
+  },
+  {
+    "id": "skaven",
+    "name": "Skaven",
+    "tier": 2,
+    "league": "Underworld Challenge",
+    "special": [],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Skaven/",
+    "reroll": 50000,
+    "positions": [
+      {
+        "id": "clanrat",
+        "name": "Skaven Clanrat",
+        "traits": "Lineman, Skaven",
+        "max": 16,
+        "ma": 7,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [],
+        "primary": "G D",
+        "secondary": "A M S",
+        "cost": 50000
+      },
+      {
+        "id": "thrower",
+        "name": "Skaven Thrower",
+        "traits": "Thrower, Skaven",
+        "max": 2,
+        "ma": 7,
+        "st": 3,
+        "ag": "3+",
+        "pa": "2+",
+        "av": "8+",
+        "skills": [
+          "Pass",
+          "Sure Hands"
+        ],
+        "primary": "G P",
+        "secondary": "A D M S",
+        "cost": 80000
+      },
+      {
+        "id": "gutter-runner",
+        "name": "Gutter Runner",
+        "traits": "Runner, Skaven",
+        "max": 2,
+        "ma": 9,
+        "st": 2,
+        "ag": "2+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Dodge",
+          "Stab"
+        ],
+        "primary": "A G D",
+        "secondary": "M S",
+        "cost": 85000
+      },
+      {
+        "id": "blitzer",
+        "name": "Skaven Blitzer",
+        "traits": "Blitzer, Skaven",
+        "max": 2,
+        "ma": 8,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "9+",
+        "skills": [
+          "Block",
+          "Strip Ball"
+        ],
+        "primary": "G S",
+        "secondary": "A D M",
+        "cost": 90000
+      },
+      {
+        "id": "rat-ogre",
+        "name": "Rat Ogre",
+        "traits": "Big Guy, Skaven",
+        "max": 1,
+        "ma": 6,
+        "st": 5,
+        "ag": "4+",
+        "pa": "6+",
+        "av": "9+",
+        "skills": [
+          "Animal Savagery",
+          "Frenzy",
+          "Loner (4+)",
+          "Mighty Blow",
+          "Prehensile Tail"
+        ],
+        "primary": "S",
+        "secondary": "A G M",
+        "cost": 150000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      2,
+      2,
+      3,
+      3,
+      4
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
+  },
+  {
+    "id": "dwarf",
+    "name": "Dwarf",
+    "tier": 2,
+    "league": "Worlds Edge Superleague",
+    "special": [
+      "Brawlin' Brutes",
+      "Bribery and Corruption"
+    ],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Dwarf/",
+    "reroll": 60000,
+    "positions": [
+      {
+        "id": "lineman",
+        "name": "Dwarf Lineman",
+        "traits": "Lineman, Dwarf",
+        "max": 16,
+        "ma": 4,
+        "st": 3,
+        "ag": "4+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Block",
+          "Defensive",
+          "Thick Skull"
+        ],
+        "primary": "D G",
+        "secondary": "S",
+        "cost": 70000
+      },
+      {
+        "id": "runner",
+        "name": "Dwarf Runner",
+        "traits": "Runner, Dwarf",
+        "max": 2,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "9+",
+        "skills": [
+          "Sprint",
+          "Sure Hands",
+          "Thick Skull"
+        ],
+        "primary": "G P",
+        "secondary": "A S",
+        "cost": 80000
+      },
+      {
+        "id": "blitzer",
+        "name": "Dwarf Blitzer",
+        "traits": "Blitzer, Dwarf",
+        "max": 2,
+        "ma": 5,
+        "st": 3,
+        "ag": "4+",
+        "pa": "4+",
+        "av": "10+",
+        "skills": [
+          "Block",
+          "Diving Tackle",
+          "Tackle",
+          "Thick Skull"
+        ],
+        "primary": "G S",
+        "secondary": "P",
+        "cost": 100000
+      },
+      {
+        "id": "slayer",
+        "name": "Troll Slayer",
+        "traits": "Special, Dwarf",
+        "max": 2,
+        "ma": 5,
+        "st": 3,
+        "ag": "4+",
+        "pa": "5+",
+        "av": "9+",
+        "skills": [
+          "Block",
+          "Dauntless",
+          "Frenzy",
+          "Hatred (Troll)",
+          "Thick Skull"
+        ],
+        "primary": "G S",
+        "secondary": "D",
+        "cost": 95000
+      },
+      {
+        "id": "deathroller",
+        "name": "Deathroller",
+        "traits": "Big Guy, Dwarf, Special",
+        "max": 1,
+        "ma": 5,
+        "st": 7,
+        "ag": "5+",
+        "pa": "-",
+        "av": "11+",
+        "skills": [
+          "Break Tackle",
+          "Dirty Player",
+          "Juggernaut",
+          "Loner (4+)",
+          "Mighty Blow",
+          "No Ball",
+          "Secret Weapon",
+          "Stand Firm"
+        ],
+        "primary": "D S",
+        "secondary": "G",
+        "cost": 170000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      2,
+      3
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
+  },
+  {
+    "id": "lizardmen",
+    "name": "Lizardmen",
+    "tier": 1,
+    "league": "Lustrian Superleague",
+    "special": [],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Lizardmen/",
+    "reroll": 70000,
+    "positions": [
+      {
+        "id": "skink",
+        "name": "Skink Lineman",
+        "traits": "Lineman, Lizardman",
+        "max": 16,
+        "ma": 8,
+        "st": 2,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Dodge",
+          "Stunty"
+        ],
+        "primary": "A",
+        "secondary": "G P S D",
+        "cost": 60000
+      },
+      {
+        "id": "chameleon",
+        "name": "Chameleon Skink",
+        "traits": "Thrower, Lizardman",
+        "max": 2,
+        "ma": 7,
+        "st": 2,
+        "ag": "3+",
+        "pa": "3+",
+        "av": "8+",
+        "skills": [
+          "Dodge",
+          "On the Ball",
+          "Shadowing",
+          "Stunty"
+        ],
+        "primary": "A P",
+        "secondary": "G S D",
+        "cost": 70000
+      },
+      {
+        "id": "saurus",
+        "name": "Saurus Blocker",
+        "traits": "Blocker, Lizardman",
+        "max": 6,
+        "ma": 6,
+        "st": 4,
+        "ag": "5+",
+        "pa": "6+",
+        "av": "10+",
+        "skills": [
+          "Juggernaut",
+          "Unsteady"
+        ],
+        "primary": "G S",
+        "secondary": "A",
+        "cost": 90000
+      },
+      {
+        "id": "kroxigor",
+        "name": "Kroxigor",
+        "traits": "Big Guy, Lizardman",
+        "max": 1,
+        "ma": 6,
+        "st": 5,
+        "ag": "5+",
+        "pa": "6+",
+        "av": "10+",
+        "skills": [
+          "Bone Head",
+          "Loner (4+)",
+          "Mighty Blow",
+          "Prehensile Tail",
+          "Thick Skull"
+        ],
+        "primary": "S",
+        "secondary": "A G",
+        "cost": 140000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      2,
+      2,
+      2,
+      3
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
+  },
+  {
+    "id": "elven-union",
+    "name": "Elven Union",
+    "tier": 2,
+    "league": "Elven Kingdoms League",
+    "special": [],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Elven_Union/",
+    "reroll": 50000,
+    "positions": [
+      {
+        "id": "lineman",
+        "name": "Elf Lineman",
+        "traits": "Lineman, Elf",
+        "max": 16,
+        "ma": 6,
+        "st": 3,
+        "ag": "2+",
+        "pa": "3+",
+        "av": "8+",
+        "skills": [
+          "Fumblerooski"
+        ],
+        "primary": "A G",
+        "secondary": "S",
+        "cost": 65000
+      },
+      {
+        "id": "thrower",
+        "name": "Elf Thrower",
+        "traits": "Thrower, Elf",
+        "max": 2,
+        "ma": 6,
+        "st": 3,
+        "ag": "2+",
+        "pa": "2+",
+        "av": "8+",
+        "skills": [
+          "Hail Mary Pass",
+          "Pass"
+        ],
+        "primary": "A G P",
+        "secondary": "S",
+        "cost": 75000
+      },
+      {
+        "id": "catcher",
+        "name": "Elf Catcher",
+        "traits": "Catcher, Elf",
+        "max": 2,
+        "ma": 8,
+        "st": 3,
+        "ag": "2+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Catch",
+          "Diving Catch",
+          "Nerves of Steel"
+        ],
+        "primary": "A G",
+        "secondary": "S",
+        "cost": 100000
+      },
+      {
+        "id": "blitzer",
+        "name": "Elf Blitzer",
+        "traits": "Blitzer, Elf",
+        "max": 2,
+        "ma": 7,
+        "st": 3,
+        "ag": "2+",
+        "pa": "3+",
+        "av": "9+",
+        "skills": [
+          "Block",
+          "Sidestep"
+        ],
+        "primary": "A G",
+        "secondary": "P S",
+        "cost": 115000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      2,
+      2,
+      3,
+      3
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
+  }
+]
+</script>
 <script id="movement-engine">
 "use strict";
 // Movement practice engine. Sources and boundaries: docs/MOVEMENT.md.
@@ -2558,14 +3245,15 @@ if(typeof module!=="undefined")module.exports={LeagueStore,ADVANCEMENT_COSTS,ELI
 
 "use strict";
 const teams=JSON.parse(document.getElementById("team-data").textContent);
+const rosterCatalog=JSON.parse(document.getElementById("roster-data")?.textContent||document.getElementById("team-data").textContent);
 const pitch=document.getElementById("pitch"),coach=document.getElementById("coach"),selection=document.getElementById("selection"),log=document.getElementById("log");
 const money=n=>n.toLocaleString("en-US")+" gp";
 let game,selected=null,destination=null,blockMode=false,ballMode=false,throwDestination=null;
 function reset(){if(globalThis.resetLeagueTeams)globalThis.resetLeagueTeams();const scenario=document.getElementById("scenario").value;game=scenario.startsWith("match")?new MatchGame(teams,{learning:scenario==="match-learning"}):new SkillGame(teams,{scenario});selected=game.practicePlayer;destination=null;blockMode=false;ballMode=false;throwDestination=null;render();const p=game.players.find(p=>p.id===selected);showProfile(p?.team??0,p?.role??0,p?.number??null);}
 function escapeTeamText(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;", "'":"&#39;"}[c]));}
 function playerLabel(p){const profile=game.profile(p),name=p.leagueRecord?.name;return name&&name!==profile.name?name+" · "+profile.name:profile.name;}
-function showProfile(team,role,number){
- const t=teams[team],live=number&&game.players.find(p=>p.team===team&&p.number===number),p=live?game.profile(live):t.positions[role],record=live?.leagueRecord,base=t.positions[role],escape=escapeTeamText;
+function showProfile(team,role,number,roster=null){
+ const t=roster||teams[team],live=!roster&&number&&game.players.find(p=>p.team===team&&p.number===number),p=live?game.profile(live):t.positions[role],record=live?.leagueRecord,base=t.positions[role],escape=escapeTeamText;
  const title=record?.name||p.name||base.name,source=/^https?:\/\//i.test(t.source||"")?t.source:"",cost=record?.value??p.cost??base.cost;
  document.getElementById("profile").innerHTML='<div class="eyebrow">'+escape(t.name)+'</div><h2>'+(number?'#'+number+' · ':'')+escape(title)+'</h2><p class="muted">'+(record?escape(p.name||base.name)+' · ':'')+escape(p.traits)+'</p><div class="stats">'+["ma","st","ag","pa","av"].map(k=>'<div class="stat"><small>'+k.toUpperCase()+'</small>'+escape(p[k])+'</div>').join("")+'</div><p class="profile-skills">'+p.skills.map(escape).join(" · ")+'</p><p class="muted">'+(record?'Current value: ':'Cost: ')+money(cost)+' · Limit: 0–'+escape(base.max)+'<br>Primary: '+escape(p.primary)+' · Secondary: '+escape(p.secondary)+(record?'<br>Saved SPP: '+escape(record.spp)+' · Niggling Injuries: '+escape(live.nigglingInjuries||0):'')+'</p>'+(source?'<a class="muted" href="'+escape(source)+'">2025 roster source</a>':'');
 }
@@ -2843,11 +3531,11 @@ function renderMatch(){
  if(game.phase==="charge"&&game.action!=="blitz")document.getElementById("block").disabled=true;
 }
 function renderRosters(){
- document.getElementById("rosters").innerHTML=teams.map((t,team)=>{
+ document.getElementById("rosters").innerHTML=rosterCatalog.map((t,team)=>{
  const total=t.lineup.reduce((n,r)=>n+t.positions[r].cost,0);
  return '<article class="panel"><div class="roster-heading"><h2>'+t.name+'</h2><span class="badge">Tier '+t.tier+'</span></div><p class="team-summary">'+t.league+' · '+(t.special.length?t.special.join(" · "):"No team special rules listed")+'</p><div class="table-scroll"><table><caption>Available positions · click a position to inspect</caption><thead><tr>'+["Position","Limit","MA","ST","AG","PA","AV","Skills & traits","Primary","Secondary","Cost"].map(h=>'<th scope="col">'+h+'</th>').join("")+'</tr></thead><tbody>'+t.positions.map((p,r)=>'<tr><td><button class="role-button" data-team="'+team+'" data-role="'+r+'">'+p.name+'</button><br><small>'+p.traits+'</small></td><td>0–'+p.max+'</td>'+["ma","st","ag","pa","av"].map(k=>'<td>'+p[k]+'</td>').join("")+'<td class="skills">'+p.skills.join(", ")+'</td><td>'+p.primary+'</td><td>'+p.secondary+'</td><td>'+money(p.cost)+'</td></tr>').join("")+'</tbody></table></div><p class="team-summary"><strong>Demo lineup:</strong> '+t.positions.map((p,r)=>({p,count:t.lineup.filter(v=>v===r).length})).filter(v=>v.count).map(v=>v.count+" × "+v.p.name).join(" · ")+'<br>11 players: '+money(total)+'. With 2 re-rolls: '+money(total+2*t.reroll)+'. These are demonstration selections, not a roster builder.</p><p class="muted">Re-roll: '+money(t.reroll)+' · Apothecary: '+money(t.staff.apothecary)+' · Assistant coach: '+money(t.staff.assistantCoach)+' · Cheerleader: '+money(t.staff.cheerleader)+'</p><p class="muted">Advancement categories: A = Agility · D = Devious · G = General · P = Passing · S = Strength. Configure staff and basic inducements before an exhibition. Use League teams & progression to draft, save and develop your own team. Star players and their unique abilities are deferred.</p><a class="muted" href="'+t.source+'">Source of truth · reviewed '+t.reviewed+'</a></article>';
  }).join("");
- document.querySelectorAll(".role-button").forEach(button=>button.addEventListener("click",()=>{showProfile(Number(button.dataset.team),Number(button.dataset.role),null);if(globalThis.inspectRosterPosition)globalThis.inspectRosterPosition();else document.getElementById("profile").scrollIntoView({behavior:"smooth",block:"center"});}));
+ document.querySelectorAll(".role-button").forEach(button=>button.addEventListener("click",()=>{showProfile(0,Number(button.dataset.role),null,rosterCatalog[Number(button.dataset.team)]);if(globalThis.inspectRosterPosition)globalThis.inspectRosterPosition();else document.getElementById("profile").scrollIntoView({behavior:"smooth",block:"center"});}));
 }
 
 document.getElementById("special").addEventListener("click",()=>{
@@ -2873,8 +3561,8 @@ renderRosters();renderSkillCoverage();reset();
 "use strict";
 // DOM-only roster UI; all entered/imported names are rendered as text.
 const LEAGUE_STORAGE_KEY="blood-bowl-leagues-v1";
-const demoLeagueTeams=JSON.parse(JSON.stringify(teams));
-globalThis.resetLeagueTeams=()=>teams.splice(0,teams.length,...JSON.parse(JSON.stringify(demoLeagueTeams)));
+const practiceLeagueTeams=JSON.parse(JSON.stringify(teams)),demoLeagueTeams=JSON.parse(JSON.stringify(rosterCatalog));
+globalThis.resetLeagueTeams=()=>{const match=document.getElementById("scenario").value.startsWith("match"),home=demoLeagueTeams.find(t=>t.id===document.getElementById("exhibition-home")?.value),away=demoLeagueTeams.find(t=>t.id===document.getElementById("exhibition-away")?.value);teams.splice(0,teams.length,...JSON.parse(JSON.stringify(match&&home&&away?[home,away]:practiceLeagueTeams)));};
 let leagueStore,leagueSelected=null,leagueMessage="",leagueStorageError="",leagueRawBackup="",leagueStoredSnapshot=null;
 const leagueDraftFields={};
 const leagueSelectValues={};
@@ -2939,6 +3627,7 @@ const workspaceTabs=["play","teams","rosters","reference"];
 const workspaceScroll={};
 let workspaceView="play",pitchFocus=0,popupAnchor=null,popupEpoch=0,hoverSquare=null,staffDetailsOpen=false,popoverTransition=false;
 const popup=document.getElementById("pitch-popup"),tooltip=document.getElementById("pitch-tooltip");
+for(const [id,index] of [["exhibition-home",0],["exhibition-away",1]]){const select=document.getElementById(id);for(const roster of rosterCatalog){const option=document.createElement("option");option.value=roster.id;option.textContent=roster.name;select.append(option);}select.value=practiceLeagueTeams[index].id;select.addEventListener("change",reset);}
 function closePitchPopup(restore=false){
  popupEpoch++;popoverTransition=true;
  try{if(popup.matches(":popover-open"))popup.hidePopover();if(restore&&popupAnchor?.isConnected)popupAnchor.focus({preventScroll:true});popupAnchor=null;}finally{popoverTransition=false;}
@@ -3079,6 +3768,7 @@ document.getElementById("pitch-scale").addEventListener("change",event=>{
 });
 function refreshWorkspace(){
  closePitchPopup();hidePitchTooltip();
+ document.getElementById("exhibition-rosters").hidden=!game.match||!!game.league;
  const pregame=game.match&&["fans","weather","leagueSteps","rolloff","kickChoice"].includes(game.phase),overview=document.getElementById("pregame-overview");
  overview.hidden=!pregame;document.getElementById("pitch-board").hidden=!!pregame;document.getElementById("mobile-pitch-help").hidden=!!pregame;document.getElementById("pitch-hint").hidden=!!pregame;
  document.getElementById("pitch-tools").hidden=!!pregame;

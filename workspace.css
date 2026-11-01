@@ -71,6 +71,7 @@ footer{padding-top:14px;border-top:1px solid #34474d;font-size:11px;margin-top:2
 #match-scoreboard{margin:0 0 12px;padding:10px 14px;background:#19282e;border:1px solid #34474d;border-radius:6px}
 #match-scoreboard h2{font-size:18px;margin:0 0 4px}#match-scoreboard p{font-size:12px;margin:0;line-height:1.4}
 #match-scoreboard:empty{display:none}
+#exhibition-rosters{padding:0 12px;margin:0 0 12px;font-size:13px}#exhibition-rosters select{margin:0 8px 10px 0}
 main>aside #matchflow{padding:0 0 12px;border:0;border-bottom:1px solid #34474d;background:transparent;border-radius:0}
 main>aside #matchflow .control{max-width:100%}
 .league-creation section>.control{vertical-align:bottom;margin-bottom:8px}
