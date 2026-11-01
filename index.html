@@ -143,13 +143,13 @@ main>aside #matchflow .control{max-width:100%}
 </style>
 </head>
 <body>
-<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>Match day</h1></div><span class="badge">v0.0.20 · Dugouts</span></header>
+<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>Match day</h1></div><span class="badge">v0.0.21 · Wizards</span></header>
 <nav class="workspace-tabs" role="tablist" aria-label="Game workspace"><button id="tab-play" role="tab" aria-controls="play-view" aria-selected="true">Play</button><button id="tab-teams" role="tab" aria-controls="teams-view" aria-selected="false" tabindex="-1">Teams & leagues</button><button id="tab-rosters" role="tab" aria-controls="rosters" aria-selected="false" tabindex="-1">Rosters</button><button id="tab-reference" role="tab" aria-controls="reference-view" aria-selected="false" tabindex="-1">Reference</button></nav>
 <section id="play-view" role="tabpanel" aria-labelledby="tab-play"><div class="notice" id="mode-notice"><strong>Movement and ball action practice</strong><br><span class="muted">Preview movement and its checks, resolve Block dice, pushes, and follow-ups, or secure a loose ball. Perfect Conditions. This remains a practice drive, not a complete match.</span></div>
 <div class="mode-toolbar">
 <label for="scenario">Game mode </label><select id="scenario"><option value="match">Exhibition match — pre-game</option><option value="match-learning">Learning match — simplified kickoff</option><option value="skills">Skills laboratory</option><option value="teams">Both teams</option><option value="dodge">Dodge practice</option><option value="jump">Jump & stand up</option><option value="pickup">Ball pickup</option><option value="throw-team-mate">Throw Team-mate practice</option><option value="traits">Ogre & Troll traits</option><option value="handoff">Hand-off practice</option><option value="pass">Pass & interception practice</option><option value="blitz">Blitz practice</option><option value="block">Block practice</option><option value="secure">Secure the Ball practice</option></select><span class="muted">Changing mode starts a new game.</span></div><details id="exhibition-rosters" class="panel"><summary>Exhibition teams · changing a roster starts a new exhibition</summary><div class="exhibition-side" role="group" aria-label="Home exhibition team"><label for="exhibition-home">Home roster </label><select id="exhibition-home"></select><label id="exhibition-home-league-label" for="exhibition-home-league">Home roster league </label><select id="exhibition-home-league"></select><label id="exhibition-home-alignment-label" for="exhibition-home-alignment">Home alignment </label><select id="exhibition-home-alignment"></select></div><div class="exhibition-side" role="group" aria-label="Away exhibition team"><label for="exhibition-away"> Away roster </label><select id="exhibition-away"></select><label id="exhibition-away-league-label" for="exhibition-away-league">Away roster league </label><select id="exhibition-away-league"></select><label id="exhibition-away-alignment-label" for="exhibition-away-alignment">Away alignment </label><select id="exhibition-away-alignment"></select></div></details><div id="match-scoreboard" aria-live="polite"></div><main><section><div id="pregame-overview" class="panel" hidden></div><div id="pitch-tools"><span id="pitch-direction"></span><a href="#dugout" class="dugout-link">Dugouts</a><label for="pitch-scale">Pitch size </label><select id="pitch-scale"><option value="1">Fit</option><option value="1.5">Large</option><option value="2">Extra large</option></select></div><p id="mobile-pitch-help" class="mobile-pitch-help">Swipe the pitch sideways to see the whole field.</p><div id="pitch-board" class="pitch-wrap"><div id="pitch" class="pitch" role="group" aria-label="Development pitch"></div></div><div id="pitch-legend" class="pitch-legend" aria-label="Movement highlight key"><span>No roll on this step</span><span>Check on this step</span><span>Jump</span></div><p id="pitch-hint" class="muted">Click a player for actions. Hover or focus a square for details.</p><details id="action-disclosure"><summary>Player actions</summary><div id="action-controls"><button class="control" id="start">Declare Move</button><button class="control secondary" id="handoff">Declare Hand-off</button><button class="control secondary" id="pass">Declare Pass</button><button class="control secondary" id="throw-mate">Declare Throw Team-mate</button><button class="control secondary" id="kick-mate">Declare Kick Team-mate</button><button class="control secondary" id="transfer">Choose ball target</button><button class="control secondary" id="blitz">Declare Blitz</button><button class="control secondary" id="block">Block</button><button class="control secondary" id="special">Foul / special action</button><button class="control secondary" id="secure">Secure the Ball</button></div></details><div class="turn-controls"><button class="control secondary" id="finish">End Move</button><button class="control secondary" id="end">End team turn</button><button class="control secondary" id="reset">New game / reset</button></div><section id="dugout" class="dugout-board" aria-label="Team dugouts"></section></section>
 <aside id="coach-panel" class="panel"><div class="eyebrow">Coach’s desk</div><h2 id="coach"></h2><div id="matchflow" class="notice" aria-live="polite"></div><p id="selection" role="status" aria-live="polite"></p><div id="movement" aria-live="polite"></div><div id="choices"></div><details id="player-details"><summary>Player profile & optional skills</summary><div id="profile"></div></details><details><summary>Session log</summary><ol id="log"></ol></details></aside></main></section><section id="teams-view" role="tabpanel" aria-labelledby="tab-teams" hidden></section><section id="rosters" role="tabpanel" aria-labelledby="tab-rosters" hidden><div class="roster-browser"><label for="roster-search">Find a roster </label><input id="roster-search" type="search" placeholder="Team name"><span id="roster-search-count" role="status"></span></div><div id="roster-list"></div></section><section id="reference-view" role="tabpanel" aria-labelledby="tab-reference" hidden><article class="panel"><h2>Playing guide</h2><p class="muted">Select a player and choose an action. For movement, click a destination to preview the remaining range from there. Click another highlighted tile to extend the route. Declare the action, then click the selected destination again to commit; Cancel movement preview restores the current range. For Pass or Hand-off, declare the action, move as needed, then choose a ball target. For Blitz, choose Declare Blitz and a highlighted target, move adjacent, then choose Blitz Block (1 MA). During Block, click a highlighted target. After choosing a push result, click a gold push square; the player being pushed has a red outline. Crowd pushes remain in the side panel. Green = no roll on that step; amber = a check on that step or an action target; purple border = jump. Earlier route steps may still require rolls.</p><p class="muted">Direction template: 1 NW · 2 N · 3 NE · 4 W · 5 E · 6 SW · 7 S · 8 SE. Green is a step without a roll; amber is a check or action target; purple marks a jump. Earlier route steps can still require rolls.</p><p class="muted">Use arrow keys to navigate the pitch. Enter opens actions or selects a square. Escape closes a popup or cancels targeting. Hover information is also available by keyboard focus; touch a player for the same information and actions.</p></article><div id="reference-profile" class="panel" hidden><h2>Position details</h2><p>Select a position in Rosters to inspect it here.</p></div></section><div id="pitch-popup" popover="auto" role="dialog" aria-label="Player information and actions"></div><div id="pitch-tooltip" popover="manual" role="tooltip"></div>
-<footer>FFB-derived corrections: <a href="docs/FFB-AUDIT.md">comparison and scope</a> · <a href="THIRD_PARTY_NOTICES.md">MIT attribution</a> · Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.20 with feedback.</footer>
+<footer>FFB-derived corrections: <a href="docs/FFB-AUDIT.md">comparison and scope</a> · <a href="THIRD_PARTY_NOTICES.md">MIT attribution</a> · Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.21 with feedback.</footer>
 <script id="team-data" type="application/json">[
   {
     "id": "imperial-nobility",
@@ -4591,8 +4591,9 @@ class MovementGame {
    });
   };
   const update=()=>{record.medicalStatus=state;};
+  const prepare=()=>{p.status=state;if(["knocked-out","casualty","reserve"].includes(state)){p.x=null;p.y=null;}};
   const regenerate=next=>{
-   p.status=state;if(["knocked-out","casualty","reserve"].includes(state)){p.x=null;p.y=null;}
+   prepare();
    if(state==="casualty"&&this.has(p,"Regeneration")){
     record.regeneration=this.roll("Regeneration needs 4+");
     if(record.regeneration>=4){state="reserve";record.treatment="Regeneration";}else record.regenerationFailed=true;
@@ -4612,7 +4613,7 @@ class MovementGame {
    }
    next();
   };
-  this.scheduleInjury({p,record,origin,regenerate,retryRegeneration,canRetryRegeneration:()=>record.regenerationFailed&&this.regenerationSources(p).length>0,treat:next=>{resume=next;medical();}},done);
+  this.scheduleInjury({p,record,origin,prepare,regenerate,retryRegeneration,canRetryRegeneration:()=>record.regenerationFailed&&this.regenerationSources(p).length>0,treat:next=>{resume=next;medical();}},done);
  }
  medicalSources(p){return this.apothecaries[p.team]>0?["Use Apothecary"]:[];}
  useMedicalSource(p,choice){if(choice!=="Use Apothecary"||!this.apothecaries[p.team])return false;this.apothecaries[p.team]--;return true;}
@@ -6181,6 +6182,7 @@ if(typeof module!=="undefined")module.exports={SkillGame,SKILL_CATALOG,SKILL_GRO
 <script id="match-engine">
 "use strict";
 const MatchBase=typeof module!=="undefined"?require("./skills.cjs").SkillGame:SkillGame;
+const MatchSkillGroups=typeof module!=="undefined"?require("./skills.cjs").SKILL_GROUPS:SKILL_GROUPS;
 // Inducement prices/limits follow the pinned BB2025 FFB option factory.
 const MATCH_RESOURCES={
  teamRerolls:{label:"Team re-rolls",group:"staff",max:8,initial:2},
@@ -6200,7 +6202,8 @@ const MATCH_RESOURCES={
  tempCoaches:{label:"Part-time Assistant Coaches",group:"inducement",max:3,cost:20000,initial:0},
  tempCheerleaders:{label:"Temp Agency Cheerleaders",group:"inducement",max:4,cost:20000,initial:0},
  masterChef:{label:"Halfling Master Chef",group:"inducement",max:1,cost:300000,initial:0},
- riotousRookies:{label:"Riotous Rookies",group:"inducement",max:1,cost:100000,initial:0}
+ riotousRookies:{label:"Riotous Rookies",group:"inducement",max:1,cost:100000,initial:0},
+ wizards:{label:"Wizard",group:"inducement",max:1,cost:150000,initial:0}
 };
 class MatchGame extends MatchBase {
  constructor(teams,{dice=null,learning=false,resources=null}={}){
@@ -6248,10 +6251,41 @@ class MatchGame extends MatchBase {
   if(this.phase!==(this.league?"leagueSteps":"fans")||this.pending||![0,1].includes(team)||this.league&&this.leaguePurchaseOrder[this.leaguePurchaseStep]!==team)return false;
   const menu=()=>{
    const keys=Object.keys(MATCH_RESOURCES).filter(key=>this.resourceSpec(team,key).max>0&&(!this.league||MATCH_RESOURCES[key].group==="inducement")),options=keys.map(key=>this.resourceSpec(team,key).label+": "+this.resourceChoices[team][key]);
-   this.skillChoice("Staff and inducements — "+this.teams[team].name,team,[...options,"Done"],choice=>{
+   this.skillChoice("Staff and inducements — "+this.teams[team].name,team,[...options,"Mercenaries","Done"],choice=>{
+    if(choice==="Mercenaries"){this.configureMercenaries(team,menu);return;}
     const key=keys[options.indexOf(choice)];if(!key){if(choice==="Done"&&this.league)this.lockLeagueInducements(team);return;}
     const spec=this.resourceSpec(team,key),values=Array.from({length:spec.max-(spec.min||0)+1},(_,i)=>i+(spec.min||0)),labels=values.map(value=>value+" — "+((key==="dedicatedFans"?value-1:value)*spec.cost).toLocaleString()+" gp");
     this.skillChoice(spec.label,team,[...labels,"Back"],label=>{const index=labels.indexOf(label);if(index>=0)this.setResource(team,key,values[index]);menu();});
+   });
+  };menu();return true;
+ }
+ canBuyPlayers(team){return [0,1].includes(team)&&!this.pending&&this.phase===(this.league?"leagueSteps":"fans")&&(!this.league||this.leaguePurchaseOrder[this.leaguePurchaseStep]===team);}
+ mercenarySkills(team,role){const p=this.teams[team]?.positions[role];if(!p)return [];const access=p.primary.split(/\s+/);return Object.entries(MatchSkillGroups).filter(([cat])=>cat!=="Traits"&&access.includes(cat[0])).flatMap(([,skills])=>skills).filter(s=>!p.skills.includes(s)).sort();}
+ canHireMercenary(team,role){
+  if(!this.canBuyPlayers(team))return false;const roster=this.teams[team],profile=roster.positions[role],players=this.players.filter(p=>p.team===team);
+  return !!profile&&players.length<16&&players.filter(p=>p.role===role).length<profile.max&&!(roster.groupLimits||[]).some(g=>g.roles.includes(role)&&players.filter(p=>g.roles.includes(p.role)).length>=g.max);
+ }
+ hireMercenary(team,role,skill=null){
+  if(!this.canHireMercenary(team,role)||skill!==null&&!this.mercenarySkills(team,role).includes(skill))return false;
+  const cost=this.teams[team].positions[role].cost+30000+(skill?50000:0);
+  if(this.league&&this.resourceCosts(team).inducements+cost>this.leagueBudget(team))return false;
+  const p=this.addRaisedLineman(team,role,{},"Mercenary");delete p.raisedKind;delete p.raisedFrom;p.mercenary=true;p.inducementCost=cost;
+  p.profileOverride=JSON.parse(JSON.stringify(this.teams[team].positions[role]));p.profileOverride.name="Mercenary "+p.profileOverride.name;p.profileOverride.skills=[...new Set([...p.profileOverride.skills.filter(s=>!s.startsWith("Loner")),"Loner (4+)",...(skill?[skill]:[])])];
+  if(p.leagueRecord){p.leagueRecord.name=p.profileOverride.name+" #"+p.number;p.leagueRecord.profile=p.profileOverride;}
+  this.note("Mercenary #"+p.number+" "+p.profileOverride.name+" hired for "+cost.toLocaleString()+" gp.");return p;
+ }
+ removeMercenary(team,id){if(!this.canBuyPlayers(team))return false;const p=this.players.find(p=>p.id===id&&p.team===team&&p.mercenary);if(!p)return false;this.players=this.players.filter(q=>q!==p);return true;}
+ configureMercenaries(team,back){
+  if(!this.canBuyPlayers(team))return false;
+  const menu=()=>{
+   const roster=this.teams[team],roles=roster.positions.map((p,i)=>i).filter(i=>this.canHireMercenary(team,i)),hired=this.players.filter(p=>p.team===team&&p.mercenary),labels=roles.map(i=>"Hire "+roster.positions[i].name+" — "+(roster.positions[i].cost+30000).toLocaleString()+" gp"),remove=hired.map(p=>"Remove mercenary #"+p.number);
+   this.skillChoice("Mercenaries — Loner (4+), one optional Primary skill for 50,000 gp",team,[...labels,...remove,"Back"],choice=>{
+    if(choice==="Back"){back();return;}const hiredPlayer=hired[remove.indexOf(choice)];if(hiredPlayer){this.removeMercenary(team,hiredPlayer.id);menu();return;}
+    const role=roles[labels.indexOf(choice)];if(role===undefined){menu();return;}
+    const skills=this.mercenarySkills(team,role);
+    this.skillChoice("Mercenary "+roster.positions[role].name,team,["Hire without extra skill",...skills.map(s=>"Hire with "+s+" (+50,000 gp)"),"Back"],choice=>{
+     if(choice!=="Back"){const skill=choice==="Hire without extra skill"?null:skills.find(s=>choice==="Hire with "+s+" (+50,000 gp)");if(!this.hireMercenary(team,role,skill))this.note("Mercenary purchase rejected: check the available budget and roster limits.");}menu();
+    });
    });
   };menu();return true;
  }
@@ -6273,6 +6307,7 @@ class MatchGame extends MatchBase {
   const loner=this.parameter(p,"Loner");return !loner||this.roll("Loner for Mascot")>=Number(loner.match(/\d+/)[0]);
  }
  refreshResources(){
+  this.wizards=this.resourceChoices.map(r=>r.wizards);
   this.baseRerolls=this.resourceChoices.map(r=>r.teamRerolls);
   this.rerolls=this.resourceChoices.map(r=>r.teamRerolls+r.extraTraining);
   this.apothecaries=this.resourceChoices.map(r=>r.apothecary+r.wanderingApothecaries);
@@ -6280,7 +6315,7 @@ class MatchGame extends MatchBase {
   this.argueRerolls=this.resourceChoices.map((r,t)=>this.hasTeamRule(t,"Bribery and Corruption")?1:0);
  }
  resourceCosts(team){
-  let staff=0,inducements=0,fans=0;
+  let staff=0,inducements=this.players.filter(p=>p.team===team&&p.mercenary).reduce((n,p)=>n+p.inducementCost,0),fans=0;
   for(const [key,value] of Object.entries(this.resourceChoices[team])){const spec=this.resourceSpec(team,key),cost=(key==="dedicatedFans"?value-1:value)*spec.cost;if(key==="dedicatedFans")fans+=cost;else if(spec.group==="staff")staff+=cost;else inducements+=cost;}
   return {staff,inducements,fans,total:staff+inducements+fans};
  }
@@ -6293,7 +6328,7 @@ class MatchGame extends MatchBase {
   if(successes.some(Boolean))this.note("Master Chef: half "+this.half+" gains "+successes.join(" / ")+" re-rolls; opposing regular pools are reduced. Leader is granted afterwards.");
  }
  teamSppAwards(team){const brutes=this.hasTeamRule(team,"Brawlin' Brutes");return {touchdown:brutes?2:3,casualty:brutes?3:2,completion:1,interception:2,mvp:4};}
- profile(p){const base=super.profile(p);return p.snack?{...base,ma:Math.max(1,base.ma-1),av:Math.max(3,parseInt(base.av)-1)+"+"}:base;}
+ profile(p){let base=super.profile(p);if(p.zapped)base={...base,name:"Frog ("+base.name+")",ma:5,st:1,ag:"2+",pa:"-",av:"5+",skills:["Dodge","No Ball","Titchy","Stunty","Very Long Legs","Leap"]};return p.snack?{...base,ma:Math.max(1,base.ma-1),av:Math.max(3,parseInt(base.av)-1)+"+"}:base;}
  setApothecary(team,enabled){
   return this.setResource(team,"apothecary",enabled?1:0);
  }
@@ -6476,8 +6511,64 @@ class MatchGame extends MatchBase {
   }
   this.note(turnover?"TURNOVER.":"Turn ended.");for(const p of this.players)if(p.team===this.active&&p.status==="stunned"&&p.stunnedAtStart)p.status="prone";
   this.cheer[this.active]=false;this.pickMeUp(this.active);this.mover=null;this.action=null;this.blockAction=null;this.blitzTarget=null;
-  if(this.turns.every(n=>n>=8))this.endDrive(null);else this.beginTurn(1-this.active);return true;
+  if(this.turns.every(n=>n>=8))this.endDrive(null);else this.openWizardWindows();return true;
  }
+ // FFB StepEndFeeding/StepInitInducement: ending coach, then opposing coach,
+ // between turns, excluding touchdown/end-of-half. No player action can start.
+ openWizardWindows(){
+  const ending=this.active,c=this.wizardWindow={ending,index:0};this.phase="betweenTurns";
+  const next=()=>{
+   if(this.wizardWindow!==c||this.finished)return;
+   if(c.index===2){this.wizardWindow=null;this.phase="play";this.beginTurn(1-ending);return;}
+   const team=c.index++===0?ending:1-ending;this.active=team;
+   if(!this.wizards[team]){next();return;}
+   this.offerWizard(team,next);
+  };next();
+ }
+ offerWizard(team,done){this.skillChoice("Wizard — "+this.teams[team].name,team,["Fireball","Zap","Keep Wizard"],choice=>{if(choice==="Keep Wizard")done();else this.selectSpell(team,choice,done);});}
+ spellTargets(spell,x,y){if(!Number.isInteger(x)||!Number.isInteger(y)||!this.inside(x,y)||!["Fireball","Zap"].includes(spell))return [];return this.players.filter(p=>this.onPitch(p)&&(spell==="Zap"?p.x===x&&p.y===y&&!p.zapped:this.distance(p,{x,y})<=1));}
+ selectSpell(team,spell,done){
+  const q={type:"custom",kind:spell+" — select a highlighted square, then confirm",team,spell,options:["Cancel spell"],resolve:choice=>{
+   if(this.pending!==q||choice!=="Cancel spell")return false;this.pending=null;this.offerWizard(team,done);return true;
+  },spellDone:done};this.pending=q;
+ }
+ aimSpell(x,y){
+  const q=this.pending;if(this.phase!=="betweenTurns"||!q?.spell||!this.wizards[q.team]||!this.spellTargets(q.spell,x,y).length)return false;
+  const targets=this.spellTargets(q.spell,x,y),label="Cast "+q.spell+" at "+(x+1)+", "+(y+1);
+  this.skillChoice(q.spell+" affects "+targets.map(p=>this.teams[p.team].name+" #"+p.number).join(", "),q.team,[label,"Choose another square","Cancel spell"],choice=>{
+   if(choice==="Choose another square"){this.selectSpell(q.team,q.spell,q.spellDone);return;}
+   if(choice==="Cancel spell"){this.offerWizard(q.team,q.spellDone);return;}this.castSpell(q.team,q.spell,x,y,q.spellDone);
+  });return true;
+ }
+ castSpell(team,spell,x,y,done){
+  if(this.pending||this.phase!=="betweenTurns"||!this.wizardWindow||team!==this.active||!this.wizards[team]||!["Fireball","Zap"].includes(spell)||!this.spellTargets(spell,x,y).length)return false;
+  const targets=this.spellTargets(spell,x,y).sort((a,b)=>a.y-b.y||a.x-b.x);this.wizards[team]--;this.note(this.teams[team].name+" casts "+spell+".");
+  this.scoreDeferrals=(this.scoreDeferrals||0)+1;
+  const complete=()=>{this.scoreDeferrals--;this.syncLeader();this.phase="play";this.checkScore();if(!this.finished){this.phase="betweenTurns";done();}};
+  if(spell==="Zap"){
+   const p=targets[0],n=this.roll("Zap #"+p.number),success=n===6||n>1&&n>=this.profile(p).st;
+   if(!success){complete();return;}p.zapped=true;this.note("#"+p.number+" becomes a Frog until the drive ends.");
+   if(this.ball.carrier===p.id||!this.ball.carrier&&this.ball.x===p.x&&this.ball.y===p.y){this.ball={x:p.x,y:p.y,carrier:null};this.bounce(p.x,p.y,complete);}else complete();return;
+  }
+  let i=0;
+  const next=()=>{
+   if(i===targets.length){complete();return;}
+   const p=targets[i++];if(this.roll("Fireball #"+p.number+" needs 4+")<4){next();return;}
+   const origin={x:p.x,y:p.y},standing=p.status==="standing";
+   // FFB rolls the injury before offering Steady Footing; a successful save
+   // discards that result, including any casualty dice already consumed.
+   const armour=this.has(p,"Ball & Chain")?Infinity:this.roll("Fireball Armour")+this.roll("Fireball Armour"),av=parseInt(this.profile(p).av),bonus=armour<av&&!this.has(p,"Iron Hard Skin")?1:0;
+   let entry=null;
+   if(armour+bonus>=av){this.spellInjuryCapture=e=>{entry=e;};try{this.resolveInjury(p,this.roll("Fireball Injury")+this.roll("Fireball Injury")+(bonus?0:1),()=>{},{source:{cause:"Fireball"}});}finally{this.spellInjuryCapture=null;}}
+   const damage=()=>{
+    if(standing){p.status="prone";p.rooted=false;this.onProne(p);}
+    const finish=()=>this.releaseProneBall(p,origin,next);
+    if(entry){entry.prepare();this.releaseProneBall(p,origin,()=>super.scheduleInjury(entry,next));}else finish();
+   };
+   const placed=()=>standing?this.beforeProne(p,origin,damage):damage();if(standing)this.preventFall(p,next,placed);else placed();
+  };next();
+ }
+ scheduleInjury(entry,done){if(this.spellInjuryCapture){this.spellInjuryCapture(entry);return;}super.scheduleInjury(entry,done);}
  finishBlock(){if(this.chainContext){super.finishBlock();return;}if(this.multipleContext){super.finishBlock();return;}const b=this.blockAction;super.finishBlock();if(this.pending)return;if(this.phase==="play"||this.phase==="charge")this.checkScore();if(b&&!b.blitz)this.checkStalling(b.attacker);}
  canScoreWithoutDice(p){
   if(!p||this.ball.carrier!==p.id||!this.onPitch(p)||p.status!=="standing"||p.distracted||["Bone Head","Really Stupid","Unchannelled Fury","Animal Savagery","Take Root"].some(s=>this.has(p,s))||this.parameter(p,"Bloodlust"))return false;
@@ -6547,6 +6638,7 @@ class MatchGame extends MatchBase {
  }
  continueDrive(){
   if(this.phase!=="endDrive"||this.pending)return false;
+  for(const p of this.players)if(p.zapped){delete p.zapped;this.note("#"+p.number+" returns from Frog form.");}
   if(this.turns.every(n=>n>=8)&&this.half===2){this.phase="finished";this.note(this.scores[0]===this.scores[1]?"Full time — draw.":"Full time — "+this.teams[this.scores[0]>this.scores[1]?0:1].name+" wins.");return true;}
   if(this.resolveSecretWeapons())return true;
   const field=this.players.filter(p=>this.onPitch(p));for(const p of this.players)p.heatOut=false;
@@ -6694,7 +6786,7 @@ class LeagueStore {
  p.spp-=cost;t.pendingAdvance={playerId:pid,cost,options:[...new Set(options)]};return t.pendingAdvance;}
  matchTeam(t){const r=this.rosterSnapshot(t),available=t.players.filter(p=>!p.missNext&&!p.retired).map(cloneLeague),lineman=r.positions.findIndex(p=>p.max===16&&p.traits.includes("Lineman"));if(lineman<0)throw Error("No Journeyman position");while(available.length<11){const p=this.newPlayer(t,lineman,"Journeyman");p.journeyman=true;p.profile.skills.push("Loner (4+)");p.number=Math.max(0,...t.players.map(p=>p.number),...available.map(p=>p.number))+1;available.push(p);}r.name=t.name;r.lineup=available.map(p=>p.role);r.matchPlayers=available;r.matchResources=cloneLeague(t.staff);r.leagueTeamId=t.id;r.treasury=t.treasury;r.ctv=this.values(t).ctv+available.filter(p=>p.journeyman).reduce((n,p)=>n+this.currentPlayerValue(t,p),0);return r;}
  startFixture(home,away){if(this.data.active)throw Error("A fixture is already active");if(home===away)throw Error("Choose two different teams");const league=this.data.leagues.find(l=>l.teamIds.includes(home)&&l.teamIds.includes(away));if(!league)throw Error("Both teams must enter the same league");const ts=[home,away].map(id=>this.team(id));if(ts.some(t=>t.draft||t.postgame||t.pendingAdvance||t.players.some(p=>p.advances.length<6&&p.spp>=ADVANCEMENT_COSTS[p.advances.length][3])))throw Error("Finish post-game steps and required advancements first");const teams=ts.map(t=>this.matchTeam(t));this.data.active={id:this.id(),leagueId:league.id,teamIds:[home,away],teams,versions:ts.map(t=>t.history.length)};return cloneLeague(this.data.active);}
- finishFixture(game,nominations){const a=this.data.active;if(!a||game.leagueFixtureId!==a.id||game.phase!=="finished"||game.pending)throw Error("Complete the active fixture first");if(this.data.matches.some(m=>m.id===a.id))throw Error("Fixture already recorded");for(let i=0;i<2;i++){const eligible=game.players.filter(p=>p.team===i&&p.fieldedDrive!=null);const list=nominations[i];if(!Array.isArray(list)||list.length!==6||new Set(list).size!==6||list.some(id=>!eligible.some(p=>p.id===id)))throw Error("Nominate six different eligible players for each MVP");}
+ finishFixture(game,nominations){const a=this.data.active;if(!a||game.leagueFixtureId!==a.id||game.phase!=="finished"||game.pending)throw Error("Complete the active fixture first");if(this.data.matches.some(m=>m.id===a.id))throw Error("Fixture already recorded");for(let i=0;i<2;i++){const eligible=game.players.filter(p=>p.team===i&&p.fieldedDrive!=null&&!p.mercenary);const list=nominations[i];if(!Array.isArray(list)||list.length!==6||new Set(list).size!==6||list.some(id=>!eligible.some(p=>p.id===id)))throw Error("Nominate six different eligible players for each MVP");}
  // Work on a clone; both teams and the match record commit together.
  const draft=new LeagueStore(this.rosters,this.data,{dice:this.dice}),record={id:a.id,leagueId:a.leagueId,teamIds:a.teamIds,scores:[...game.scores],date:new Date().toISOString(),teams:[]};
  for(let i=0;i<2;i++){const t=draft.team(a.teamIds[i]),mvp=nominations[i][draft.roll()-1],score=game.scores[i],opponent=game.scores[1-i],outcome=score>opponent?"won":score===opponent?"drawn":"lost",winnings=((game.fans[0]+game.fans[1])/2+score+(game.stalledTeams?.[i]?0:1))*10000;for(const p of t.players)p.missNext=false;
@@ -6756,6 +6848,7 @@ function resolvePushChoice(q,pos){
  q.resolve(pos);destination=null;throwDestination=null;ballMode=false;blockMode=false;render();
 }
 function choose(x,y,pushDecision=game.pending){
+ if(game.match&&game.pending?.spell){game.aimSpell(x,y);render();return;}
  if(pushDecision?.type==="pushChoice"){
   if(game.pending!==pushDecision)return;
   const pos=pushDecision.options.find(pos=>!pos.standFirm&&pos.x===x&&pos.y===y);
@@ -6839,6 +6932,7 @@ function render(){
   cell.type="button";cell.className="square"+((x+y)%2===0?" turf-light":"")+(x===0?" endzone endzone-left":x===25?" endzone endzone-right":"")+(x===12?" middle":"")+(y===3||y===10?" wide":"")+(p&&p.id===selected?" selected":"")+(reach&&reach.path.length||routeIndex?" legal":"")+(risky?" risk":"")+(plan?.jump?" jump":"")+(routeIndex?" route":"")+(destination?.x===x&&destination?.y===y?" destination":"")+(blockTarget?" block-target":"");
   const ballTarget=ballMode&&(["throw-team-mate","kick-team-mate"].includes(game.action)?!!game.throwPreview(x,y):game.action==="handoff"?game.canHandoff(p):!!game.passPreview(x,y));
   if(ballTarget)cell.className+=" legal";
+  if(game.match&&game.pending?.spell&&game.spellTargets(game.pending.spell,x,y).length){cell.className+=" kick-target";cell.setAttribute("data-spell-target",game.pending.spell);}
   if(throwDestination?.x===x&&throwDestination?.y===y)cell.className+=" destination";
   const label=p?teams[p.team].name+" #"+p.number+" "+playerLabel(p)+" ("+p.status+(p.distracted?", distracted":"")+(p.used?", activated":"")+")":"empty";
   const ballHere=game.ball.carrier?p?.id===game.ball.carrier:game.ball.x===x&&game.ball.y===y;
@@ -6958,7 +7052,7 @@ function matchRun(fn){fn();destination=null;blockMode=false;ballMode=false;throw
 function renderMatch(){
  const panel=document.getElementById("matchflow");panel.hidden=false;panel.replaceChildren();
  const title=document.createElement("h2");title.textContent=teams[0].name+" "+game.scores[0]+" – "+game.scores[1]+" "+teams[1].name;panel.append(title);
- const info=document.createElement("p");info.className="match-meta";const resources=[["Apothecaries",game.apothecaries],["Bribes",game.bribes],["Mortuary Assistants",game.mortuaryAssistants],["Plague Doctors",game.plagueDoctors],["Mascots",game.mascots],["Weather Mages",game.weatherMages],["Biased Referees",game.biasedRefs],["Kegs",game.resourceChoices.map(r=>r.kegs)]].filter(([,values])=>values.some(n=>n>0));info.textContent="Half "+game.half+" · Drive "+game.drive+" · Turn markers "+game.turns.join(" / ")+" · "+game.weather+" · Fan Factors "+game.fans.join(" / ")+resources.map(([name,values])=>" · "+name+" "+values.join(" / ")).join("")+(game.learning?" · Learning rules: configured Dedicated Fans, Perfect Conditions, no Kick-off Event.":"");panel.append(info);
+ const info=document.createElement("p");info.className="match-meta";const resources=[["Wizards",game.wizards],["Apothecaries",game.apothecaries],["Bribes",game.bribes],["Mortuary Assistants",game.mortuaryAssistants],["Plague Doctors",game.plagueDoctors],["Mascots",game.mascots],["Weather Mages",game.weatherMages],["Biased Referees",game.biasedRefs],["Kegs",game.resourceChoices.map(r=>r.kegs)]].filter(([,values])=>values.some(n=>n>0));info.textContent="Half "+game.half+" · Drive "+game.drive+" · Turn markers "+game.turns.join(" / ")+" · "+game.weather+" · Fan Factors "+game.fans.join(" / ")+resources.map(([name,values])=>" · "+name+" "+values.join(" / ")).join("")+(game.learning?" · Learning rules: configured Dedicated Fans, Perfect Conditions, no Kick-off Event.":"");panel.append(info);
  const say=(text,kind="")=>{const p=document.createElement("p");p.textContent=text;p.className=kind;panel.append(p);};
  const add=(label,fn,kind="")=>{const b=button(label,()=>matchRun(fn));if(kind)b.className+=" "+kind;panel.append(b);};
  if(["fans","weather","leagueSteps","rolloff"].includes(game.phase)){
@@ -6995,6 +7089,7 @@ function renderMatch(){
  else if(game.phase==="endDrive"){say("Drive ended. Resolve weather effects, recover Knocked-out players, expire drive effects, then set up the next drive or advance to half/full time.");add("Resolve end of drive and continue",()=>game.continueDrive());}
  else if(game.phase==="finished")say("Full time: "+(game.scores[0]===game.scores[1]?"draw":teams[game.scores[0]>game.scores[1]?0:1].name+" wins")+(game.league?". Open Teams & leagues to nominate MVPs and record this result.":". Reset to start a new match."));
  else if(game.phase==="play")say(teams[game.active].name+" to play. End team turn when finished; turnovers also advance play.");
+ else if(game.phase==="betweenTurns")say("Between turns: "+teams[game.active].name+" may use a Wizard. Fireball affects both teams in a 3×3 area; Zap changes one player into a Frog. Select a highlighted square and confirm.");
  else say("Resolve the pending kickoff decision below.");
  coach.textContent=teams[game.active].name+" · Half "+game.half+" · Turn "+game.turns[game.active];
  if(game.phase!=="play"&&game.phase!=="charge")selection.textContent="Match phase: "+game.phase+". Follow the current step in the coach panel.";
@@ -7086,7 +7181,7 @@ function renderLeague(){
 }
 function renderLeaguePostgame(){
  leagueElement("h3","Record completed fixture");leagueElement("p","Nominate six eligible players per team for MVP, then record both teams together. Injury, SPP, winnings and fans update once.");
- const counters=[],saved=leagueMvpSelections.get(game.leagueFixtureId)||[[],[]],choices=[0,1].map(i=>{const box=leagueElement("fieldset");leagueElement("legend",game.teams[i].name,box);const counter=leagueElement("p","0 / 6 selected",box);counter.className="mvp-count";counter.setAttribute("role","status");counters.push(counter);return game.players.filter(p=>p.team===i&&p.fieldedDrive!=null).map(p=>{const input=leagueInput("#"+p.number+" "+p.leagueRecord.name,"",box,"checkbox");input.checked=saved[i].includes(p.id);input.addEventListener("change",update);return {p,input};});});
+ const counters=[],saved=leagueMvpSelections.get(game.leagueFixtureId)||[[],[]],choices=[0,1].map(i=>{const box=leagueElement("fieldset");leagueElement("legend",game.teams[i].name,box);const counter=leagueElement("p","0 / 6 selected",box);counter.className="mvp-count";counter.setAttribute("role","status");counters.push(counter);return game.players.filter(p=>p.team===i&&p.fieldedDrive!=null&&!p.mercenary).map(p=>{const input=leagueInput("#"+p.number+" "+p.leagueRecord.name,"",box,"checkbox");input.checked=saved[i].includes(p.id);input.addEventListener("change",update);return {p,input};});});
  const save=leagueButton("Roll MVPs and save match result",()=>leagueStore.finishFixture(game,choices.map(list=>list.filter(v=>v.input.checked).map(v=>v.p.id))));save.className="control";
  function update(){const selected=choices.map(list=>list.filter(v=>v.input.checked).map(v=>v.p.id));leagueMvpSelections.set(game.leagueFixtureId,selected);const counts=selected.map(list=>list.length);counts.forEach((count,i)=>{counters[i].textContent=count+" / 6 selected";});save.disabled=counts.some(n=>n!==6);}
  update();

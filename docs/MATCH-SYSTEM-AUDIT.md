@@ -1,4 +1,4 @@
-# Match-system audit and visual dugouts — v0.0.20
+# Match-system audit — updated for v0.0.21
 
 **Inducements are not complete.** This audit compares the browser with FFB
 commit `bf3f89d96b5143a8730910a841e7430791094492`; older completion counts
@@ -20,8 +20,12 @@ at base cost without Loner. Application is once per match and does not mutate
 the saved permanent roster. Source: common `step/phase/inducement/StepRiotousRookies`,
 `DiceRoller.rollRiotousRookies`, BB2025 InducementCollection and option defaults.
 
-Still missing: Wizards/spells; purchased and automatic underdog prayers/effects;
-mercenary construction; named coaching staff; named star players/unique
+Wizards (Fireball/Zap) and mercenary construction are now supported; see
+[WIZARDS-MERCENARIES.md](WIZARDS-MERCENARIES.md) for source references,
+verification and remaining spell/medical sequencing limits.
+
+Still missing: purchased and automatic underdog prayers/effects;
+named coaching staff; named star players/unique
 abilities and other special inducement players. These are intentionally not
 offered as inert purchases. Prayers' pinned purchased maximum is zero, but
 the underdog-prayer option is enabled, so zero purchasable prayers does not

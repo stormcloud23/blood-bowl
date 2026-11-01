@@ -100,8 +100,9 @@ class MovementGame {
    });
   };
   const update=()=>{record.medicalStatus=state;};
+  const prepare=()=>{p.status=state;if(["knocked-out","casualty","reserve"].includes(state)){p.x=null;p.y=null;}};
   const regenerate=next=>{
-   p.status=state;if(["knocked-out","casualty","reserve"].includes(state)){p.x=null;p.y=null;}
+   prepare();
    if(state==="casualty"&&this.has(p,"Regeneration")){
     record.regeneration=this.roll("Regeneration needs 4+");
     if(record.regeneration>=4){state="reserve";record.treatment="Regeneration";}else record.regenerationFailed=true;
@@ -121,7 +122,7 @@ class MovementGame {
    }
    next();
   };
-  this.scheduleInjury({p,record,origin,regenerate,retryRegeneration,canRetryRegeneration:()=>record.regenerationFailed&&this.regenerationSources(p).length>0,treat:next=>{resume=next;medical();}},done);
+  this.scheduleInjury({p,record,origin,prepare,regenerate,retryRegeneration,canRetryRegeneration:()=>record.regenerationFailed&&this.regenerationSources(p).length>0,treat:next=>{resume=next;medical();}},done);
  }
  medicalSources(p){return this.apothecaries[p.team]>0?["Use Apothecary"]:[];}
  useMedicalSource(p,choice){if(choice!=="Use Apothecary"||!this.apothecaries[p.team])return false;this.apothecaries[p.team]--;return true;}
