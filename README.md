@@ -42,6 +42,9 @@ All 30 rosters in the checked BB2025 team index are now available. Draft
 them in Teams & leagues, inspect them in Rosters, or choose exhibition home
 and away rosters in Play. See [roster data, team rules and scope](docs/ROSTERS.md).
 
+Team Captain, Swarming, Low Cost Linemen and Masters of Undeath support are
+included, along with shared Big Guy caps and saved league/alignment choices.
+
 ## Current capabilities
 
 - Two-player hotseat play with 30 roster choices.

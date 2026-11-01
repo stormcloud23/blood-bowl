@@ -77,6 +77,9 @@ from the demonstration selection.
 
 The setup panel now allows benching a selected player before placing a
 replacement. Captain deployment and normal formation validation still apply.
+New required decisions receive keyboard focus and scroll into view; the coach
+panel resets its scrolling for a new game or phase. Exhibition configuration
+groups home and away choices separately.
 
 ## Implementation and verification
 

@@ -3,6 +3,7 @@
 const workspaceTabs=["play","teams","rosters","reference"];
 const workspaceScroll={};
 let workspaceView="play",pitchFocus=0,popupAnchor=null,popupEpoch=0,hoverSquare=null,staffDetailsOpen=false,popoverTransition=false;
+let displayedDecision=null,displayedPhase="";
 const popup=document.getElementById("pitch-popup"),tooltip=document.getElementById("pitch-tooltip");
 function exhibitionRosterChoices(side){const roster=rosterCatalog.find(r=>r.id===document.getElementById("exhibition-"+side).value);for(const [kind,options] of [["league",roster.leagues||[roster.league]],["alignment",roster.alignments||[]]]){const select=document.getElementById("exhibition-"+side+"-"+kind),previous=select.value;select.replaceChildren();for(const name of options){const option=document.createElement("option");option.value=name;option.textContent=name;select.append(option);}select.value=options.includes(previous)?previous:options[0]||"";select.hidden=options.length<2;document.getElementById("exhibition-"+side+"-"+kind+"-label").hidden=select.hidden;}}
 for(const [id,index] of [["exhibition-home",0],["exhibition-away",1]]){const select=document.getElementById(id),side=index?"away":"home";for(const roster of rosterCatalog){const option=document.createElement("option");option.value=roster.id;option.textContent=roster.name;select.append(option);}select.value=practiceLeagueTeams[index].id;exhibitionRosterChoices(side);select.addEventListener("change",()=>{exhibitionRosterChoices(side);reset();});for(const kind of ["league","alignment"])document.getElementById(id+"-"+kind).addEventListener("change",reset);}
@@ -183,9 +184,11 @@ function refreshWorkspace(){
  if(setupPlayers.length){const details=document.createElement("details"),summary=document.createElement("summary");summary.textContent="Select a player from the roster (or click on the pitch)";details.append(summary,...setupPlayers);flow.append(details);}
  if(game.match&&game.phase==="finished"&&game.league)flow.append(button("Record result in Teams & leagues",()=>switchWorkspace("teams",true)));
  refreshRecordedResult();
+ const phaseKey=[game.phase,game.setupTeam,game.swarmState?.team].join(":"),coachPanel=document.getElementById("coach-panel");if(displayedPhase!==phaseKey||displayedDecision&&!game.pending)coachPanel.scrollTop=0;displayedPhase=phaseKey;
+ if(game.pending&&game.pending!==displayedDecision){choices.tabIndex=-1;choices.focus({preventScroll:true});choices.scrollIntoView({block:"start",inline:"nearest"});}displayedDecision=game.pending;
 }
 const renderBeforeWorkspace=render;
-render=function(){const focused=document.activeElement?.closest?.(".square"),index=focused?Array.from(pitch.children).indexOf(focused):-1,logTop=log.scrollTop,followLog=log.scrollHeight-log.scrollTop-log.clientHeight<24;renderBeforeWorkspace();refreshWorkspace();log.scrollTop=followLog?log.scrollHeight:logTop;if(index>=0)pitch.children[index]?.focus({preventScroll:true});};
+render=function(){const focused=document.activeElement?.closest?.(".square"),index=focused?Array.from(pitch.children).indexOf(focused):-1,logTop=log.scrollTop,followLog=log.scrollHeight-log.scrollTop-log.clientHeight<24;renderBeforeWorkspace();refreshWorkspace();log.scrollTop=followLog?log.scrollHeight:logTop;if(index>=0&&!game.pending)pitch.children[index]?.focus({preventScroll:true});};
 const startLeagueMatchBeforeWorkspace=startLeagueMatch;
 startLeagueMatch=function(fixture){switchWorkspace("play");startLeagueMatchBeforeWorkspace(fixture);};
 const leagueDisclosureKey=e=>e.querySelector("summary")?.textContent.split(" · ")[0]||"";
