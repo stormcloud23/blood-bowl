@@ -1,8 +1,8 @@
 "use strict";
 // DOM-only roster UI; all entered/imported names are rendered as text.
 const LEAGUE_STORAGE_KEY="blood-bowl-leagues-v1";
-const demoLeagueTeams=JSON.parse(JSON.stringify(teams));
-globalThis.resetLeagueTeams=()=>teams.splice(0,teams.length,...JSON.parse(JSON.stringify(demoLeagueTeams)));
+const practiceLeagueTeams=JSON.parse(JSON.stringify(teams)),demoLeagueTeams=JSON.parse(JSON.stringify(rosterCatalog));
+globalThis.resetLeagueTeams=()=>{const match=document.getElementById("scenario").value.startsWith("match"),home=demoLeagueTeams.find(t=>t.id===document.getElementById("exhibition-home")?.value),away=demoLeagueTeams.find(t=>t.id===document.getElementById("exhibition-away")?.value);teams.splice(0,teams.length,...JSON.parse(JSON.stringify(match&&home&&away?[home,away]:practiceLeagueTeams)));};
 let leagueStore,leagueSelected=null,leagueMessage="",leagueStorageError="",leagueRawBackup="",leagueStoredSnapshot=null;
 const leagueDraftFields={};
 const leagueSelectValues={};

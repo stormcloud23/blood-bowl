@@ -36,9 +36,15 @@ team creation/errors, and saved fixture/postgame flows. Existing automated tests
 do not establish visual correctness. Detailed continuation notes are in the
 workspace `HANDOFF.md`; work paused at 99% weekly usage.
 
+## New rosters — v0.0.17
+
+Skaven, Dwarf, Lizardmen and Elven Union join the original two rosters. Draft
+them in Teams & leagues, inspect them in Rosters, or choose exhibition home
+and away rosters in Play. See [roster data, team rules and scope](docs/ROSTERS.md).
+
 ## Current capabilities
 
-- Two-player hotseat play with Imperial Nobility and Black Orc teams.
+- Two-player hotseat play with six roster choices.
 - A team creator with draft budgets, positional limits, staff, saved rosters and local league entry.
 - Persistent match results, SPP, injuries, skills, characteristic advances, recruitment, finances and standings.
 - Guided exhibition flow through pregame, setup, kickoff, two halves, scoring, drive recovery, and full time.
