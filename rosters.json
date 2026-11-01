@@ -680,5 +680,242 @@
       "assistantCoach": 10000,
       "cheerleader": 10000
     }
+  },
+  {
+    "id": "nurgle",
+    "name": "Nurgle",
+    "tier": 3,
+    "league": "Chaos Clash",
+    "special": [
+      "Favoured of Nurgle",
+      "Brawlin' Brutes"
+    ],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Nurgle/",
+    "reroll": 60000,
+    "positions": [
+      {
+        "id": "rotter",
+        "name": "Rotter",
+        "traits": "Lineman, Human",
+        "max": 16,
+        "ma": 5,
+        "st": 3,
+        "ag": "4+",
+        "pa": "6+",
+        "av": "9+",
+        "skills": [
+          "Decay",
+          "Plague Ridden"
+        ],
+        "primary": "G M D",
+        "secondary": "A S",
+        "cost": 40000
+      },
+      {
+        "id": "pestigor",
+        "name": "Pestigor",
+        "traits": "Runner, Beastman",
+        "max": 2,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "9+",
+        "skills": [
+          "Horns",
+          "Plague Ridden",
+          "Regeneration",
+          "Steady Footing",
+          "Thick Skull"
+        ],
+        "primary": "G M S",
+        "secondary": "A P D",
+        "cost": 70000
+      },
+      {
+        "id": "bloater",
+        "name": "Bloater",
+        "traits": "Blocker, Human",
+        "max": 4,
+        "ma": 4,
+        "st": 4,
+        "ag": "4+",
+        "pa": "6+",
+        "av": "10+",
+        "skills": [
+          "Disturbing Presence",
+          "Foul Appearance",
+          "Plague Ridden",
+          "Regeneration",
+          "Stand Firm",
+          "Unsteady"
+        ],
+        "primary": "G M S",
+        "secondary": "A D",
+        "cost": 110000
+      },
+      {
+        "id": "rotspawn",
+        "name": "Rotspawn",
+        "traits": "Big Guy, Spawn",
+        "max": 1,
+        "ma": 4,
+        "st": 5,
+        "ag": "5+",
+        "pa": "6+",
+        "av": "10+",
+        "skills": [
+          "Disturbing Presence",
+          "Foul Appearance",
+          "Loner (4+)",
+          "Mighty Blow",
+          "Pick-me-up",
+          "Plague Ridden",
+          "Really Stupid",
+          "Regeneration",
+          "Tentacles"
+        ],
+        "primary": "S",
+        "secondary": "G M D",
+        "cost": 140000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      2,
+      2,
+      2,
+      3
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 0,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
+  },
+  {
+    "id": "dark-elf",
+    "name": "Dark Elf",
+    "tier": 1,
+    "league": "Elven Kingdoms League",
+    "special": [],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Dark_Elf/",
+    "reroll": 50000,
+    "positions": [
+      {
+        "id": "lineman",
+        "name": "Dark Elf Lineman",
+        "traits": "Lineman, Elf",
+        "max": 16,
+        "ma": 6,
+        "st": 3,
+        "ag": "2+",
+        "pa": "3+",
+        "av": "9+",
+        "skills": [],
+        "primary": "A G",
+        "secondary": "S D",
+        "cost": 65000
+      },
+      {
+        "id": "runner",
+        "name": "Dark Elf Runner",
+        "traits": "Runner, Elf",
+        "max": 2,
+        "ma": 7,
+        "st": 3,
+        "ag": "2+",
+        "pa": "3+",
+        "av": "8+",
+        "skills": [
+          "Dump-off",
+          "Punt"
+        ],
+        "primary": "A G P",
+        "secondary": "S D",
+        "cost": 80000
+      },
+      {
+        "id": "assassin",
+        "name": "Dark Elf Assassin",
+        "traits": "Special, Elf",
+        "max": 2,
+        "ma": 7,
+        "st": 3,
+        "ag": "2+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Hit and Run",
+          "Shadowing",
+          "Stab"
+        ],
+        "primary": "A D",
+        "secondary": "G S",
+        "cost": 90000
+      },
+      {
+        "id": "blitzer",
+        "name": "Dark Elf Blitzer",
+        "traits": "Blitzer, Elf",
+        "max": 2,
+        "ma": 7,
+        "st": 3,
+        "ag": "2+",
+        "pa": "3+",
+        "av": "9+",
+        "skills": [
+          "Block"
+        ],
+        "primary": "A G",
+        "secondary": "P S D",
+        "cost": 105000
+      },
+      {
+        "id": "witch",
+        "name": "Witch Elf",
+        "traits": "Special, Elf",
+        "max": 2,
+        "ma": 7,
+        "st": 3,
+        "ag": "2+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Dodge",
+          "Frenzy",
+          "Jump Up"
+        ],
+        "primary": "A G",
+        "secondary": "S D",
+        "cost": 110000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      2,
+      3,
+      3,
+      4
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
   }
 ]
