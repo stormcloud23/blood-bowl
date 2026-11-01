@@ -47,6 +47,7 @@ included, along with shared Big Guy caps and saved league/alignment choices.
 
 ## Current capabilities
 
+v0.0.23 adds [Josef Bugman staff, KO recovery and Dwarfen Wisdom](docs/BUGMAN.md).
 v0.0.22 adds [automatic underdog prayers and all sixteen effects](docs/PRAYERS.md).
 [Wizards and mercenaries](docs/WIZARDS-MERCENARIES.md) include Fireball/Zap
 targeting and funded temporary-player construction. Visual team

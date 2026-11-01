@@ -372,3 +372,16 @@ test('forecast carries a hypothetically picked-up ball and Secure the Ball offer
  run('cancelMovementPreview();game.start(selected,"secure");choose(11,7)');
  assert.equal(run('remainingRange(planningPlayer(),previewRoute(planningPlayer())).size'),0);
 });
+
+test('Josef Bugman purchase and Dwarfen Wisdom swaps work through actual inline controls',()=>{
+ const {get,run}=uiFixture('match'),choose=label=>{const b=get('choices').children.find(e=>e.textContent===label);assert.ok(b,label);b.listeners.click();};
+ get('matchflow').children.find(e=>e.textContent==='Configure staff and inducements — '+run('teams[0].name')).listeners.click();choose('Josef Bugman: 0');choose('1 — 100,000 gp');choose('Done');assert.equal(run('game.resourceCosts(0).inducements'),100000);
+ run('game.dice=()=>2;game.phase="kickChoice";game.chooseKicking(0);game.confirmSetup();game.confirmSetup();globalThis.a=game.players[0];globalThis.b=game.players[1];globalThis.apos={x:a.x,y:a.y};globalThis.bpos={x:b.x,y:b.y};render()');assert.equal(run('game.pending.team'),0);choose('Use Dwarfen Wisdom');const old=get('choices').children.find(e=>e.textContent==='Redeploy #1');old.listeners.click();old.listeners.click();assert.equal(run('game.wisdomState.selected.length'),1);choose('Redeploy #2');assert.equal(run('game.dwarfenWisdom[0]'),0);
+ assert.ok(get('matchflow').children.some(e=>e.textContent.includes('Bugman KO bonus 1 / 0')));assert.ok(get('matchflow').children.some(e=>e.textContent==='Wisdom player #1'));
+ get('matchflow').children.find(e=>e.textContent==='Wisdom player #1').listeners.click();
+ const bpos=JSON.parse(run('JSON.stringify(bpos)'));get('pitch').children[bpos.y*26+bpos.x].listeners.click();assert.equal(run('a.x'),bpos.x);get('matchflow').children.find(e=>e.textContent==='Wisdom player #2').listeners.click();const apos=JSON.parse(run('JSON.stringify(apos)'));get('pitch').children[apos.y*26+apos.x].listeners.click();const finish=get('matchflow').children.find(e=>e.textContent==='Finish Dwarfen Wisdom');finish.listeners.click();finish.listeners.click();assert.equal(run('game.phase'),'kicker');assert.equal(run('game.wisdomState'),null);
+});
+test('active prayer summaries and event log identify the opposing affected team',()=>{const {get,run}=uiFixture('match');run('game.dice=()=>1;game.applyPrayer(0,"Greasy Cleats");render()');const text=uiDescendants(get('matchflow')).map(e=>e.textContent).join(' ');assert.ok(text.includes(run('teams[1].name')+' #1'));assert.ok(run('game.events.some(s=>s.includes(teams[1].name+" #1"))'));});
+test('Rock-only between-turn help explains random targeting without spell-square instructions',()=>{const {get,run}=uiFixture('match');run('game.phase="play";game.active=1;game.turns=[1,1];game.rocks[0]=1;game.endTurn();render()');const text=uiDescendants(get('matchflow')).map(e=>e.textContent).join(' ');assert.match(text,/random standing opponent/);assert.ok(!text.includes('Select a highlighted square'));});
+
+function uiDescendants(e){return [e,...e.children.flatMap(uiDescendants)];}

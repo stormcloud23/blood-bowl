@@ -22,7 +22,8 @@ const MATCH_RESOURCES={
  tempCheerleaders:{label:"Temp Agency Cheerleaders",group:"inducement",max:4,cost:20000,initial:0},
  masterChef:{label:"Halfling Master Chef",group:"inducement",max:1,cost:300000,initial:0},
  riotousRookies:{label:"Riotous Rookies",group:"inducement",max:1,cost:100000,initial:0},
- wizards:{label:"Wizard",group:"inducement",max:1,cost:150000,initial:0}
+ wizards:{label:"Wizard",group:"inducement",max:1,cost:150000,initial:0},
+ josefBugman:{label:"Josef Bugman",group:"inducement",max:1,cost:100000,initial:0}
 };
 class MatchGame extends MatchBase {
  constructor(teams,{dice=null,learning=false,resources=null}={}){
@@ -126,6 +127,7 @@ class MatchGame extends MatchBase {
   const loner=this.parameter(p,"Loner");return !loner||this.roll("Loner for Mascot")>=Number(loner.match(/\d+/)[0]);
  }
  refreshResources(){
+  this.dwarfenWisdom=this.resourceChoices.map(r=>r.josefBugman);
   this.wizards=this.resourceChoices.map(r=>r.wizards);
   this.baseRerolls=this.resourceChoices.map(r=>r.teamRerolls);
   this.rerolls=this.resourceChoices.map(r=>r.teamRerolls+r.extraTraining);
@@ -162,7 +164,7 @@ class MatchGame extends MatchBase {
  applyPrayer(team,name,done=()=>{}){
   if(![0,1].includes(team)||!MATCH_PRAYERS.includes(name)||this.pending||this.hasPrayer(team,name))return false;
   this.prayers[team].push(name);const record={team,name,players:[]};this.prayerHistory.push(record);this.note(this.teams[team].name+" prayer: "+name+" (until full time).");
-  const add=(p,skill)=>{if(skill)p.prayerSkills=[...new Set([...(p.prayerSkills||[]),skill])];record.players.push(p.id);this.note(name+": #"+p.number+(skill?" gains "+skill:" is affected")+".");};
+  const add=(p,skill)=>{if(skill)p.prayerSkills=[...new Set([...(p.prayerSkills||[]),skill])];record.players.push(p.id);this.note(name+": "+this.teams[p.team].name+" #"+p.number+(skill?" gains "+skill:" is affected")+".");};
   const wasted=()=>{record.wasted=true;this.note(name+": no eligible player; effect is wasted.");done();};
   if(name==="Throw a Rock"){this.rocks[team]++;done();return true;}
   if(["Iron Man","Knuckle Dusters"].includes(name)){
@@ -262,9 +264,41 @@ class MatchGame extends MatchBase {
   if(this.phase!=="setup"||this.setupErrors().length)return false;
   this.players.filter(p=>p.team===this.setupTeam&&this.onPitch(p)).forEach(p=>p.fieldedDrive=this.drive);
   if(this.setupTeam===this.kicking){this.setupTeam=this.receiving;this.active=this.receiving;this.autoSetup();}
-  else this.beginSwarming([this.kicking,this.receiving]);return true;
+  else this.beginDwarfenWisdom([this.kicking,this.receiving]);return true;
  }
  benchSetup(id){const p=this.players.find(p=>p.id===id);if(this.phase!=="setup"||!p||p.team!==this.setupTeam||!this.onPitch(p))return false;Object.assign(p,{x:null,y:null,status:"reserve"});return true;}
+ // FFB BB2025 StepDwarfenWisdom: kicking coach, receiving coach, then Swarming.
+ beginDwarfenWisdom(queue){
+  if(!queue.length){this.wisdomState=null;this.beginSwarming([this.kicking,this.receiving]);return;}
+  const [team,...remaining]=queue;
+  if(!this.dwarfenWisdom[team]){this.beginDwarfenWisdom(remaining);return;}
+  this.phase="dwarfenWisdom";this.active=team;
+  const state=this.wisdomState={team,remaining,eligible:this.players.filter(p=>p.team===team&&this.onPitch(p)).map(p=>p.id),selected:[],limit:0,placing:false};
+  this.skillChoice("Dwarfen Wisdom — "+this.teams[team].name,team,["Use Dwarfen Wisdom","Keep Dwarfen Wisdom"],choice=>{
+   if(choice==="Keep Dwarfen Wisdom"||!state.eligible.length){this.wisdomState=null;this.beginDwarfenWisdom(remaining);return;}
+   state.limit=Math.min(this.roll("Dwarfen Wisdom players",3),state.eligible.length);
+   const select=()=>{
+    const ids=state.eligible.filter(id=>!state.selected.includes(id)),labels=ids.map(id=>"Redeploy #"+this.players.find(p=>p.id===id).number),finish=()=>{
+     this.dwarfenWisdom[team]--;state.placing=true;
+     for(const p of this.players.filter(p=>state.selected.includes(p.id)))Object.assign(p,{x:null,y:null,status:"reserve"});
+     this.note(this.teams[team].name+" uses Dwarfen Wisdom: re-place "+state.selected.length+" player(s) in a legal formation.");
+    };
+    this.skillChoice("Dwarfen Wisdom — choose 1–"+state.limit+" players ("+state.selected.length+" selected)",team,[...labels,...(state.selected.length?["Finish selecting"]:[])],choice=>{
+     if(choice==="Finish selecting"){finish();return;}
+     state.selected.push(ids[labels.indexOf(choice)]);if(state.selected.length===state.limit)finish();else select();
+    });
+   };select();
+  });
+ }
+ placeWisdom(id,x,y){
+  const s=this.wisdomState,p=this.players.find(p=>p.id===id);
+  if(this.phase!=="dwarfenWisdom"||this.pending||!s?.placing||!p||!s.selected.includes(id)||!this.inside(x,y)||!this.ownHalf(s.team,x)||this.at(x,y))return false;
+  Object.assign(p,{x,y,status:"standing"});return true;
+ }
+ finishDwarfenWisdom(){
+  const s=this.wisdomState;if(this.phase!=="dwarfenWisdom"||this.pending||!s?.placing||this.setupErrors(s.team).length)return false;
+  this.wisdomState=null;this.beginDwarfenWisdom(s.remaining);return true;
+ }
  beginSwarming(queue){if(!queue.length){this.phase="kicker";this.active=this.kicking;this.startHalfResources();this.grantLeader(this.half);return;}const [team,...remaining]=queue,reserves=this.available(team).filter(p=>!this.onPitch(p)&&this.profile(p).traits.includes("Lineman"));if(!this.hasTeamRule(team,"Swarming")||!reserves.length){this.beginSwarming(remaining);return;}this.phase="swarming";this.active=team;this.swarmState={team,remaining,limit:this.roll("Swarming additional Linemen",3),eligible:reserves.map(p=>p.id),placed:[]};this.note(this.teams[team].name+" may set up "+this.swarmState.limit+" extra Linemen.");}
  placeSwarm(id,x,y){const s=this.swarmState,p=this.players.find(p=>p.id===id);if(this.phase!=="swarming"||!s||!p||!s.eligible.includes(id)||!this.inside(x,y)||!this.ownHalf(s.team,x)||this.at(x,y)||!s.placed.includes(id)&&s.placed.length>=s.limit)return false;const others=this.players.filter(q=>q!==p&&q.team===s.team&&this.onPitch(q));if(y<4&&others.filter(q=>q.y<4).length>=2||y>10&&others.filter(q=>q.y>10).length>=2)return false;Object.assign(p,{x,y,status:"standing",fieldedDrive:this.drive});if(!s.placed.includes(id))s.placed.push(id);return true;}
  finishSwarming(){const s=this.swarmState;if(this.phase!=="swarming"||!s)return false;this.swarmCounts[s.team]=s.placed.length;this.swarmState=null;this.beginSwarming(s.remaining);return true;}
@@ -522,7 +556,7 @@ class MatchGame extends MatchBase {
   if(this.turns.every(n=>n>=8)&&this.half===2){this.phase="finished";this.note(this.scores[0]===this.scores[1]?"Full time — draw.":"Full time — "+this.teams[this.scores[0]>this.scores[1]?0:1].name+" wins.");return true;}
   if(this.resolveSecretWeapons())return true;
   const field=this.players.filter(p=>this.onPitch(p));for(const p of this.players)p.heatOut=false;
-  for(const p of this.players){if(p.status==="knocked-out"&&this.roll("KO recovery #"+p.number)+this.resourceChoices[p.team].kegs>=4){p.status="reserve";this.note("#"+p.number+" recovers from KO.");}p.snack=false;p.snackOut=false;}
+  for(const p of this.players){if(p.status==="knocked-out"&&this.roll("KO recovery #"+p.number)+this.resourceChoices[p.team].kegs+this.resourceChoices[p.team].josefBugman>=4){p.status="reserve";this.note("#"+p.number+" recovers from KO.");}p.snack=false;p.snackOut=false;}
   if(this.weather==="Sweltering Heat"){const count=Math.ceil(this.roll("Sweltering Heat player count")/2);for(const t of [0,1])for(const p of this.randomPlayers(field.filter(q=>q.team===t),count,"Heat exhaustion")){p.heatOut=true;this.note("Heat: #"+p.number+" misses the next drive.");}}
   for(const t of [0,1]){this.rerolls[t]=Math.max(0,this.rerolls[t]-this.driveBonus[t]);this.driveBonus[t]=0;}
   if(this.turns.every(n=>n>=8)){
