@@ -47,6 +47,8 @@ included, along with shared Big Guy caps and saved league/alignment choices.
 
 ## Current capabilities
 
+v0.0.25 extends [named stars](docs/STARS.md) with Morg, Fungus, Glart and the Swift Twins, and
+corrects medical treatment of Zapped Frogs.
 v0.0.24 adds [twelve named star players and unique abilities](docs/STARS.md).
 v0.0.23 adds [Josef Bugman staff, KO recovery and Dwarfen Wisdom](docs/BUGMAN.md).
 v0.0.22 adds [automatic underdog prayers and all sixteen effects](docs/PRAYERS.md).
@@ -80,6 +82,7 @@ GitHub Pages serves the committed `index.html` from the root of `main`. Playing 
 
 ```sh
 node generate-skill-docs.cjs
+node generate-roster-docs.cjs
 node build.cjs
 node --test *.test.cjs
 git diff --check

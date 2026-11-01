@@ -85,7 +85,9 @@ prepares injury placement and resolves the ball before medical treatment,
 following FFB's spell sequence. Rare spell/skill chains are not exhaustively
 certified.
 
-Remaining match parity work includes automatic underdog prayers and their
-effects, named coaching staff, named stars/unique abilities and special
-inducement players. Full-match combination verification, in-progress match
+Automatic [underdog prayers](PRAYERS.md), [Bugman staff](BUGMAN.md) and a
+[supported named-star group](STARS.md) have since been implemented. Zapped Frogs
+now reject all apothecary/Plague Doctor treatment, matching the BB2025
+ApothecaryMechanic. Remaining inducement work includes the rest of the star
+catalogue, other unique abilities and special inducement players. Full-match combination verification, in-progress match
 persistence, AI and fuller competition options remain separate gaps.

@@ -1,4 +1,4 @@
-# Match-system audit — updated for v0.0.24
+# Match-system audit — updated for v0.0.25
 
 **Inducements are not complete.** This audit compares the browser with FFB
 commit `bf3f89d96b5143a8730910a841e7430791094492`; older completion counts
@@ -31,8 +31,8 @@ Purchased prayers remain unavailable under the pinned maximum of zero.
 Josef Bugman named staff is supported; see [BUGMAN.md](BUGMAN.md) for the
 KO bonus, kickoff redeployment, source paths and validation.
 
-The first twelve [named stars and unique abilities](STARS.md) are supported.
-Still missing: the remaining star catalogue, paired stars, other unique
+The first seventeen [named stars and unique abilities](STARS.md) are supported.
+Still missing: the remaining star catalogue, other paired stars, other unique
 abilities and special inducement players. These are intentionally not
 offered as inert purchases. Prayers' pinned purchased maximum is zero, but
 the underdog-prayer option is enabled and now implemented. General non-star
