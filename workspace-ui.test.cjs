@@ -30,6 +30,26 @@ function workspaceFixture(scenario='block'){
  const run=code=>vm.runInContext(code,context),popup=()=>get('pitch-popup').querySelectorAll('button'),action=label=>{const b=popup().find(b=>b.textContent===label);assert.ok(b,'Popup action '+label);return b;};
  return {get,run,document,popup,action,key:key=>document.listeners.keydown.forEach(fn=>fn({key})),cell:(x,y)=>get('pitch').children[y*26+x]};
 }
+
+test('Wizard targeting highlights legal squares, confirms mixed-team victims and rejects stale target dialogs',()=>{
+ const f=workspaceFixture('match');f.run(`game.setResource(0,'wizards',1);game.phase='play';game.turns=[1,0];game.players.forEach(p=>Object.assign(p,{x:null,y:null,status:'reserve'}));Object.assign(game.players[0],{x:10,y:7,status:'standing'});Object.assign(game.players.find(p=>p.team===1),{x:11,y:7,status:'standing'});game.endTurn();game.decide('Fireball');globalThis.oldTarget=game.pending;render();`);
+ assert.equal(f.cell(10,7)['data-spell-target'],'Fireball');assert.equal(f.cell(0,0)['data-spell-target'],undefined);
+ f.cell(10,7).click();assert.equal(f.run('game.pending.kind.includes(teams[0].name)&&game.pending.kind.includes(teams[1].name)'),true);assert.equal(f.run('game.wizards[0]'),1);assert.equal(f.run("oldTarget.resolve('Cancel spell')"),false);
+ const cancel=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Cancel spell');assert.ok(cancel);cancel.click();assert.equal(f.run('game.pending.kind.startsWith("Wizard")'),true);f.run("game.decide('Keep Wizard');render();");assert.equal(f.run('game.phase'),'play');assert.equal(f.run('game.active'),1);assert.equal(f.run('game.wizards[0]'),1);
+});
+
+test('Wizard target confirmation executes the actual inline UI through the next team turn',()=>{
+ const f=workspaceFixture('match');f.run(`game.setResource(0,'wizards',1);game.phase='play';game.turns=[1,0];game.players.forEach(p=>Object.assign(p,{x:null,y:null,status:'reserve'}));Object.assign(game.players[0],{x:10,y:7,status:'standing'});game.dice=()=>1;game.endTurn();game.decide('Zap');render();`);
+ f.cell(10,7).click();const cast=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Cast Zap at 11, 8');assert.ok(cast);cast.click();assert.equal(f.run('game.wizards[0]'),0);assert.equal(f.run('game.phase'),'play');assert.equal(f.run('game.turns[1]'),1);assert.equal(f.run('game.pending'),null);
+});
+
+test('mercenary purchase controls hire a labeled reserve, then the dugout places them in setup',()=>{
+ const f=workspaceFixture('match');f.run('game.configureResources(0);render();');
+ const click=label=>{const b=f.get('choices').querySelectorAll('button').find(b=>b.textContent===label);assert.ok(b,label);b.click();};
+ click('Mercenaries');const hire=f.get('choices').querySelectorAll('button').find(b=>b.textContent.startsWith('Hire Imperial Retainer'));assert.ok(hire);hire.click();click('Hire with Block (+50,000 gp)');click('Back');click('Done');
+ assert.equal(f.run('game.players.filter(p=>p.mercenary).length'),1);assert.equal(f.run('game.resourceCosts(0).inducements'),125000);
+ f.run("game.phase='setup';game.setupTeam=0;render();");const id=f.run('game.players.find(p=>p.mercenary).id'),card=f.get('dugout').querySelectorAll('button').find(b=>b.dataset.playerId===id);assert.ok(card);assert.ok(card['aria-label'].includes('Mercenary'));card.click();f.action('Select for setup').click();f.cell(5,7).click();assert.equal(f.run('game.players.find(p=>p.mercenary).x'),5);
+});
 test('workspace tabs preserve the exact game and support arrow-key selection',()=>{
  const f=workspaceFixture();f.run('globalThis.before=game');f.get('tab-teams').click();assert.equal(f.run('workspaceView'),'teams');assert.equal(f.get('play-view').hidden,true);assert.equal(f.get('teams-view').hidden,false);f.get('tab-teams').emit('keydown',{key:'ArrowRight'});assert.equal(f.run('workspaceView'),'rosters');assert.equal(f.get('tab-rosters').tabIndex,0);assert.equal(f.get('tab-play').tabIndex,-1);f.get('tab-play').click();assert.equal(f.run('game===before'),true);
 });

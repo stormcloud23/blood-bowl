@@ -1,5 +1,6 @@
 "use strict";
 const MatchBase=typeof module!=="undefined"?require("./skills.cjs").SkillGame:SkillGame;
+const MatchSkillGroups=typeof module!=="undefined"?require("./skills.cjs").SKILL_GROUPS:SKILL_GROUPS;
 // Inducement prices/limits follow the pinned BB2025 FFB option factory.
 const MATCH_RESOURCES={
  teamRerolls:{label:"Team re-rolls",group:"staff",max:8,initial:2},
@@ -19,7 +20,8 @@ const MATCH_RESOURCES={
  tempCoaches:{label:"Part-time Assistant Coaches",group:"inducement",max:3,cost:20000,initial:0},
  tempCheerleaders:{label:"Temp Agency Cheerleaders",group:"inducement",max:4,cost:20000,initial:0},
  masterChef:{label:"Halfling Master Chef",group:"inducement",max:1,cost:300000,initial:0},
- riotousRookies:{label:"Riotous Rookies",group:"inducement",max:1,cost:100000,initial:0}
+ riotousRookies:{label:"Riotous Rookies",group:"inducement",max:1,cost:100000,initial:0},
+ wizards:{label:"Wizard",group:"inducement",max:1,cost:150000,initial:0}
 };
 class MatchGame extends MatchBase {
  constructor(teams,{dice=null,learning=false,resources=null}={}){
@@ -67,10 +69,41 @@ class MatchGame extends MatchBase {
   if(this.phase!==(this.league?"leagueSteps":"fans")||this.pending||![0,1].includes(team)||this.league&&this.leaguePurchaseOrder[this.leaguePurchaseStep]!==team)return false;
   const menu=()=>{
    const keys=Object.keys(MATCH_RESOURCES).filter(key=>this.resourceSpec(team,key).max>0&&(!this.league||MATCH_RESOURCES[key].group==="inducement")),options=keys.map(key=>this.resourceSpec(team,key).label+": "+this.resourceChoices[team][key]);
-   this.skillChoice("Staff and inducements — "+this.teams[team].name,team,[...options,"Done"],choice=>{
+   this.skillChoice("Staff and inducements — "+this.teams[team].name,team,[...options,"Mercenaries","Done"],choice=>{
+    if(choice==="Mercenaries"){this.configureMercenaries(team,menu);return;}
     const key=keys[options.indexOf(choice)];if(!key){if(choice==="Done"&&this.league)this.lockLeagueInducements(team);return;}
     const spec=this.resourceSpec(team,key),values=Array.from({length:spec.max-(spec.min||0)+1},(_,i)=>i+(spec.min||0)),labels=values.map(value=>value+" — "+((key==="dedicatedFans"?value-1:value)*spec.cost).toLocaleString()+" gp");
     this.skillChoice(spec.label,team,[...labels,"Back"],label=>{const index=labels.indexOf(label);if(index>=0)this.setResource(team,key,values[index]);menu();});
+   });
+  };menu();return true;
+ }
+ canBuyPlayers(team){return [0,1].includes(team)&&!this.pending&&this.phase===(this.league?"leagueSteps":"fans")&&(!this.league||this.leaguePurchaseOrder[this.leaguePurchaseStep]===team);}
+ mercenarySkills(team,role){const p=this.teams[team]?.positions[role];if(!p)return [];const access=p.primary.split(/\s+/);return Object.entries(MatchSkillGroups).filter(([cat])=>cat!=="Traits"&&access.includes(cat[0])).flatMap(([,skills])=>skills).filter(s=>!p.skills.includes(s)).sort();}
+ canHireMercenary(team,role){
+  if(!this.canBuyPlayers(team))return false;const roster=this.teams[team],profile=roster.positions[role],players=this.players.filter(p=>p.team===team);
+  return !!profile&&players.length<16&&players.filter(p=>p.role===role).length<profile.max&&!(roster.groupLimits||[]).some(g=>g.roles.includes(role)&&players.filter(p=>g.roles.includes(p.role)).length>=g.max);
+ }
+ hireMercenary(team,role,skill=null){
+  if(!this.canHireMercenary(team,role)||skill!==null&&!this.mercenarySkills(team,role).includes(skill))return false;
+  const cost=this.teams[team].positions[role].cost+30000+(skill?50000:0);
+  if(this.league&&this.resourceCosts(team).inducements+cost>this.leagueBudget(team))return false;
+  const p=this.addRaisedLineman(team,role,{},"Mercenary");delete p.raisedKind;delete p.raisedFrom;p.mercenary=true;p.inducementCost=cost;
+  p.profileOverride=JSON.parse(JSON.stringify(this.teams[team].positions[role]));p.profileOverride.name="Mercenary "+p.profileOverride.name;p.profileOverride.skills=[...new Set([...p.profileOverride.skills.filter(s=>!s.startsWith("Loner")),"Loner (4+)",...(skill?[skill]:[])])];
+  if(p.leagueRecord){p.leagueRecord.name=p.profileOverride.name+" #"+p.number;p.leagueRecord.profile=p.profileOverride;}
+  this.note("Mercenary #"+p.number+" "+p.profileOverride.name+" hired for "+cost.toLocaleString()+" gp.");return p;
+ }
+ removeMercenary(team,id){if(!this.canBuyPlayers(team))return false;const p=this.players.find(p=>p.id===id&&p.team===team&&p.mercenary);if(!p)return false;this.players=this.players.filter(q=>q!==p);return true;}
+ configureMercenaries(team,back){
+  if(!this.canBuyPlayers(team))return false;
+  const menu=()=>{
+   const roster=this.teams[team],roles=roster.positions.map((p,i)=>i).filter(i=>this.canHireMercenary(team,i)),hired=this.players.filter(p=>p.team===team&&p.mercenary),labels=roles.map(i=>"Hire "+roster.positions[i].name+" — "+(roster.positions[i].cost+30000).toLocaleString()+" gp"),remove=hired.map(p=>"Remove mercenary #"+p.number);
+   this.skillChoice("Mercenaries — Loner (4+), one optional Primary skill for 50,000 gp",team,[...labels,...remove,"Back"],choice=>{
+    if(choice==="Back"){back();return;}const hiredPlayer=hired[remove.indexOf(choice)];if(hiredPlayer){this.removeMercenary(team,hiredPlayer.id);menu();return;}
+    const role=roles[labels.indexOf(choice)];if(role===undefined){menu();return;}
+    const skills=this.mercenarySkills(team,role);
+    this.skillChoice("Mercenary "+roster.positions[role].name,team,["Hire without extra skill",...skills.map(s=>"Hire with "+s+" (+50,000 gp)"),"Back"],choice=>{
+     if(choice!=="Back"){const skill=choice==="Hire without extra skill"?null:skills.find(s=>choice==="Hire with "+s+" (+50,000 gp)");if(!this.hireMercenary(team,role,skill))this.note("Mercenary purchase rejected: check the available budget and roster limits.");}menu();
+    });
    });
   };menu();return true;
  }
@@ -92,6 +125,7 @@ class MatchGame extends MatchBase {
   const loner=this.parameter(p,"Loner");return !loner||this.roll("Loner for Mascot")>=Number(loner.match(/\d+/)[0]);
  }
  refreshResources(){
+  this.wizards=this.resourceChoices.map(r=>r.wizards);
   this.baseRerolls=this.resourceChoices.map(r=>r.teamRerolls);
   this.rerolls=this.resourceChoices.map(r=>r.teamRerolls+r.extraTraining);
   this.apothecaries=this.resourceChoices.map(r=>r.apothecary+r.wanderingApothecaries);
@@ -99,7 +133,7 @@ class MatchGame extends MatchBase {
   this.argueRerolls=this.resourceChoices.map((r,t)=>this.hasTeamRule(t,"Bribery and Corruption")?1:0);
  }
  resourceCosts(team){
-  let staff=0,inducements=0,fans=0;
+  let staff=0,inducements=this.players.filter(p=>p.team===team&&p.mercenary).reduce((n,p)=>n+p.inducementCost,0),fans=0;
   for(const [key,value] of Object.entries(this.resourceChoices[team])){const spec=this.resourceSpec(team,key),cost=(key==="dedicatedFans"?value-1:value)*spec.cost;if(key==="dedicatedFans")fans+=cost;else if(spec.group==="staff")staff+=cost;else inducements+=cost;}
   return {staff,inducements,fans,total:staff+inducements+fans};
  }
@@ -112,7 +146,7 @@ class MatchGame extends MatchBase {
   if(successes.some(Boolean))this.note("Master Chef: half "+this.half+" gains "+successes.join(" / ")+" re-rolls; opposing regular pools are reduced. Leader is granted afterwards.");
  }
  teamSppAwards(team){const brutes=this.hasTeamRule(team,"Brawlin' Brutes");return {touchdown:brutes?2:3,casualty:brutes?3:2,completion:1,interception:2,mvp:4};}
- profile(p){const base=super.profile(p);return p.snack?{...base,ma:Math.max(1,base.ma-1),av:Math.max(3,parseInt(base.av)-1)+"+"}:base;}
+ profile(p){let base=super.profile(p);if(p.zapped)base={...base,name:"Frog ("+base.name+")",ma:5,st:1,ag:"2+",pa:"-",av:"5+",skills:["Dodge","No Ball","Titchy","Stunty","Very Long Legs","Leap"]};return p.snack?{...base,ma:Math.max(1,base.ma-1),av:Math.max(3,parseInt(base.av)-1)+"+"}:base;}
  setApothecary(team,enabled){
   return this.setResource(team,"apothecary",enabled?1:0);
  }
@@ -295,8 +329,64 @@ class MatchGame extends MatchBase {
   }
   this.note(turnover?"TURNOVER.":"Turn ended.");for(const p of this.players)if(p.team===this.active&&p.status==="stunned"&&p.stunnedAtStart)p.status="prone";
   this.cheer[this.active]=false;this.pickMeUp(this.active);this.mover=null;this.action=null;this.blockAction=null;this.blitzTarget=null;
-  if(this.turns.every(n=>n>=8))this.endDrive(null);else this.beginTurn(1-this.active);return true;
+  if(this.turns.every(n=>n>=8))this.endDrive(null);else this.openWizardWindows();return true;
  }
+ // FFB StepEndFeeding/StepInitInducement: ending coach, then opposing coach,
+ // between turns, excluding touchdown/end-of-half. No player action can start.
+ openWizardWindows(){
+  const ending=this.active,c=this.wizardWindow={ending,index:0};this.phase="betweenTurns";
+  const next=()=>{
+   if(this.wizardWindow!==c||this.finished)return;
+   if(c.index===2){this.wizardWindow=null;this.phase="play";this.beginTurn(1-ending);return;}
+   const team=c.index++===0?ending:1-ending;this.active=team;
+   if(!this.wizards[team]){next();return;}
+   this.offerWizard(team,next);
+  };next();
+ }
+ offerWizard(team,done){this.skillChoice("Wizard — "+this.teams[team].name,team,["Fireball","Zap","Keep Wizard"],choice=>{if(choice==="Keep Wizard")done();else this.selectSpell(team,choice,done);});}
+ spellTargets(spell,x,y){if(!Number.isInteger(x)||!Number.isInteger(y)||!this.inside(x,y)||!["Fireball","Zap"].includes(spell))return [];return this.players.filter(p=>this.onPitch(p)&&(spell==="Zap"?p.x===x&&p.y===y&&!p.zapped:this.distance(p,{x,y})<=1));}
+ selectSpell(team,spell,done){
+  const q={type:"custom",kind:spell+" — select a highlighted square, then confirm",team,spell,options:["Cancel spell"],resolve:choice=>{
+   if(this.pending!==q||choice!=="Cancel spell")return false;this.pending=null;this.offerWizard(team,done);return true;
+  },spellDone:done};this.pending=q;
+ }
+ aimSpell(x,y){
+  const q=this.pending;if(this.phase!=="betweenTurns"||!q?.spell||!this.wizards[q.team]||!this.spellTargets(q.spell,x,y).length)return false;
+  const targets=this.spellTargets(q.spell,x,y),label="Cast "+q.spell+" at "+(x+1)+", "+(y+1);
+  this.skillChoice(q.spell+" affects "+targets.map(p=>this.teams[p.team].name+" #"+p.number).join(", "),q.team,[label,"Choose another square","Cancel spell"],choice=>{
+   if(choice==="Choose another square"){this.selectSpell(q.team,q.spell,q.spellDone);return;}
+   if(choice==="Cancel spell"){this.offerWizard(q.team,q.spellDone);return;}this.castSpell(q.team,q.spell,x,y,q.spellDone);
+  });return true;
+ }
+ castSpell(team,spell,x,y,done){
+  if(this.pending||this.phase!=="betweenTurns"||!this.wizardWindow||team!==this.active||!this.wizards[team]||!["Fireball","Zap"].includes(spell)||!this.spellTargets(spell,x,y).length)return false;
+  const targets=this.spellTargets(spell,x,y).sort((a,b)=>a.y-b.y||a.x-b.x);this.wizards[team]--;this.note(this.teams[team].name+" casts "+spell+".");
+  this.scoreDeferrals=(this.scoreDeferrals||0)+1;
+  const complete=()=>{this.scoreDeferrals--;this.syncLeader();this.phase="play";this.checkScore();if(!this.finished){this.phase="betweenTurns";done();}};
+  if(spell==="Zap"){
+   const p=targets[0],n=this.roll("Zap #"+p.number),success=n===6||n>1&&n>=this.profile(p).st;
+   if(!success){complete();return;}p.zapped=true;this.note("#"+p.number+" becomes a Frog until the drive ends.");
+   if(this.ball.carrier===p.id||!this.ball.carrier&&this.ball.x===p.x&&this.ball.y===p.y){this.ball={x:p.x,y:p.y,carrier:null};this.bounce(p.x,p.y,complete);}else complete();return;
+  }
+  let i=0;
+  const next=()=>{
+   if(i===targets.length){complete();return;}
+   const p=targets[i++];if(this.roll("Fireball #"+p.number+" needs 4+")<4){next();return;}
+   const origin={x:p.x,y:p.y},standing=p.status==="standing";
+   // FFB rolls the injury before offering Steady Footing; a successful save
+   // discards that result, including any casualty dice already consumed.
+   const armour=this.has(p,"Ball & Chain")?Infinity:this.roll("Fireball Armour")+this.roll("Fireball Armour"),av=parseInt(this.profile(p).av),bonus=armour<av&&!this.has(p,"Iron Hard Skin")?1:0;
+   let entry=null;
+   if(armour+bonus>=av){this.spellInjuryCapture=e=>{entry=e;};try{this.resolveInjury(p,this.roll("Fireball Injury")+this.roll("Fireball Injury")+(bonus?0:1),()=>{},{source:{cause:"Fireball"}});}finally{this.spellInjuryCapture=null;}}
+   const damage=()=>{
+    if(standing){p.status="prone";p.rooted=false;this.onProne(p);}
+    const finish=()=>this.releaseProneBall(p,origin,next);
+    if(entry){entry.prepare();this.releaseProneBall(p,origin,()=>super.scheduleInjury(entry,next));}else finish();
+   };
+   const placed=()=>standing?this.beforeProne(p,origin,damage):damage();if(standing)this.preventFall(p,next,placed);else placed();
+  };next();
+ }
+ scheduleInjury(entry,done){if(this.spellInjuryCapture){this.spellInjuryCapture(entry);return;}super.scheduleInjury(entry,done);}
  finishBlock(){if(this.chainContext){super.finishBlock();return;}if(this.multipleContext){super.finishBlock();return;}const b=this.blockAction;super.finishBlock();if(this.pending)return;if(this.phase==="play"||this.phase==="charge")this.checkScore();if(b&&!b.blitz)this.checkStalling(b.attacker);}
  canScoreWithoutDice(p){
   if(!p||this.ball.carrier!==p.id||!this.onPitch(p)||p.status!=="standing"||p.distracted||["Bone Head","Really Stupid","Unchannelled Fury","Animal Savagery","Take Root"].some(s=>this.has(p,s))||this.parameter(p,"Bloodlust"))return false;
@@ -366,6 +456,7 @@ class MatchGame extends MatchBase {
  }
  continueDrive(){
   if(this.phase!=="endDrive"||this.pending)return false;
+  for(const p of this.players)if(p.zapped){delete p.zapped;this.note("#"+p.number+" returns from Frog form.");}
   if(this.turns.every(n=>n>=8)&&this.half===2){this.phase="finished";this.note(this.scores[0]===this.scores[1]?"Full time — draw.":"Full time — "+this.teams[this.scores[0]>this.scores[1]?0:1].name+" wins.");return true;}
   if(this.resolveSecretWeapons())return true;
   const field=this.players.filter(p=>this.onPitch(p));for(const p of this.players)p.heatOut=false;

@@ -47,8 +47,10 @@ included, along with shared Big Guy caps and saved league/alignment choices.
 
 ## Current capabilities
 
-v0.0.20 adds visual team dugouts, Solid Defence lifting/redeployment, and
-Riotous Rookies. [The match-system audit](docs/MATCH-SYSTEM-AUDIT.md) records
+v0.0.21 adds [Wizards and mercenaries](docs/WIZARDS-MERCENARIES.md), including
+Fireball/Zap targeting and funded temporary-player construction. Visual team
+dugouts, Solid Defence redeployment and Riotous Rookies are included.
+[The match-system audit](docs/MATCH-SYSTEM-AUDIT.md) records
 verified scope and the remaining inducement gaps; inducements are not complete.
 
 - Two-player hotseat play with 30 roster choices.
