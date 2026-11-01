@@ -155,7 +155,7 @@ class SkillGame extends SkillBase {
   if(d){
    this.chainContext={attacker:p,target:d,origin,ground:d.status!=="standing",carrierBefore:this.ball.carrier};
    const b={attacker:p,target:d,blitz:false,assists:{offensive:0,defensive:0},aStrength:+this.profile(p).st,dStrength:+this.profile(d).st,chain:true};this.blockAction=b;
-   this.dumpOff(p,d,()=>{const roll=()=>rush(()=>{if(this.chainContext.ground)this.resolvePush(true);else this.chainBlockDice(p,d);});const own=+this.profile(p).st,other=+this.profile(d).st;if(!this.chainContext.ground&&this.skill(p,"Dauntless")&&own<other)this.test(p,"Dauntless",other-own+1,()=>{p.blockST=other;roll();},roll);else roll();});this.guardMultipleDecision();return;
+   this.dumpOff(p,d,()=>{const roll=()=>rush(()=>{if(this.chainContext.ground)this.resolvePush(true);else this.chainBlockDice(p,d);});const own=+this.profile(p).st,other=+this.profile(d).st;if(!this.chainContext.ground&&this.skill(p,"Dauntless")&&own<other&&own+6>other)this.test(p,"Dauntless",other-own+1,()=>{p.blockST=other;roll();},roll);else roll();});this.guardMultipleDecision();return;
   }
   p.x=pos.x;p.y=pos.y;this.refreshChomps();rush(()=>{
    if(!this.ball.carrier&&this.ball.x===p.x&&this.ball.y===p.y)this.bounce(p.x,p.y,()=>this.offerChain());else this.offerChain();
@@ -484,6 +484,8 @@ class SkillGame extends SkillBase {
   const penalty=kind==="Jump"?this.jumpTarget(p,origin.x,origin.y,plan.x,plan.y,2)-target:2;
   this.resolveSkillTest(p,kind,this.checkTarget(p,kind,target),yes,no,{plan,candidates,penalty});
  }
+ automaticTestReroll(p,kind){return null;}
+ additionalTestModifiers(p,kind){return [];}
  resolveSkillTest(p,kind,target,yes,no,departure=null){
   const tacklers=departure?.candidates||[];
   const penalty=departure?.penalty||2;
@@ -497,21 +499,22 @@ class SkillGame extends SkillBase {
   };
   // Like FFB's modifier-choice step, keep the failed roll suspended until the coach decides.
   // A modifier can still rescue the re-rolled die, but never opens another re-roll window.
-  const resolve=(n,mayReroll)=>{
-   const lookAhead=this.success(n,target)&&tacklers.length&&!this.success(n,target+penalty);
-   if(this.success(n,target)&&!lookAhead){finish(n);return;}
+  const resolve=(n,mayReroll,appliedBonus=0)=>{
+   const lookAhead=this.success(n,target-appliedBonus)&&tacklers.length&&!this.success(n,target+penalty-appliedBonus);
+   if(this.success(n,target-appliedBonus)&&!lookAhead){finish(n,appliedBonus);return;}
    const bonus=+this.profile(p).st<=3?1:+this.profile(p).st===4?2:3;
-   const breakTackle=kind==="Dodge"&&this.skill(p,"Break Tackle")&&!this.used(p,"Break Tackle")&&this.success(n,target+(tacklers.length?penalty:0)-bonus);
-   const options=mayReroll?this.options(p,kind):[];if(breakTackle)options.unshift("Break Tackle");
-   if(!options.length){finish(n);return;}
+   const breakTackle=kind==="Dodge"&&this.skill(p,"Break Tackle")&&!this.used(p,"Break Tackle")&&this.success(n,target+(tacklers.length?penalty:0)-appliedBonus-bonus);
+   const modifiers=this.additionalTestModifiers(p,kind).filter(m=>this.success(n,target+(tacklers.length?penalty:0)-appliedBonus-m.bonus));
+   const options=mayReroll?this.options(p,kind):[];if(breakTackle)options.unshift("Break Tackle");options.unshift(...modifiers.map(m=>m.name));
+   if(!options.length){finish(n,appliedBonus);return;}
    const q={p,kind,target,roll:n,options,lookAhead,resolved:false};
    const settle=fn=>(...args)=>{if(q.resolved||this.pending&&this.pending!==q)return false;q.resolved=true;if(this.pending===q)this.pending=null;fn(...args);return true;};
-   q.resolve=settle(value=>resolve(value,false));q.accept=settle(()=>finish(n));q.useModifier=settle(()=>{this.use(p,"Break Tackle");finish(n,bonus);});this.pending=q;
+   q.resolve=settle(value=>resolve(value,false,appliedBonus));q.accept=settle(()=>finish(n,appliedBonus));q.useModifier=settle(()=>{this.use(p,"Break Tackle");finish(n,appliedBonus+bonus);});q.useTestModifier=choice=>{const m=modifiers.find(m=>m.name===choice);return m?settle(()=>{m.use();resolve(n,mayReroll,appliedBonus+m.bonus);})():false;};this.pending=q;
    this.note(lookAhead?"Diving Tackle may make this "+kind+" fail. Choose modifiers or a re-roll before the defender decides.":kind+" failed. Choose a modifier, re-roll or accept the result.");
   };
-  resolve(this.roll(kind+" #"+p.number+" needs "+Math.min(6,Math.max(2,target))+"+"),true);
+  let n=this.roll(kind+" #"+p.number+" needs "+Math.min(6,Math.max(2,target))+"+"),rerolled=false;const automatic=this.automaticTestReroll(p,kind);if(automatic&&!this.success(n,target)){n=this.roll(kind+" re-roll ("+automatic+")");rerolled=true;}resolve(n,!rerolled);
  }
- decide(option){const q=this.pending;if(q&&option==="Break Tackle"&&q.options?.includes(option)&&q.useModifier){this.pending=null;q.useModifier();return true;}if(q&&["Sure Feet","Sure Hands","Swoop"].includes(option)){if(!q.options.includes(option))return false;this.pending=null;this.use(q.p,option==="Swoop"?"Swoop landing":option);q.resolve(this.roll(q.kind+" re-roll ("+option+")"));return true;}return super.decide(option);}
+ decide(option){const q=this.pending;if(q?.useTestModifier&&q.options.includes(option)&&this.additionalTestModifiers(q.p,q.kind).some(m=>m.name===option))return q.useTestModifier(option);if(q&&option==="Break Tackle"&&q.options?.includes(option)&&q.useModifier){this.pending=null;q.useModifier();return true;}if(q&&["Sure Feet","Sure Hands","Swoop"].includes(option)){if(!q.options.includes(option))return false;this.pending=null;this.use(q.p,option==="Swoop"?"Swoop landing":option);q.resolve(this.roll(q.kind+" re-roll ("+option+")"));return true;}return super.decide(option);}
  leaderOnPitch(team){return this.players.some(p=>p.team===team&&this.onPitch(p)&&this.has(p,"Leader"));}
  grantLeader(half){for(const t of [0,1])if(this.leaderHalf[t]!==half){this.leaderHalf[t]=half;if(this.leaderOnPitch(t)){this.leaderPool[t]=true;this.note("Leader: one additional re-roll for this half.");}}}
  syncLeader(){for(const t of [0,1])if(!this.leaderOnPitch(t))this.leaderPool[t]=false;}
@@ -611,6 +614,7 @@ class SkillGame extends SkillBase {
   const eligible=(p,target,excluded)=>p.id!==a.id&&p.id!==d.id&&!this.multipleContext?.targets.includes(p)&&this.onPitch(p)&&p.status==="standing"&&!p.distracted&&!p.gouged&&this.distance(p,target)===1&&(this.markedByExcept(p,[excluded.id])===0||guard(p));
   return {offensive:this.players.filter(p=>p.team===a.team&&eligible(p,d,d)).length,defensive:this.players.filter(p=>p.team===d.team&&eligible(p,a,a)).length};
  }
+ afterDauntless(p,target,done){p.blockST=+this.profile(target).st;done();}
  rollBlock(a,d,blitz=false){
   if(this.multipleContext?.stage==="activation"){this.prepareMultiple();return;}
   if(a.status==="prone"&&this.has(a,"Jump Up")){this.mover=a.id;this.test(a,"Jump Up Block",Math.max(2,parseInt(this.profile(a).ag)-1),()=>{a.status="standing";this.mover=null;this.rollBlock(a,d,blitz);},()=>{this.mover=null;this.action=null;});return;}
@@ -620,7 +624,7 @@ class SkillGame extends SkillBase {
   };
   const perform=()=>this.trickster(a,d,roll);
   const strength=()=>{a.hornsBonus=blitz&&this.skill(a,"Horns")?1:0;const own=+super.profile(a).st,other=+this.profile(d).st;
-   if(this.skill(a,"Dauntless")&&own<other)this.test(a,"Dauntless",other-own+1,()=>{a.blockST=other;perform();},perform);else perform();};
+   if(this.skill(a,"Dauntless")&&own<other&&own+6>other)this.test(a,"Dauntless",other-own+1,()=>this.afterDauntless(a,d,perform),perform);else perform();};
   const react=()=>this.dumpOff(a,d,strength);
   if(this.has(d,"Foul Appearance"))this.test(a,"Foul Appearance",2,react,()=>{this.note("Foul Appearance cancels the attack and ends the activation.");this.mover=null;this.action=null;this.blockAction=null;this.attackRoller=null;});else react();
  }
