@@ -47,6 +47,10 @@ included, along with shared Big Guy caps and saved league/alignment choices.
 
 ## Current capabilities
 
+v0.0.20 adds visual team dugouts, Solid Defence lifting/redeployment, and
+Riotous Rookies. [The match-system audit](docs/MATCH-SYSTEM-AUDIT.md) records
+verified scope and the remaining inducement gaps; inducements are not complete.
+
 - Two-player hotseat play with 30 roster choices.
 - A team creator with draft budgets, positional limits, staff, saved rosters and local league entry.
 - Persistent match results, SPP, injuries, skills, characteristic advances, recruitment, finances and standings.
