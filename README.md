@@ -47,6 +47,7 @@ included, along with shared Big Guy caps and saved league/alignment choices.
 
 ## Current capabilities
 
+v0.0.26 adds Max Spleenripper and Bomber Dribblesnot with their unique abilities.
 v0.0.25 extends [named stars](docs/STARS.md) with Morg, Fungus, Glart and the Swift Twins, and
 corrects medical treatment of Zapped Frogs.
 v0.0.24 adds [twelve named star players and unique abilities](docs/STARS.md).
