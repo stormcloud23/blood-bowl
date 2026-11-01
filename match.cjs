@@ -2,6 +2,21 @@
 const MatchBase=typeof module!=="undefined"?require("./skills.cjs").SkillGame:SkillGame;
 const MatchSkillGroups=typeof module!=="undefined"?require("./skills.cjs").SKILL_GROUPS:SKILL_GROUPS;
 const MATCH_PRAYERS=["Treacherous Trapdoor","Friends with the Ref","Stiletto","Iron Man","Knuckle Dusters","Bad Habits","Greasy Cleats","Blessing of Nuffle","Moles under the Pitch","Perfect Passing","Dazzling Catching","Fan Interaction","Fouling Frenzy","Throw a Rock","Under Scrutiny","Intensive Training"];
+// BB2025 profile data; unique ability behavior follows pinned FFB.
+const MATCH_STARS=[
+ {id:"kiroth-krakeneye",name:"Kiroth Krakeneye",cost:160000,ma:7,st:3,ag:"2+",pa:"3+",av:"8+",traits:"Elf, Runner",skills:["Disturbing Presence","Foul Appearance","Loner (4+)","On the Ball","Tackle","Tentacles","Black Ink"],leagues:["Elven Kingdoms League"],primary:"",secondary:"",max:1},
+ {id:"zolcath",name:"Zolcath the Zoat",cost:220000,ma:5,st:5,ag:"4+",pa:"5+",av:"10+",traits:"Big Guy, Zoat",skills:["Disturbing Presence","Juggernaut","Loner (4+)","Mighty Blow","Prehensile Tail","Regeneration","Sure Feet",'"Excuse Me, Are You a Zoat?"'],leagues:["Elven Kingdoms League","Lustrian Superleague"],primary:"",secondary:"",max:1},
+ {id:"anqi-panqi",name:"Anqi Panqi",cost:190000,ma:7,st:4,ag:"5+",pa:"6+",av:"10+",traits:"Blocker, Lizardman",skills:["Block","Grab","Loner (4+)","Stand Firm","Unsteady","Savage Blow"],leagues:["Lustrian Superleague"],primary:"",secondary:"",max:1},
+ {id:"karla-von-kill",name:"Karla von Kill",cost:210000,ma:6,st:4,ag:"3+",pa:"3+",av:"9+",traits:"Blitzer, Human",skills:["Block","Dauntless","Dodge","Jump Up","Loner (4+)","Indomitable"],leagues:["Lustrian Superleague","Old World Classic"],primary:"",secondary:"",max:1},
+ {id:"eldril-sidewinder",name:"Eldril Sidewinder",cost:220000,ma:8,st:3,ag:"2+",pa:"3+",av:"8+",traits:"Catcher, Elf",skills:["Catch","Dodge","Hypnotic Gaze","Loner (4+)","Nerves of Steel","On the Ball","Mesmerising Dance"],leagues:["Elven Kingdoms League"],primary:"",secondary:"",max:1},
+ {id:"akhorne",name:"Akhorne The Squirrel",cost:80000,ma:7,st:1,ag:"2+",pa:"-",av:"6+",traits:"Blitzer, Squirrel",skills:["Claws","Dauntless","Dodge","Frenzy","Jump Up","Loner (4+)","No Ball","Sidestep","Stunty","Titchy","Blind Rage"],anyTeam:true,leagues:[],primary:"",secondary:"",max:1},
+ {id:"ripper-bolgrot",name:"Ripper Bolgrot",cost:250000,ma:5,st:6,ag:"5+",pa:"4+",av:"10+",traits:"Big Guy, Troll",skills:["Bullseye","Grab","Loner (4+)","Mighty Blow","Regeneration","Throw Team-mate","Thinking Man's Troll"],leagues:["Badlands Brawl","Underworld Challenge"],primary:"",secondary:"",max:1},
+ {id:"puggy-baconbreath",name:"Puggy Baconbreath",cost:130000,ma:5,st:3,ag:"3+",pa:"3+",av:"8+",traits:"Blitzer, Halfling",skills:["Block","Dodge","Loner (3+)","Nerves of Steel","Right Stuff","Stunty","Halfling Luck"],leagues:["Halfling Thimble Cup","Old World Classic"],primary:"",secondary:"",max:1},
+ {id:"hthark",name:"H'thark the Unstoppable",cost:300000,ma:6,st:6,ag:"4+",pa:"6+",av:"10+",traits:"Blitzer, Dwarf",skills:["Block","Break Tackle","Defensive","Juggernaut","Loner (4+)","Sprint","Sure Feet","Thick Skull","Unsteady","Unstoppable Momentum"],leagues:["Badlands Brawl"],special:["Favoured of Hashut"],primary:"",secondary:"",max:1},
+ {id:"willow-rosebark",name:"Willow Rosebark",cost:160000,ma:6,st:4,ag:"3+",pa:"5+",av:"9+",traits:"Blitzer, Dryad",skills:["Dauntless","Loner (4+)","Sidestep","Thick Skull","Woodland Fury"],leagues:["Woodland League"],primary:"",secondary:"",max:1},
+ {id:"griff-oberwald",name:"Griff Oberwald",cost:300000,ma:7,st:4,ag:"2+",pa:"3+",av:"9+",traits:"Blitzer, Human",skills:["Block","Dodge","Fend","Loner (3+)","Sprint","Sure Feet","Consummate Professional"],leagues:["Old World Classic"],primary:"",secondary:"",max:1},
+ {id:"lord-borak",name:"Lord Borak the Despoiler",cost:270000,ma:5,st:5,ag:"3+",pa:"5+",av:"10+",traits:"Blocker, Human",skills:["Block","Dirty Player","Leader","Loner (3+)","Mighty Blow","Put the Boot In","Sneaky Git","Lord of Chaos"],leagues:["Chaos Clash"],primary:"",secondary:"",max:1}
+];
 // Inducement prices/limits follow the pinned BB2025 FFB option factory.
 const MATCH_RESOURCES={
  teamRerolls:{label:"Team re-rolls",group:"staff",max:8,initial:2},
@@ -32,17 +47,17 @@ class MatchGame extends MatchBase {
   this.league=teams.every(t=>t.leagueTeamId);
   this.resourceChoices=teams.map((t,i)=>({...Object.fromEntries(Object.entries(MATCH_RESOURCES).map(([key,spec])=>[key,spec.initial])),...(resources?.[i]||t.matchResources||{})}));
   for(const team of [0,1])for(const [key,value] of Object.entries(this.resourceChoices[team]))if(!this.validResource(team,key,value))throw new Error("Invalid match resource: "+key);
-  this.playerStats={};this.stalledTeams=[false,false];this.prayers=[[],[]];this.prayerHistory=[];this.rocks=[0,0];
+  this.playerStats={};this.stalledTeams=[false,false];this.prayers=[[],[]];this.prayerHistory=[];this.rocks=[0,0];this.selectedStars=[[],[]];
   if(this.league)for(const [team,t] of teams.entries())for(const [i,p] of this.players.filter(p=>p.team===team).entries()){const record=t.matchPlayers[i];Object.assign(p,{leaguePlayerId:record.id,profileOverride:record.profile,nigglingInjuries:record.nigglingInjuries,journeyman:!!record.journeyman,leagueRecord:record,number:record.number,captain:!!record.captain});}
   this.swarmCounts=[0,0];this.raisedDeadUsed=[false,false];
   const high=teams[0].ctv>teams[1].ctv?0:1;this.leaguePurchaseOrder=this.league&&teams[0].ctv!==teams[1].ctv?[high,1-high]:[];this.leaguePurchaseStep=0;
   this.refreshResources();this.chefHalf=0;this.chefHistory=[];
-  this.players.forEach(p=>Object.assign(p,{x:null,y:null,status:"reserve"}));this.note(this.league?"League fixture: roster resources are fixed; complete inducement purchases after fans and weather.":"Exhibition match: configure staff and basic inducements before determining fans. Star players and unique abilities are deferred.");
+  this.players.forEach(p=>Object.assign(p,{x:null,y:null,status:"reserve"}));this.note(this.league?"League fixture: roster resources are fixed; complete inducement purchases after fans and weather.":"Exhibition match: configure staff and basic inducements before determining fans. Selected named stars and their unique abilities are available under inducements.");
  }
  hasTeamRule(team,name){const roster=this.teams[team],rules=[...(roster.special||[]),...(roster.leagueRules?.[roster.league]||[])];if(roster.alignments?.length)rules.push("Favoured of "+(roster.alignment||roster.alignments[0]));return rules.some(rule=>rule.toLowerCase()===name.toLowerCase());}
  afterDeath(victim,record,done){const team=1-victim.team;if(!this.hasTeamRule(team,"Masters of Undeath")||this.plagueUsed[team]||this.profile(victim).st>4||this.has(victim,"Stunty")){done();return;}const roles=this.teams[team].positions.map((p,i)=>p.traits.includes("Lineman")?i:-1).filter(i=>i>=0),raise=role=>{this.plagueUsed[team]=true;this.raisedDeadUsed[team]=true;const p=this.addRaisedLineman(team,role,victim,"Masters of Undeath");this.note("Masters of Undeath: #"+p.number+" joins reserves.");done();};if(!roles.length){done();return;}if(roles.length===1){raise(roles[0]);return;}const options=roles.map(role=>"Raise "+this.teams[team].positions[role].name);this.skillChoice("Raise Dead lineman",team,options,choice=>raise(roles[options.indexOf(choice)]));}
- chooseCaptain(team,id){if(this.league||this.phase!=="fans"||this.pending||!this.hasTeamRule(team,"Team Captain"))return false;const p=this.players.find(p=>p.id===id&&p.team===team&&!this.bigGuy(p));if(!p)return false;for(const old of this.players.filter(p=>p.team===team&&p.captain)){old.captain=false;if(old.captainGrantedPro)old.extraSkills=(old.extraSkills||[]).filter(s=>s!=="Pro");old.captainGrantedPro=false;}p.captain=true;p.captainGrantedPro=!this.has(p,"Pro");if(p.captainGrantedPro)p.extraSkills=[...(p.extraSkills||[]),"Pro"];return true;}
- configureCaptain(team){if(this.league||this.phase!=="fans"||this.pending||!this.hasTeamRule(team,"Team Captain"))return false;const players=this.players.filter(p=>p.team===team&&!this.bigGuy(p)),options=players.map(p=>"Captain #"+p.number);this.skillChoice("Choose Team Captain",team,[...options,"Keep current choice"],choice=>{const p=players[options.indexOf(choice)];if(p)this.chooseCaptain(team,p.id);});return true;}
+ chooseCaptain(team,id){if(this.league||this.phase!=="fans"||this.pending||!this.hasTeamRule(team,"Team Captain"))return false;const p=this.players.find(p=>p.id===id&&p.team===team&&!p.star&&!p.mercenary&&!this.bigGuy(p));if(!p)return false;for(const old of this.players.filter(p=>p.team===team&&p.captain)){old.captain=false;if(old.captainGrantedPro)old.extraSkills=(old.extraSkills||[]).filter(s=>s!=="Pro");old.captainGrantedPro=false;}p.captain=true;p.captainGrantedPro=!this.has(p,"Pro");if(p.captainGrantedPro)p.extraSkills=[...(p.extraSkills||[]),"Pro"];return true;}
+ configureCaptain(team){if(this.league||this.phase!=="fans"||this.pending||!this.hasTeamRule(team,"Team Captain"))return false;const players=this.players.filter(p=>p.team===team&&!p.star&&!p.mercenary&&!this.bigGuy(p)),options=players.map(p=>"Captain #"+p.number);this.skillChoice("Choose Team Captain",team,[...options,"Keep current choice"],choice=>{const p=players[options.indexOf(choice)];if(p)this.chooseCaptain(team,p.id);});return true;}
  captainSaves(team){if(!this.players.some(p=>p.team===team&&p.captain&&this.onPitch(p)))return false;const saved=this.roll("Team Captain saves re-roll on 6")===6;this.note(saved?"Team Captain preserves the re-roll.":"Team Captain does not preserve the re-roll.");return saved;}
  useTeamReroll(p){if(!this.canTeamReroll(p))return false;if(!this.captainSaves(p.team))return super.useTeamReroll(p);const loner=this.parameter(p,"Loner");return !loner||this.roll("Loner needs "+loner.match(/\d+/)[0]+"+")>=Number(loner.match(/\d+/)[0]);}
  resourceSpec(team,key){
@@ -71,7 +86,8 @@ class MatchGame extends MatchBase {
   if(this.phase!==(this.league?"leagueSteps":"fans")||this.pending||![0,1].includes(team)||this.league&&this.leaguePurchaseOrder[this.leaguePurchaseStep]!==team)return false;
   const menu=()=>{
    const keys=Object.keys(MATCH_RESOURCES).filter(key=>this.resourceSpec(team,key).max>0&&(!this.league||MATCH_RESOURCES[key].group==="inducement")),options=keys.map(key=>this.resourceSpec(team,key).label+": "+this.resourceChoices[team][key]);
-   this.skillChoice("Staff and inducements — "+this.teams[team].name,team,[...options,"Mercenaries","Done"],choice=>{
+   this.skillChoice("Staff and inducements — "+this.teams[team].name,team,[...options,"Mercenaries","Star players","Done"],choice=>{
+    if(choice==="Star players"){this.configureStars(team,menu);return;}
     if(choice==="Mercenaries"){this.configureMercenaries(team,menu);return;}
     const key=keys[options.indexOf(choice)];if(!key){if(choice==="Done"&&this.league)this.lockLeagueInducements(team);return;}
     const spec=this.resourceSpec(team,key),values=Array.from({length:spec.max-(spec.min||0)+1},(_,i)=>i+(spec.min||0)),labels=values.map(value=>value+" — "+((key==="dedicatedFans"?value-1:value)*spec.cost).toLocaleString()+" gp");
@@ -80,10 +96,70 @@ class MatchGame extends MatchBase {
   };menu();return true;
  }
  canBuyPlayers(team){return [0,1].includes(team)&&!this.pending&&this.phase===(this.league?"leagueSteps":"fans")&&(!this.league||this.leaguePurchaseOrder[this.leaguePurchaseStep]===team);}
+ starEligible(team,star){return !!star&&(star.anyTeam||star.leagues.includes(this.teams[team].league)||(star.special||[]).some(rule=>this.hasTeamRule(team,rule)));}
+ canHireStar(team,id){
+  const star=MATCH_STARS.find(s=>s.id===id);return this.canBuyPlayers(team)&&this.starEligible(team,star)&&this.selectedStars[team].length<2&&!this.selectedStars[team].includes(id)&&this.players.filter(p=>p.team===team).length<16&&(!this.league||this.resourceCosts(team).inducements+star.cost<=this.leagueBudget(team));
+ }
+ hireStar(team,id){
+  if(!this.canHireStar(team,id))return false;const star=MATCH_STARS.find(s=>s.id===id),number=Math.max(0,...this.players.filter(p=>p.team===team).map(p=>p.number))+1;
+  const p={id:team+"-"+number,number,team,role:0,star:id,profileOverride:JSON.parse(JSON.stringify(star)),x:null,y:null,status:"reserve",used:false,spent:0};
+  this.selectedStars[team].push(id);this.players.push(p);this.note(star.name+" hired by "+this.teams[team].name+" for "+star.cost.toLocaleString()+" gp.");return p;
+ }
+ removeStar(team,id){if(!this.canBuyPlayers(team)||!this.selectedStars[team].includes(id))return false;this.selectedStars[team]=this.selectedStars[team].filter(s=>s!==id);this.players=this.players.filter(p=>p.team!==team||p.star!==id);return true;}
+ configureStars(team,back){
+  if(!this.canBuyPlayers(team))return false;
+  const menu=()=>{const stars=MATCH_STARS.filter(s=>this.starEligible(team,s)),options=stars.map(s=>(this.selectedStars[team].includes(s.id)?"Remove ":"Hire ")+s.name+" — "+s.cost.toLocaleString()+" gp");
+   this.skillChoice("Star players — max two; temporary hires, no MVP or permanent recruitment",team,[...options,"Back"],choice=>{
+    if(choice==="Back"){back();return;}const star=stars[options.indexOf(choice)];if(!star)return;
+    if(this.selectedStars[team].includes(star.id)){this.removeStar(team,star.id);menu();return;}
+    this.skillChoice(star.name+" — MA"+star.ma+" ST"+star.st+" AG"+star.ag+" PA"+star.pa+" AV"+star.av+"; "+star.skills.join(", "),team,["Confirm hire","Back"],choice=>{if(choice==="Confirm hire"&&!this.hireStar(team,star.id))this.note("Star purchase rejected: check the available budget, roster slots and two-star limit.");menu();});
+   });
+  };menu();return true;
+ }
+ finalizeStars(){
+  if(this.starsFinalized)return;this.starsFinalized=true;
+  const duplicates=this.selectedStars[0].filter(id=>this.selectedStars[1].includes(id));
+  for(const id of duplicates){this.players=this.players.filter(p=>p.star!==id);this.note(MATCH_STARS.find(s=>s.id===id).name+" was hired by both teams and plays for neither; both fees remain spent.");}
+ }
+ starDistraction(p){if(this.has(p,"Black Ink"))return "Black Ink";if(this.has(p,'"Excuse Me, Are You a Zoat?"'))return '"Excuse Me, Are You a Zoat?"';return null;}
+ starDistractionTargets(p){
+  const name=this.starDistraction(p);if(!name||p.starDistractionUsed||!this.onPitch(p)||p.status!=="standing"||p.distracted)return [];
+  return this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&!q.distracted&&(name==="Black Ink"?["standing","prone"].includes(q.status)&&this.distance(p,q)===1:q.status==="standing"&&this.distance(p,q)<=3));
+ }
+ offerStarDistraction(p,done=()=>{}){
+  if(this.pending||!["play","charge"].includes(this.phase)||p.team!==this.active||this.mover!==p.id)return false;
+  const name=this.starDistraction(p),targets=this.starDistractionTargets(p);if(!targets.length){done();return false;}
+  const labels=targets.map(q=>"Distract "+this.teams[q.team].name+" #"+q.number);
+  this.skillChoice(name,p.team,[...labels,"Keep "+name],choice=>{const q=targets[labels.indexOf(choice)];if(q){p.starDistractionUsed=true;q.distracted=true;this.refreshChomps();this.note(name+": "+this.teams[q.team].name+" #"+q.number+" is Distracted until their next activation.");}done();});return true;
+ }
+ activationExtra(p,action,ready,failed){super.activationExtra(p,action,()=>this.offerStarDistraction(p,ready),failed);}
+ afterDauntless(p,target,done){
+  if(!this.has(p,"Indomitable")||p.indomitableUsed){super.afterDauntless(p,target,done);return;}
+  this.skillChoice("Indomitable — "+this.profile(p).name,p.team,["Use Indomitable","Keep Indomitable"],choice=>{const use=choice==="Use Indomitable";if(use)p.indomitableUsed=true;p.blockST=+this.profile(target).st*(use?2:1);this.note("#"+p.number+" Dauntless strength: "+p.blockST+" before assists.");done();});
+ }
+ actionRerollSources(p,kind){return [...this.singleDieSources(p),...(kind==="Hypnotic Gaze"&&this.has(p,"Mesmerising Dance")&&p.danceHalf!==this.half?["Mesmerising Dance"]:[])];}
+ useActionRerollSource(p,kind,source){if(!this.actionRerollSources(p,kind).includes(source))return false;if(source==="Mesmerising Dance"){p.danceHalf=this.half;this.note("#"+p.number+" uses Mesmerising Dance.");return true;}return this.useSingleDieSource(p,source);}
+ savageBlockSelections(){const b=this.blockAction;if(this.pending?.type!=="blockSelect"||!b||b.poolLocked||!this.has(b.attacker,"Savage Blow")||b.attacker.savageBlowUsed)return [];return Array.from({length:2**b.dice.length-1},(_,i)=>b.dice.map((_,j)=>j).filter(j=>(i+1)&(1<<j)));}
+ rerollSavageBlock(indices){const b=this.blockAction;if(!Array.isArray(indices)||!indices.length||new Set(indices).size!==indices.length||!this.savageBlockSelections().some(list=>list.length===indices.length&&list.every(i=>indices.includes(i))))return false;b.attacker.savageBlowUsed=true;b.poolLocked=true;for(const i of [...indices].sort((a,b)=>a-b))b.dice[i]=this.roll("Savage Blow re-roll die "+(i+1));this.pending={type:"blockSelect"};return true;}
+ singleDieSources(p){return [this.has(p,"Thinking Man's Troll")&&p.thinkingHalf!==this.half?"Thinking Man's Troll":null,this.has(p,"Halfling Luck")&&!p.halflingLuckUsed?"Halfling Luck":null].filter(Boolean);}
+ useSingleDieSource(p,source){if(!this.singleDieSources(p).includes(source))return false;if(source==="Thinking Man's Troll")p.thinkingHalf=this.half;else p.halflingLuckUsed=true;this.note("#"+p.number+" uses "+source+".");return true;}
+ automaticTestReroll(p,kind){return kind==="Dauntless"&&this.has(p,"Blind Rage")?"Blind Rage":null;}
+ additionalTestModifiers(p,kind){
+  return this.has(p,"Consummate Professional")&&!p.consummateUsed&&["Dodge","Jump","Pick up","Catch","Intercept","Landing","Jump Up Block"].includes(kind)?[{name:"Consummate Professional",bonus:1,use:()=>{p.consummateUsed=true;this.note("#"+p.number+" uses Consummate Professional (+1 to this Agility Test).");}}]:[];
+ }
+ starBlockSources(){
+  const b=this.blockAction,a=b?.attacker;if(!b||this.pending?.type!=="blockSelect"||b.poolLocked)return [];
+  const safe=this.has(a,"Block")||this.has(a,"Wrestle")||b.blitz&&this.has(a,"Juggernaut"),down=die=>die===1||die===2&&!safe,wouldFall=b.chooserTeam!==a.team?b.dice.some(down):b.dice.every(down);
+  return [...this.singleDieSources(a),this.has(a,"Lord of Chaos")&&!a.lordOfChaosUsed?"Lord of Chaos":null,this.has(a,"Unstoppable Momentum")&&b.blitz?"Unstoppable Momentum":null,this.has(a,"Woodland Fury")&&!a.woodlandFuryUsed&&wouldFall?"Woodland Fury":null].filter(Boolean);
+ }
+ rerollStarBlock(source,index){
+  const b=this.blockAction,a=b?.attacker;if(!b||this.pending?.type!=="blockSelect"||b.poolLocked||!this.starBlockSources().includes(source)||!Number.isInteger(index)||index<0||index>=b.dice.length)return false;
+  if(this.singleDieSources(a).includes(source))this.useSingleDieSource(a,source);if(source==="Lord of Chaos")a.lordOfChaosUsed=true;if(source==="Woodland Fury")a.woodlandFuryUsed=true;b.poolLocked=true;b.dice[index]=this.roll(source+" re-roll die "+(index+1));this.pending={type:"blockSelect"};return true;
+ }
  mercenarySkills(team,role){const p=this.teams[team]?.positions[role];if(!p)return [];const access=p.primary.split(/\s+/);return Object.entries(MatchSkillGroups).filter(([cat])=>cat!=="Traits"&&access.includes(cat[0])).flatMap(([,skills])=>skills).filter(s=>!p.skills.includes(s)).sort();}
  canHireMercenary(team,role){
   if(!this.canBuyPlayers(team))return false;const roster=this.teams[team],profile=roster.positions[role],players=this.players.filter(p=>p.team===team);
-  return !!profile&&players.length<16&&players.filter(p=>p.role===role).length<profile.max&&!(roster.groupLimits||[]).some(g=>g.roles.includes(role)&&players.filter(p=>g.roles.includes(p.role)).length>=g.max);
+  return !!profile&&players.length<16&&players.filter(p=>!p.star&&p.role===role).length<profile.max&&!(roster.groupLimits||[]).some(g=>g.roles.includes(role)&&players.filter(p=>!p.star&&g.roles.includes(p.role)).length>=g.max);
  }
  hireMercenary(team,role,skill=null){
   if(!this.canHireMercenary(team,role)||skill!==null&&!this.mercenarySkills(team,role).includes(skill))return false;
@@ -115,8 +191,8 @@ class MatchGame extends MatchBase {
  leagueTreasurySpend(team){const diff=this.teams[team].ctv-this.teams[1-team].ctv,cost=this.resourceCosts(team).inducements;return diff>=0?cost:Math.max(0,cost-(-diff+this.resourceCosts(1-team).inducements));}
  medicalSources(p){const result=super.medicalSources(p);if(this.plagueDoctors?.[p.team]>0)result.push("Use Plague Doctor");return result;}
  useMedicalSource(p,choice){if(choice!=="Use Plague Doctor")return super.useMedicalSource(p,choice);if(!this.plagueDoctors?.[p.team])return false;this.plagueDoctors[p.team]--;return true;}
- regenerationSources(p){if(this.mortuaryAssistants?.[p.team]>0)return ["Mortuary Assistant"];if(this.plagueDoctors?.[p.team]>0)return ["Plague Doctor"];return super.regenerationSources(p);}
- useRegenerationSource(p,source){if(source==="Mortuary Assistant"&&this.mortuaryAssistants[p.team]>0){this.mortuaryAssistants[p.team]--;return true;}if(source==="Plague Doctor"&&this.plagueDoctors[p.team]>0){this.plagueDoctors[p.team]--;return true;}return super.useRegenerationSource(p,source);}
+ regenerationSources(p){const sources=this.mortuaryAssistants?.[p.team]>0?["Mortuary Assistant"]:this.plagueDoctors?.[p.team]>0?["Plague Doctor"]:super.regenerationSources(p);return [...sources,...this.singleDieSources(p)];}
+ useRegenerationSource(p,source){if(this.singleDieSources(p).includes(source))return this.useSingleDieSource(p,source);if(source==="Mortuary Assistant"&&this.mortuaryAssistants[p.team]>0){this.mortuaryAssistants[p.team]--;return true;}if(source==="Plague Doctor"&&this.plagueDoctors[p.team]>0){this.plagueDoctors[p.team]--;return true;}return super.useRegenerationSource(p,source);}
  isRerollSource(source){return ["Team","Mascot","Mascot then Team"].includes(source);}
  rerollSources(p){const result=super.rerollSources(p);if(this.teamRerollAllowed(p)&&this.mascots?.[p.team]>0){result.push("Mascot");if(this.canTeamReroll(p))result.push("Mascot then Team");}return result;}
  useRerollSource(p,source){
@@ -136,7 +212,7 @@ class MatchGame extends MatchBase {
   this.argueRerolls=this.resourceChoices.map((r,t)=>this.hasTeamRule(t,"Bribery and Corruption")?1:0);
  }
  resourceCosts(team){
-  let staff=0,inducements=this.players.filter(p=>p.team===team&&p.mercenary).reduce((n,p)=>n+p.inducementCost,0),fans=0;
+  let staff=0,inducements=this.selectedStars[team].reduce((n,id)=>n+MATCH_STARS.find(s=>s.id===id).cost,0)+this.players.filter(p=>p.team===team&&p.mercenary).reduce((n,p)=>n+p.inducementCost,0),fans=0;
   for(const [key,value] of Object.entries(this.resourceChoices[team])){const spec=this.resourceSpec(team,key),cost=(key==="dedicatedFans"?value-1:value)*spec.cost;if(key==="dedicatedFans")fans+=cost;else if(spec.group==="staff")staff+=cost;else inducements+=cost;}
   return {staff,inducements,fans,total:staff+inducements+fans};
  }
@@ -153,7 +229,7 @@ class MatchGame extends MatchBase {
  hasPrayer(team,name){return !!this.prayers?.[team]?.includes(name);}
  prayerValue(team){const t=this.teams[team];return (t.ctv??t.lineup.reduce((n,r)=>n+(this.hasTeamRule(team,"Low Cost Linemen")&&t.positions[r].traits.includes("Lineman")?0:t.positions[r].cost),0)+this.resourceCosts(team).staff)+this.resourceCosts(team).inducements;}
  finishInducementPurchases(){
-  if(this.prayersApplied)return false;this.prayersApplied=true;this.phase="prayers";
+  if(this.prayersApplied)return false;this.finalizeStars();this.prayersApplied=true;this.phase="prayers";
   const values=[this.prayerValue(0),this.prayerValue(1)],team=values[0]<values[1]?0:1,count=this.learning?0:Math.min(16,Math.floor(Math.abs(values[0]-values[1])/50000));
   this.prayerValues=values;this.prayerCount=count;this.note("Post-inducement values: "+values.map(n=>n.toLocaleString()).join(" / ")+" gp; "+count+" underdog prayer(s).");
   const pool=[...MATCH_PRAYERS],queue=[];for(let i=0;i<count;i++){const index=this.roll("Underdog Prayer selection",pool.length)-1;queue.push(pool.splice(index,1)[0]);}
@@ -388,15 +464,15 @@ class MatchGame extends MatchBase {
  canKickTeamMate(p){return this.phase==="play"&&super.canKickTeamMate(p);}
  canBallAction(p,kind){return this.phase==="play"&&super.canBallAction(p,kind);}
  block(a,d){if(this.phase!=="play")return false;const p=this.players.find(p=>p.id===a);this.stallCandidate=p&&this.canScoreWithoutDice(p)?a:null;return super.block(a,d);}
- options(p,kind){const result=super.options(p,kind);return this.phase==="play"?result:result.filter(s=>s!=="Team");}
+ options(p,kind){const result=[...super.options(p,kind),...this.actionRerollSources(p,kind)];return this.phase==="play"?result:result.filter(s=>s!=="Team");}
  test(p,kind,target,yes,no){if((this.weather==="Blizzard"||this.hasPrayer(1-p.team,"Moles under the Pitch"))&&kind==="Rush")target+=(this.weather==="Blizzard"?1:0)+(this.hasPrayer(1-p.team,"Moles under the Pitch")?1:0);if(this.weather==="Pouring Rain"&&["Pick up","Catch","Intercept","Bomb interception"].includes(kind))target++;super.test(p,kind,target,yes,no);}
  passPreview(x,y){const result=super.passPreview(x,y);if(result&&this.weather==="Very Sunny"&&this.action!=="bomb")result.target++;return result;}
  throwPreview(x,y){const result=super.throwPreview(x,y);if(result&&this.weather==="Very Sunny")result.target++;return result;}
  passRange(from,to){const result=super.passRange(from,to);return this.weather==="Blizzard"&&result?.band>1?null:result;}
  assists(a,d){const result=super.assists(a,d);if(this.cheer[a.team]&&!this.has(a,"Ball & Chain")&&!this.has(d,"Ball & Chain"))result.offensive++;return result;}
  onBlockRolled(a){this.cheer[a.team]=false;}
- decide(option){const before=[...this.rerolls],result=super.decide(option);this.consumeBonus(before);return result;}
- rerollBlock(source,index=null){const before=[...this.rerolls],result=super.rerollBlock(source,index);this.consumeBonus(before);return result;}
+ decide(option){const q=this.pending;if(q?.p&&q.options?.includes(option)&&this.actionRerollSources(q.p,q.kind).includes(option)){this.pending=null;this.useActionRerollSource(q.p,q.kind,option);q.resolve(this.roll(q.kind+" re-roll ("+option+")"));return true;}const before=[...this.rerolls],result=super.decide(option);this.consumeBonus(before);return result;}
+ rerollBlock(source,index=null){if(source==="Savage Blow")return this.rerollSavageBlock(index);if(["Lord of Chaos","Unstoppable Momentum","Woodland Fury","Thinking Man's Troll","Halfling Luck"].includes(source))return this.rerollStarBlock(source,index);const before=[...this.rerolls],result=super.rerollBlock(source,index);this.consumeBonus(before);return result;}
  consumeBonus(before){for(const t of [0,1])if(this.rerolls[t]<before[t])this.driveBonus[t]=Math.max(0,this.driveBonus[t]-(before[t]-this.rerolls[t]));}
  endTurn(turnover=false){
   if(this.bombContext){if(turnover)this.bombContext.turnover=true;return false;}
@@ -565,4 +641,4 @@ class MatchGame extends MatchBase {
   this.prepareDrive(this.lastScorer??this.kicking);return true;
  }
 }
-if(typeof module!=="undefined")module.exports={MatchGame,MATCH_RESOURCES,MATCH_PRAYERS};
+if(typeof module!=="undefined")module.exports={MatchGame,MATCH_RESOURCES,MATCH_PRAYERS,MATCH_STARS};

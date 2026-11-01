@@ -47,6 +47,7 @@ included, along with shared Big Guy caps and saved league/alignment choices.
 
 ## Current capabilities
 
+v0.0.24 adds [twelve named star players and unique abilities](docs/STARS.md).
 v0.0.23 adds [Josef Bugman staff, KO recovery and Dwarfen Wisdom](docs/BUGMAN.md).
 v0.0.22 adds [automatic underdog prayers and all sixteen effects](docs/PRAYERS.md).
 [Wizards and mercenaries](docs/WIZARDS-MERCENARIES.md) include Fireball/Zap
@@ -91,7 +92,7 @@ The rules engines are `movement.cjs`, `skills.cjs`, and `match.cjs`; local roste
 1. Finish basic inducements, staff, relevant team rules and non-star exhibition verification.
 2. Extend the team creator to more rosters and racial rules.
 3. Add season scheduling, play-offs and off-season redrafting to local league progression.
-4. Add star players and their unique abilities late, once the core systems are largely complete.
+4. Complete the remaining star players and their unique abilities.
 
 Live match save/resume and a computer opponent are also planned.
 
