@@ -313,13 +313,14 @@ class SkillGame extends SkillBase {
   const roles=this.teams[team].positions.map((profile,role)=>({profile,role})).filter(({profile})=>profile.traits.split(",").some(k=>k.trim().toLowerCase()==="lineman")&&!/star|irregular|infamous staff/i.test(profile.traits));
   const create=({profile,role})=>{
    const number=Math.max(...this.players.filter(p=>p.team===team).map(p=>p.number))+1;this.plagueUsed[team]=true;
-   this.players.push({id:team+"-"+number,number,team,role,x:null,y:null,status:"reserve",used:false,spent:0,raisedFrom:victim.id});
+   this.addRaisedLineman(team,role,victim,"Plague Ridden");
    this.note("Plague Ridden: #"+number+" "+profile.name+" joins "+this.teams[team].name+" in reserves.");done();
   };
   if(!roles.length){done();return;}if(roles.length===1){create(roles[0]);return;}
   const options=roles.map(({profile,role})=>"Raise "+profile.name+" ("+role+")");
   this.treatmentChoice("Plague Ridden lineman",attacker,options,choice=>create(roles[options.indexOf(choice)]));
  }
+ addRaisedLineman(team,role,victim,kind){const profile=this.teams[team].positions[role],number=Math.max(0,...this.players.filter(p=>p.team===team).map(p=>p.number))+1,p={id:team+"-"+number,number,team,role,x:null,y:null,status:"reserve",used:false,spent:0,raisedFrom:victim.id,raisedKind:kind};if(this.league){p.leagueRecord={id:"raised:"+this.leagueFixtureId+":"+team+":"+number,role,name:victim.leagueRecord?.name||profile.name,number,profile:JSON.parse(JSON.stringify(profile)),value:profile.cost,spp:0,earnedSpp:0,advances:[],injuries:[],nigglingInjuries:0,missNext:false,retired:false,stats:{touchdown:0,casualty:0,completion:0,interception:0,landing:0,mvp:0,games:0}};p.leaguePlayerId=p.leagueRecord.id;p.profileOverride=p.leagueRecord.profile;}this.players.push(p);return p;}
  // A separate declaration allowance: throwing a player does not consume the Pass.
  canThrowTeamMate(p){return !!(p&&!this.has(p,"Ball & Chain")&&this.canStart(p)&&this.has(p,"Throw Team-mate")&&!this.throwUsed?.[p.team]);}
  canKickTeamMate(p){return !!(p&&!this.has(p,"Ball & Chain")&&this.canStart(p)&&this.has(p,"Kick Team-mate")&&!this.kickUsed?.[p.team]);}

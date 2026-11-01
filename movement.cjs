@@ -82,6 +82,7 @@ class MovementGame {
    if(["knocked-out","casualty","reserve"].includes(state)){p.x=null;p.y=null;}
    if(record.original){p.casualty=state==="casualty"?record.selected:null;if(source)p.casualtySource={...source};}
    record.status=state;this.injuryRecords.push(record);this.note("#"+p.number+" injury result: "+state+(p.casualty?" — "+p.casualty.result:"")+".");
+   if(state==="casualty"&&record.selected.result==="Dead"&&this.afterDeath){this.afterDeath(p,record,()=>{if(plague&&this.raisePlaguePlayer)this.raisePlaguePlayer(p,source,resume);else resume();});return;}
    if(state==="casualty"&&record.selected.result==="Dead"&&plague&&this.raisePlaguePlayer){this.raisePlaguePlayer(p,source,resume);return;}
    resume();
   };

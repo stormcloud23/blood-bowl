@@ -41,6 +41,7 @@ details>summary{cursor:pointer;color:#d4dfdb;font-size:13px;font-weight:600;padd
 #matchflow .resource-control{background:#31474f;color:#e7eeeb}
 #matchflow .next-step{display:inline-block;margin-top:8px}
 #rosters{margin-top:0}#reference-view{display:grid;gap:16px}#skillcoverage{margin:0}
+#roster-list{display:grid;gap:20px}.roster-browser{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;font-size:13px}.roster-browser input{background:#19282e;color:#e7eeeb;border:1px solid #526a61;border-radius:4px;padding:10px;max-width:100%}
 .skill-search{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0;font-size:13px}.skill-search input{background:#101b20;color:#e7eeeb;border:1px solid #526a61;border-radius:4px;padding:10px;min-width:230px;max-width:100%}
 #reference-profile:empty{display:none}#reference-profile{scroll-margin-top:65px}
 #league-panel{margin-top:0;display:flex;flex-direction:column}#league-panel>p{max-width:900px;font-size:13px}

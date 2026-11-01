@@ -28,12 +28,18 @@ class MatchGame extends MatchBase {
   this.resourceChoices=teams.map((t,i)=>({...Object.fromEntries(Object.entries(MATCH_RESOURCES).map(([key,spec])=>[key,spec.initial])),...(resources?.[i]||t.matchResources||{})}));
   for(const team of [0,1])for(const [key,value] of Object.entries(this.resourceChoices[team]))if(!this.validResource(team,key,value))throw new Error("Invalid match resource: "+key);
   this.playerStats={};this.stalledTeams=[false,false];
-  if(this.league)for(const [team,t] of teams.entries())for(const [i,p] of this.players.filter(p=>p.team===team).entries()){const record=t.matchPlayers[i];Object.assign(p,{leaguePlayerId:record.id,profileOverride:record.profile,nigglingInjuries:record.nigglingInjuries,journeyman:!!record.journeyman,leagueRecord:record,number:record.number});}
+  if(this.league)for(const [team,t] of teams.entries())for(const [i,p] of this.players.filter(p=>p.team===team).entries()){const record=t.matchPlayers[i];Object.assign(p,{leaguePlayerId:record.id,profileOverride:record.profile,nigglingInjuries:record.nigglingInjuries,journeyman:!!record.journeyman,leagueRecord:record,number:record.number,captain:!!record.captain});}
+  this.swarmCounts=[0,0];this.raisedDeadUsed=[false,false];
   const high=teams[0].ctv>teams[1].ctv?0:1;this.leaguePurchaseOrder=this.league&&teams[0].ctv!==teams[1].ctv?[high,1-high]:[];this.leaguePurchaseStep=0;
   this.refreshResources();this.chefHalf=0;this.chefHistory=[];
   this.players.forEach(p=>Object.assign(p,{x:null,y:null,status:"reserve"}));this.note(this.league?"League fixture: roster resources are fixed; complete inducement purchases after fans and weather.":"Exhibition match: configure staff and basic inducements before determining fans. Star players and unique abilities are deferred.");
  }
- hasTeamRule(team,name){return (this.teams[team].special||[]).some(rule=>rule.toLowerCase()===name.toLowerCase());}
+ hasTeamRule(team,name){const roster=this.teams[team],rules=[...(roster.special||[]),...(roster.leagueRules?.[roster.league]||[])];if(roster.alignments?.length)rules.push("Favoured of "+(roster.alignment||roster.alignments[0]));return rules.some(rule=>rule.toLowerCase()===name.toLowerCase());}
+ afterDeath(victim,record,done){const team=1-victim.team;if(!this.hasTeamRule(team,"Masters of Undeath")||this.plagueUsed[team]||this.profile(victim).st>4||this.has(victim,"Stunty")){done();return;}const roles=this.teams[team].positions.map((p,i)=>p.traits.includes("Lineman")?i:-1).filter(i=>i>=0),raise=role=>{this.plagueUsed[team]=true;this.raisedDeadUsed[team]=true;const p=this.addRaisedLineman(team,role,victim,"Masters of Undeath");this.note("Masters of Undeath: #"+p.number+" joins reserves.");done();};if(!roles.length){done();return;}if(roles.length===1){raise(roles[0]);return;}const options=roles.map(role=>"Raise "+this.teams[team].positions[role].name);this.skillChoice("Raise Dead lineman",team,options,choice=>raise(roles[options.indexOf(choice)]));}
+ chooseCaptain(team,id){if(this.league||this.phase!=="fans"||this.pending||!this.hasTeamRule(team,"Team Captain"))return false;const p=this.players.find(p=>p.id===id&&p.team===team&&!this.bigGuy(p));if(!p)return false;for(const old of this.players.filter(p=>p.team===team&&p.captain)){old.captain=false;if(old.captainGrantedPro)old.extraSkills=(old.extraSkills||[]).filter(s=>s!=="Pro");old.captainGrantedPro=false;}p.captain=true;p.captainGrantedPro=!this.has(p,"Pro");if(p.captainGrantedPro)p.extraSkills=[...(p.extraSkills||[]),"Pro"];return true;}
+ configureCaptain(team){if(this.league||this.phase!=="fans"||this.pending||!this.hasTeamRule(team,"Team Captain"))return false;const players=this.players.filter(p=>p.team===team&&!this.bigGuy(p)),options=players.map(p=>"Captain #"+p.number);this.skillChoice("Choose Team Captain",team,[...options,"Keep current choice"],choice=>{const p=players[options.indexOf(choice)];if(p)this.chooseCaptain(team,p.id);});return true;}
+ captainSaves(team){if(!this.players.some(p=>p.team===team&&p.captain&&this.onPitch(p)))return false;const saved=this.roll("Team Captain saves re-roll on 6")===6;this.note(saved?"Team Captain preserves the re-roll.":"Team Captain does not preserve the re-roll.");return saved;}
+ useTeamReroll(p){if(!this.canTeamReroll(p))return false;if(!this.captainSaves(p.team))return super.useTeamReroll(p);const loner=this.parameter(p,"Loner");return !loner||this.roll("Loner needs "+loner.match(/\d+/)[0]+"+")>=Number(loner.match(/\d+/)[0]);}
  resourceSpec(team,key){
   const base=MATCH_RESOURCES[key];if(!base)return null;const spec={...base};
   if(key==="dedicatedFans"&&this.league)spec.max=7;
@@ -78,7 +84,7 @@ class MatchGame extends MatchBase {
  useRerollSource(p,source){
   if(source==="Team")return super.useRerollSource(p,source);
   if(!["Mascot","Mascot then Team"].includes(source)||!this.rerollSources(p).includes(source))return false;
-  const success=this.roll("Mascot needs 4+")>=4;this.mascots[p.team]--;this.note(success?"Mascot grants the re-roll.":"Mascot fails to grant the re-roll.");
+  const success=this.roll("Mascot needs 4+")>=4;if(!success||!this.captainSaves(p.team))this.mascots[p.team]--;this.note(success?"Mascot grants the re-roll.":"Mascot fails to grant the re-roll.");
   if(!success)return source==="Mascot then Team"&&this.useTeamReroll(p);
   const loner=this.parameter(p,"Loner");return !loner||this.roll("Loner for Mascot")>=Number(loner.match(/\d+/)[0]);
  }
@@ -138,21 +144,22 @@ class MatchGame extends MatchBase {
  chooseKicking(team){if(this.phase!=="kickChoice"||![0,1].includes(team))return false;this.firstReceiver=1-team;this.prepareDrive(team);return true;}
  available(team){return this.players.filter(p=>p.team===team&&!p.eaten&&!["casualty","knocked-out","sent-off"].includes(p.status)&&!p.heatOut);}
  prepareDrive(kicking){
+  this.swarmCounts=[0,0];this.swarmState=null;
   this.throwUsed=[false,false];this.throwMate=null;
   this.drive++;this.kicking=kicking;this.receiving=1-kicking;this.active=kicking;this.setupTeam=kicking;this.phase="setup";this.finished=false;this.pending=null;this.mover=null;this.action=null;this.blockAction=null;this.ball={x:null,y:null,carrier:null};this.kickTouchback=false;this.eventState=null;
   this.kickDistanceHalved=false;this.kickChoiceMade=false;for(const p of this.players){p.rooted=false;p.gouged=false;p.chompers=[];if(!p.eaten&&!["casualty","knocked-out","sent-off"].includes(p.status))Object.assign(p,{status:"reserve",x:null,y:null,distracted:false,used:false,spent:0});}
   this.note("Drive "+this.drive+": "+this.teams[kicking].name+" sets up first.");this.autoSetup(kicking);
  }
  setupErrors(team=this.setupTeam){
-  const list=this.players.filter(p=>p.team===team&&this.onPitch(p)),needed=Math.min(11,this.available(team).length),errors=[];
+  const list=this.players.filter(p=>p.team===team&&this.onPitch(p)),needed=Math.min(11+(this.swarmCounts?.[team]||0),this.available(team).length),errors=[];
   if(list.length!==needed)errors.push("Field "+needed+" eligible player(s).");
   if(list.some(p=>!this.ownHalf(team,p.x)||p.heatOut||p.status!=="standing"))errors.push("All players must be eligible and in their own half.");
   if(list.filter(p=>p.x===this.line(team)&&this.centre(p.y)).length<Math.min(3,needed))errors.push("Place at least "+Math.min(3,needed)+" player(s) on the central Line of Scrimmage.");
-  if(list.filter(p=>p.y<4).length>2||list.filter(p=>p.y>10).length>2)errors.push("At most two players in each Wide Zone.");return errors;
+  if(list.filter(p=>p.y<4).length>2||list.filter(p=>p.y>10).length>2)errors.push("At most two players in each Wide Zone.");if(this.available(team).some(p=>p.captain&&!this.onPitch(p)))errors.push("Field your Team Captain if able.");return errors;
  }
  autoSetup(team=this.setupTeam){
   if(this.phase!=="setup"||team!==this.setupTeam)return false;
-  const list=this.available(team);list.forEach(p=>Object.assign(p,{x:null,y:null,status:"reserve"}));const line=this.line(team),back=this.right(team)?-1:1;
+  const list=this.available(team).sort((a,b)=>Number(!!b.captain)-Number(!!a.captain));list.forEach(p=>Object.assign(p,{x:null,y:null,status:"reserve"}));const line=this.line(team),back=this.right(team)?-1:1;
   const spots=[[line,6],[line,7],[line,8],[line+back*3,5],[line+back*3,9],[line+back*4,2],[line+back*4,12],[line+back*6,4],[line+back*6,10],[line+back*7,6],[line+back*7,8]];
   list.slice(0,11).forEach((p,i)=>Object.assign(p,{x:spots[i][0],y:spots[i][1],status:"standing"}));return true;
  }
@@ -164,8 +171,12 @@ class MatchGame extends MatchBase {
   if(this.phase!=="setup"||this.setupErrors().length)return false;
   this.players.filter(p=>p.team===this.setupTeam&&this.onPitch(p)).forEach(p=>p.fieldedDrive=this.drive);
   if(this.setupTeam===this.kicking){this.setupTeam=this.receiving;this.active=this.receiving;this.autoSetup();}
-  else{this.phase="kicker";this.active=this.kicking;this.startHalfResources();this.grantLeader(this.half);}return true;
+  else this.beginSwarming([this.kicking,this.receiving]);return true;
  }
+ benchSetup(id){const p=this.players.find(p=>p.id===id);if(this.phase!=="setup"||!p||p.team!==this.setupTeam||!this.onPitch(p))return false;Object.assign(p,{x:null,y:null,status:"reserve"});return true;}
+ beginSwarming(queue){if(!queue.length){this.phase="kicker";this.active=this.kicking;this.startHalfResources();this.grantLeader(this.half);return;}const [team,...remaining]=queue,reserves=this.available(team).filter(p=>!this.onPitch(p)&&this.profile(p).traits.includes("Lineman"));if(!this.hasTeamRule(team,"Swarming")||!reserves.length){this.beginSwarming(remaining);return;}this.phase="swarming";this.active=team;this.swarmState={team,remaining,limit:this.roll("Swarming additional Linemen",3),eligible:reserves.map(p=>p.id),placed:[]};this.note(this.teams[team].name+" may set up "+this.swarmState.limit+" extra Linemen.");}
+ placeSwarm(id,x,y){const s=this.swarmState,p=this.players.find(p=>p.id===id);if(this.phase!=="swarming"||!s||!p||!s.eligible.includes(id)||!this.inside(x,y)||!this.ownHalf(s.team,x)||this.at(x,y)||!s.placed.includes(id)&&s.placed.length>=s.limit)return false;const others=this.players.filter(q=>q!==p&&q.team===s.team&&this.onPitch(q));if(y<4&&others.filter(q=>q.y<4).length>=2||y>10&&others.filter(q=>q.y>10).length>=2)return false;Object.assign(p,{x,y,status:"standing",fieldedDrive:this.drive});if(!s.placed.includes(id))s.placed.push(id);return true;}
+ finishSwarming(){const s=this.swarmState;if(this.phase!=="swarming"||!s)return false;this.swarmCounts[s.team]=s.placed.length;this.swarmState=null;this.beginSwarming(s.remaining);return true;}
  eligibleKickers(){const list=this.players.filter(p=>p.team===this.kicking&&this.onPitch(p)&&this.centre(p.y)),back=list.filter(p=>p.x!==this.line(p.team));return back.length?back:list;}
  nominateKicker(id){if(this.phase!=="kicker"||!this.eligibleKickers().some(p=>p.id===id))return false;this.kicker=id;this.phase="kickAim";return true;}
  kick(x,y){

@@ -1,12 +1,12 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const {LeagueStore}=require('./league.cjs'),{MatchGame}=require('./match.cjs'),{SKILL_CATALOG}=require('./skills.cjs');
 const rosters=JSON.parse(fs.readFileSync('rosters.json','utf8'));
-for(const id of ['skaven','dwarf','lizardmen','elven-union','nurgle','dark-elf']){
+for(const {id} of rosters.slice(2)){
  test(id+' drafts, submits, saves, reloads and fields its complete demonstration roster',()=>{
   const store=new LeagueStore(rosters),r=rosters.find(t=>t.id===id),t=store.create(id,'Test '+id);
   for(const role of r.lineup)store.hire(t.id,role);store.setStaff(t.id,'teamRerolls',2);store.submit(t.id);assert.ok(t.treasury>=0);
   const restored=new LeagueStore(rosters,JSON.parse(JSON.stringify(store.data))),snapshot=restored.matchTeam(restored.team(t.id));
-  const game=new MatchGame([snapshot,rosters[0]],{dice:()=>6});assert.equal(game.players.filter(p=>p.team===0).length,11);
+  const game=new MatchGame([snapshot,rosters[0]],{dice:()=>6});assert.equal(game.players.filter(p=>p.team===0).length,r.lineup.length);
   for(const p of r.positions)for(const skill of p.skills)assert.ok(SKILL_CATALOG.some(e=>e.status==='Implemented'&&(e.name===skill||e.name.includes('(X')&&e.name.split(' (')[0]===skill.split(' (')[0])),skill);
  });
 }
@@ -29,4 +29,10 @@ test('Nurgle medical restrictions and roster rules apply to real match and leagu
 });
 test('Dark Elf 2025 positions include Punt and Hit and Run with two-blitzer limit',()=>{
  const r=rosters.find(r=>r.id==='dark-elf');assert.deepEqual(r.positions[1].skills,['Dump-off','Punt']);assert.ok(r.positions[2].skills.includes('Hit and Run'));const store=new LeagueStore(rosters),t=store.create(r.id,'Druchii');store.hire(t.id,3);store.hire(t.id,3);assert.throws(()=>store.hire(t.id,3),/full/);
+});
+test('the complete BB2025 index contains exactly thirty unique source-linked rosters',()=>{
+ const expected=['amazon','black-orc','bretonnian','chaos-chosen','chaos-dwarf','chaos-renegades','dark-elf','dwarf','elven-union','gnome','goblin','halfling','high-elf','human','imperial-nobility','khorne','lizardmen','necromantic-horror','norse','nurgle','ogre','old-world-alliance','orc','shambling-undead','skaven','snotling','tomb-kings','underworld-denizens','vampire','wood-elf'];assert.deepEqual(rosters.map(r=>r.id).sort(),expected);for(const r of rosters){assert.match(r.source,/^https:\/\/bloodbowlbase\.ru\/bb2025\/teams\//);assert.ok(r.tier>=1&&r.tier<=4);assert.ok(r.lineup.length>=11&&r.lineup.length<=16);assert.ok(r.lineup.every(i=>Number.isInteger(i)&&r.positions[i]));}
+});
+test('new 2025 profiles retain changed abilities and limited-position choices',()=>{
+ const byId=id=>rosters.find(r=>r.id===id),skill=(id,role,name)=>assert.ok(byId(id).positions[role].skills.includes(name));skill('amazon',1,'Safe Pass');skill('bretonnian',3,'Steady Footing');skill('chaos-chosen',1,'Arm Bar');skill('chaos-dwarf',3,'Breathe Fire');skill('high-elf',3,'Claws');skill('human',4,'Tackle');skill('khorne',1,'Jump Up');skill('necromantic-horror',1,'Regeneration');skill('norse',0,'Unsteady');skill('orc',4,'Mighty Blow');skill('shambling-undead',3,'Tackle');skill('tomb-kings',3,'Brawler');skill('vampire',3,'Juggernaut');skill('wood-elf',1,'Safe Pair of Hands');assert.equal(byId('human').positions[2].st,3);assert.equal(byId('orc').positions[4].max,2);assert.equal(byId('ogre').positions[0].cost,15000);assert.equal(byId('gnome').positions[1].primary,'-');assert.equal(byId('goblin').positions[3].skills.includes('Dirty Player'),true);
 });

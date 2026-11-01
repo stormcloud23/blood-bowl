@@ -917,5 +917,3201 @@
       "assistantCoach": 10000,
       "cheerleader": 10000
     }
+  },
+  {
+    "id": "amazon",
+    "name": "Amazon",
+    "tier": 1,
+    "league": "Lustrian Superleague",
+    "special": [],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Amazon/",
+    "reroll": 60000,
+    "positions": [
+      {
+        "id": "eagle-warrior",
+        "name": "Eagle Warrior",
+        "traits": "Lineman, Human",
+        "max": 16,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Dodge"
+        ],
+        "primary": "G",
+        "secondary": "A S",
+        "cost": 50000
+      },
+      {
+        "id": "python-warrior",
+        "name": "Python Warrior",
+        "traits": "Thrower, Human",
+        "max": 2,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "3+",
+        "av": "8+",
+        "skills": [
+          "Dodge",
+          "On the Ball",
+          "Pass",
+          "Safe Pass"
+        ],
+        "primary": "G P",
+        "secondary": "A S",
+        "cost": 80000
+      },
+      {
+        "id": "piranha-warrior",
+        "name": "Piranha Warrior",
+        "traits": "Blitzer, Human",
+        "max": 2,
+        "ma": 7,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Dodge",
+          "Hit and Run",
+          "Jump Up"
+        ],
+        "primary": "A G",
+        "secondary": "S",
+        "cost": 90000
+      },
+      {
+        "id": "jaguar-warrior",
+        "name": "Jaguar Warrior",
+        "traits": "Blocker, Human",
+        "max": 2,
+        "ma": 6,
+        "st": 4,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "9+",
+        "skills": [
+          "Defensive",
+          "Dodge"
+        ],
+        "primary": "G S",
+        "secondary": "A",
+        "cost": 110000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      3,
+      3,
+      2,
+      2,
+      1,
+      1
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
+  },
+  {
+    "id": "bretonnian",
+    "name": "Bretonnian",
+    "tier": 2,
+    "league": "Old World Classic",
+    "special": [],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Bretonnian/",
+    "reroll": 60000,
+    "positions": [
+      {
+        "id": "bretonnian-squire",
+        "name": "Bretonnian Squire",
+        "traits": "Lineman, Human",
+        "max": 16,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Wrestle"
+        ],
+        "primary": "G",
+        "secondary": "A S",
+        "cost": 50000
+      },
+      {
+        "id": "bretonnian-knight-catcher",
+        "name": "Bretonnian Knight Catcher",
+        "traits": "Catcher, Human",
+        "max": 2,
+        "ma": 7,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "9+",
+        "skills": [
+          "Catch",
+          "Dauntless",
+          "Nerves of Steel"
+        ],
+        "primary": "A G",
+        "secondary": "S",
+        "cost": 85000
+      },
+      {
+        "id": "bretonnian-knight-thrower",
+        "name": "Bretonnian Knight Thrower",
+        "traits": "Thrower, Human",
+        "max": 2,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "3+",
+        "av": "9+",
+        "skills": [
+          "Dauntless",
+          "Nerves of Steel",
+          "Pass"
+        ],
+        "primary": "G P",
+        "secondary": "A S",
+        "cost": 80000
+      },
+      {
+        "id": "grail-knight",
+        "name": "Grail Knight",
+        "traits": "Blitzer, Human",
+        "max": 2,
+        "ma": 7,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "10+",
+        "skills": [
+          "Block",
+          "Dauntless",
+          "Steady Footing"
+        ],
+        "primary": "G S",
+        "secondary": "A",
+        "cost": 95000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      3,
+      3,
+      2,
+      2,
+      1,
+      1
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
+  },
+  {
+    "id": "chaos-chosen",
+    "name": "Chaos Chosen",
+    "tier": 3,
+    "league": "Chaos Clash",
+    "special": [],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Chaos_Chosen/",
+    "reroll": 50000,
+    "positions": [
+      {
+        "id": "beastman-lineman",
+        "name": "Beastman Lineman",
+        "traits": "Lineman, Beastman",
+        "max": 16,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "3+",
+        "av": "9+",
+        "skills": [
+          "Horns",
+          "Thick Skull"
+        ],
+        "primary": "G M",
+        "secondary": "A P S D",
+        "cost": 55000
+      },
+      {
+        "id": "chaos-chosen",
+        "name": "Chaos Chosen",
+        "traits": "Blocker, Human",
+        "max": 4,
+        "ma": 5,
+        "st": 4,
+        "ag": "3+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Arm Bar"
+        ],
+        "primary": "G M S",
+        "secondary": "A D",
+        "cost": 100000
+      },
+      {
+        "id": "troll",
+        "name": "Troll",
+        "traits": "Big Guy, Troll",
+        "max": 1,
+        "ma": 4,
+        "st": 5,
+        "ag": "5+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Always Hungry",
+          "Loner (4+)",
+          "Mighty Blow",
+          "Projectile Vomit",
+          "Really Stupid",
+          "Regeneration",
+          "Throw Team-mate"
+        ],
+        "primary": "M S",
+        "secondary": "A G P",
+        "cost": 115000
+      },
+      {
+        "id": "ogre",
+        "name": "Ogre",
+        "traits": "Big Guy, Ogre",
+        "max": 1,
+        "ma": 5,
+        "st": 5,
+        "ag": "4+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Bone Head",
+          "Loner (4+)",
+          "Mighty Blow",
+          "Thick Skull",
+          "Throw Team-mate"
+        ],
+        "primary": "M S",
+        "secondary": "A G",
+        "cost": 140000
+      },
+      {
+        "id": "minotaur",
+        "name": "Minotaur",
+        "traits": "Big Guy, Minotaur",
+        "max": 1,
+        "ma": 5,
+        "st": 5,
+        "ag": "4+",
+        "pa": "6+",
+        "av": "9+",
+        "skills": [
+          "Frenzy",
+          "Horns",
+          "Loner (4+)",
+          "Mighty Blow",
+          "Thick Skull",
+          "Unchannelled Fury"
+        ],
+        "primary": "M S",
+        "secondary": "A G",
+        "cost": 150000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      2,
+      1,
+      1,
+      1,
+      1
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    },
+    "groupLimits": [
+      {
+        "label": "Big Guys",
+        "roles": [
+          2,
+          3,
+          4
+        ],
+        "max": 1
+      }
+    ],
+    "alignments": [
+      "Undivided",
+      "Hashut",
+      "Khorne",
+      "Nurgle",
+      "Slaanesh",
+      "Tzeentch"
+    ]
+  },
+  {
+    "id": "chaos-dwarf",
+    "name": "Chaos Dwarf",
+    "tier": 1,
+    "league": "Badlands Brawl",
+    "leagues": [
+      "Badlands Brawl",
+      "Chaos Clash"
+    ],
+    "special": [
+      "Favoured of Hashut"
+    ],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Chaos_Dwarf/",
+    "reroll": 70000,
+    "positions": [
+      {
+        "id": "hobgoblin-lineman",
+        "name": "Hobgoblin Lineman",
+        "traits": "Lineman, Goblin",
+        "max": 16,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [],
+        "primary": "D",
+        "secondary": "A G S",
+        "cost": 40000
+      },
+      {
+        "id": "sneaky-stabba",
+        "name": "Sneaky Stabba",
+        "traits": "Special, Goblin",
+        "max": 2,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "5+",
+        "av": "8+",
+        "skills": [
+          "Shadowing",
+          "Stab"
+        ],
+        "primary": "D G",
+        "secondary": "A S",
+        "cost": 60000
+      },
+      {
+        "id": "chaos-dwarf-blocker",
+        "name": "Chaos Dwarf Blocker",
+        "traits": "Blocker, Dwarf",
+        "max": 4,
+        "ma": 4,
+        "st": 3,
+        "ag": "4+",
+        "pa": "6+",
+        "av": "10+",
+        "skills": [
+          "Block",
+          "Iron Hard Skin",
+          "Thick Skull"
+        ],
+        "primary": "G S",
+        "secondary": "A D M",
+        "cost": 70000
+      },
+      {
+        "id": "flamesmith",
+        "name": "Flamesmith",
+        "traits": "Special, Dwarf",
+        "max": 2,
+        "ma": 5,
+        "st": 3,
+        "ag": "4+",
+        "pa": "6+",
+        "av": "10+",
+        "skills": [
+          "Brawler",
+          "Breathe Fire",
+          "Disturbing Presence",
+          "Thick Skull"
+        ],
+        "primary": "G S",
+        "secondary": "A D M",
+        "cost": 80000
+      },
+      {
+        "id": "bull-centaur",
+        "name": "Bull Centaur",
+        "traits": "Blitzer, Dwarf",
+        "max": 2,
+        "ma": 6,
+        "st": 4,
+        "ag": "4+",
+        "pa": "6+",
+        "av": "10+",
+        "skills": [
+          "Sprint",
+          "Sure Feet",
+          "Thick Skull",
+          "Unsteady"
+        ],
+        "primary": "G S",
+        "secondary": "A D M",
+        "cost": 130000
+      },
+      {
+        "id": "minotaur",
+        "name": "Minotaur",
+        "traits": "Big Guy, Minotaur",
+        "max": 1,
+        "ma": 5,
+        "st": 5,
+        "ag": "4+",
+        "pa": "6+",
+        "av": "9+",
+        "skills": [
+          "Frenzy",
+          "Horns",
+          "Loner (4+)",
+          "Mighty Blow",
+          "Thick Skull",
+          "Unchannelled Fury"
+        ],
+        "primary": "M S",
+        "secondary": "A G",
+        "cost": 150000
+      }
+    ],
+    "lineup": [
+      0,
+      4,
+      4,
+      3,
+      3,
+      2,
+      2,
+      2,
+      2,
+      1,
+      1
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
+  },
+  {
+    "id": "chaos-renegades",
+    "name": "Chaos Renegades",
+    "tier": 3,
+    "league": "Chaos Clash",
+    "special": [],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Chaos_Renegades/",
+    "reroll": 70000,
+    "positions": [
+      {
+        "id": "renegade-human",
+        "name": "Renegade Human",
+        "traits": "Lineman, Human",
+        "max": 16,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "9+",
+        "skills": [
+          "Animosity (All)"
+        ],
+        "primary": "D G M",
+        "secondary": "A S",
+        "cost": 50000
+      },
+      {
+        "id": "renegade-goblin",
+        "name": "Renegade Goblin",
+        "traits": "Goblin, Lineman",
+        "max": 1,
+        "ma": 6,
+        "st": 2,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Animosity (All)",
+          "Dodge",
+          "Right Stuff",
+          "Stunty"
+        ],
+        "primary": "A D M",
+        "secondary": "G P",
+        "cost": 40000
+      },
+      {
+        "id": "renegade-orc",
+        "name": "Renegade Orc",
+        "traits": "Lineman, Orc",
+        "max": 1,
+        "ma": 5,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "10+",
+        "skills": [
+          "Animosity (All)"
+        ],
+        "primary": "D G M",
+        "secondary": "A S",
+        "cost": 50000
+      },
+      {
+        "id": "renegade-skaven",
+        "name": "Renegade Skaven",
+        "traits": "Lineman, Skaven",
+        "max": 1,
+        "ma": 7,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Animosity (All)"
+        ],
+        "primary": "D G M",
+        "secondary": "A S",
+        "cost": 50000
+      },
+      {
+        "id": "renegade-dark-elf",
+        "name": "Renegade Dark Elf",
+        "traits": "Elf, Lineman",
+        "max": 1,
+        "ma": 6,
+        "st": 3,
+        "ag": "2+",
+        "pa": "3+",
+        "av": "9+",
+        "skills": [
+          "Animosity (All)"
+        ],
+        "primary": "A D G M",
+        "secondary": "S",
+        "cost": 65000
+      },
+      {
+        "id": "renegade-human-thrower",
+        "name": "Renegade Human Thrower",
+        "traits": "Human, Thrower",
+        "max": 1,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "3+",
+        "av": "9+",
+        "skills": [
+          "Animosity (All)",
+          "Pass",
+          "Sure Hands"
+        ],
+        "primary": "D G M P",
+        "secondary": "A S",
+        "cost": 75000
+      },
+      {
+        "id": "troll",
+        "name": "Troll",
+        "traits": "Big Guy, Troll",
+        "max": 1,
+        "ma": 4,
+        "st": 5,
+        "ag": "5+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Always Hungry",
+          "Loner (4+)",
+          "Mighty Blow",
+          "Projectile Vomit",
+          "Really Stupid",
+          "Regeneration",
+          "Throw Team-mate"
+        ],
+        "primary": "S",
+        "secondary": "A G M P",
+        "cost": 115000
+      },
+      {
+        "id": "ogre",
+        "name": "Ogre",
+        "traits": "Big Guy, Ogre",
+        "max": 1,
+        "ma": 5,
+        "st": 5,
+        "ag": "4+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Bone Head",
+          "Loner (3+)",
+          "Mighty Blow",
+          "Thick Skull",
+          "Throw Team-mate"
+        ],
+        "primary": "S",
+        "secondary": "A G M",
+        "cost": 140000
+      },
+      {
+        "id": "minotaur",
+        "name": "Minotaur",
+        "traits": "Big Guy, Minotaur",
+        "max": 1,
+        "ma": 5,
+        "st": 5,
+        "ag": "4+",
+        "pa": "6+",
+        "av": "9+",
+        "skills": [
+          "Frenzy",
+          "Horns",
+          "Loner (4+)",
+          "Mighty Blow",
+          "Thick Skull",
+          "Unchannelled Fury"
+        ],
+        "primary": "S",
+        "secondary": "A G M",
+        "cost": 150000
+      },
+      {
+        "id": "rat-ogre",
+        "name": "Rat Ogre",
+        "traits": "Big Guy, Skaven",
+        "max": 1,
+        "ma": 6,
+        "st": 5,
+        "ag": "4+",
+        "pa": "6+",
+        "av": "9+",
+        "skills": [
+          "Animal Savagery",
+          "Frenzy",
+          "Loner (4+)",
+          "Mighty Blow",
+          "Prehensile Tail"
+        ],
+        "primary": "S",
+        "secondary": "A G M",
+        "cost": 150000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      8,
+      7,
+      6,
+      5,
+      4,
+      3,
+      2,
+      1
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    },
+    "groupLimits": [
+      {
+        "label": "Big Guys",
+        "roles": [
+          6,
+          7,
+          8,
+          9
+        ],
+        "max": 3
+      }
+    ],
+    "alignments": [
+      "Undivided",
+      "Khorne",
+      "Nurgle",
+      "Slaanesh",
+      "Tzeentch"
+    ]
+  },
+  {
+    "id": "gnome",
+    "name": "Gnome",
+    "tier": 4,
+    "league": "Halfling Thimble Cup",
+    "leagues": [
+      "Halfling Thimble Cup",
+      "Woodland League"
+    ],
+    "special": [],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Gnome/",
+    "reroll": 50000,
+    "positions": [
+      {
+        "id": "gnome-lineman",
+        "name": "Gnome Lineman",
+        "traits": "Lineman, Gnome",
+        "max": 16,
+        "ma": 5,
+        "st": 2,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "7+",
+        "skills": [
+          "Jump Up",
+          "Right Stuff",
+          "Stunty",
+          "Wrestle"
+        ],
+        "primary": "A",
+        "secondary": "G S D",
+        "cost": 40000
+      },
+      {
+        "id": "woodland-fox",
+        "name": "Woodland Fox",
+        "traits": "Runner, Animal",
+        "max": 2,
+        "ma": 7,
+        "st": 2,
+        "ag": "2+",
+        "pa": "-",
+        "av": "6+",
+        "skills": [
+          "Dodge",
+          "My Ball",
+          "Sidestep",
+          "Stunty"
+        ],
+        "primary": "-",
+        "secondary": "A",
+        "cost": 50000
+      },
+      {
+        "id": "gnome-illusionist",
+        "name": "Gnome Illusionist",
+        "traits": "Special, Gnome",
+        "max": 2,
+        "ma": 5,
+        "st": 2,
+        "ag": "3+",
+        "pa": "3+",
+        "av": "7+",
+        "skills": [
+          "Jump Up",
+          "Stunty",
+          "Trickster",
+          "Wrestle"
+        ],
+        "primary": "A P",
+        "secondary": "G D",
+        "cost": 50000
+      },
+      {
+        "id": "gnome-beastmaster",
+        "name": "Gnome Beastmaster",
+        "traits": "Blocker, Gnome",
+        "max": 2,
+        "ma": 5,
+        "st": 2,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Guard",
+          "Jump Up",
+          "Stunty",
+          "Wrestle"
+        ],
+        "primary": "A",
+        "secondary": "D G S",
+        "cost": 55000
+      },
+      {
+        "id": "altern-forest-treeman",
+        "name": "Altern Forest Treeman",
+        "traits": "Big Guy, Treeman",
+        "max": 2,
+        "ma": 2,
+        "st": 6,
+        "ag": "5+",
+        "pa": "5+",
+        "av": "11+",
+        "skills": [
+          "Mighty Blow",
+          "Stand Firm",
+          "Strong Arm",
+          "Take Root",
+          "Thick Skull",
+          "Throw Team-mate",
+          "Timmm-ber!"
+        ],
+        "primary": "S",
+        "secondary": "A G P",
+        "cost": 120000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      4,
+      4,
+      3,
+      3,
+      2,
+      2,
+      1,
+      1
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
+  },
+  {
+    "id": "goblin",
+    "name": "Goblin",
+    "tier": 4,
+    "league": "Badlands Brawl",
+    "leagues": [
+      "Badlands Brawl",
+      "Underworld Challenge"
+    ],
+    "special": [
+      "Bribery and Corruption"
+    ],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Goblin/",
+    "reroll": 60000,
+    "positions": [
+      {
+        "id": "goblin-lineman",
+        "name": "Goblin Lineman",
+        "traits": "Goblin, Lineman",
+        "max": 16,
+        "ma": 6,
+        "st": 2,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Dodge",
+          "Right Stuff",
+          "Stunty"
+        ],
+        "primary": "A D",
+        "secondary": "G P S",
+        "cost": 40000
+      },
+      {
+        "id": "looney",
+        "name": "Looney",
+        "traits": "Goblin, Special",
+        "max": 1,
+        "ma": 6,
+        "st": 2,
+        "ag": "3+",
+        "pa": "-",
+        "av": "8+",
+        "skills": [
+          "Chainsaw",
+          "No Ball",
+          "Secret Weapon",
+          "Stunty"
+        ],
+        "primary": "D",
+        "secondary": "A G S",
+        "cost": 40000
+      },
+      {
+        "id": "bomma",
+        "name": "Bomma",
+        "traits": "Goblin, Special",
+        "max": 1,
+        "ma": 6,
+        "st": 2,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Bombardier",
+          "Dodge",
+          "Secret Weapon",
+          "Stunty"
+        ],
+        "primary": "D P",
+        "secondary": "A G S",
+        "cost": 45000
+      },
+      {
+        "id": "-ooligan",
+        "name": "'Ooligan",
+        "traits": "Goblin, Special",
+        "max": 1,
+        "ma": 6,
+        "st": 2,
+        "ag": "3+",
+        "pa": "5+",
+        "av": "8+",
+        "skills": [
+          "Dirty Player",
+          "Disturbing Presence",
+          "Dodge",
+          "Right Stuff",
+          "Stunty",
+          "Taunt"
+        ],
+        "primary": "A D",
+        "secondary": "G S",
+        "cost": 60000
+      },
+      {
+        "id": "doom-diver",
+        "name": "Doom Diver",
+        "traits": "Goblin, Special",
+        "max": 1,
+        "ma": 6,
+        "st": 2,
+        "ag": "3+",
+        "pa": "6+",
+        "av": "8+",
+        "skills": [
+          "Dodge",
+          "Right Stuff",
+          "Stunty",
+          "Swoop"
+        ],
+        "primary": "A",
+        "secondary": "D G S",
+        "cost": 65000
+      },
+      {
+        "id": "fanatic",
+        "name": "Fanatic",
+        "traits": "Goblin, Special",
+        "max": 1,
+        "ma": 3,
+        "st": 7,
+        "ag": "3+",
+        "pa": "-",
+        "av": "8+",
+        "skills": [
+          "Ball & Chain",
+          "No Ball",
+          "Secret Weapon",
+          "Stunty"
+        ],
+        "primary": "D S",
+        "secondary": "A G",
+        "cost": 70000
+      },
+      {
+        "id": "pogoer",
+        "name": "Pogoer",
+        "traits": "Goblin, Special",
+        "max": 1,
+        "ma": 7,
+        "st": 2,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Dodge",
+          "Pogo",
+          "Stunty"
+        ],
+        "primary": "A",
+        "secondary": "D G S",
+        "cost": 75000
+      },
+      {
+        "id": "trained-troll",
+        "name": "Trained Troll",
+        "traits": "Big Guy, Troll",
+        "max": 2,
+        "ma": 4,
+        "st": 5,
+        "ag": "5+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Always Hungry",
+          "Mighty Blow",
+          "Projectile Vomit",
+          "Really Stupid",
+          "Regeneration",
+          "Throw Team-mate"
+        ],
+        "primary": "S",
+        "secondary": "A G P",
+        "cost": 115000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      7,
+      7,
+      6,
+      5,
+      4,
+      3,
+      2,
+      1
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
+  },
+  {
+    "id": "halfling",
+    "name": "Halfling",
+    "tier": 4,
+    "league": "Halfling Thimble Cup",
+    "leagues": [
+      "Halfling Thimble Cup",
+      "Woodland League"
+    ],
+    "special": [],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Halfling/",
+    "reroll": 60000,
+    "positions": [
+      {
+        "id": "halfling-hopeful",
+        "name": "Halfling Hopeful",
+        "traits": "Lineman, Halfling",
+        "max": 16,
+        "ma": 5,
+        "st": 2,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "7+",
+        "skills": [
+          "Dodge",
+          "Right Stuff",
+          "Stunty"
+        ],
+        "primary": "A",
+        "secondary": "G S D",
+        "cost": 30000
+      },
+      {
+        "id": "halfling-hefty",
+        "name": "Halfling Hefty",
+        "traits": "Blocker, Halfling",
+        "max": 2,
+        "ma": 5,
+        "st": 2,
+        "ag": "3+",
+        "pa": "3+",
+        "av": "8+",
+        "skills": [
+          "Dodge",
+          "Fend",
+          "Stunty"
+        ],
+        "primary": "A P",
+        "secondary": "G S D",
+        "cost": 50000
+      },
+      {
+        "id": "halfling-catcher",
+        "name": "Halfling Catcher",
+        "traits": "Catcher, Halfling",
+        "max": 2,
+        "ma": 5,
+        "st": 2,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "7+",
+        "skills": [
+          "Catch",
+          "Dodge",
+          "Right Stuff",
+          "Sprint",
+          "Stunty"
+        ],
+        "primary": "A",
+        "secondary": "G S D",
+        "cost": 55000
+      },
+      {
+        "id": "athel-forest-treeman",
+        "name": "Athel Forest Treeman",
+        "traits": "Big Guy, Treeman",
+        "max": 2,
+        "ma": 2,
+        "st": 6,
+        "ag": "5+",
+        "pa": "5+",
+        "av": "11+",
+        "skills": [
+          "Mighty Blow",
+          "Stand Firm",
+          "Strong Arm",
+          "Take Root",
+          "Thick Skull",
+          "Throw Team-mate",
+          "Timmm-ber!"
+        ],
+        "primary": "S",
+        "secondary": "A G P D",
+        "cost": 120000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      3,
+      3,
+      2,
+      2,
+      1,
+      1
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    },
+    "rosterKeywords": [
+      "Master Chef"
+    ]
+  },
+  {
+    "id": "high-elf",
+    "name": "High Elf",
+    "tier": 1,
+    "league": "Elven Kingdoms League",
+    "special": [],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/High_Elf/",
+    "reroll": 50000,
+    "positions": [
+      {
+        "id": "high-elf-lineman",
+        "name": "High Elf Lineman",
+        "traits": "Lineman, Elf",
+        "max": 16,
+        "ma": 6,
+        "st": 3,
+        "ag": "2+",
+        "pa": "3+",
+        "av": "9+",
+        "skills": [],
+        "primary": "A G",
+        "secondary": "S",
+        "cost": 65000
+      },
+      {
+        "id": "phoenix-warrior",
+        "name": "Phoenix Warrior",
+        "traits": "Thrower, Elf",
+        "max": 2,
+        "ma": 6,
+        "st": 3,
+        "ag": "2+",
+        "pa": "2+",
+        "av": "9+",
+        "skills": [
+          "Cloud Burster",
+          "Pass",
+          "Safe Pass"
+        ],
+        "primary": "A G P",
+        "secondary": "S",
+        "cost": 90000
+      },
+      {
+        "id": "dragon-prince",
+        "name": "Dragon Prince",
+        "traits": "Blitzer, Elf, Runner",
+        "max": 2,
+        "ma": 8,
+        "st": 3,
+        "ag": "2+",
+        "pa": "4+",
+        "av": "9+",
+        "skills": [
+          "Block",
+          "My Ball",
+          "Steady Footing"
+        ],
+        "primary": "A G",
+        "secondary": "S",
+        "cost": 110000
+      },
+      {
+        "id": "white-lion",
+        "name": "White Lion",
+        "traits": "Blitzer, Elf",
+        "max": 2,
+        "ma": 7,
+        "st": 3,
+        "ag": "2+",
+        "pa": "3+",
+        "av": "9+",
+        "skills": [
+          "Claws",
+          "Wrestle"
+        ],
+        "primary": "A G",
+        "secondary": "P S",
+        "cost": 110000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      3,
+      2,
+      2,
+      1,
+      1
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
+  },
+  {
+    "id": "human",
+    "name": "Human",
+    "tier": 2,
+    "league": "Old World Classic",
+    "special": [
+      "Team Captain"
+    ],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Human/",
+    "reroll": 50000,
+    "positions": [
+      {
+        "id": "human-lineman",
+        "name": "Human Lineman",
+        "traits": "Lineman, Human",
+        "max": 16,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "9+",
+        "skills": [],
+        "primary": "G",
+        "secondary": "A D S",
+        "cost": 50000
+      },
+      {
+        "id": "halfling-hopeful",
+        "name": "Halfling Hopeful",
+        "traits": "Lineman, Halfling",
+        "max": 3,
+        "ma": 5,
+        "st": 2,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "7+",
+        "skills": [
+          "Dodge",
+          "Right Stuff",
+          "Stunty"
+        ],
+        "primary": "A",
+        "secondary": "D G S",
+        "cost": 30000
+      },
+      {
+        "id": "human-catcher",
+        "name": "Human Catcher",
+        "traits": "Catcher, Human",
+        "max": 2,
+        "ma": 8,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Catch",
+          "Dodge"
+        ],
+        "primary": "A G",
+        "secondary": "D P S",
+        "cost": 75000
+      },
+      {
+        "id": "human-thrower",
+        "name": "Human Thrower",
+        "traits": "Thrower, Human",
+        "max": 2,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "3+",
+        "av": "9+",
+        "skills": [
+          "Pass",
+          "Sure Hands"
+        ],
+        "primary": "G P",
+        "secondary": "A D S",
+        "cost": 75000
+      },
+      {
+        "id": "human-blitzer",
+        "name": "Human Blitzer",
+        "traits": "Blitzer, Human",
+        "max": 2,
+        "ma": 7,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "9+",
+        "skills": [
+          "Block",
+          "Tackle"
+        ],
+        "primary": "G S",
+        "secondary": "A D",
+        "cost": 85000
+      },
+      {
+        "id": "ogre",
+        "name": "Ogre",
+        "traits": "Big Guy, Ogre",
+        "max": 1,
+        "ma": 5,
+        "st": 5,
+        "ag": "4+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Bone Head",
+          "Loner (3+)",
+          "Mighty Blow",
+          "Thick Skull",
+          "Throw Team-mate"
+        ],
+        "primary": "S",
+        "secondary": "A G",
+        "cost": 140000
+      }
+    ],
+    "lineup": [
+      0,
+      5,
+      4,
+      4,
+      3,
+      3,
+      2,
+      2,
+      1,
+      1,
+      1
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
+  },
+  {
+    "id": "khorne",
+    "name": "Khorne",
+    "tier": 3,
+    "league": "Chaos Clash",
+    "special": [
+      "Favoured of Khorne",
+      "Brawlin' Brutes"
+    ],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Khorne/",
+    "reroll": 60000,
+    "positions": [
+      {
+        "id": "bloodborn-marauder",
+        "name": "Bloodborn Marauder",
+        "traits": "Lineman, Human",
+        "max": 16,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Frenzy"
+        ],
+        "primary": "G M",
+        "secondary": "A S D",
+        "cost": 50000
+      },
+      {
+        "id": "khorngor",
+        "name": "Khorngor",
+        "traits": "Runner, Beastman",
+        "max": 2,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "9+",
+        "skills": [
+          "Horns",
+          "Juggernaut",
+          "Jump Up",
+          "Thick Skull"
+        ],
+        "primary": "G M S",
+        "secondary": "A P D",
+        "cost": 70000
+      },
+      {
+        "id": "bloodseeker",
+        "name": "Bloodseeker",
+        "traits": "Blocker, Human",
+        "max": 4,
+        "ma": 5,
+        "st": 4,
+        "ag": "4+",
+        "pa": "6+",
+        "av": "10+",
+        "skills": [
+          "Frenzy"
+        ],
+        "primary": "G M S",
+        "secondary": "A D",
+        "cost": 105000
+      },
+      {
+        "id": "bloodspawn",
+        "name": "Bloodspawn",
+        "traits": "Big Guy, Spawn",
+        "max": 1,
+        "ma": 5,
+        "st": 5,
+        "ag": "4+",
+        "pa": "6+",
+        "av": "9+",
+        "skills": [
+          "Claws",
+          "Frenzy",
+          "Loner (4+)",
+          "Mighty Blow",
+          "Unchannelled Fury"
+        ],
+        "primary": "M S",
+        "secondary": "A G",
+        "cost": 160000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      2,
+      2,
+      2,
+      2,
+      1,
+      1
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
+  },
+  {
+    "id": "necromantic-horror",
+    "name": "Necromantic Horror",
+    "tier": 2,
+    "league": "Sylvanian Spotlight",
+    "special": [
+      "Masters of Undeath"
+    ],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Necromantic_Horror/",
+    "reroll": 70000,
+    "positions": [
+      {
+        "id": "zombie-lineman",
+        "name": "Zombie Lineman",
+        "traits": "Human, Lineman, Undead, Zombie",
+        "max": 16,
+        "ma": 4,
+        "st": 3,
+        "ag": "4+",
+        "pa": "6+",
+        "av": "9+",
+        "skills": [
+          "Eye Gouge",
+          "Regeneration",
+          "Unsteady"
+        ],
+        "primary": "D G",
+        "secondary": "A S",
+        "cost": 40000
+      },
+      {
+        "id": "ghoul-runner",
+        "name": "Ghoul Runner",
+        "traits": "Ghoul, Runner, Undead",
+        "max": 2,
+        "ma": 7,
+        "st": 3,
+        "ag": "3+",
+        "pa": "3+",
+        "av": "8+",
+        "skills": [
+          "Dodge",
+          "Regeneration"
+        ],
+        "primary": "A G",
+        "secondary": "D P S",
+        "cost": 75000
+      },
+      {
+        "id": "wraith",
+        "name": "Wraith",
+        "traits": "Blocker, Undead, Wraith",
+        "max": 2,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "-",
+        "av": "9+",
+        "skills": [
+          "Block",
+          "Foul Appearance",
+          "No Ball",
+          "Regeneration",
+          "Sidestep"
+        ],
+        "primary": "G S",
+        "secondary": "A D",
+        "cost": 85000
+      },
+      {
+        "id": "flesh-golem",
+        "name": "Flesh Golem",
+        "traits": "Blocker, Construct, Undead",
+        "max": 2,
+        "ma": 4,
+        "st": 4,
+        "ag": "4+",
+        "pa": "6+",
+        "av": "10+",
+        "skills": [
+          "Regeneration",
+          "Stand Firm",
+          "Thick Skull",
+          "Unsteady"
+        ],
+        "primary": "G S",
+        "secondary": "A D",
+        "cost": 110000
+      },
+      {
+        "id": "werewolf",
+        "name": "Werewolf",
+        "traits": "Blitzer, Undead, Werewolf",
+        "max": 2,
+        "ma": 8,
+        "st": 3,
+        "ag": "3+",
+        "pa": "3+",
+        "av": "9+",
+        "skills": [
+          "Claws",
+          "Frenzy",
+          "Regeneration"
+        ],
+        "primary": "A G",
+        "secondary": "D P S",
+        "cost": 120000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      4,
+      3,
+      3,
+      2,
+      2,
+      1,
+      1
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 0,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
+  },
+  {
+    "id": "norse",
+    "name": "Norse",
+    "tier": 1,
+    "league": "Old World Classic",
+    "leagues": [
+      "Old World Classic",
+      "Chaos Clash"
+    ],
+    "special": [],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Norse/",
+    "reroll": 60000,
+    "positions": [
+      {
+        "id": "norse-raider",
+        "name": "Norse Raider",
+        "traits": "Lineman, Human",
+        "max": 16,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Block",
+          "Drunkard",
+          "Thick Skull",
+          "Unsteady"
+        ],
+        "primary": "G",
+        "secondary": "A P S",
+        "cost": 50000
+      },
+      {
+        "id": "beer-boar",
+        "name": "Beer Boar",
+        "traits": "Special, Animal",
+        "max": 2,
+        "ma": 5,
+        "st": 1,
+        "ag": "3+",
+        "pa": "-",
+        "av": "6+",
+        "skills": [
+          "Dodge",
+          "No Ball",
+          "Pick-me-up",
+          "Stunty",
+          "Titchy"
+        ],
+        "primary": "",
+        "secondary": "A",
+        "cost": 20000
+      },
+      {
+        "id": "norse-berserker",
+        "name": "Norse Berserker",
+        "traits": "Blitzer, Human",
+        "max": 2,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "5+",
+        "av": "8+",
+        "skills": [
+          "Block",
+          "Frenzy",
+          "Jump Up"
+        ],
+        "primary": "G S",
+        "secondary": "A P",
+        "cost": 90000
+      },
+      {
+        "id": "valkyrie",
+        "name": "Valkyrie",
+        "traits": "Catcher, Human, Thrower",
+        "max": 2,
+        "ma": 7,
+        "st": 3,
+        "ag": "3+",
+        "pa": "3+",
+        "av": "8+",
+        "skills": [
+          "Catch",
+          "Dauntless",
+          "Pass",
+          "Strip Ball"
+        ],
+        "primary": "A G P",
+        "secondary": "S",
+        "cost": 95000
+      },
+      {
+        "id": "ulfwerener",
+        "name": "Ulfwerener",
+        "traits": "Blocker, Human",
+        "max": 2,
+        "ma": 6,
+        "st": 4,
+        "ag": "4+",
+        "pa": "6+",
+        "av": "9+",
+        "skills": [
+          "Frenzy",
+          "Unsteady"
+        ],
+        "primary": "G S",
+        "secondary": "A",
+        "cost": 105000
+      },
+      {
+        "id": "yhetee",
+        "name": "Yhetee",
+        "traits": "Big Guy, Yhetee",
+        "max": 1,
+        "ma": 5,
+        "st": 5,
+        "ag": "4+",
+        "pa": "6+",
+        "av": "9+",
+        "skills": [
+          "Claws",
+          "Disturbing Presence",
+          "Frenzy",
+          "Loner (4+)",
+          "Unchannelled Fury"
+        ],
+        "primary": "S",
+        "secondary": "A G",
+        "cost": 140000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      5,
+      4,
+      4,
+      3,
+      3,
+      2,
+      2,
+      1,
+      1
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    },
+    "leagueRules": {
+      "Chaos Clash": [
+        "Favoured of Khorne"
+      ]
+    }
+  },
+  {
+    "id": "ogre",
+    "name": "Ogre",
+    "tier": 4,
+    "league": "Badlands Brawl",
+    "leagues": [
+      "Badlands Brawl",
+      "Worlds Edge Superleague"
+    ],
+    "special": [
+      "Brawlin' Brutes",
+      "Low Cost Linemen"
+    ],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Ogre/",
+    "reroll": 70000,
+    "positions": [
+      {
+        "id": "gnoblar-lineman",
+        "name": "Gnoblar Lineman",
+        "traits": "Gnoblar, Lineman",
+        "max": 16,
+        "ma": 5,
+        "st": 1,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "6+",
+        "skills": [
+          "Dodge",
+          "Right Stuff",
+          "Sidestep",
+          "Stunty",
+          "Titchy"
+        ],
+        "primary": "A D",
+        "secondary": "G",
+        "cost": 15000
+      },
+      {
+        "id": "ogre-blocker",
+        "name": "Ogre Blocker",
+        "traits": "Big Guy, Blocker, Ogre",
+        "max": 5,
+        "ma": 5,
+        "st": 5,
+        "ag": "4+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Bone Head",
+          "Mighty Blow",
+          "Thick Skull",
+          "Throw Team-mate"
+        ],
+        "primary": "S",
+        "secondary": "A D G P",
+        "cost": 140000
+      },
+      {
+        "id": "ogre-runt-punter",
+        "name": "Ogre Runt Punter",
+        "traits": "Big Guy, Ogre, Thrower",
+        "max": 1,
+        "ma": 5,
+        "st": 5,
+        "ag": "4+",
+        "pa": "4+",
+        "av": "10+",
+        "skills": [
+          "Bone Head",
+          "Kick Team-mate",
+          "Mighty Blow",
+          "Thick Skull"
+        ],
+        "primary": "P S",
+        "secondary": "A D G",
+        "cost": 145000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      2
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
+  },
+  {
+    "id": "old-world-alliance",
+    "name": "Old World Alliance",
+    "tier": 1,
+    "league": "Old World Classic",
+    "special": [],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Old_World_Alliance/",
+    "reroll": 70000,
+    "positions": [
+      {
+        "id": "human-lineman",
+        "name": "Human Lineman",
+        "traits": "Lineman, Human",
+        "max": 16,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "9+",
+        "skills": [],
+        "primary": "G",
+        "secondary": "A S",
+        "cost": 50000
+      },
+      {
+        "id": "halfling-hopeful",
+        "name": "Halfling Hopeful",
+        "traits": "Lineman, Halfling",
+        "max": 3,
+        "ma": 5,
+        "st": 2,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "7+",
+        "skills": [
+          "Dodge",
+          "Right Stuff",
+          "Stunty"
+        ],
+        "primary": "A",
+        "secondary": "G S",
+        "cost": 30000
+      },
+      {
+        "id": "human-catcher",
+        "name": "Human Catcher",
+        "traits": "Catcher, Human",
+        "max": 1,
+        "ma": 8,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Catch",
+          "Dodge"
+        ],
+        "primary": "A G",
+        "secondary": "P S",
+        "cost": 75000
+      },
+      {
+        "id": "dwarf-lineman",
+        "name": "Dwarf Lineman",
+        "traits": "Lineman, Dwarf",
+        "max": 3,
+        "ma": 4,
+        "st": 3,
+        "ag": "4+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Block",
+          "Defensive",
+          "Thick Skull"
+        ],
+        "primary": "G D",
+        "secondary": "S",
+        "cost": 70000
+      },
+      {
+        "id": "human-thrower",
+        "name": "Human Thrower",
+        "traits": "Thrower, Human",
+        "max": 1,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "3+",
+        "av": "9+",
+        "skills": [
+          "Pass",
+          "Sure Hands"
+        ],
+        "primary": "G P",
+        "secondary": "A S",
+        "cost": 75000
+      },
+      {
+        "id": "dwarf-runner",
+        "name": "Dwarf Runner",
+        "traits": "Runner, Dwarf",
+        "max": 1,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "9+",
+        "skills": [
+          "Sprint",
+          "Sure Hands",
+          "Thick Skull"
+        ],
+        "primary": "G P",
+        "secondary": "A S",
+        "cost": 80000
+      },
+      {
+        "id": "human-blitzer",
+        "name": "Human Blitzer",
+        "traits": "Blitzer, Human",
+        "max": 1,
+        "ma": 7,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "9+",
+        "skills": [
+          "Block",
+          "Tackle"
+        ],
+        "primary": "G S",
+        "secondary": "A",
+        "cost": 85000
+      },
+      {
+        "id": "dwarf-blitzer",
+        "name": "Dwarf Blitzer",
+        "traits": "Blitzer, Dwarf",
+        "max": 1,
+        "ma": 5,
+        "st": 3,
+        "ag": "4+",
+        "pa": "4+",
+        "av": "10+",
+        "skills": [
+          "Block",
+          "Diving Tackle",
+          "Tackle",
+          "Thick Skull"
+        ],
+        "primary": "G S",
+        "secondary": "P",
+        "cost": 100000
+      },
+      {
+        "id": "troll-slayer",
+        "name": "Troll Slayer",
+        "traits": "Special, Dwarf",
+        "max": 1,
+        "ma": 5,
+        "st": 3,
+        "ag": "4+",
+        "pa": "5+",
+        "av": "9+",
+        "skills": [
+          "Block",
+          "Dauntless",
+          "Frenzy",
+          "Hatred (Troll)",
+          "Thick Skull"
+        ],
+        "primary": "G S",
+        "secondary": "A",
+        "cost": 95000
+      },
+      {
+        "id": "ogre",
+        "name": "Ogre",
+        "traits": "Big Guy, Ogre",
+        "max": 1,
+        "ma": 5,
+        "st": 5,
+        "ag": "4+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Bone Head",
+          "Loner (3+)",
+          "Mighty Blow",
+          "Thick Skull",
+          "Throw Team-mate"
+        ],
+        "primary": "S",
+        "secondary": "A G",
+        "cost": 140000
+      },
+      {
+        "id": "altern-forest-treeman",
+        "name": "Altern Forest Treeman",
+        "traits": "Big Guy, Treeman",
+        "max": 1,
+        "ma": 2,
+        "st": 6,
+        "ag": "5+",
+        "pa": "5+",
+        "av": "11+",
+        "skills": [
+          "Loner (4+)",
+          "Mighty Blow",
+          "Stand Firm",
+          "Strong Arm",
+          "Take Root",
+          "Thick Skull",
+          "Throw Team-mate",
+          "Timmm-ber!"
+        ],
+        "primary": "S",
+        "secondary": "A G P",
+        "cost": 120000
+      }
+    ],
+    "lineup": [
+      7,
+      6,
+      5,
+      4,
+      3,
+      3,
+      3,
+      2,
+      1,
+      1,
+      1
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    },
+    "groupLimits": [
+      {
+        "label": "Big Guys",
+        "roles": [
+          9,
+          10
+        ],
+        "max": 1
+      }
+    ]
+  },
+  {
+    "id": "orc",
+    "name": "Orc",
+    "tier": 2,
+    "league": "Badlands Brawl",
+    "special": [
+      "Brawlin' Brutes",
+      "Team Captain"
+    ],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Orc/",
+    "reroll": 60000,
+    "positions": [
+      {
+        "id": "orc-lineman",
+        "name": "Orc Lineman",
+        "traits": "Lineman, Orc",
+        "max": 16,
+        "ma": 5,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "10+",
+        "skills": [],
+        "primary": "G S",
+        "secondary": "A D",
+        "cost": 50000
+      },
+      {
+        "id": "goblin-lineman",
+        "name": "Goblin Lineman",
+        "traits": "Lineman, Goblin",
+        "max": 4,
+        "ma": 6,
+        "st": 2,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Dodge",
+          "Right Stuff",
+          "Stunty"
+        ],
+        "primary": "A D",
+        "secondary": "G P S",
+        "cost": 40000
+      },
+      {
+        "id": "orc-thrower",
+        "name": "Orc Thrower",
+        "traits": "Thrower, Orc",
+        "max": 2,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "3+",
+        "av": "9+",
+        "skills": [
+          "Pass",
+          "Sure Hands"
+        ],
+        "primary": "G P",
+        "secondary": "A S D",
+        "cost": 75000
+      },
+      {
+        "id": "orc-blitzer",
+        "name": "Orc Blitzer",
+        "traits": "Blitzer, Orc",
+        "max": 2,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "10+",
+        "skills": [
+          "Block",
+          "Break Tackle"
+        ],
+        "primary": "G S",
+        "secondary": "A D",
+        "cost": 85000
+      },
+      {
+        "id": "big-un-blocker",
+        "name": "Big Un Blocker",
+        "traits": "Blocker, Orc",
+        "max": 2,
+        "ma": 5,
+        "st": 4,
+        "ag": "4+",
+        "pa": "6+",
+        "av": "10+",
+        "skills": [
+          "Mighty Blow",
+          "Taunt",
+          "Thick Skull",
+          "Unsteady"
+        ],
+        "primary": "G S",
+        "secondary": "A D",
+        "cost": 95000
+      },
+      {
+        "id": "troll",
+        "name": "Troll",
+        "traits": "Big Guy, Troll",
+        "max": 1,
+        "ma": 4,
+        "st": 5,
+        "ag": "5+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Always Hungry",
+          "Loner (4+)",
+          "Mighty Blow",
+          "Projectile Vomit",
+          "Really Stupid",
+          "Regeneration",
+          "Throw Team-mate"
+        ],
+        "primary": "S",
+        "secondary": "A G P",
+        "cost": 115000
+      }
+    ],
+    "lineup": [
+      5,
+      4,
+      4,
+      3,
+      3,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
+  },
+  {
+    "id": "shambling-undead",
+    "name": "Shambling Undead",
+    "tier": 2,
+    "league": "Sylvanian Spotlight",
+    "special": [
+      "Masters of Undeath"
+    ],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Shambling_Undead/",
+    "reroll": 70000,
+    "positions": [
+      {
+        "id": "skeleton-lineman",
+        "name": "Skeleton Lineman",
+        "traits": "Human, Lineman, Skeleton, Undead",
+        "max": 16,
+        "ma": 5,
+        "st": 3,
+        "ag": "4+",
+        "pa": "6+",
+        "av": "8+",
+        "skills": [
+          "Regeneration",
+          "Thick Skull"
+        ],
+        "primary": "G",
+        "secondary": "A D S",
+        "cost": 40000
+      },
+      {
+        "id": "zombie-lineman",
+        "name": "Zombie Lineman",
+        "traits": "Human, Lineman, Undead, Zombie",
+        "max": 16,
+        "ma": 4,
+        "st": 3,
+        "ag": "4+",
+        "pa": "6+",
+        "av": "9+",
+        "skills": [
+          "Eye Gouge",
+          "Regeneration",
+          "Unsteady"
+        ],
+        "primary": "D G",
+        "secondary": "A S",
+        "cost": 40000
+      },
+      {
+        "id": "ghoul-runner",
+        "name": "Ghoul Runner",
+        "traits": "Ghoul, Runner, Undead",
+        "max": 2,
+        "ma": 7,
+        "st": 3,
+        "ag": "3+",
+        "pa": "3+",
+        "av": "8+",
+        "skills": [
+          "Dodge",
+          "Regeneration"
+        ],
+        "primary": "A G",
+        "secondary": "D P S",
+        "cost": 75000
+      },
+      {
+        "id": "wight-blitzer",
+        "name": "Wight Blitzer",
+        "traits": "Blitzer, Human, Skeleton, Undead",
+        "max": 2,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "5+",
+        "av": "9+",
+        "skills": [
+          "Block",
+          "Regeneration",
+          "Tackle",
+          "Thick Skull"
+        ],
+        "primary": "G S",
+        "secondary": "A D",
+        "cost": 95000
+      },
+      {
+        "id": "mummy",
+        "name": "Mummy",
+        "traits": "Big Guy, Blocker, Human, Undead",
+        "max": 2,
+        "ma": 3,
+        "st": 5,
+        "ag": "5+",
+        "pa": "6+",
+        "av": "10+",
+        "skills": [
+          "Mighty Blow",
+          "Regeneration"
+        ],
+        "primary": "S",
+        "secondary": "A G",
+        "cost": 125000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      1,
+      1,
+      2,
+      2,
+      3,
+      3,
+      4,
+      4
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 0,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
+  },
+  {
+    "id": "snotling",
+    "name": "Snotling",
+    "tier": 4,
+    "league": "Underworld Challenge",
+    "special": [
+      "Bribery and Corruption",
+      "Low Cost Linemen",
+      "Swarming"
+    ],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Snotling/",
+    "reroll": 70000,
+    "positions": [
+      {
+        "id": "snotling-lineman",
+        "name": "Snotling Lineman",
+        "traits": "Lineman, Snotling",
+        "max": 16,
+        "ma": 5,
+        "st": 1,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "6+",
+        "skills": [
+          "Dodge",
+          "Insignificant",
+          "Right Stuff",
+          "Sidestep",
+          "Stunty",
+          "Titchy"
+        ],
+        "primary": "A D",
+        "secondary": "G",
+        "cost": 15000
+      },
+      {
+        "id": "fun-hoppa",
+        "name": "Fun-hoppa",
+        "traits": "Snotling, Special",
+        "max": 2,
+        "ma": 6,
+        "st": 1,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "6+",
+        "skills": [
+          "Dodge",
+          "Pogo",
+          "Right Stuff",
+          "Sidestep",
+          "Stunty"
+        ],
+        "primary": "A D",
+        "secondary": "G",
+        "cost": 20000
+      },
+      {
+        "id": "stilty-runna",
+        "name": "Stilty Runna",
+        "traits": "Runner, Snotling",
+        "max": 2,
+        "ma": 6,
+        "st": 1,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "6+",
+        "skills": [
+          "Dodge",
+          "Right Stuff",
+          "Sidestep",
+          "Sprint",
+          "Stunty"
+        ],
+        "primary": "A D",
+        "secondary": "G",
+        "cost": 20000
+      },
+      {
+        "id": "fungus-flinga",
+        "name": "Fungus Flinga",
+        "traits": "Snotling, Special",
+        "max": 2,
+        "ma": 5,
+        "st": 1,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "6+",
+        "skills": [
+          "Bombardier",
+          "Dodge",
+          "Right Stuff",
+          "Secret Weapon",
+          "Sidestep",
+          "Stunty",
+          "Titchy"
+        ],
+        "primary": "A D P",
+        "secondary": "G",
+        "cost": 30000
+      },
+      {
+        "id": "pump-wagon",
+        "name": "Pump Wagon",
+        "traits": "Big Guy, Snotling, Special",
+        "max": 2,
+        "ma": 5,
+        "st": 5,
+        "ag": "5+",
+        "pa": "6+",
+        "av": "9+",
+        "skills": [
+          "Dirty Player",
+          "Juggernaut",
+          "Mighty Blow",
+          "Really Stupid",
+          "Stand Firm"
+        ],
+        "primary": "D S",
+        "secondary": "A G",
+        "cost": 100000
+      },
+      {
+        "id": "trained-troll",
+        "name": "Trained Troll",
+        "traits": "Big Guy, Troll",
+        "max": 2,
+        "ma": 4,
+        "st": 5,
+        "ag": "5+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Always Hungry",
+          "Mighty Blow",
+          "Projectile Vomit",
+          "Really Stupid",
+          "Regeneration",
+          "Throw Team-mate"
+        ],
+        "primary": "S",
+        "secondary": "A G P",
+        "cost": 115000
+      }
+    ],
+    "lineup": [
+      1,
+      2,
+      3,
+      3,
+      4,
+      4,
+      5,
+      5,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
+  },
+  {
+    "id": "tomb-kings",
+    "name": "Tomb Kings",
+    "tier": 2,
+    "league": "Sylvanian Spotlight",
+    "special": [
+      "Masters of Undeath"
+    ],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Tomb_Kings/",
+    "reroll": 60000,
+    "positions": [
+      {
+        "id": "skeleton-lineman",
+        "name": "Skeleton Lineman",
+        "traits": "Human, Lineman, Skeleton, Undead",
+        "max": 16,
+        "ma": 5,
+        "st": 3,
+        "ag": "4+",
+        "pa": "6+",
+        "av": "8+",
+        "skills": [
+          "Regeneration",
+          "Thick Skull"
+        ],
+        "primary": "G",
+        "secondary": "A D S",
+        "cost": 40000
+      },
+      {
+        "id": "tomb-kings-thrower",
+        "name": "Tomb Kings Thrower",
+        "traits": "Human, Skeleton, Thrower, Undead",
+        "max": 2,
+        "ma": 6,
+        "st": 3,
+        "ag": "4+",
+        "pa": "3+",
+        "av": "9+",
+        "skills": [
+          "Pass",
+          "Regeneration",
+          "Sure Hands",
+          "Thick Skull"
+        ],
+        "primary": "G P",
+        "secondary": "A D S",
+        "cost": 65000
+      },
+      {
+        "id": "tomb-kings-blitzer",
+        "name": "Tomb Kings Blitzer",
+        "traits": "Blitzer, Human, Skeleton, Undead",
+        "max": 2,
+        "ma": 6,
+        "st": 3,
+        "ag": "4+",
+        "pa": "5+",
+        "av": "9+",
+        "skills": [
+          "Block",
+          "Regeneration",
+          "Thick Skull"
+        ],
+        "primary": "G S",
+        "secondary": "A D",
+        "cost": 85000
+      },
+      {
+        "id": "tomb-guardian",
+        "name": "Tomb Guardian",
+        "traits": "Big Guy, Blocker, Human, Undead",
+        "max": 4,
+        "ma": 4,
+        "st": 5,
+        "ag": "5+",
+        "pa": "6+",
+        "av": "10+",
+        "skills": [
+          "Brawler",
+          "Decay",
+          "Regeneration"
+        ],
+        "primary": "S",
+        "secondary": "A G",
+        "cost": 115000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      3,
+      3,
+      3,
+      3,
+      2,
+      2,
+      1,
+      1
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 0,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
+  },
+  {
+    "id": "underworld-denizens",
+    "name": "Underworld Denizens",
+    "tier": 1,
+    "league": "Underworld Challenge",
+    "special": [
+      "Bribery and Corruption"
+    ],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Underworld_Denizens/",
+    "reroll": 70000,
+    "positions": [
+      {
+        "id": "goblin-lineman",
+        "name": "Goblin Lineman",
+        "traits": "Goblin, Lineman",
+        "max": 16,
+        "ma": 6,
+        "st": 2,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Dodge",
+          "Right Stuff",
+          "Stunty"
+        ],
+        "primary": "A D M",
+        "secondary": "G P S",
+        "cost": 40000
+      },
+      {
+        "id": "snotling-lineman",
+        "name": "Snotling Lineman",
+        "traits": "Lineman, Snotling",
+        "max": 6,
+        "ma": 5,
+        "st": 1,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "6+",
+        "skills": [
+          "Dodge",
+          "Insignificant",
+          "Right Stuff",
+          "Sidestep",
+          "Stunty",
+          "Titchy"
+        ],
+        "primary": "A D M",
+        "secondary": "G",
+        "cost": 15000
+      },
+      {
+        "id": "skaven-clanrat",
+        "name": "Skaven Clanrat",
+        "traits": "Lineman, Skaven",
+        "max": 3,
+        "ma": 7,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Animosity (Goblin)"
+        ],
+        "primary": "G M D",
+        "secondary": "A S",
+        "cost": 50000
+      },
+      {
+        "id": "skaven-thrower",
+        "name": "Skaven Thrower",
+        "traits": "Skaven, Thrower",
+        "max": 1,
+        "ma": 7,
+        "st": 3,
+        "ag": "3+",
+        "pa": "2+",
+        "av": "8+",
+        "skills": [
+          "Animosity (Goblin)",
+          "Pass",
+          "Sure Hands"
+        ],
+        "primary": "G M P",
+        "secondary": "A D S",
+        "cost": 80000
+      },
+      {
+        "id": "gutter-runner",
+        "name": "Gutter Runner",
+        "traits": "Runner, Skaven",
+        "max": 1,
+        "ma": 9,
+        "st": 2,
+        "ag": "2+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Animosity (Goblin)",
+          "Dodge",
+          "Stab"
+        ],
+        "primary": "A G M D",
+        "secondary": "S",
+        "cost": 85000
+      },
+      {
+        "id": "skaven-blitzer",
+        "name": "Skaven Blitzer",
+        "traits": "Blitzer, Skaven",
+        "max": 1,
+        "ma": 8,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "9+",
+        "skills": [
+          "Animosity (Goblin)",
+          "Block",
+          "Strip Ball"
+        ],
+        "primary": "G M S",
+        "secondary": "A P",
+        "cost": 90000
+      },
+      {
+        "id": "troll",
+        "name": "Troll",
+        "traits": "Big Guy, Troll",
+        "max": 1,
+        "ma": 4,
+        "st": 5,
+        "ag": "5+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Always Hungry",
+          "Loner (4+)",
+          "Mighty Blow",
+          "Projectile Vomit",
+          "Really Stupid",
+          "Regeneration",
+          "Throw Team-mate"
+        ],
+        "primary": "M S",
+        "secondary": "A G P",
+        "cost": 115000
+      },
+      {
+        "id": "rat-ogre",
+        "name": "Rat Ogre",
+        "traits": "Big Guy, Skaven",
+        "max": 1,
+        "ma": 6,
+        "st": 5,
+        "ag": "4+",
+        "pa": "6+",
+        "av": "9+",
+        "skills": [
+          "Animal Savagery",
+          "Frenzy",
+          "Loner (4+)",
+          "Mighty Blow",
+          "Prehensile Tail"
+        ],
+        "primary": "M S",
+        "secondary": "A G",
+        "cost": 150000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    },
+    "groupLimits": [
+      {
+        "label": "Big Guys",
+        "roles": [
+          6,
+          7
+        ],
+        "max": 1
+      }
+    ]
+  },
+  {
+    "id": "vampire",
+    "name": "Vampire",
+    "tier": 2,
+    "league": "Sylvanian Spotlight",
+    "special": [
+      "Masters of Undeath"
+    ],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Vampire/",
+    "reroll": 60000,
+    "positions": [
+      {
+        "id": "thrall-lineman",
+        "name": "Thrall Lineman",
+        "traits": "Human, Lineman, Thrall",
+        "max": 16,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [],
+        "primary": "G",
+        "secondary": "A S",
+        "cost": 40000
+      },
+      {
+        "id": "vampire-runner",
+        "name": "Vampire Runner",
+        "traits": "Runner, Undead, Vampire",
+        "max": 2,
+        "ma": 8,
+        "st": 3,
+        "ag": "2+",
+        "pa": "3+",
+        "av": "8+",
+        "skills": [
+          "Bloodlust (2+)",
+          "Hypnotic Gaze",
+          "Regeneration"
+        ],
+        "primary": "A G",
+        "secondary": "P S",
+        "cost": 100000
+      },
+      {
+        "id": "vampire-thrower",
+        "name": "Vampire Thrower",
+        "traits": "Thrower, Undead, Vampire",
+        "max": 2,
+        "ma": 6,
+        "st": 4,
+        "ag": "2+",
+        "pa": "2+",
+        "av": "9+",
+        "skills": [
+          "Bloodlust (2+)",
+          "Hypnotic Gaze",
+          "Pass",
+          "Regeneration"
+        ],
+        "primary": "A G P",
+        "secondary": "S",
+        "cost": 110000
+      },
+      {
+        "id": "vampire-blitzer",
+        "name": "Vampire Blitzer",
+        "traits": "Blitzer, Undead, Vampire",
+        "max": 2,
+        "ma": 6,
+        "st": 4,
+        "ag": "2+",
+        "pa": "4+",
+        "av": "9+",
+        "skills": [
+          "Bloodlust (3+)",
+          "Hypnotic Gaze",
+          "Juggernaut",
+          "Regeneration"
+        ],
+        "primary": "A G S",
+        "secondary": "",
+        "cost": 110000
+      },
+      {
+        "id": "vargheist",
+        "name": "Vargheist",
+        "traits": "Big Guy, Undead, Vampire",
+        "max": 1,
+        "ma": 5,
+        "st": 5,
+        "ag": "4+",
+        "pa": "6+",
+        "av": "10+",
+        "skills": [
+          "Bloodlust (3+)",
+          "Claws",
+          "Frenzy",
+          "Loner (4+)",
+          "Regeneration"
+        ],
+        "primary": "S",
+        "secondary": "A G",
+        "cost": 150000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      3,
+      3,
+      2,
+      2,
+      1,
+      1
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
+  },
+  {
+    "id": "wood-elf",
+    "name": "Wood Elf",
+    "tier": 1,
+    "league": "Elven Kingdoms League",
+    "leagues": [
+      "Elven Kingdoms League",
+      "Woodland League"
+    ],
+    "special": [],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Wood_Elf/",
+    "reroll": 50000,
+    "positions": [
+      {
+        "id": "wood-elf-lineman",
+        "name": "Wood Elf Lineman",
+        "traits": "Lineman, Elf",
+        "max": 16,
+        "ma": 7,
+        "st": 3,
+        "ag": "2+",
+        "pa": "3+",
+        "av": "8+",
+        "skills": [],
+        "primary": "A G",
+        "secondary": "S",
+        "cost": 65000
+      },
+      {
+        "id": "wood-elf-thrower",
+        "name": "Wood Elf Thrower",
+        "traits": "Thrower, Elf",
+        "max": 2,
+        "ma": 7,
+        "st": 3,
+        "ag": "2+",
+        "pa": "2+",
+        "av": "8+",
+        "skills": [
+          "Pass",
+          "Safe Pair of Hands"
+        ],
+        "primary": "A G P",
+        "secondary": "S",
+        "cost": 85000
+      },
+      {
+        "id": "wood-elf-catcher",
+        "name": "Wood Elf Catcher",
+        "traits": "Catcher, Elf",
+        "max": 2,
+        "ma": 8,
+        "st": 2,
+        "ag": "2+",
+        "pa": "3+",
+        "av": "8+",
+        "skills": [
+          "Catch",
+          "Dodge",
+          "Sprint"
+        ],
+        "primary": "A G",
+        "secondary": "P S",
+        "cost": 90000
+      },
+      {
+        "id": "wardancer",
+        "name": "Wardancer",
+        "traits": "Blitzer, Elf",
+        "max": 2,
+        "ma": 8,
+        "st": 3,
+        "ag": "2+",
+        "pa": "3+",
+        "av": "8+",
+        "skills": [
+          "Block",
+          "Dodge",
+          "Leap"
+        ],
+        "primary": "A G",
+        "secondary": "P S",
+        "cost": 130000
+      },
+      {
+        "id": "loren-forest-treeman",
+        "name": "Loren Forest Treeman",
+        "traits": "Big Guy, Treeman",
+        "max": 1,
+        "ma": 2,
+        "st": 6,
+        "ag": "5+",
+        "pa": "5+",
+        "av": "11+",
+        "skills": [
+          "Loner (4+)",
+          "Mighty Blow",
+          "Stand Firm",
+          "Strong Arm",
+          "Take Root",
+          "Thick Skull",
+          "Throw Team-mate"
+        ],
+        "primary": "S",
+        "secondary": "A G",
+        "cost": 120000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      3,
+      2,
+      2,
+      1,
+      1
+    ],
+    "reviewed": "2026-10-31",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
   }
 ]
