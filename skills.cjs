@@ -145,9 +145,11 @@ class SkillGame extends SkillBase {
    if(choice==="End activation"){this.finish();return;}this.chainStep(p,choice.slice(4));
   });
  }
- chainStep(p,direction){
+ chainDirection(p,direction,done){done(this.roll("Ball & Chain direction"));}
+ chainStep(p,direction){this.chainDirection(p,direction,n=>this.chainStepRolled(p,direction,n));}
+ chainStepRolled(p,direction,n){
   const fans={North:[[-1,-1],[0,-1],[1,-1]],East:[[1,-1],[1,0],[1,1]],South:[[1,1],[0,1],[-1,1]],West:[[-1,1],[-1,0],[-1,-1]]};
-  const [dx,dy]=fans[direction][Math.ceil(this.roll("Ball & Chain direction")/2)-1],origin={x:p.x,y:p.y},pos={x:p.x+dx,y:p.y+dy};p.spent++;
+  const [dx,dy]=fans[direction][Math.ceil(n/2)-1],origin={x:p.x,y:p.y},pos={x:p.x+dx,y:p.y+dy};p.spent++;
   if(!this.inside(pos.x,pos.y)){this.pushPlayer(p,pos,()=>this.endTurn(true));return;}
   const d=this.at(pos.x,pos.y),rush=done=>p.spent>this.movementAllowance(p)?this.test(p,"Rush",2,done,()=>{
    if(d){this.chainContext.rushFailed=true;this.resolvePush(false);}else this.fall(p);
@@ -596,7 +598,7 @@ class SkillGame extends SkillBase {
   this.interrupt("Arm Bar",finish=>this.reactionChoice("Arm Bar",1-p.team,arms,q=>finish(q)),placeTackler);
  }
  dropBall(){const p=this.players.find(q=>q.id===this.mover);if(!p||this.pending||this.ball.carrier!==p.id||!this.skill(p,"Fumblerooski")||this.has(p,"My Ball"))return false;p.dropOnExit=!p.dropOnExit;return true;}
- passPreview(x,y){if(this.action==="bomb")return this.bombPreview(x,y);const value=super.passPreview(x,y),p=this.players.find(q=>q.id===this.mover);if(!value)return null;value.target+=this.disturbance(p);if(this.skill(p,"Nerves of Steel"))value.target-=this.marking(p);if(value.band<2&&this.skill(p,"Accurate")||value.band>=2&&this.skill(p,"Cannoneer"))value.target--;return value;}
+ passPreview(x,y){if(this.action==="bomb")return this.bombPreview(x,y);const value=super.passPreview(x,y),p=this.players.find(q=>q.id===this.mover);if(!value)return null;value.target+=this.disturbance(p);if(this.skill(p,"Nerves of Steel"))value.target-=this.marking(p);if(!value.partner&&(value.band<2&&this.skill(p,"Accurate")||value.band>=2&&this.skill(p,"Cannoneer")))value.target--;return value;}
  passRange(from,to){const normal=super.passRange(from,to);if(this.dumpContext?.defender===from.id)return normal;const hail=this.skill(from,"Hail Mary Pass")&&this.inside(to.x,to.y)&&(from.x!==to.x||from.y!==to.y);return hail&&(from.hailMary||!normal)?{band:3,name:"Hail Mary Pass",hail:true}:normal;}
  interceptionCandidates(from,to){if(this.passContext?.preview.hail&&this.passContext.p.id===from.id)return [];const candidates=super.interceptionCandidates(from,to).filter(p=>!this.has(p,"No Ball"));return this.skill(from,"Cloud Burster")?candidates.filter(p=>this.skill(p,"Very Long Legs")):candidates;}
  pass(x,y){if(this.action==="bomb")return this.throwBomb(x,y);const p=this.ballActor("pass");if(!p)return false;
