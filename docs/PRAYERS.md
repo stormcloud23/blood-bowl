@@ -86,3 +86,19 @@ These are source-derived scenarios, not an automated Java/JavaScript
 differential runner. Complex combinations involving multiple simultaneous
 injuries, every repositioning skill, unusual star abilities and every kickoff
 outcome remain subject to further parity audits.
+
+Browser review on published feature commit `111dae0` exercised a deliberately
+large exhibition value difference to obtain all sixteen prayers. Verified
+Iron Man/Knuckle Dusters/Intensive Training choices, completion into roll-off,
+the full active-effect list, setup/kickoff, receiving-coach High Kick and a
+real Rock use followed by the opposing Wizard window and turn advancement.
+Reviewed 1265px desktop and 390px phone layouts; the phone document had no
+horizontal overflow. Trapdoor markings were visible on the real pitch. Captured
+console errors were empty. Evidence is under workspace
+`.codex-attachments/prayer-visual/{phone-choice,phone-summary,desktop-rock}.png`.
+This does not visually certify each random injury or skill combination.
+
+Presentation follow-ups: opposing player effects currently show shirt numbers
+without saying "opponent" in the summary, and the generic Rock-only window
+help still mentions Wizard targeting. The coach-owned buttons and random Rock
+selection work correctly; refine that explanatory text in the next UI pass.
