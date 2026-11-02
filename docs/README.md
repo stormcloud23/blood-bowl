@@ -8,6 +8,7 @@ documents, not runtime dependencies.
 
 - [Current parity gaps](PARITY-GAPS.md): what remains and what existing tests prove.
 - [Workspace and controls](UI-UX.md): navigation, match decisions and team tools.
+- [Computer exhibitions](COMPUTER.md): solo play, controller behavior and limits.
 - [Roster catalogue](ROSTERS.md) and [team creation / leagues](LEAGUES.md).
 - [Star catalogue](STARS.md) and [completed catalogue scope](STAR-BACKLOG.md).
 

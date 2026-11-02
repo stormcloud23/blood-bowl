@@ -897,7 +897,7 @@ class SkillGame extends SkillBase {
    };offer(0);
   },done);
  }
- isChomped(p){p.chompers=(p.chompers||[]).filter(id=>{const q=this.players.find(q=>q.id===id);return q&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&this.distance(q,p)===1;});return p.chompers.length>0;}
+ isChomped(p){if(!p.chompers?.length)return false;p.chompers=(p.chompers||[]).filter(id=>{const q=this.players.find(q=>q.id===id);return q&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&this.distance(q,p)===1;});return p.chompers.length>0;}
  refreshChomps(){for(const p of this.players)this.isChomped(p);}
  onProne(p){for(const q of this.players)if(q.chompers)q.chompers=q.chompers.filter(id=>id!==p.id);}
  landingTarget(p,delivery){return super.landingTarget(p,delivery)-(delivery.kind==="pass"&&delivery.accurateToPlayer&&this.skill(p,"Diving Catch")?1:0);}

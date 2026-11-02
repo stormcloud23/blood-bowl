@@ -22,7 +22,7 @@ refreshExhibitionRosters();
 for(const side of ["home","away"]){
  const id="exhibition-"+side;
  for(const suffix of ["","-custom"])document.getElementById(id+suffix).addEventListener("change",()=>{if(!suffix)document.getElementById(id+"-custom").value="";exhibitionRosterChoices(side);reset();});
- for(const kind of ["league","alignment"])document.getElementById(id+"-"+kind).addEventListener("change",reset);
+ for(const kind of ["league","alignment"])document.getElementById(id+"-"+kind).addEventListener("change",()=>reset());
 }
 function refreshSessionLocation(){
  const session=document.getElementById("game-session");if(document.getElementById("mode-notice").parentElement!==session)session.prepend(document.getElementById("mode-notice"));

@@ -1,4 +1,13 @@
-# Match workspace — v0.0.35
+# Match workspace — v0.0.36
+
+## Computer exhibitions — v0.0.36
+
+The Opponent menu offers hotseat, Computer · Human team and Computer · Orc team.
+Changing it starts an exhibition with a home human coach and the selected away
+preset. Computer controls show the current action explanation, speed, pause and
+takeover. Computer-owned decisions disable human action controls; human-owned
+reactions interrupt the computer. Takeover preserves the current game. League
+and Testing modes remain manual. See [scope and verification](COMPUTER.md).
 
 Five tabs separate **Play**, **Teams & leagues**, **Rosters**, **Testing**, and
 **Reference**. Switching tabs preserves the current game and each tab's scroll
