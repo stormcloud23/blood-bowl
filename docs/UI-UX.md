@@ -1,4 +1,16 @@
-# Match workspace — v0.0.37
+# Match workspace — v0.0.39
+
+## Stand in place — v0.0.39
+
+Click an eligible prone player once to select them, then click the same player
+again to stand in their current square. The selected player's action menu also
+offers Stand up in place. The first selection does not activate or roll dice.
+
+This starts a normal Move, so normal stand-up movement costs, low-MA checks,
+Jump Up and activation traits still apply. The player stays active and can use
+any remaining movement or finish their Move. It does not spend Blitz, Pass,
+Hand-off, Foul or another limited action. Pending decisions, used/stunned or
+opposing players, another active mover, targeting modes and setup remain guarded.
 
 ## Stable action viewport — v0.0.37
 

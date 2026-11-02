@@ -68,6 +68,11 @@ During drive setup, select a player and click a team-mate to swap their position
 A selected reserve replaces the clicked fielded player; empty squares still move
 the selected player normally.
 
+To stand a prone player without moving, click once to select them and again on
+the same player, or choose **Stand up in place**. This begins a normal Move with
+the usual stand-up costs/checks; remaining movement is available and limited team
+actions such as Blitz and Pass are preserved.
+
 For solo exhibitions, choose **Computer · Human team** or **Computer · Orc team**
 in the Opponent menu. You coach home; the computer coaches the away preset team.
 Choose its speed, pause/resume, or take over its team during the match. This basic

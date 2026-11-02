@@ -32,6 +32,54 @@ function workspaceFixture(scenario='block',timers={}){
  return {get,run,document,popup,action,key:key=>document.listeners.keydown.forEach(fn=>fn({key})),cell:(x,y)=>get('pitch').children[y*26+x]};
 }
 
+function proneFixture(team=0){
+ const f=workspaceFixture('match');
+ f.run(`game.phase='play';game.active=${team};game.turns=[1,1];game.players.forEach(p=>Object.assign(p,{x:null,y:null,status:'reserve'}));globalThis.prone=game.players.find(p=>p.team===${team});Object.assign(prone,{x:8,y:7,status:'prone',used:false});prone.profileOverride={...game.profile(prone),ma:6,skills:[],traits:'Lineman, Human'};selected=null;globalThis.rollCount=0;game.dice=()=>{rollCount++;return 6;};render();`);
+ return f;
+}
+for(const team of [0,1])test('a prone player is selected first and stands in place on the second click: coach '+team,()=>{
+ const f=proneFixture(team);f.run('globalThis.limitedBefore=JSON.stringify([game.blitzUsed,game.passUsed,game.handoffUsed,game.foulUsed,game.secureUsed,game.throwUsed]);');
+ f.cell(8,7).click();assert.equal(f.run('selected'),f.run('prone.id'));assert.equal(f.run('prone.status'),'prone');assert.equal(f.run('prone.used'),false);assert.equal(f.run('game.mover'),null);assert.equal(f.run('rollCount'),0);assert.ok(f.popup().some(b=>b.textContent==='Stand up in place'));
+ f.cell(8,7).click();assert.equal(f.run('prone.status'),'standing');assert.equal(f.run('prone.x'),8);assert.equal(f.run('prone.y'),7);assert.equal(f.run('prone.spent'),3);assert.equal(f.run('prone.used'),true);assert.equal(f.run('game.action'),'move');assert.equal(f.run('game.mover'),f.run('prone.id'));assert.equal(f.run('rollCount'),0);
+ assert.equal(f.run('JSON.stringify([game.blitzUsed,game.passUsed,game.handoffUsed,game.foulUsed,game.secureUsed,game.throwUsed])===limitedBefore'),true);
+ // A third click cannot charge stand-up again; the active Move can continue.
+ f.cell(8,7).click();assert.equal(f.run('prone.spent'),3);f.cell(9,7).click();f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Confirm Move').click();assert.equal(f.run('prone.x'),9);assert.equal(f.run('prone.spent'),4);assert.equal(f.run('game.active'),team);
+});
+test('the stand-in-place menu action uses the same Move and ignores a stale repeated button',()=>{
+ const f=proneFixture();f.cell(8,7).click();const stand=f.action('Stand up in place');stand.click();stand.click();
+ assert.equal(f.run('prone.status'),'standing');assert.equal(f.run('prone.spent'),3);assert.equal(f.run('game.action'),'move');assert.equal(f.run('game.events.filter(e=>e.includes("declares Move")).length'),1);
+});
+test('a preselected practice player still needs a deliberate first selection click',()=>{
+ const f=proneFixture();f.run('selected=prone.id;render();');f.cell(8,7).click();assert.equal(f.run('prone.status'),'prone');assert.equal(f.run('prone.used'),false);f.cell(8,7).click();assert.equal(f.run('prone.status'),'standing');
+});
+test('returning from a movement preview reselects the prone player without committing it',()=>{
+ const f=proneFixture();f.cell(8,7).click();f.cell(9,7).click();assert.ok(f.run('destination'));f.cell(8,7).click();assert.equal(f.run('destination'),null);assert.equal(f.run('prone.status'),'prone');assert.equal(f.run('prone.used'),false);f.cell(8,7).click();assert.equal(f.run('prone.status'),'standing');assert.equal(f.run('prone.x'),8);
+});
+test('stand in place respects Jump Up and low-MA stand-up rolls',()=>{
+ const jump=proneFixture();jump.run("prone.extraSkills=['Jump Up'];render();");jump.cell(8,7).click();jump.cell(8,7).click();assert.equal(jump.run('prone.spent'),0);assert.equal(jump.run('rollCount'),0);assert.equal(jump.run('prone.status'),'standing');
+ for(const roll of [1,6]){
+  const f=proneFixture();f.run(`prone.profileOverride.ma=2;game.dice=()=>{rollCount++;return ${roll};};render();`);f.cell(8,7).click();assert.equal(f.run('rollCount'),0);f.cell(8,7).click();assert.equal(f.run('rollCount'),1);
+  if(roll===1){assert.equal(f.run('game.pending.kind'),'Stand up');f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Accept failure').click();assert.equal(f.run('prone.status'),'prone');assert.equal(f.run('prone.used'),true);assert.equal(f.run('game.mover'),null);}
+  else {assert.equal(f.run('prone.status'),'standing');assert.equal(f.run('prone.spent'),2);}
+ }
+});
+test('stand in place cannot bypass activation-trait checks or repeat a failed activation',()=>{
+ const f=proneFixture();f.run("prone.extraSkills=['Bone Head'];game.dice=()=>{rollCount++;return 1;};render();");f.cell(8,7).click();assert.equal(f.run('rollCount'),0);f.cell(8,7).click();assert.equal(f.run('game.pending.kind'),'Bone Head');assert.equal(f.run('prone.status'),'prone');
+ f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Accept failure').click();assert.equal(f.run('prone.used'),true);assert.equal(f.run('game.mover'),null);f.cell(8,7).click();f.cell(8,7).click();assert.equal(f.run('prone.status'),'prone');assert.equal(f.run('rollCount'),1);
+});
+test('stunned, used, opposing, setup and finished players cannot use the stand shortcut',()=>{
+ for(const change of ["prone.status='stunned'","prone.used=true","game.active=1","game.phase='setup';game.setupTeam=0","game.phase='finished';game.finished=true"]){
+  const f=proneFixture();f.run(change+';render();');f.cell(8,7).click();f.cell(8,7).click();assert.equal(f.run('game.mover'),null);assert.equal(f.run('rollCount'),0);assert.equal(f.popup().some(b=>b.textContent==='Stand up in place'),false);
+ }
+});
+test('pending decisions, another mover and Blitz targeting cannot be bypassed by standing',()=>{
+ for(const change of ["game.skillChoice('Required choice',0,['Continue'],()=>{})","globalThis.other=game.players.find(p=>p.team===0&&p!==prone);Object.assign(other,{x:10,y:7,status:'standing'});other.profileOverride={...game.profile(prone),skills:[]};game.start(other.id,'move')","blockMode='blitz'"]){
+  const f=proneFixture();f.cell(8,7).click();const old=f.action('Stand up in place');f.run(change+';render();');old.click();f.cell(8,7).click();f.cell(8,7).click();assert.equal(f.run('prone.status'),'prone');assert.equal(f.run('prone.used'),false);assert.equal(f.run('rollCount'),0);
+ }
+});
+test('human clicks cannot stand the computer coach player',()=>{
+ const f=proneFixture();f.get('computer-opponent').value='human';f.get('computer-opponent').emit('change');f.run("game.phase='play';game.active=1;globalThis.prone=game.players.find(p=>p.team===1);Object.assign(prone,{x:8,y:7,status:'prone',used:false});selected=null;render();");f.cell(8,7).click();f.cell(8,7).click();assert.equal(f.run('prone.status'),'prone');assert.equal(f.run('prone.used'),false);
+});
 test('computer exhibition selector creates an away preset controller and leaves hotseat as default',()=>{
  const f=workspaceFixture('match');assert.equal(f.run('computerSession'),null);
  f.get('computer-opponent').value='orc';f.get('computer-opponent').emit('change');

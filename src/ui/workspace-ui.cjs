@@ -103,9 +103,19 @@ function refreshRecordedResult(){
  const flow=document.getElementById("matchflow");for(const p of flow.querySelectorAll("p"))if(p.textContent.startsWith("Full time:"))p.textContent=p.textContent.split(". ")[0]+". Result recorded; review team progression in Teams & leagues.";
  const link=flow.querySelector("button");if(link)link.textContent="View result in Teams & leagues";
 }
+function canStandInPlace(p){
+ return p?.status==="prone"&&!game.mover&&!game.pending&&!game.finished&&!blockMode&&!ballMode&&(!game.match||["play","charge"].includes(game.phase))&&game.canStart(p);
+}
+function standInPlace(p){
+ if(p?.id!==selected||!canStandInPlace(p))return false;
+ destination=null;throwDestination=null;
+ const result=game.start(p.id,"move");render();return result;
+}
 function playerContextActions(p){
  if(game.pending||game.finished||!p||p.id!==selected||game.mover&&game.mover!==p.id)return [];
- return playerActionIds.filter(id=>id!=="start").map(id=>document.getElementById(id)).filter(b=>!b.disabled).map(b=>({label:b.textContent,run:()=>b.click()}));
+ const actions=playerActionIds.filter(id=>id!=="start").map(id=>document.getElementById(id)).filter(b=>!b.disabled).map(b=>({label:b.textContent,run:()=>b.click()}));
+ if(canStandInPlace(p))actions.unshift({label:"Stand up in place",run:()=>standInPlace(p)});
+ return actions;
 }
 function targetContextActions(actor,target){
  const actions=[];
@@ -131,8 +141,12 @@ function showPitchPopup(cell,title,details,actions,help=""){
 }
 const chooseBeforeWorkspace=choose;
 choose=function(x,y,pushDecision=game.pending){
+ // Require a deliberate second click on the currently open player selection,
+ // rather than activating a player merely preselected by a practice scenario.
+ const repeatSelection=!popup.hidden&&popupAnchor===pitch.children[y*26+x];
  closePitchPopup();hidePitchTooltip();pitchFocus=y*26+x;
  const target=game.at(x,y),actor=game.players.find(p=>p.id===selected),wasTargeting=!!(blockMode||ballMode||game.pending),phase=game.phase;
+ if(repeatSelection&&!wasTargeting&&!destination&&target===actor&&canStandInPlace(target)){standInPlace(target);return;}
  const targetActions=!wasTargeting&&target&&target.id!==actor?.id?targetContextActions(actor,target):[];
  if(!wasTargeting&&target&&game.match&&phase==="kicker"&&game.eligibleKickers().includes(target)){
   showPitchPopup(pitch.children[pitchFocus],"Kicker #"+target.number,playerQuickInfo(target),[{label:"Nominate kicker #"+target.number,run:()=>matchRun(()=>game.nominateKicker(target.id))}]);return;
@@ -143,7 +157,7 @@ choose=function(x,y,pushDecision=game.pending){
  chooseBeforeWorkspace(x,y,pushDecision);
  const cell=pitch.children[pitchFocus];
  if(!wasTargeting&&target&&(!game.match||["play","charge"].includes(phase))){
-  const actions=playerContextActions(target);actions.push({label:"Show full profile & skills",run:()=>{document.getElementById("player-details").open=true;}});showPitchPopup(cell,"#"+target.number+" · "+playerLabel(target),playerQuickInfo(target),actions,game.canStart(target)?"To move: choose a highlighted destination, then Confirm Move. Previewing never activates the player. For a Blitz, Pass or Foul, choose the action below first.":"");
+  const actions=playerContextActions(target);actions.push({label:"Show full profile & skills",run:()=>{document.getElementById("player-details").open=true;}});showPitchPopup(cell,"#"+target.number+" · "+playerLabel(target),playerQuickInfo(target),actions,game.canStart(target)?(canStandInPlace(target)?"Click this player again, or choose Stand up in place, to begin a normal Move and stand without changing squares. Normal stand-up costs and checks apply; remaining movement is available. ":"")+"To move: choose a highlighted destination, then Confirm Move. Previewing never activates the player. For a Blitz, Pass or Foul, choose the action below first.":"");
  }
 };
 pitch.addEventListener("keydown",event=>{
