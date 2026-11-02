@@ -8130,7 +8130,7 @@ function throwingOverlay(x,y){
  if(!teammate&&game.action!=="pass")return null;
  const preview=teammate?game.throwPreview(x,y):game.passPreview(x,y);if(!preview)return null;
  const roll=n=>Number.isFinite(n)?Math.max(2,Math.min(6,n)):null;
- let accuracy=roll(preview.target),hardest=accuracy,impossible=accuracy===null;
+ let accuracy=roll(preview.target),hardest=accuracy,impossible=accuracy===null,catching=null;
  const actor=teammate?game.throwActor():game.ballActor("pass"),target=game.at(x,y);
  const range=preview.hail?"H":preview.partner?"P":["Q","S","L","B"][preview.band];
  const details=[preview.name];
@@ -8142,13 +8142,13 @@ function throwingOverlay(x,y){
   if(teammate)details.push("Scatters before landing; landing roll is not included in this color");
   else if(target){
    const unable=target.status!=="standing"||target.distracted||game.has(target,"No Ball");
-   const catching=unable?null:roll(game.forecastTarget(target,"Catch",game.landingTarget(target,{kind:"pass",accurate:true,accurateToPlayer:true})));
+   catching=unable?null:roll(game.forecastTarget(target,"Catch",game.landingTarget(target,{kind:"pass",accurate:true,accurateToPlayer:true})));
    if(catching===null){impossible=true;details.push("Cannot catch in current state");}
    else {hardest=Math.max(hardest||2,catching);details.push("Catch "+catching+"+ (accurate delivery)");}
    if(target.team!==actor.team)details.push("Opposing player");
   }else details.push("Empty target; Diving Catch or bounce may follow");
  }
- return {range,band:preview.band,risk:impossible?6:hardest,label:range+" "+(impossible?"×":hardest+"+"),detail:details.join(" · ")};
+ return {range,band:preview.band,risk:impossible?6:hardest,label:target?(accuracy===null?"×":accuracy+"+")+(teammate?"":"/"+(preview.hail?"?":catching===null?"×":catching+"+")):null,detail:details.join(" · ")};
 }
 function render(){
  if(game.bombActor()){const p=game.bombActor();ballMode=true;if(selected!==p.id)showProfile(p.team,p.role,p.number);selected=p.id;}
@@ -8178,7 +8178,7 @@ function render(){
   const ballHere=game.ball.carrier?p?.id===game.ball.carrier:game.ball.x===x&&game.ball.y===y;
   cell.setAttribute("aria-label","Square "+(x+1)+", "+(y+1)+", "+label+(ballHere?", ball":"")+(routeIndex?", route step "+routeIndex:""));cell.title=blockTarget?"Valid Block target · "+label:routeIndex?"Route step "+routeIndex+" of "+chosen.path.length+" · "+label:reach?.path.length?"Reachable in "+reach.spent+" movement · "+label:label;
   if(plan){const detail=checks.length?checks.join(" → "):"no roll on this step";cell.title+=" · "+detail;cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+detail);}
-  if(throwing){const badge=document.createElement("span");badge.className="throw-range-label";badge.textContent=throwing.label;badge.setAttribute("aria-hidden","true");cell.append(badge);cell.title+=" · "+throwing.detail;cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+throwing.detail);}
+  if(throwing){if(throwing.label){const badge=document.createElement("span");badge.className="throw-range-label";badge.textContent=throwing.label;badge.setAttribute("aria-hidden","true");cell.append(badge);}cell.title+=" · "+throwing.detail;cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+throwing.detail);}
   if(y===7&&(x===6||x===19)){const spot=document.createElement("span");spot.className="sweet-spot";spot.setAttribute("aria-hidden","true");cell.append(spot);cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", kick sweet spot");}
   if(game.match&&((x===6&&y===1)||(x===19&&y===13))){cell.className+=" trapdoor";if(game.onTrapdoor({x,y})){cell.className+=" trapdoor-active";cell.title+=" · Trapdoor: falls through on 1";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", trapdoor (2+ to cross)");const marker=document.createElement("span");marker.className="trapdoor-marker";marker.textContent="⊠";marker.setAttribute("aria-hidden","true");cell.append(marker);}else {cell.title+=" · Closed trapdoor";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", closed trapdoor");}}
   if(p){const marker=positionMarker(game.profile(p)),available=onTheBall?.players.has(p.id),token=document.createElement("span");token.className="token role-"+marker.shape+(p.team?" blue":"")+(p.used&&p.id!==game.mover&&!available?" used":"")+" "+p.status+(p.distracted?" distracted":"")+(onTheBall?(available?" reaction-available":" reaction-unavailable"):"");token.dataset.role=marker.label;token.append(markerGraphic(marker));const number=document.createElement("span");number.className="token-number";number.textContent=p.number;token.append(number);cell.append(token);cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+marker.label+" marker ("+marker.shape+")"+(onTheBall?(available?", On the Ball reactor":", not available for On the Ball"):""));}
@@ -8206,7 +8206,7 @@ function render(){
  coach.textContent=game.bombActor()?teams[game.bombActor().team].name+(game.bombContext.rethrows?" · Must rethrow bomb":" · Throw Bomb"):teams[game.active].name+" · Turn "+game.turns[game.active];
  selection.textContent=game.finished?"Practice drive complete. Reset to start again.":blockMode?"Select a highlighted target for #"+(blockAttacker?.number??"?")+".":inspected?"#"+inspected.number+" "+playerLabel(inspected)+" · "+inspected.status+(inspected.distracted?" · Distracted":"")+(inspected.used?" · activated this turn":""):"Select a player to inspect or activate.";
  const throwingKey=document.getElementById("throwing-key"),throwingActive=ballMode&&!game.pending&&["pass","throw-team-mate","kick-team-mate"].includes(game.action);
- throwingKey.hidden=!throwingActive;throwingKey.textContent=throwingActive?"Range: Q Quick · S Short"+(game.action==="pass"?" · L Long · B Long Bomb · H Hail Mary · P Partner":"")+". Colors: 2+ blue · 3+ green · 4+ yellow · 5+ orange · 6+ red · × automatic failure. "+(game.action==="pass"?"Color shows the harder accuracy/catch roll; interceptions and re-rolls are separate.":"Color shows Superb Throw difficulty. Scatter determines the actual landing square and roll."):"";
+ throwingKey.hidden=!throwingActive;throwingKey.textContent=throwingActive?"Colors: 2+ blue · 3+ green · 4+ yellow · 5+ orange · 6+ red · × automatic failure. "+(game.action==="pass"?"Player labels: pass/catch (2+/3+). Color shows the harder roll; interceptions and re-rolls are separate.":"Color shows Superb Throw difficulty. Scatter determines the actual landing square and roll."):"";
  const movement=document.getElementById("movement");
  const rangeCount=Math.max(0,range.size-1);
  movement.textContent=(game.blockAction?"Block: ST "+game.blockAction.aStrength+" vs "+game.blockAction.dStrength+" · "+game.blockAction.assists.offensive+" offensive assist(s), "+game.blockAction.assists.defensive+" defensive assist(s). ":mover?"Moving #"+mover.number+": "+mover.spent+" / "+game.movementAllowance(mover)+" MA used · "+Math.max(0,mover.spent-game.profile(mover).ma)+" / "+game.rushLimit(mover)+" rushes used. ":planner?"Forecast for #"+planner.number+": "+rangeCount+" reachable destinations, including up to "+game.rushLimit(planner)+" rushes. ":"")+"Team re-rolls left: "+game.rerollsAvailable(game.active)+"."+(game.action==="blitz"?" Blitz target: #"+game.players.find(p=>p.id===game.blitzTarget)?.number+(game.blitzBlocked?" · block completed; continue moving.":" · move adjacent, then choose Blitz Block (1 MA).") : "");
