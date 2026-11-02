@@ -1,8 +1,44 @@
-# Match workspace — v0.0.16
+# Match workspace — v0.0.30
 
 The long development page is now four workspaces: **Play**, **Teams & leagues**,
 **Rosters**, and **Reference**. Switching tabs preserves the live game and each
 workspace's scroll position. Changing the game mode still starts a fresh game.
+
+## Readability update
+
+Pitch actions now open in a compact, non-modal section at the top of the coach
+panel. They never float over the field. The default view shows the acting team,
+player state and legal actions; statistics, skills and route checks are retained
+in a collapsed **Details & checks** disclosure. Existing explicit route Commit /
+Cancel, required coach decisions, Escape focus return and stale-action guards
+remain. Tab follows normal page order; arrow keys navigate the action buttons.
+On narrow screens the coach panel remains above the horizontally scrollable field.
+
+Player markers use the same role shapes for both teams:
+
+| Role | Shape |
+| --- | --- |
+| Lineman | Circle |
+| Blitzer | Triangle |
+| Blocker | Square |
+| Special | Star |
+| Thrower | Diamond |
+| Catcher | Hexagon |
+| Runner | Pentagon |
+| Big Guy | Octagon |
+
+The collapsible **Player shapes** key appears below the pitch. Classification
+uses roster positional keywords, not skill names, team identity or player names.
+Big Guy and Special tags take precedence; other hybrid profiles use their first
+recognized positional tag. Unknown profiles fall back to Special. Named stars
+retain their positional shape. Team colours, upright shirt numbers, selection,
+ball markers, activated opacity and prone/stunned/distracted cues remain separate.
+Role and shape are included in accessible square labels.
+
+Automated verification covers cross-team and hybrid-role mapping, rendered
+numbers/status/ball markers, non-floating controls, collapsed details and focus
+return. Browser automation was disabled in Work settings during this increment;
+no new desktop/mobile screenshot review is claimed.
 
 ## Playing
 
@@ -10,11 +46,11 @@ workspace's scroll position. Changing the game mode still starts a fresh game.
   Blitz actions. An activated special-action player can choose a victim directly
   from the pitch; thrown/kicked team-mates can also be chosen from their tiles.
 - Movement still uses explicit previews and waypoints. An active movement
-  preview offers Commit and Cancel in a popup. Clicking the destination again
+  preview offers Commit and Cancel in the coach-panel action section. Clicking the destination again
   continues to work. Previewing never spends movement or rolls dice.
 - Hover or focus a tile for player characteristics, abilities, state, movement
   checks, or push information. Touch users get player information in the action
-  popup. The full player profile and optional ability switches remain available
+  panel. The full player profile and optional ability switches remain available
   in the coach panel.
 - Dice, re-rolls, defender reactions and other required decisions appear in the
   coach panel, with an explicit coach label. Block dice have decorative symbols
@@ -35,8 +71,9 @@ workspace's scroll position. Changing the game mode still starts a fresh game.
 
 Arrow keys, Home and End navigate the workspace tabs. The pitch has one Tab stop;
 arrow keys move between squares, and Enter/Space selects the focused square.
-Popups use ordinary buttons, support Up/Down navigation and close with Escape,
-their close button or an outside click. Escape outside a popup cancels movement
+Action panels use ordinary buttons, support Up/Down navigation and close with
+Escape or their close button. Selecting another tile replaces the action context.
+Escape outside the panel cancels movement
 previews or targeting when no engine decision is pending. Required decisions
 cannot be bypassed by selecting another tile.
 
@@ -69,9 +106,9 @@ The interaction model was checked against the pinned FFB checkout at
 `bf3f89d96b5143a8730910a841e7430791094492`, particularly:
 
 - `ffb-client/.../client/state/AbstractClientStateMove.java`: player interaction
-  selects an action popup; field hover supplies movement information.
+  selects an action panel; field hover supplies movement information.
 - `ffb-client/.../client/state/ClientStateAwt.java`: `menuItems` filters menu
-  entries through the action context, then anchors the popup to the player.
+  entries through the action context, then shows the panel for the player.
 
 This implementation uses browser popovers and the existing JavaScript engine's
 legality checks. It does not copy FFB's Swing UI or introduce a backend.
@@ -105,6 +142,6 @@ recording, postgame completion and persistence after reload. The idle fixture
 validates those screens and transitions, not every gameplay interaction.
 
 Phone checks also confirmed movement commitment and 50-pixel tiles with Extra
-large pitch size. Movement popups enumerate the route's required checks before
+large pitch size. Movement details retain the route's required checks before
 the commit action. Overlay placement accounts for the visible viewport and its
 scrollbars.

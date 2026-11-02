@@ -9,7 +9,7 @@ function exhibitionRosterChoices(side){const roster=rosterCatalog.find(r=>r.id==
 for(const [id,index] of [["exhibition-home",0],["exhibition-away",1]]){const select=document.getElementById(id),side=index?"away":"home";for(const roster of rosterCatalog){const option=document.createElement("option");option.value=roster.id;option.textContent=roster.name;select.append(option);}select.value=practiceLeagueTeams[index].id;exhibitionRosterChoices(side);select.addEventListener("change",()=>{exhibitionRosterChoices(side);reset();});for(const kind of ["league","alignment"])document.getElementById(id+"-"+kind).addEventListener("change",reset);}
 function closePitchPopup(restore=false){
  popupEpoch++;popoverTransition=true;
- try{if(popup.matches(":popover-open"))popup.hidePopover();if(restore&&popupAnchor?.isConnected)popupAnchor.focus({preventScroll:true});popupAnchor=null;}finally{popoverTransition=false;}
+ try{popup.hidden=true;if(restore&&popupAnchor?.isConnected)popupAnchor.focus({preventScroll:true});popupAnchor=null;}finally{popoverTransition=false;}
 }
 function hidePitchTooltip(){
  if(tooltip.matches(":popover-open"))tooltip.hidePopover();
@@ -48,15 +48,17 @@ function playerQuickInfo(p){
  const profile=game.profile(p);
  return teams[p.team].name+" · #"+p.number+" "+playerLabel(p)+"\n"+["ma","st","ag","pa","av"].map(k=>k.toUpperCase()+" "+profile[k]).join(" · ")+"\n"+p.status+(p.captain?" · Team Captain":"")+(p.used?" · activated":"")+(p.distracted?" · distracted":"")+(game.ball.carrier===p.id?" · ball carrier":"")+"\n"+profile.skills.join(" · ");
 }
+const positionKey=document.getElementById("position-key-items");
+for(const marker of Object.values(POSITION_MARKERS)){const item=document.createElement("span");item.className="position-key-item";const icon=document.createElement("span");icon.className="token role-"+marker.shape;icon.append(markerGraphic(marker));item.append(icon);const label=document.createElement("span");label.textContent=marker.label+" · "+marker.shape;item.append(label);positionKey.append(item);}
 const dugoutStates=[['reserve','Reserves'],['ko','Knocked out'],['injured','Injured'],['dead','Dead'],['sent-off','Sent off'],['unavailable','Unavailable']];
 function dugoutState(p){if(p.eaten||p.casualty?.dead||p.casualty?.result==='Dead')return 'dead';if(p.status==='sent-off')return 'sent-off';if(p.status==='casualty')return 'injured';if(p.status==='knocked-out')return 'ko';if(game.onPitch(p))return 'pitch';if(p.fixtureUnavailable&&p.leagueRecord.missNext&&!p.leagueRecord.retired)return 'injured';if(p.heatOut||p.snackOut||p.fixtureUnavailable||p.status!=='reserve')return 'unavailable';return 'reserve';}
 function dugoutReason(p){if(p.status==='carried')return 'Carried by Grak — temporarily off the pitch';return p.eaten?'Eaten':p.fixtureUnavailable?(p.leagueRecord.retired?'Temporarily retired':'Misses this fixture'):p.heatOut?'Heat exhaustion — misses this drive':p.snackOut?'Dodgy Snack — misses this drive':p.casualty?.result||(p.riotousRookie?'Riotous Rookie — temporary Loner (4+)':p.status);}
 function dugoutPlayers(team){const players=game.players.filter(p=>p.team===team);if(game.league){const saved=leagueStore.data.teams.find(t=>t.id===game.teams[team].leagueTeamId),ids=new Set(players.map(p=>p.leaguePlayerId));for(const record of saved?.players||[])if(!ids.has(record.id)&&(record.missNext||record.retired))players.push({id:'unavailable:'+record.id,number:record.number,team,role:record.role,status:'missing-next',fixtureUnavailable:true,profileOverride:record.profile,leagueRecord:record});}return players;}
-function showDugoutTooltip(p,card){if(popoverTransition||popup.matches(':popover-open'))return;hidePitchTooltip();hoverSquare=card;card.setAttribute('aria-describedby','pitch-tooltip');tooltip.textContent=playerQuickInfo(p)+'\n'+dugoutReason(p);tooltip.showPopover();placePitchOverlay(tooltip,card);}
+function showDugoutTooltip(p,card){if(popoverTransition||!popup.hidden)return;hidePitchTooltip();hoverSquare=card;card.setAttribute('aria-describedby','pitch-tooltip');tooltip.textContent=playerQuickInfo(p)+'\n'+dugoutReason(p);tooltip.showPopover();placePitchOverlay(tooltip,card);}
 function dugoutActions(p){if(game.pending||p.fixtureUnavailable||dugoutState(p)!=='reserve')return [];const setup=game.match&&game.phase==='setup'&&p.team===game.setupTeam&&game.available(p.team).includes(p)&&game.players.filter(q=>q.team===p.team&&game.onPitch(q)).length<11,swarm=game.phase==='swarming'&&game.swarmState.eligible.includes(p.id)&&game.swarmState.placed.length<game.swarmState.limit;const defence=game.phase==='eventMove'&&game.eventState?.kind==='defence'&&game.eventState.eligible.includes(p.id);const wisdom=game.phase==='dwarfenWisdom'&&game.wisdomState?.placing&&game.wisdomState.selected.includes(p.id);if(!setup&&!swarm&&!defence&&!wisdom)return [];return [{label:wisdom?'Select for Dwarfen Wisdom':swarm?'Select for Swarming':defence?'Select for Solid Defence':'Select for setup',run:()=>{if(!dugoutActions(p).length)return;selected=p.id;showProfile(p.team,p.role,p.number);render();document.getElementById('pitch-board').scrollIntoView({block:'nearest'});}}];}
 function renderDugouts(pregame){const board=document.getElementById('dugout');board.hidden=!!pregame;board.replaceChildren();if(pregame)return;const currentGame=game;for(const team of [0,1]){const players=dugoutPlayers(team),article=document.createElement('article');article.className='dugout-team '+(team?'dugout-blue':'dugout-gold');article.setAttribute('aria-label',teams[team].name+' dugout');const heading=document.createElement('h3');heading.textContent=teams[team].name;article.append(heading);const count=document.createElement('p');count.className='dugout-summary';count.textContent=players.filter(p=>dugoutState(p)==='pitch').length+' on pitch · '+players.filter(p=>dugoutState(p)!=='pitch').length+' off pitch';article.append(count);const lanes=document.createElement('div');lanes.className='dugout-lanes';article.append(lanes);for(const [state,label] of dugoutStates){const lane=document.createElement('section');lane.className='dugout-lane dugout-'+state;lane.dataset.state=state;const list=players.filter(p=>dugoutState(p)===state),title=document.createElement('h4');title.textContent=label+' · '+list.length;lane.append(title);const cards=document.createElement('div');cards.className='dugout-cards';lane.append(cards);if(!list.length){const empty=document.createElement('span');empty.className='dugout-empty';empty.textContent='—';cards.append(empty);}for(const p of list){const card=button('',()=>{if(game!==currentGame)return;showPitchPopup(card,'#'+p.number+' · '+playerLabel(p),playerQuickInfo(p)+'\n'+dugoutReason(p),dugoutActions(p));});card.className='dugout-card';card.dataset.playerId=p.id;card.setAttribute('aria-label','#'+p.number+' '+playerLabel(p)+' — '+label+' — '+dugoutReason(p));const number=document.createElement('span');number.className='dugout-number';number.textContent=p.number;const name=document.createElement('span');name.className='dugout-name';name.textContent=p.riotousRookie?'Riotous Rookie':p.leagueRecord?.name||game.profile(p).name;card.append(number,name);card.addEventListener('pointerenter',e=>{if(e.pointerType!=='touch')showDugoutTooltip(p,card);});card.addEventListener('pointerleave',hidePitchTooltip);card.addEventListener('focus',()=>showDugoutTooltip(p,card));card.addEventListener('blur',hidePitchTooltip);cards.append(card);}lanes.append(lane);}board.append(article);}}
 function showPitchTooltip(cell){
- if(popoverTransition||popup.matches(":popover-open"))return;
+ if(popoverTransition||!popup.hidden)return;
  const i=Array.from(pitch.children).indexOf(cell),p=game.at(i%26,Math.floor(i/26));
  const hint=cell.dataset.hint||cell.title,text=p?playerQuickInfo(p)+(cell.className.includes("push-option")?"\n"+hint:""):hint;
  if(!text||text==="empty"){hidePitchTooltip();return;}
@@ -93,13 +95,13 @@ function showPitchPopup(cell,title,details,actions){
  closePitchPopup();hidePitchTooltip();popupAnchor=cell;const epoch=popupEpoch,currentGame=game,currentPending=game.pending;
  popup.replaceChildren();const heading=document.createElement("h3");heading.textContent=title;popup.append(heading);
  const close=button("×",()=>closePitchPopup(true));close.className="popup-close";close.setAttribute("aria-label","Close pitch actions");popup.append(close);
- for(const line of details.split("\n")){if(!line)continue;const p=document.createElement("p");p.textContent=line;popup.append(p);}
+ const lines=details.split("\n").filter(Boolean),summary=document.createElement("p");summary.className="action-summary";summary.textContent=lines.length>=4?lines[0].split(" · #")[0]+" · "+lines[2]:lines[0]||"";popup.append(summary);
  const list=document.createElement("div");list.className="popup-actions";popup.append(list);
  for(const [i,action] of actions.entries()){const b=button(action.label,()=>{
-  if(epoch!==popupEpoch||game!==currentGame||game.pending!==currentPending||!popup.matches(":popover-open"))return;
+  if(epoch!==popupEpoch||game!==currentGame||game.pending!==currentPending||popup.hidden)return;
   closePitchPopup();action.run();
  });if(i>0)b.className+=" secondary";list.append(b);}
- const pageX=globalThis.scrollX||0,pageY=globalThis.scrollY||0;popup.showPopover();globalThis.scrollTo?.({left:pageX,top:pageY,behavior:"instant"});placePitchOverlay(popup,cell);
+ if(lines.length>1){const info=document.createElement("details"),label=document.createElement("summary");label.textContent="Details & checks";info.append(label);for(const line of lines.slice(1)){const p=document.createElement("p");p.textContent=line;info.append(p);}popup.append(info);}popup.hidden=false;document.getElementById("coach-panel").scrollTop=0;
  (list.querySelector("button")||close).focus({preventScroll:true});
 }
 const chooseBeforeWorkspace=choose;
@@ -144,7 +146,7 @@ popup.addEventListener("keydown",event=>{
 });
 document.addEventListener("keydown",event=>{
  if(event.key!=="Escape")return;hidePitchTooltip();
- if(popup.matches(":popover-open")){closePitchPopup(true);return;}
+ if(!popup.hidden){closePitchPopup(true);return;}
  if(workspaceView==="play"&&!game.pending&&(blockMode||ballMode||destination)){blockMode=false;ballMode=false;destination=null;throwDestination=null;render();}
 });
 addEventListener("resize",()=>{closePitchPopup();hidePitchTooltip();});
@@ -159,7 +161,7 @@ function refreshWorkspace(){
  document.getElementById("exhibition-rosters").hidden=!game.match||!!game.league;
  const pregame=game.match&&["fans","weather","leagueSteps","prayers","rolloff","kickChoice"].includes(game.phase),overview=document.getElementById("pregame-overview");
  overview.hidden=!pregame;document.getElementById("pitch-board").hidden=!!pregame;document.getElementById("mobile-pitch-help").hidden=!!pregame;document.getElementById("pitch-hint").hidden=!!pregame;
- document.getElementById("pitch-tools").hidden=!!pregame;
+ document.getElementById("pitch-tools").hidden=!!pregame;document.getElementById("position-key").hidden=!!pregame;
  renderDugouts(pregame);
  document.getElementById("pitch-legend").hidden=!!pregame||!!game.pending||game.match&&!["play","charge"].includes(game.phase);
  selection.hidden=!!pregame;document.getElementById("movement").hidden=!!pregame;document.getElementById("player-details").hidden=!!pregame;
