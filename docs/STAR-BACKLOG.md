@@ -1,8 +1,10 @@
-# Remaining named-star work after v0.0.25
+# Remaining named-star work after v0.0.27
 
-Seventeen named players are supported through sixteen hiring entries, including
+Twenty-two named players are supported through twenty-one hiring entries, including
 the Swift Twins. This is a partial named-star catalogue. See [STARS.md](STARS.md)
 for the implemented set and executable comparison scope.
+The [current gap audit](PARITY-GAPS.md) lists the 42 unsupported hiring entries
+from the checked published index. This backlog records shared prerequisites.
 
 ## Recommended next group: injury alternatives
 
@@ -51,10 +53,10 @@ coaches in that audit. Do not infer completed support from a catalogue entry.
 
 ## Other shared dependency groups
 
-- **Follow-up special actions:** Max's second Chainsaw attack, Bilerot's
-  post-Block Vomit, and bomb-specific star windows build on current continuations
-  but require their own sequencing/use guards. Inspect the selected BB2025
-  definitions rather than older descriptions.
+- **Follow-up special actions:** Max's second Chainsaw attack, Bomber's Kaboom
+  and Bilerot's post-Block/post-Blitz Vomit are implemented. Other compound
+  actions still need their own sequencing/use guards. Inspect the selected
+  BB2025 definitions rather than older descriptions.
 - **Other paired stars:** Dribl/Drull need partner-conditioned Foul/Stab injury
   modifiers. Grak/Crumbleberry need carrying state, temporary skills and a
   reliable forced-placement/drop sequence. FFB documents additional behavior

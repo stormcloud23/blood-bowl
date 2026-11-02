@@ -230,11 +230,13 @@ class MovementGame {
   if(roll===6||roll-modifier>=pa)return "ACCURATE";
   return roll-modifier<=1?"FUMBLE":"INACCURATE";
  }
+ afterPassRoll(p,roll,modifier,pa,done){done(0);}
+ extendPassDecision(q,modifier,pa,apply){}
  resolvePass(p,x,y,preview){
   this.note("#"+p.number+" attempts a "+preview.name+" to "+(x+1)+", "+(y+1)+"; "+(Number.isFinite(preview.target)?"PA "+preview.target+"+":"PA –, automatic fumble")+".");
   this.passContext={p,preview,target:{x,y}};
-  const modifier=preview.target-Number.parseInt(this.profile(p).pa),target=Number.parseInt(this.profile(p).pa),resolve=n=>{
-   this.pending=null;const result=this.classifyPass(target,n,modifier,this.has(p,"Safe Pass"));
+  const modifier=preview.target-Number.parseInt(this.profile(p).pa),target=Number.parseInt(this.profile(p).pa),apply=(n,bonus=0)=>{
+   this.pending=null;const result=this.classifyPass(target,n,modifier-bonus,this.has(p,"Safe Pass"));
    if(result==="SAVED_FUMBLE"){this.note("Safe Pass: possession retained; activation ends.");this.mover=null;this.action=null;this.passContext=null;return;}
    this.ball={x:p.x,y:p.y,carrier:null};
    if(result==="FUMBLE"){this.note("Fumbled Pass: ball bounces from the thrower; turnover.");this.bounce(p.x,p.y,()=>this.endTurn(true));return;}
@@ -244,10 +246,12 @@ class MovementGame {
    const land=(lx,ly)=>this.interceptPass(p,{x:lx,y:ly},accurate,()=>this.landBall(lx,ly,false,()=>this.finishBallAction(p,preview.band===0),true,delivery));
    if(accurate)land(x,y);else this.scatterPass(x,y,land,()=>this.throwIn(this.ball.x,this.ball.y,()=>this.finishBallAction(p,preview.band===0)));
   };
-  if(!Number.isFinite(target)){this.note("No Passing Ability: automatic fumble, without a passing die.");resolve(0);return true;}
+  const resolve=n=>this.afterPassRoll(p,n,modifier,target,bonus=>apply(n,bonus));
+  if(!Number.isFinite(target)){this.note("No Passing Ability: automatic fumble, without a passing die.");apply(0);return true;}
   const roll=this.roll("Pass accuracy needs "+Math.min(6,preview.target)+"+");
   if(roll===6||roll!==1&&roll>=preview.target){resolve(roll);return true;}
-  const options=this.options(p,"Pass");if(options.length)this.pending={p,kind:"Pass",target:preview.target,roll,options,resolve};else resolve(roll);return true;
+  const q={p,kind:"Pass",target:preview.target,roll,options:this.options(p,"Pass"),resolve,accept:()=>apply(roll)};
+  this.extendPassDecision(q,modifier,target,apply);if(q.options.length)this.pending=q;else apply(roll);return true;
  }
  scatterPass(x,y,land,out){
   const dirs=[[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]];

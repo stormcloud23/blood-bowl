@@ -4,6 +4,9 @@ const MatchSkillGroups=typeof module!=="undefined"?require("./skills.cjs").SKILL
 const MATCH_PRAYERS=["Treacherous Trapdoor","Friends with the Ref","Stiletto","Iron Man","Knuckle Dusters","Bad Habits","Greasy Cleats","Blessing of Nuffle","Moles under the Pitch","Perfect Passing","Dazzling Catching","Fan Interaction","Fouling Frenzy","Throw a Rock","Under Scrutiny","Intensive Training"];
 // BB2025 profile data; unique ability behavior follows pinned FFB.
 const MATCH_STARS=[
+ {id:"bilerot-vomitflesh",name:"Bilerot Vomitflesh",cost:180000,ma:4,st:5,ag:"4+",pa:"6+",av:"10+",traits:"Blocker, Human",skills:["Dirty Player","Disturbing Presence","Foul Appearance","Lone Fouler","Loner (4+)","Regeneration","Unsteady","Putrid Regurgitation"],leagues:[],special:["Favoured of Nurgle"],primary:"",secondary:"",max:1},
+ {id:"deeproot-strongbranch",name:"Deeproot Strongbranch",cost:280000,ma:2,st:7,ag:"5+",pa:"4+",av:"11+",traits:"Big Guy, Treeman",skills:["Block","Bullseye","Loner (4+)","Mighty Blow","Stand Firm","Strong Arm","Thick Skull","Throw Team-mate","Timmm-ber!","Reliable"],leagues:["Woodland League"],primary:"",secondary:"",max:1},
+ {id:"skrull-halfheight",name:"Skrull Halfheight",cost:150000,ma:6,st:3,ag:"4+",pa:"3+",av:"9+",traits:"Dwarf, Skeleton, Thrower, Undead",skills:["Accurate","Loner (4+)","Nerves of Steel","Pass","Regeneration","Sure Hands","Thick Skull","Strong Passing Game"],leagues:["Sylvanian Spotlight","Worlds Edge Superleague"],primary:"",secondary:"",max:1},
  {id:"bomber-dribblesnot",name:"Bomber Dribblesnot",cost:80000,ma:6,st:2,ag:"3+",pa:"3+",av:"8+",traits:"Goblin, Special",skills:["Accurate","Bombardier","Dodge","Loner (4+)","Right Stuff","Secret Weapon","Stunty","Kaboom!"],leagues:["Badlands Brawl","Underworld Challenge"],primary:"",secondary:"",max:1},
  {id:"max-spleenripper",name:"Max Spleenripper",cost:130000,ma:5,st:4,ag:"4+",pa:"-",av:"9+",traits:"Human, Special",skills:["Chainsaw","Loner (4+)","No Ball","Secret Weapon","Maximum Carnage"],leagues:[],special:["Favoured of Khorne"],primary:"",secondary:"",max:1},
  {id:"swift-twins",name:"The Swift Twins",cost:300000,leagues:["Elven Kingdoms League"],players:[
@@ -130,6 +133,35 @@ class MatchGame extends MatchBase {
   if(this.starsFinalized)return;this.starsFinalized=true;
   const duplicates=this.selectedStars[0].filter(id=>this.selectedStars[1].includes(id));
   for(const id of duplicates){this.players=this.players.filter(p=>p.star!==id);this.note(MATCH_STARS.find(s=>s.id===id).name+" was hired by both teams and plays for neither; both fees remain spent.");}
+ }
+ has(p,name){if(name==="Projectile Vomit"&&super.has(p,"Putrid Regurgitation")&&p.putridHalf!==this.half)return true;return super.has(p,name);}
+ putridAvailable(p){return !!p&&this.has(p,"Putrid Regurgitation")&&p.putridHalf!==this.half&&this.onPitch(p)&&p.status==="standing"&&!p.distracted&&!this.finished;}
+ putridTargets(p){return this.putridAvailable(p)&&!this.pending&&this.mover===p.id&&this.action==="blitz"&&this.blitzBlocked&&(p.rooted||p.spent<this.movementAllowance(p)+this.rushLimit(p))?this.adjacentPutridTargets(p):[];}
+ adjacentPutridTargets(p){return this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&q.status==="standing"&&this.distance(p,q)===1);}
+ offerPutrid(p,targets,done,blitz=false){
+  const labels=targets.map(q=>"Vomit "+this.teams[q.team].name+" #"+q.number);
+  this.skillChoice("Putrid Regurgitation — choose an opponent",p.team,[...labels,"Keep Putrid Regurgitation"],choice=>{const q=targets[labels.indexOf(choice)];if(!q){done();return;}p.putridHalf=this.half;this.blockAction=null;this.mover=p.id;if(!blitz)this.action="special:Projectile Vomit";
+   const hit=()=>this.specialAttack(p,q,"Projectile Vomit");if(blitz&&!p.rooted){p.spent++;if(p.spent>this.movementAllowance(p))this.test(p,"Rush",2,hit,()=>this.fall(p,{prevented:hit}));else hit();}else hit();
+  });
+ }
+ usePutridAfterBlock(){const p=this.players.find(q=>q.id===this.mover),targets=this.putridTargets(p);if(!targets.length)return false;this.offerPutrid(p,targets,()=>{},true);return true;}
+ afterRegularBlock(b){
+  if(b.blitz||b.turnover||!this.putridAvailable(b.attacker))return false;const targets=this.adjacentPutridTargets(b.attacker);if(!targets.length)return false;
+  this.offerPutrid(b.attacker,targets,()=>this.finishBlock());return true;
+ }
+ specialAttack(p,target,name){if(name==="Projectile Vomit"&&this.has(p,"Putrid Regurgitation"))p.putridHalf=this.half;super.specialAttack(p,target,name);}
+ strongPassingBonus(p,roll,modifier,pa){
+  if(!this.has(p,"Strong Passing Game")||p.strongPassingUsed||this.dumpContext)return 0;
+  const bonus=+this.profile(p).st,safe=this.has(p,"Safe Pass");return this.classifyPass(pa,roll,modifier,safe)!==this.classifyPass(pa,roll,modifier-bonus,safe)?bonus:0;
+ }
+ useStrongPassing(p){p.strongPassingUsed=true;this.note("#"+p.number+" uses Strong Passing Game (+"+this.profile(p).st+" to this Pass).");}
+ extendPassDecision(q,modifier,pa,apply){
+  const bonus=this.strongPassingBonus(q.p,q.roll,modifier,pa);if(!bonus)return;
+  q.options.push("Strong Passing Game");q.passModifier=()=>{if(this.pending!==q||q.p.strongPassingUsed)return false;this.pending=null;this.useStrongPassing(q.p);apply(q.roll,bonus);return true;};
+ }
+ afterPassRoll(p,roll,modifier,pa,done){
+  const bonus=this.strongPassingBonus(p,roll,modifier,pa);if(!bonus){done(0);return;}
+  this.skillChoice("Strong Passing Game — roll "+roll+", add "+bonus,p.team,["Use Strong Passing Game","Keep Strong Passing Game"],choice=>{if(choice==="Use Strong Passing Game"){this.useStrongPassing(p);done(bonus);}else done(0);});
  }
  beforeBombCatch(p,done,origin=p){const thrower=this.bombContext?.thrower;if(!thrower||!this.has(thrower,"Kaboom!")||thrower.kaboomUsed){done();return;}this.skillChoice("Kaboom! — explode before "+this.teams[p.team].name+" #"+p.number+" catches",thrower.team,["Use Kaboom!","Keep Kaboom!"],choice=>{if(choice==="Use Kaboom!"){thrower.kaboomUsed=true;this.bombContext.catchTest=null;this.explodeBomb(origin.x,origin.y);}else done();});}
  afterSpecialAttack(p,target,name,done){
@@ -495,7 +527,7 @@ class MatchGame extends MatchBase {
  passRange(from,to){const result=super.passRange(from,to);if(this.weather==="Blizzard"&&result?.band>1)return null;const target=this.at(to.x,to.y);return result&&this.action==="pass"&&Number.isInteger(from.team)&&Number.isInteger(from.role)&&this.parameter(from,"Working in Tandem")==="Working in Tandem (pass)"&&target?.team===from.team&&this.parameter(target,"Working in Tandem")==="Working in Tandem (block)"?{...result,band:0,name:"Pass to Partner",partner:true}:result;}
  assists(a,d){const result=super.assists(a,d);if(this.cheer[a.team]&&!this.has(a,"Ball & Chain")&&!this.has(d,"Ball & Chain"))result.offensive++;return result;}
  onBlockRolled(a){this.cheer[a.team]=false;}
- decide(option){const q=this.pending;if(q?.p&&q.options?.includes(option)&&this.actionRerollSources(q.p,q.kind).includes(option)){this.pending=null;this.useActionRerollSource(q.p,q.kind,option);q.resolve(this.roll(q.kind+" re-roll ("+option+")"));return true;}const before=[...this.rerolls],result=super.decide(option);this.consumeBonus(before);return result;}
+ decide(option){const q=this.pending;if(option==="Strong Passing Game"&&q?.passModifier&&q.options.includes(option)){return q.passModifier();}if(q?.p&&q.options?.includes(option)&&this.actionRerollSources(q.p,q.kind).includes(option)){this.pending=null;this.useActionRerollSource(q.p,q.kind,option);q.resolve(this.roll(q.kind+" re-roll ("+option+")"));return true;}const before=[...this.rerolls],result=super.decide(option);this.consumeBonus(before);return result;}
  rerollBlock(source,index=null){if(source==="Savage Blow")return this.rerollSavageBlock(index);if(["Lord of Chaos","Unstoppable Momentum","Woodland Fury","Thinking Man's Troll","Halfling Luck","Working in Tandem"].includes(source))return this.rerollStarBlock(source,index);const before=[...this.rerolls],result=super.rerollBlock(source,index);this.consumeBonus(before);return result;}
  consumeBonus(before){for(const t of [0,1])if(this.rerolls[t]<before[t])this.driveBonus[t]=Math.max(0,this.driveBonus[t]-(before[t]-this.rerolls[t]));}
  endTurn(turnover=false){

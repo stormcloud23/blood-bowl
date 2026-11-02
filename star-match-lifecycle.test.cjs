@@ -4,6 +4,8 @@ function settle(g){let n=0;while(g.pending){assert.ok(n++<30,'Decision loop: '+g
 function deployStars(g){const team=g.setupTeam,stars=g.available(team).filter(p=>p.star&&!g.onPitch(p));for(const p of stars){const regular=g.players.find(q=>q.team===team&&!q.star&&g.onPitch(q));assert.ok(regular);const {x,y}=regular;assert.ok(g.benchSetup(regular.id));assert.ok(g.placeSetup(p.id,x,y));}assert.deepEqual(g.setupErrors(team),[]);assert.ok(g.confirmSetup());}
 function kickoff(g){deployStars(g);deployStars(g);assert.equal(g.phase,'kicker');assert.ok(g.nominateKicker(g.eligibleKickers()[0].id));assert.ok(g.kick(g.ownHalf(g.receiving,25)?25:0,7));settle(g);assert.equal(g.phase,'play');}
 const cases=[
+ {label:'Deeproot and Skrull',ids:['halfling','dwarf'],leagues:['Woodland League',null],hires:[['deeproot-strongbranch','akhorne'],['skrull-halfheight','morg-n-thorg']]},
+ {label:'Bilerot',ids:['nurgle','human'],hires:[['bilerot-vomitflesh','akhorne'],['griff-oberwald','puggy-baconbreath']]},
  {label:'Griff, Karla, Morg and Hthark',ids:['human','orc'],hires:[['griff-oberwald','karla-von-kill'],['morg-n-thorg','hthark']]},
  {label:'Swift pair, Eldril, Zolcath and Kiroth',ids:['wood-elf','wood-elf'],hires:[['swift-twins','eldril-sidewinder'],['zolcath','kiroth-krakeneye']]},
  {label:'Glart, Ripper, Fungus and Akhorne',ids:['skaven','goblin'],hires:[['glart-smashrip','ripper-bolgrot'],['fungus-the-loon','akhorne']]},

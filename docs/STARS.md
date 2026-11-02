@@ -1,6 +1,6 @@
 # Named star players — first supported group
 
-Nineteen named players (eighteen hiring entries) are available through **Configure staff and inducements →
+Twenty-two named players (twenty-one hiring entries) are available through **Configure staff and inducements →
 Star players**. The menu offers only stars eligible for the team's selected
 roster league or matching special rule. Alternate roster leagues must be chosen
 before the match. Selecting a star previews their actual profile and skills,
@@ -8,6 +8,9 @@ then asks for confirmation; removing a pregame hire refunds the fee.
 
 | Star | Fee | Eligibility | Unique ability |
 | --- | ---: | --- | --- |
+| Deeproot Strongbranch | 280K | Woodland League | Reliable: a fumbled thrown passenger lands safely in an eligible landing window |
+| Skrull Halfheight | 150K | Sylvanian Spotlight or Worlds Edge Superleague | Strong Passing Game: once per game, add current Strength to a Pass roll |
+| Bilerot Vomitflesh | 180K | Favoured of Nurgle | Putrid Regurgitation: once per half, Vomit, including after a Block or during remaining Blitz movement |
 | Max Spleenripper | 130K | Favoured of Khorne | Maximum Carnage: once per game, a second Chainsaw attack against a different opponent |
 | Bomber Dribblesnot | 80K | Badlands Brawl or Underworld Challenge | Kaboom!: once per game, explode a bomb before an eligible catch |
 | The Swift Twins (Lucien and Valen) | 300K pair | Elven Kingdoms League | Working in Tandem: partner-marked Block re-roll and special passing distance |
@@ -200,3 +203,39 @@ Pinned sources: mixed MaximumCarnage/Kaboom definitions; BB2025
 block/StepEndBlocking, block/StepBlockChainsaw and the two bomb steps above.
 Focused deterministic and actual bundled UI cases cover use, decline, target
 restrictions, Blitz movement, halftime and stale callbacks.
+
+## v0.0.27 — Deeproot, Skrull and Bilerot
+
+Profile references: [Deeproot](https://bloodbowlbase.ru/bb2025/starplayers/Deeproot_Strongbranch/),
+[Skrull](https://bloodbowlbase.ru/bb2025/starplayers/Skrull_Halfheight/) and
+[Bilerot](https://bloodbowlbase.ru/bb2025/starplayers/Bilerot_Vomitflesh/).
+Executables: mixed `Reliable`, `StrongPassingGame`, BB2025
+`PutridRegurgitation`, `PassMechanic`, server `pass/StepPass`, `ttm/StepRightStuff`,
+`block/StepInitBlocking`, `StepEndBlocking`, `StepProjectileVomit` and selected
+client `PutridRegurgitation*LogicModule` classes.
+
+Reliable applies only to a fumbled Throw Team-mate and an otherwise eligible
+landing. It retains FFB's hidden landing-die consumption and landing event;
+it does not grant the thrower a completion. Prone/distracted passengers,
+collisions, crowd and trapdoor processing are not bypassed. Non-fumbled
+throws still use the normal Landing test, including Bullseye throws.
+
+Strong Passing Game adds current Strength to the modified result, preserving
+natural-one failure. It appears only when the result classification changes,
+alongside initial Pass re-roll choices or after a failed re-roll. It can improve
+a modified fumble to inaccurate without necessarily becoming accurate. It
+spends no Team resource, triggers no Loner, creates no third roll and does not
+renew at halftime. Declining preserves it. Dump-off cannot borrow this active-
+player ability; Bomb and Throw Team-mate use their separate flows.
+
+Putrid Regurgitation supplies a once-half Projectile Vomit action without
+permanently adding that trait. It may be used on its own, after a resolved
+ordinary Block, or later during the remaining Blitz activation against any
+currently adjacent standing opponent. An extra Blitz attack spends another
+movement point/Rush and ends the activation. Declining/no targets preserves
+the use; choosing a target spends it before Foul Appearance or Rush. Existing
+Vomit re-roll, backfire, injury, treatment and ball handling apply.
+
+`star-passing.test.cjs`, `bilerot.test.cjs`, the bundled UI harness and two
+additional two-half transition cases cover this increment. The
+[remaining-gap audit](PARITY-GAPS.md) records unsupported stars and systems.
