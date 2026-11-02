@@ -105,7 +105,8 @@ test('a caught bomb is rethrown by its computer catcher during the human turn',(
  assert.equal(computerDecisionTeam(g),1);assert.ok(new ComputerCoach(1).step(g));assert.notEqual(g.bombContext?.stage,'aim');
  assert.ok(g.events.some(e=>e.includes('Pass #')));
 });
-for(const [seed,ids] of [[33,['human','orc']],[71,['orc','human']],[927,['human','human']]])test('seeded full match reaches full time: '+seed,()=>{
+// Keep long simulations available without slowing down the default UI/rules CI.
+for(const [seed,ids] of [[33,['human','orc']],[71,['orc','human']],[927,['human','human']]])test('seeded full match reaches full time: '+seed,{skip:process.env.BB_FULL_MATCH_TESTS!=='1'&&'Opt in with npm run test:computer:full'},()=>{
  const g=fixture(seed,ids),coaches=[new ComputerCoach(0),new ComputerCoach(1)],actions=[0,0];let steps=0;
  for(;steps<4000&&g.phase!=='finished';steps++){
   const owner=computerDecisionTeam(g);assert.ok([0,1].includes(owner));

@@ -102,6 +102,12 @@ self-contained offline application. There are no dependencies or network calls.
 
 ## Verification
 
+The three seeded full-match simulations are temporarily skipped by default,
+including in CI, while UI and experience work takes priority. Run
+`npm run test:computer:full` to opt in to all computer tests and these simulations.
+Alternatively set `BB_FULL_MATCH_TESTS=1` when running the test suite. The shorter
+computer regressions and workspace/controller tests remain enabled.
+
 `tests/features/computer.test.cjs` covers forecast behavior, touchdowns in both
 directions, pickups, decision ownership, independent Both Down choices, defensive
 block selection, mandatory bomb rethrows, chain-push ownership, empty teams and
