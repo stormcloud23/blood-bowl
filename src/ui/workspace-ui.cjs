@@ -80,7 +80,7 @@ function refreshRecordedResult(){
 }
 function playerContextActions(p){
  if(game.pending||game.finished||!p||p.id!==selected||game.mover&&game.mover!==p.id)return [];
- return playerActionIds.map(id=>document.getElementById(id)).filter(b=>!b.disabled).map(b=>({label:b.textContent,run:()=>b.click()}));
+ return playerActionIds.filter(id=>id!=="start").map(id=>document.getElementById(id)).filter(b=>!b.disabled).map(b=>({label:b.textContent,run:()=>b.click()}));
 }
 function targetContextActions(actor,target){
  const actions=[];
@@ -91,12 +91,12 @@ function targetContextActions(actor,target){
  if(game.throwActor()&&game.throwCandidates().some(p=>p.id===target.id))actions.push({label:(game.action==="kick-team-mate"?"Kick":"Throw")+" team-mate #"+target.number,run:()=>{game.selectThrowMate(target.id);ballMode=true;throwDestination=null;destination=null;render();}});
  return actions;
 }
-function showPitchPopup(cell,title,details,actions){
+function showPitchPopup(cell,title,details,actions,help=""){
  closePitchPopup();hidePitchTooltip();popupAnchor=cell;const epoch=popupEpoch,currentGame=game,currentPending=game.pending;
  popup.replaceChildren();const heading=document.createElement("h3");heading.textContent=title;popup.append(heading);
  const close=button("×",()=>closePitchPopup(true));close.className="popup-close";close.setAttribute("aria-label","Close pitch actions");popup.append(close);
  const lines=details.split("\n").filter(Boolean),summary=document.createElement("p");summary.className="action-summary";summary.textContent=lines.length>=4?lines[0].split(" · #")[0]+" · "+lines[2]:lines[0]||"";popup.append(summary);
- const list=document.createElement("div");list.className="popup-actions";popup.append(list);
+ if(help){const hint=document.createElement("p");hint.className="action-hint";hint.textContent=help;popup.append(hint);}const list=document.createElement("div");list.className="popup-actions";popup.append(list);
  for(const [i,action] of actions.entries()){const b=button(action.label,()=>{
   if(epoch!==popupEpoch||game!==currentGame||game.pending!==currentPending||popup.hidden)return;
   closePitchPopup();action.run();
@@ -118,10 +118,7 @@ choose=function(x,y,pushDecision=game.pending){
  chooseBeforeWorkspace(x,y,pushDecision);
  const cell=pitch.children[pitchFocus];
  if(!wasTargeting&&target&&(!game.match||["play","charge"].includes(phase))){
-  const actions=playerContextActions(target);actions.push({label:"Show full profile & skills",run:()=>{document.getElementById("player-details").open=true;}});showPitchPopup(cell,"#"+target.number+" · "+playerLabel(target),playerQuickInfo(target),actions);
- }else if(!wasTargeting&&!target&&destination&&game.mover){
-  const planner=planningPlayer(),route=previewRoute(planner),checks=route.path.flatMap((step,i)=>planChecks(step.plan,planner).map(check=>"Step "+(i+1)+": "+check)),summary="Planned: "+route.path.length+" step(s) · "+(route.spent-planner.spent)+" MA\n"+(checks.length?checks.join("\n"):"No rolls on this route.");
-  showPitchPopup(cell,"Movement preview",summary,[{label:"Commit planned route",run:commitRoute},{label:"Cancel movement preview",run:cancelMovementPreview}]);
+  const actions=playerContextActions(target);actions.push({label:"Show full profile & skills",run:()=>{document.getElementById("player-details").open=true;}});showPitchPopup(cell,"#"+target.number+" · "+playerLabel(target),playerQuickInfo(target),actions,game.canStart(target)?"To move: choose a highlighted destination, then Confirm Move. Previewing never activates the player. For a Blitz, Pass or Foul, choose the action below first.":"");
  }
 };
 pitch.addEventListener("keydown",event=>{
@@ -176,7 +173,7 @@ function refreshWorkspace(){
  document.getElementById("end").hidden=document.getElementById("end").disabled;
  document.getElementById("action-disclosure").hidden=game.match&&!["play","charge"].includes(game.phase)||!!game.pending;
  const hint=document.getElementById("pitch-hint");
- hint.textContent=game.pending?"Decision required — resolve the coach’s desk before continuing.":blockMode?"Click a red highlighted opponent to declare the action. Escape cancels targeting.":ballMode?"Click a highlighted target to preview; click it again to commit. Escape returns to movement.":destination?"Click another highlighted square to extend the route, or repeat the destination to commit. Escape clears the preview.":game.match&&game.phase==="setup"?"Select a player, then place them in an empty square in their own half.":"Click a player for legal actions. Hover or focus a square for stats and step checks.";
+ hint.textContent=game.pending?"Decision required — resolve the coach’s desk before continuing.":blockMode?"Click a red highlighted opponent to declare the action. Escape cancels targeting.":ballMode?"Click a highlighted target to preview; click it again to commit. Escape returns to movement.":destination?"Click another highlighted square to extend the route, then Confirm Move or repeat the destination to commit. Escape clears the preview.":game.match&&game.phase==="setup"?"Select a player, then place them in an empty square in their own half.":"Click a player for legal actions. Hover or focus a square for stats and step checks.";
  if(game.match&&game.phase==="kickAim")hint.textContent="Aim in the highlighted "+(game.ownHalf(game.receiving,0)?"left":"right")+" half ("+teams[game.receiving].name+"). Click once to preview; click the same square again to kick.";
  if(game.match&&game.phase==="swarming")hint.textContent="Swarming: select a reserve Lineman in the coach panel, then place them in an empty square in their own half.";
  const direction=document.getElementById("pitch-direction"),attacksRight=i=>game.match?game.right(i):i===0;direction.textContent=teams.map((team,i)=>team.name+" "+(attacksRight(i)?"→":"←")).join(" · ");direction.setAttribute("aria-label",teams.map((team,i)=>team.name+" attacks "+(attacksRight(i)?"right":"left")).join("; "));

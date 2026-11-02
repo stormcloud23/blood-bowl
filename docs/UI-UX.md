@@ -1,8 +1,32 @@
-# Match workspace — v0.0.30
+# Match workspace — v0.0.31
 
 The long development page is now four workspaces: **Play**, **Teams & leagues**,
 **Rosters**, and **Reference**. Switching tabs preserves the live game and each
 workspace's scroll position. Changing the game mode still starts a fresh game.
+
+## Unified movement — v0.0.31
+
+Select a player, click a highlighted square to preview the route, then use
+**Confirm Move** or repeat the destination to activate and follow it. The same
+confirmation works before or after activation; there is no separate required
+Declare Move step. Additional highlighted squares extend the planned route.
+Preview/cancel never roll dice, activate a player or spend movement.
+
+Route summary, required checks and Confirm/Cancel live in one coach-panel
+section. The duplicate movement context panel is removed. Choose Blitz, Pass,
+Hand-off or another special action before movement when that action is intended;
+a plain unactivated route declares Move. **Activate in place** remains in the
+optional Player actions disclosure for standing up or other no-route activations.
+
+Activation tests, optional abilities, reactions, turnovers and scores remain
+engine-owned. An activation decision interrupts confirmation before movement;
+the preview clears so the coach can resolve that decision and replan against the
+resulting board. Interrupted routes never silently continue through decisions.
+Old Confirm/Cancel buttons cannot affect a replacement preview.
+
+The built-in in-app browser was confirmed working against the published HTTPS
+game. Earlier local-browser inventory errors did not justify declaring all
+browser checks unavailable. Use published HTTPS for future visual checks.
 
 ## Readability update
 
@@ -37,8 +61,9 @@ Role and shape are included in accessible square labels.
 
 Automated verification covers cross-team and hybrid-role mapping, rendered
 numbers/status/ball markers, non-floating controls, collapsed details and focus
-return. Browser automation was disabled in Work settings during this increment;
-no new desktop/mobile screenshot review is claimed.
+return. No new desktop/mobile screenshot review was performed during v0.0.30.
+The browser-access conclusion at that time was too broad; see the HTTPS
+confirmation above.
 
 ## Playing
 

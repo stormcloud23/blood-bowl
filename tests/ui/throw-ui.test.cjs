@@ -354,9 +354,7 @@ test('preview extension preserves waypoints, rush costs and the exact committed 
  assert.equal(run('destination.path.some(s=>s.x===6&&s.y===5)'),true);
  run('choose(5,7)');assert.equal(run('destination.spent'),7);
  assert.ok(get('choices').children.some(e=>e.textContent.includes('0 normal MA and 1 Rush(es) remaining')));
- get('choices').children.find(e=>e.textContent==='Declare Move to begin').listeners.click();
- assert.equal(run('game.players[0].x'),10);
- run('choose(5,7)');assert.equal(run('game.players[0].x'),5);assert.equal(run('game.players[0].y'),7);assert.equal(run('game.players[0].spent'),7);assert.equal(run('destination'),null);
+ get('choices').children.find(e=>e.textContent==='Confirm Move').listeners.click();assert.equal(run('game.players[0].x'),5);assert.equal(run('game.players[0].y'),7);assert.equal(run('game.players[0].spent'),7);assert.equal(run('destination'),null);
  assert.equal(run('game.events.some(e=>e.includes("moved to 7, 6"))'),true);
 });
 test('active-move cancellation restores the current remaining range and never refunds spent movement',()=>{

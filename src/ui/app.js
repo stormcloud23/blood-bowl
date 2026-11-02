@@ -100,7 +100,7 @@ function choose(x,y,pushDecision=game.pending){
  if(game.pending)return;
  if(p){selected=p.id;destination=null;showProfile(p.team,p.role,p.number);render();return;}
  const mover=planningPlayer(),previous=previewRoute(mover);
- if(previous?.x===x&&previous?.y===y){if(game.mover)commitRoute();else render();return;}
+ if(previous?.x===x&&previous?.y===y){commitRoute();return;}
  let route=remainingRange(mover,previous).get(routeKey(x,y));
  // An adjacent click is an explicit step, preserving coach-selected shortcuts.
  const from=previous||(mover?plannedStart(mover):null);
@@ -122,8 +122,9 @@ function planChecks(plan,mover){
  return checks;
 }
 function commitRoute(){
- const player=game.players.find(p=>p.id===game.mover);if(!player||!destination)return;
+ const player=planningPlayer();if(!player||!destination||game.pending)return;
  const route=previewRoute(player);if(!route)return;
+ if(!game.mover){if(!game.start(player.id,"move"))return;if(game.pending||game.mover!==player.id||game.finished){destination=null;render();return;}}
  for(const next of route.path){
   if(game.mover!==player.id||game.pending||game.finished||!game.step(next.x,next.y))break;
   if(game.pending||game.mover!==player.id||game.finished)break;
@@ -174,7 +175,7 @@ function render(){
  const rangeCount=Math.max(0,range.size-1);
  movement.textContent=(game.blockAction?"Block: ST "+game.blockAction.aStrength+" vs "+game.blockAction.dStrength+" · "+game.blockAction.assists.offensive+" offensive assist(s), "+game.blockAction.assists.defensive+" defensive assist(s). ":mover?"Moving #"+mover.number+": "+mover.spent+" / "+game.profile(mover).ma+" MA used · "+Math.max(0,mover.spent-game.profile(mover).ma)+" / "+game.rushLimit(mover)+" rushes used. ":planner?"Forecast for #"+planner.number+": "+rangeCount+" reachable destinations, including up to "+game.rushLimit(planner)+" rushes. ":"")+"Team re-rolls left: "+game.rerollsAvailable(game.active)+"."+(game.action==="blitz"?" Blitz target: #"+game.players.find(p=>p.id===game.blitzTarget)?.number+(game.blitzBlocked?" · block completed; continue moving.":" · move adjacent, then choose Blitz Block (1 MA).") : "");
  const choices=document.getElementById("choices");choices.replaceChildren();
- if(chosen&&!ballMode){const remaining=document.createElement("p");remaining.textContent="From preview square "+(chosen.x+1)+", "+(chosen.y+1)+": "+Math.max(0,game.profile(planner).ma-chosen.spent)+" normal MA and "+Math.max(0,game.rushLimit(planner)-Math.max(0,chosen.spent-game.profile(planner).ma))+" Rush(es) remaining · "+rangeCount+" possible next destinations. The player has not moved.";choices.append(remaining);choices.append(button("Cancel movement preview",cancelMovementPreview));}
+ if(chosen&&!ballMode){const remaining=document.createElement("p");remaining.textContent="From preview square "+(chosen.x+1)+", "+(chosen.y+1)+": "+Math.max(0,game.profile(planner).ma-chosen.spent)+" normal MA and "+Math.max(0,game.rushLimit(planner)-Math.max(0,chosen.spent-game.profile(planner).ma))+" Rush(es) remaining · "+rangeCount+" possible next destinations. The player has not moved.";choices.append(remaining);const routeGame=game;choices.append(button("Confirm Move",()=>{if(game===routeGame&&destination===chosen&&!game.pending)commitRoute();}));choices.append(button("Cancel movement preview",()=>{if(game===routeGame&&destination===chosen&&!game.pending)cancelMovementPreview();}));}
  if(ballMode&&["throw-team-mate","kick-team-mate"].includes(game.action)){
   const p=document.createElement("p"),preview=throwDestination&&game.throwPreview(throwDestination.x,throwDestination.y);p.textContent=preview?preview.name+" · "+(Number.isFinite(preview.target)?"Superb Throw "+Math.min(6,preview.target)+"+":"PA –: automatic fumble")+". Click again to throw #"+preview.mate.number+". Both Superb and Subpar throws scatter before landing.":"Choose a highlighted square, then click it again to throw your team-mate.";choices.append(p);
  }else if(ballMode){
@@ -208,13 +209,12 @@ function render(){
   }
  }else if(!ballMode&&destination&&chosen){
   const initialSpent=mover?mover.spent:planner.status==="prone"?game.standCost(planner):0;
-  const title=document.createElement("p");title.textContent=chosen.path.length?"Planned route: "+chosen.path.length+" step(s), "+(chosen.spent-initialSpent)+" movement point(s). Click another highlighted square to extend this route. "+(mover?"Click the selected destination again to commit.":"Declare Move to begin, then click the selected destination again to commit.")+" Cancel movement preview to start planning again. Required checks appear below; dice are rolled only when committed.":"Destination reached. Choose another highlighted square to continue moving.";choices.append(title);
+  const title=document.createElement("p");title.textContent=chosen.path.length?"Planned route: "+chosen.path.length+" step(s), "+(chosen.spent-initialSpent)+" movement point(s). Click another highlighted square to extend this route. "+"Confirm Move, or click the same destination again, to activate and follow this route."+" Cancel movement preview to start planning again. Required checks appear below; dice are rolled only when committed.":"Destination reached. Choose another highlighted square to continue moving.";choices.append(title);
   chosen.path.forEach((step,i)=>{
    const row=document.createElement("p"),checks=planChecks(step.plan,planner);
    row.textContent=(i+1)+". "+(step.plan.jump?"Jump to ":"Move to ")+(step.x+1)+", "+(step.y+1)+" · "+step.plan.cost+" MA · "+(checks.length?checks.join(" → "):"no roll");choices.append(row);
   });
-  if(!mover)choices.append(button("Declare Move to begin",()=>{game.start(planner.id);render();}));
-  else if(!chosen.path.length)choices.append(button("Clear destination",()=>{destination=null;render();}));
+  if(!chosen.path.length)choices.append(button("Clear destination",()=>{destination=null;render();}));
  }
  document.getElementById("pass").disabled=!game.canBallAction(inspected,"pass");
  document.getElementById("handoff").disabled=!game.canBallAction(inspected,"handoff");
@@ -222,7 +222,7 @@ function render(){
  document.getElementById("transfer").textContent=ballMode?"Return to movement":"Choose ball target";
  document.getElementById("special").disabled=!game.specialActions(mover||inspected).length;
  document.getElementById("start").disabled=!game.canStart(inspected);
- document.getElementById("start").textContent=destination&&!mover?"Declare Move for waypoint":"Declare Move";
+ document.getElementById("start").textContent="Activate in place";
  document.getElementById("blitz").disabled=!game.players.some(p=>game.canBlitz(inspected,p));
  document.getElementById("blitz").textContent=blockMode==="blitz"?"Cancel Blitz":"Declare Blitz";
  document.getElementById("block").disabled=game.action==="blitz"?!game.canBlitzBlock():!game.canStart(inspected)||!game.players.some(p=>game.canBlock(inspected,p));
