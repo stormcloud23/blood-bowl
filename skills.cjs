@@ -339,7 +339,7 @@ class SkillGame extends SkillBase {
   const airborne=()=>{p.x=null;p.y=null;this.refreshChomps();};
   const dirs=[[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]];
   const drift=(pos,label)=>{const [dx,dy]=dirs[this.roll(label,8)-1];return {x:pos.x+dx,y:pos.y+dy};};
-  let forcedTurnover=false,usingSwoop=false,superbThrow=false;
+  let forcedTurnover=false,usingSwoop=false,superbThrow=false,reliableFumble=false;
   const crowd=(from,to)=>{p.x=from.x;p.y=from.y;this.pushPlayer(p,to,()=>end(true));};
   const land=(pos,subpar,crashed=false,from=origin)=>{
    if(!this.inside(pos.x,pos.y)){crowd(from,pos);return;}
@@ -357,13 +357,16 @@ class SkillGame extends SkillBase {
    const fail=()=>this.fall(p,{turnover:false,prevented:()=>ok(),after:()=>end(forcedTurnover||carrying)});
    const ok=(rolled=false)=>{if(rolled){this.recordStat(p,"landing");if(superbThrow)this.recordStat(a,"completion");}this.note("#"+p.number+" lands on their feet.");if(!this.ball.carrier&&this.ball.x===p.x&&this.ball.y===p.y)this.bounce(p.x,p.y,()=>end(forcedTurnover));else end(forcedTurnover);};
    if(unable||crashed){fail();return;}
+   // FFB still consumes a landing die and awards the landing event on Reliable.
+   // A collision, prone/distracted passenger or trapdoor bypasses this rescue.
+   if(reliableFumble){this.roll("Reliable landing");this.note("Reliable: fumbled passenger lands safely.");ok(true);return;}
    p.swooping=usingSwoop;this.test(p,"Landing",parseInt(this.profile(p).ag)+(subpar?1:0)+this.marking(p),()=>{p.swooping=false;ok(true);},()=>{p.swooping=false;fail();});
    };this.beforeThrownLanding(p,fell=>{if(fell)end(true);else resolveLanding();});
   };
   const carrying=this.ball.carrier===p.id;
   const fumble=()=>{
    if(kicked){this.note("Fumbled Kick Team-mate: injury without armour.");p.x=origin.x;p.y=origin.y;this.injuryResult(p,this.roll("Kicked player Injury")+this.roll("Kicked player Injury"),()=>{if(carrying){this.ball={...origin,carrier:null};this.bounce(origin.x,origin.y,()=>end(true));}else end(false);},{stunIsKo:true,stunty:false});return;}
-   this.note("Fumbled Throw: bounce from the throwing player.");airborne();land(drift(a,"Fumbled player bounce"),true,false,a);
+   reliableFumble=this.has(a,"Reliable");this.note("Fumbled Throw: bounce from the throwing player.");airborne();land(drift(a,"Fumbled player bounce"),true,false,a);
   };
   const resolve=n=>{
    const pa=parseInt(this.profile(a).pa),modifier=preview.target-pa,result=this.classifyPass(pa,n,modifier);
@@ -661,6 +664,7 @@ class SkillGame extends SkillBase {
  }
  afterFollow(a,d,knock,done){if(this.ball.carrier===d.id&&this.skill(a,"Strip Ball")&&!this.skill(d,"Sure Hands")&&!this.skill(d,"Monstrous Mouth")){this.ball={x:d.x,y:d.y,carrier:null};this.note("Strip Ball: ball drops after follow-up.");this.bounce(d.x,d.y,done);}else done();}
  applyBlockResult(result){const b=this.blockAction;if(result==="Both Down"&&b.blitz&&this.skill(b.attacker,"Juggernaut")){this.pending={type:"custom",kind:"Juggernaut",options:["Treat as Push Back","Apply Both Down"],resolve:choice=>{this.pending=null;super.applyBlockResult(choice==="Treat as Push Back"?"Push Back":"Both Down");}};return;}super.applyBlockResult(result);}
+ afterRegularBlock(b){return false;}
  finishBlock(){
   const b=this.blockAction;
   if(this.chainContext){
@@ -695,7 +699,8 @@ class SkillGame extends SkillBase {
    const a=b.attacker,d=b.target;if(!b.blitz||a.spent<this.profile(a).ma+this.rushLimit(a)){
     this.blockAction=null;this.nextFrenzyRound=2;const hit=()=>this.rollBlock(a,d,b.blitz);if(b.blitz){a.spent++;if(a.spent>this.profile(a).ma)this.test(a,"Rush",2,hit,()=>this.fall(a,{prevented:hit}));else hit();}else hit();return;
    }
-  }if(b&&!b.blitz&&b.attacker.bloodlust){this.feed(b.attacker,()=>this.finishBlock());return;}super.finishBlock();
+  }if(b&&!b.putridChecked){b.putridChecked=true;if(this.afterRegularBlock(b))return;}
+  if(b&&!b.blitz&&b.attacker.bloodlust){this.feed(b.attacker,()=>this.finishBlock());return;}super.finishBlock();
  }
  resolveBothDownChoice(choice){
   const b=this.blockAction,players=[b.attacker,b.target];
