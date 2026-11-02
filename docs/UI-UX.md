@@ -1,5 +1,24 @@
 # Match workspace — v0.0.42
 
+## Throwing target overlay
+
+While choosing a ball-pass or throw/kick team-mate destination, legal squares
+show Q/S/L/B range letters and the existing movement difficulty colors: blue
+2+, green 3+, yellow 4+, orange 5+, red 6+. A receiver's square uses the harder
+of passing accuracy and the accurate-delivery catch roll, with current skills,
+marking and weather. Hover or focus a square for the separate checks. Re-rolls
+and interceptions do not change the color. An automatic failure shows ×.
+Empty targets show accuracy only; Hail Mary shows its avoid-fumble roll and
+explicitly warns that it always scatters. P identifies a partner pass.
+
+Throw/kick team-mate targets use only Quick/Short range and color the Superb
+Throw check. Scatter, collisions and the eventual landing check are not
+included in that color. The overlay disappears when targeting ends and never
+consumes dice. The range key stays below the pitch to avoid shifting the board.
+
+Ranges were compared with the supplied regular throwing chart and the
+[BB2025 pass/throw rules](https://bloodbowlbase.ru/bb2025/core_rules/the_game_of_blood_bowl/#pass-actions).
+
 ## Reset control placement
 
 New game / reset is below the dugouts, separated from End Move and End team turn

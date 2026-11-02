@@ -436,3 +436,33 @@ test('Black Gobbo actual Foul menu remains available after another teammate decl
 test('Blast It actual scatter choices consume a reroll once and continue all three scatters',()=>{const {get,run}=remainingStarUI('barik-farblast',[1,5,5,5]);run('game.passContext={p:star,preview:{hail:true}};game.scatterPass(10,7,(x,y)=>globalThis.landed={x,y},()=>{});render()');const use=get('choices').children.find(e=>e.textContent==='Re-roll scatter');assert.ok(use);use.listeners.click();use.listeners.click();for(let i=0;i<2;i++){const label=run('game.pending.options[0]');get('choices').children.find(e=>e.textContent===label).listeners.click();}assert.equal(run('landed.x'),13);assert.equal(run('game.passContext.blastIt'),true);assert.equal(run('rolls.length'),0);});
 test('Quick Bite actual catch interruption steals the ball before the continuation',()=>{const {get,run}=remainingStarUI('guffle-pusmaw',[6,6,6,3,3]);run('globalThis.caught=false;game.landBall(foe.x,foe.y,false,()=>caught=true,true);render()');assert.equal(run('caught'),false);const use=get('choices').children.find(e=>e.textContent.startsWith('Use Quick Bite with '));assert.ok(use);use.listeners.click();use.listeners.click();assert.equal(run('caught'),true);assert.equal(run('game.ball.carrier===star.id'),true);assert.equal(run('rolls.length'),0);});
 test('Squigmobile actual purchase requires the opposing coach consent before hiring',()=>{const {get,run}=uiFixture('match');run('game.configureStars(0);render()');get('choices').children.find(e=>e.textContent.startsWith("Hire Da Red Gobbo's Squigmobile")).listeners.click();get('choices').children.find(e=>e.textContent==='Confirm hire').listeners.click();assert.equal(run('game.pending.team'),1);assert.equal(run('game.players.some(p=>p.star==="red-gobbo-squigmobile")'),false);const allow=get('choices').children.find(e=>e.textContent==='Allow Squigmobile');assert.ok(allow);allow.listeners.click();allow.listeners.click();assert.equal(run('game.players.filter(p=>p.star==="red-gobbo-squigmobile").length'),1);});
+function passOverlayFixture(){
+ const f=outlierUi([],'match');f.run('a.profileOverride.pa="2+";b.profileOverride.ag="5+";Object.assign(b,{x:13,y:7});d.status="reserve";d.x=null;d.y=null;game.ball={x:a.x,y:a.y,carrier:a.id};game.start(a.id,"pass");game.dice=()=>{throw Error("Overlay must not roll dice")};ballMode=true;render()');return f;
+}
+test('pass overlay colors a receiver by the harder catch roll and previews without dice',()=>{
+ const {get,run}=passOverlayFixture(),cell=get('pitch').children[7*26+13];assert.match(cell.className,/risk-5/);assert.equal(cell.dataset.throwRange,'Q');assert.match(cell.title,/Accurate pass 2\+.*Catch 5\+/);assert.ok(cell.children.some(e=>e.textContent==='Q 5+'));assert.equal(run('rolls.length'),0);assert.equal(get('throwing-key').hidden,false);
+ cell.listeners.click();assert.equal(run('throwDestination.x'),13);assert.equal(run('game.ball.carrier'),run('a.id'));assert.match(get('pitch').children[7*26+13].className,/destination/);
+ run('ballMode=false;throwDestination=null;render()');assert.ok(get('pitch').children.every(e=>!e.className.includes('throw-range')));assert.equal(get('throwing-key').hidden,true);
+});
+test('pass overlay applies catch skills, rain and markers without using reroll odds as roll difficulty',()=>{
+ const {get,run}=passOverlayFixture();run('b.profileOverride.ag="3+";b.extraSkills=["Extra Arms","Catch"];game.weather="Pouring Rain";Object.assign(d,{x:14,y:7,status:"standing"});render()');assert.match(get('pitch').children[7*26+13].title,/Catch 4\+/);assert.match(get('pitch').children[7*26+13].className,/risk-4/);
+ run('b.extraSkills.push("Nerves of Steel");render()');assert.match(get('pitch').children[7*26+13].className,/risk-3/);
+});
+test('pass overlay uses accurate pass skills and current weather in every range',()=>{
+ const {get,run}=passOverlayFixture();run('b.status="reserve";b.x=null;b.y=null;a.extraSkills=["Accurate","Cannoneer"];game.weather="Very Sunny";render()');
+ for(const [x,letter,risk] of [[13,'Q',2],[16,'S',3],[20,'L',4],[23,'B',5]]){const cell=get('pitch').children[7*26+x];assert.equal(cell.dataset.throwRange,letter);assert.match(cell.className,new RegExp('risk-'+risk));}
+ run('game.weather="Blizzard";render()');assert.ok(!get('pitch').children[7*26+20].className.includes('throw-range'));
+});
+test('pass overlay displays automatic fumble and unable catchers without NaN',()=>{
+ const {get,run}=passOverlayFixture();run('a.profileOverride.pa="-";render()');let cell=get('pitch').children[7*26+13];assert.match(cell.title,/automatic fumble/);assert.match(cell.className,/risk-6/);assert.ok(cell.children.some(e=>e.textContent==='Q ×'));assert.ok(!cell.title.includes('NaN'));
+ run('a.profileOverride.pa="2+";b.status="prone";render()');cell=get('pitch').children[7*26+13];assert.match(cell.title,/Cannot catch/);assert.match(cell.className,/risk-6/);
+});
+test('throw and kick teammate overlays only offer Quick and Short ranges from the thrower',()=>{
+ for(const action of ['throw-team-mate','kick-team-mate']){
+  const {get,run}=outlierUi([]);run('a.extraSkills=["Throw Team-mate","Kick Team-mate","Strong Arm"];b.extraSkills=["Right Stuff"];a.profileOverride.pa="3+";game.start(a.id,'+JSON.stringify(action)+');game.selectThrowMate(b.id);ballMode=true;render()');
+  assert.equal(get('pitch').children[7*26+13].dataset.throwRange,'Q');assert.equal(get('pitch').children[7*26+16].dataset.throwRange,'S');assert.ok(!get('pitch').children[7*26+17].className.includes('throw-range'));assert.match(get('pitch').children[7*26+13].title,/Superb Throw 2\+.*Scatters/);assert.match(get('throwing-key').textContent,/actual landing/);
+ }
+});
+test('Hail Mary overlay never promises an accurate delivery or a catch at the aimed square',()=>{
+ const {get,run}=passOverlayFixture();run('a.extraSkills=["Hail Mary Pass"];a.hailMary=true;render()');const cell=get('pitch').children[7*26+13];assert.equal(cell.dataset.throwRange,'H');assert.match(cell.title,/Always scatters/);assert.ok(!cell.title.includes('Catch 5+'));
+});
