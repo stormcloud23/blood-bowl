@@ -153,13 +153,13 @@ main>aside #matchflow .control{max-width:100%}
 </style>
 </head>
 <body>
-<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>Match day</h1></div><span class="badge">v0.0.30 · Match readability</span></header>
+<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>Match day</h1></div><span class="badge">v0.0.31 · Match flow</span></header>
 <nav class="workspace-tabs" role="tablist" aria-label="Game workspace"><button id="tab-play" role="tab" aria-controls="play-view" aria-selected="true">Play</button><button id="tab-teams" role="tab" aria-controls="teams-view" aria-selected="false" tabindex="-1">Teams & leagues</button><button id="tab-rosters" role="tab" aria-controls="rosters" aria-selected="false" tabindex="-1">Rosters</button><button id="tab-reference" role="tab" aria-controls="reference-view" aria-selected="false" tabindex="-1">Reference</button></nav>
 <section id="play-view" role="tabpanel" aria-labelledby="tab-play"><div class="notice" id="mode-notice"><strong>Movement and ball action practice</strong><br><span class="muted">Preview movement and its checks, resolve Block dice, pushes, and follow-ups, or secure a loose ball. Perfect Conditions. This remains a practice drive, not a complete match.</span></div>
 <div class="mode-toolbar">
 <label for="scenario">Game mode </label><select id="scenario"><option value="match">Exhibition match — pre-game</option><option value="match-learning">Learning match — simplified kickoff</option><option value="skills">Skills laboratory</option><option value="teams">Both teams</option><option value="dodge">Dodge practice</option><option value="jump">Jump & stand up</option><option value="pickup">Ball pickup</option><option value="throw-team-mate">Throw Team-mate practice</option><option value="traits">Ogre & Troll traits</option><option value="handoff">Hand-off practice</option><option value="pass">Pass & interception practice</option><option value="blitz">Blitz practice</option><option value="block">Block practice</option><option value="secure">Secure the Ball practice</option></select><span class="muted">Changing mode starts a new game.</span></div><details id="exhibition-rosters" class="panel"><summary>Exhibition teams · changing a roster starts a new exhibition</summary><div class="exhibition-side" role="group" aria-label="Home exhibition team"><label for="exhibition-home">Home roster </label><select id="exhibition-home"></select><label id="exhibition-home-league-label" for="exhibition-home-league">Home roster league </label><select id="exhibition-home-league"></select><label id="exhibition-home-alignment-label" for="exhibition-home-alignment">Home alignment </label><select id="exhibition-home-alignment"></select></div><div class="exhibition-side" role="group" aria-label="Away exhibition team"><label for="exhibition-away"> Away roster </label><select id="exhibition-away"></select><label id="exhibition-away-league-label" for="exhibition-away-league">Away roster league </label><select id="exhibition-away-league"></select><label id="exhibition-away-alignment-label" for="exhibition-away-alignment">Away alignment </label><select id="exhibition-away-alignment"></select></div></details><div id="match-scoreboard" aria-live="polite"></div><main><section><div id="pregame-overview" class="panel" hidden></div><div id="pitch-tools"><span id="pitch-direction"></span><a href="#dugout" class="dugout-link">Dugouts</a><label for="pitch-scale">Pitch size </label><select id="pitch-scale"><option value="1">Fit</option><option value="1.5">Large</option><option value="2">Extra large</option></select></div><p id="mobile-pitch-help" class="mobile-pitch-help">Swipe the pitch sideways to see the whole field. Selected actions appear in the coach panel above it.</p><div id="pitch-board" class="pitch-wrap"><div id="pitch" class="pitch" role="group" aria-label="Development pitch"></div></div><div id="pitch-legend" class="pitch-legend" aria-label="Movement highlight key"><span>No roll on this step</span><span>Check on this step</span><span>Jump</span></div><details id="position-key" class="position-key"><summary>Player shapes</summary><div id="position-key-items"></div></details><p id="pitch-hint" class="muted">Click a player for actions. Hover or focus a square for details.</p><details id="action-disclosure"><summary>Player actions</summary><div id="action-controls"><button class="control" id="start">Declare Move</button><button class="control secondary" id="handoff">Declare Hand-off</button><button class="control secondary" id="pass">Declare Pass</button><button class="control secondary" id="throw-mate">Declare Throw Team-mate</button><button class="control secondary" id="kick-mate">Declare Kick Team-mate</button><button class="control secondary" id="transfer">Choose ball target</button><button class="control secondary" id="blitz">Declare Blitz</button><button class="control secondary" id="block">Block</button><button class="control secondary" id="special">Foul / special action</button><button class="control secondary" id="secure">Secure the Ball</button></div></details><div class="turn-controls"><button class="control secondary" id="finish">End Move</button><button class="control secondary" id="end">End team turn</button><button class="control secondary" id="reset">New game / reset</button></div><section id="dugout" class="dugout-board" aria-label="Team dugouts"></section></section>
 <aside id="coach-panel" class="panel"><div class="eyebrow">Coach’s desk</div><h2 id="coach"></h2><section id="pitch-popup" role="region" aria-label="Selected pitch actions" hidden></section><div id="matchflow" class="notice" aria-live="polite"></div><p id="selection" role="status" aria-live="polite"></p><div id="movement" aria-live="polite"></div><div id="choices"></div><details id="player-details"><summary>Player profile & optional skills</summary><div id="profile"></div></details><details><summary>Session log</summary><ol id="log"></ol></details></aside></main></section><section id="teams-view" role="tabpanel" aria-labelledby="tab-teams" hidden></section><section id="rosters" role="tabpanel" aria-labelledby="tab-rosters" hidden><div class="roster-browser"><label for="roster-search">Find a roster </label><input id="roster-search" type="search" placeholder="Team name"><span id="roster-search-count" role="status"></span></div><div id="roster-list"></div></section><section id="reference-view" role="tabpanel" aria-labelledby="tab-reference" hidden><article class="panel"><h2>Playing guide</h2><p class="muted">Select a player and choose an action. For movement, click a destination to preview the remaining range from there. Click another highlighted tile to extend the route. Declare the action, then click the selected destination again to commit; Cancel movement preview restores the current range. For Pass or Hand-off, declare the action, move as needed, then choose a ball target. For Blitz, choose Declare Blitz and a highlighted target, move adjacent, then choose Blitz Block (1 MA). During Block, click a highlighted target. After choosing a push result, click a gold push square; the player being pushed has a red outline. Crowd pushes remain in the side panel. Green = no roll on that step; amber = a check on that step or an action target; purple border = jump. Earlier route steps may still require rolls.</p><p class="muted">Direction template: 1 NW · 2 N · 3 NE · 4 W · 5 E · 6 SW · 7 S · 8 SE. Green is a step without a roll; amber is a check or action target; purple marks a jump. Earlier route steps can still require rolls.</p><p class="muted">Use arrow keys to navigate the pitch. Enter opens actions or selects a square. Escape closes a popup or cancels targeting. Hover information is also available by keyboard focus; touch a player for the same information and actions.</p></article><div id="reference-profile" class="panel" hidden><h2>Position details</h2><p>Select a position in Rosters to inspect it here.</p></div></section><div id="pitch-tooltip" popover="manual" role="tooltip"></div>
-<footer>FFB-derived corrections: <a href="docs/FFB-AUDIT.md">comparison and scope</a> · <a href="THIRD_PARTY_NOTICES.md">MIT attribution</a> · Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.30 with feedback.</footer>
+<footer>FFB-derived corrections: <a href="docs/FFB-AUDIT.md">comparison and scope</a> · <a href="THIRD_PARTY_NOTICES.md">MIT attribution</a> · Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.31 with feedback.</footer>
 <script id="team-data" type="application/json">[
   {
     "id": "imperial-nobility",
@@ -7471,7 +7471,7 @@ function choose(x,y,pushDecision=game.pending){
  if(game.pending)return;
  if(p){selected=p.id;destination=null;showProfile(p.team,p.role,p.number);render();return;}
  const mover=planningPlayer(),previous=previewRoute(mover);
- if(previous?.x===x&&previous?.y===y){if(game.mover)commitRoute();else render();return;}
+ if(previous?.x===x&&previous?.y===y){commitRoute();return;}
  let route=remainingRange(mover,previous).get(routeKey(x,y));
  // An adjacent click is an explicit step, preserving coach-selected shortcuts.
  const from=previous||(mover?plannedStart(mover):null);
@@ -7493,8 +7493,9 @@ function planChecks(plan,mover){
  return checks;
 }
 function commitRoute(){
- const player=game.players.find(p=>p.id===game.mover);if(!player||!destination)return;
+ const player=planningPlayer();if(!player||!destination||game.pending)return;
  const route=previewRoute(player);if(!route)return;
+ if(!game.mover){if(!game.start(player.id,"move"))return;if(game.pending||game.mover!==player.id||game.finished){destination=null;render();return;}}
  for(const next of route.path){
   if(game.mover!==player.id||game.pending||game.finished||!game.step(next.x,next.y))break;
   if(game.pending||game.mover!==player.id||game.finished)break;
@@ -7545,7 +7546,7 @@ function render(){
  const rangeCount=Math.max(0,range.size-1);
  movement.textContent=(game.blockAction?"Block: ST "+game.blockAction.aStrength+" vs "+game.blockAction.dStrength+" · "+game.blockAction.assists.offensive+" offensive assist(s), "+game.blockAction.assists.defensive+" defensive assist(s). ":mover?"Moving #"+mover.number+": "+mover.spent+" / "+game.profile(mover).ma+" MA used · "+Math.max(0,mover.spent-game.profile(mover).ma)+" / "+game.rushLimit(mover)+" rushes used. ":planner?"Forecast for #"+planner.number+": "+rangeCount+" reachable destinations, including up to "+game.rushLimit(planner)+" rushes. ":"")+"Team re-rolls left: "+game.rerollsAvailable(game.active)+"."+(game.action==="blitz"?" Blitz target: #"+game.players.find(p=>p.id===game.blitzTarget)?.number+(game.blitzBlocked?" · block completed; continue moving.":" · move adjacent, then choose Blitz Block (1 MA).") : "");
  const choices=document.getElementById("choices");choices.replaceChildren();
- if(chosen&&!ballMode){const remaining=document.createElement("p");remaining.textContent="From preview square "+(chosen.x+1)+", "+(chosen.y+1)+": "+Math.max(0,game.profile(planner).ma-chosen.spent)+" normal MA and "+Math.max(0,game.rushLimit(planner)-Math.max(0,chosen.spent-game.profile(planner).ma))+" Rush(es) remaining · "+rangeCount+" possible next destinations. The player has not moved.";choices.append(remaining);choices.append(button("Cancel movement preview",cancelMovementPreview));}
+ if(chosen&&!ballMode){const remaining=document.createElement("p");remaining.textContent="From preview square "+(chosen.x+1)+", "+(chosen.y+1)+": "+Math.max(0,game.profile(planner).ma-chosen.spent)+" normal MA and "+Math.max(0,game.rushLimit(planner)-Math.max(0,chosen.spent-game.profile(planner).ma))+" Rush(es) remaining · "+rangeCount+" possible next destinations. The player has not moved.";choices.append(remaining);const routeGame=game;choices.append(button("Confirm Move",()=>{if(game===routeGame&&destination===chosen&&!game.pending)commitRoute();}));choices.append(button("Cancel movement preview",()=>{if(game===routeGame&&destination===chosen&&!game.pending)cancelMovementPreview();}));}
  if(ballMode&&["throw-team-mate","kick-team-mate"].includes(game.action)){
   const p=document.createElement("p"),preview=throwDestination&&game.throwPreview(throwDestination.x,throwDestination.y);p.textContent=preview?preview.name+" · "+(Number.isFinite(preview.target)?"Superb Throw "+Math.min(6,preview.target)+"+":"PA –: automatic fumble")+". Click again to throw #"+preview.mate.number+". Both Superb and Subpar throws scatter before landing.":"Choose a highlighted square, then click it again to throw your team-mate.";choices.append(p);
  }else if(ballMode){
@@ -7579,13 +7580,12 @@ function render(){
   }
  }else if(!ballMode&&destination&&chosen){
   const initialSpent=mover?mover.spent:planner.status==="prone"?game.standCost(planner):0;
-  const title=document.createElement("p");title.textContent=chosen.path.length?"Planned route: "+chosen.path.length+" step(s), "+(chosen.spent-initialSpent)+" movement point(s). Click another highlighted square to extend this route. "+(mover?"Click the selected destination again to commit.":"Declare Move to begin, then click the selected destination again to commit.")+" Cancel movement preview to start planning again. Required checks appear below; dice are rolled only when committed.":"Destination reached. Choose another highlighted square to continue moving.";choices.append(title);
+  const title=document.createElement("p");title.textContent=chosen.path.length?"Planned route: "+chosen.path.length+" step(s), "+(chosen.spent-initialSpent)+" movement point(s). Click another highlighted square to extend this route. "+"Confirm Move, or click the same destination again, to activate and follow this route."+" Cancel movement preview to start planning again. Required checks appear below; dice are rolled only when committed.":"Destination reached. Choose another highlighted square to continue moving.";choices.append(title);
   chosen.path.forEach((step,i)=>{
    const row=document.createElement("p"),checks=planChecks(step.plan,planner);
    row.textContent=(i+1)+". "+(step.plan.jump?"Jump to ":"Move to ")+(step.x+1)+", "+(step.y+1)+" · "+step.plan.cost+" MA · "+(checks.length?checks.join(" → "):"no roll");choices.append(row);
   });
-  if(!mover)choices.append(button("Declare Move to begin",()=>{game.start(planner.id);render();}));
-  else if(!chosen.path.length)choices.append(button("Clear destination",()=>{destination=null;render();}));
+  if(!chosen.path.length)choices.append(button("Clear destination",()=>{destination=null;render();}));
  }
  document.getElementById("pass").disabled=!game.canBallAction(inspected,"pass");
  document.getElementById("handoff").disabled=!game.canBallAction(inspected,"handoff");
@@ -7593,7 +7593,7 @@ function render(){
  document.getElementById("transfer").textContent=ballMode?"Return to movement":"Choose ball target";
  document.getElementById("special").disabled=!game.specialActions(mover||inspected).length;
  document.getElementById("start").disabled=!game.canStart(inspected);
- document.getElementById("start").textContent=destination&&!mover?"Declare Move for waypoint":"Declare Move";
+ document.getElementById("start").textContent="Activate in place";
  document.getElementById("blitz").disabled=!game.players.some(p=>game.canBlitz(inspected,p));
  document.getElementById("blitz").textContent=blockMode==="blitz"?"Cancel Blitz":"Declare Blitz";
  document.getElementById("block").disabled=game.action==="blitz"?!game.canBlitzBlock():!game.canStart(inspected)||!game.players.some(p=>game.canBlock(inspected,p));
@@ -7872,7 +7872,7 @@ function refreshRecordedResult(){
 }
 function playerContextActions(p){
  if(game.pending||game.finished||!p||p.id!==selected||game.mover&&game.mover!==p.id)return [];
- return playerActionIds.map(id=>document.getElementById(id)).filter(b=>!b.disabled).map(b=>({label:b.textContent,run:()=>b.click()}));
+ return playerActionIds.filter(id=>id!=="start").map(id=>document.getElementById(id)).filter(b=>!b.disabled).map(b=>({label:b.textContent,run:()=>b.click()}));
 }
 function targetContextActions(actor,target){
  const actions=[];
@@ -7883,12 +7883,12 @@ function targetContextActions(actor,target){
  if(game.throwActor()&&game.throwCandidates().some(p=>p.id===target.id))actions.push({label:(game.action==="kick-team-mate"?"Kick":"Throw")+" team-mate #"+target.number,run:()=>{game.selectThrowMate(target.id);ballMode=true;throwDestination=null;destination=null;render();}});
  return actions;
 }
-function showPitchPopup(cell,title,details,actions){
+function showPitchPopup(cell,title,details,actions,help=""){
  closePitchPopup();hidePitchTooltip();popupAnchor=cell;const epoch=popupEpoch,currentGame=game,currentPending=game.pending;
  popup.replaceChildren();const heading=document.createElement("h3");heading.textContent=title;popup.append(heading);
  const close=button("×",()=>closePitchPopup(true));close.className="popup-close";close.setAttribute("aria-label","Close pitch actions");popup.append(close);
  const lines=details.split("\n").filter(Boolean),summary=document.createElement("p");summary.className="action-summary";summary.textContent=lines.length>=4?lines[0].split(" · #")[0]+" · "+lines[2]:lines[0]||"";popup.append(summary);
- const list=document.createElement("div");list.className="popup-actions";popup.append(list);
+ if(help){const hint=document.createElement("p");hint.className="action-hint";hint.textContent=help;popup.append(hint);}const list=document.createElement("div");list.className="popup-actions";popup.append(list);
  for(const [i,action] of actions.entries()){const b=button(action.label,()=>{
   if(epoch!==popupEpoch||game!==currentGame||game.pending!==currentPending||popup.hidden)return;
   closePitchPopup();action.run();
@@ -7910,10 +7910,7 @@ choose=function(x,y,pushDecision=game.pending){
  chooseBeforeWorkspace(x,y,pushDecision);
  const cell=pitch.children[pitchFocus];
  if(!wasTargeting&&target&&(!game.match||["play","charge"].includes(phase))){
-  const actions=playerContextActions(target);actions.push({label:"Show full profile & skills",run:()=>{document.getElementById("player-details").open=true;}});showPitchPopup(cell,"#"+target.number+" · "+playerLabel(target),playerQuickInfo(target),actions);
- }else if(!wasTargeting&&!target&&destination&&game.mover){
-  const planner=planningPlayer(),route=previewRoute(planner),checks=route.path.flatMap((step,i)=>planChecks(step.plan,planner).map(check=>"Step "+(i+1)+": "+check)),summary="Planned: "+route.path.length+" step(s) · "+(route.spent-planner.spent)+" MA\n"+(checks.length?checks.join("\n"):"No rolls on this route.");
-  showPitchPopup(cell,"Movement preview",summary,[{label:"Commit planned route",run:commitRoute},{label:"Cancel movement preview",run:cancelMovementPreview}]);
+  const actions=playerContextActions(target);actions.push({label:"Show full profile & skills",run:()=>{document.getElementById("player-details").open=true;}});showPitchPopup(cell,"#"+target.number+" · "+playerLabel(target),playerQuickInfo(target),actions,game.canStart(target)?"To move: choose a highlighted destination, then Confirm Move. Previewing never activates the player. For a Blitz, Pass or Foul, choose the action below first.":"");
  }
 };
 pitch.addEventListener("keydown",event=>{
@@ -7968,7 +7965,7 @@ function refreshWorkspace(){
  document.getElementById("end").hidden=document.getElementById("end").disabled;
  document.getElementById("action-disclosure").hidden=game.match&&!["play","charge"].includes(game.phase)||!!game.pending;
  const hint=document.getElementById("pitch-hint");
- hint.textContent=game.pending?"Decision required — resolve the coach’s desk before continuing.":blockMode?"Click a red highlighted opponent to declare the action. Escape cancels targeting.":ballMode?"Click a highlighted target to preview; click it again to commit. Escape returns to movement.":destination?"Click another highlighted square to extend the route, or repeat the destination to commit. Escape clears the preview.":game.match&&game.phase==="setup"?"Select a player, then place them in an empty square in their own half.":"Click a player for legal actions. Hover or focus a square for stats and step checks.";
+ hint.textContent=game.pending?"Decision required — resolve the coach’s desk before continuing.":blockMode?"Click a red highlighted opponent to declare the action. Escape cancels targeting.":ballMode?"Click a highlighted target to preview; click it again to commit. Escape returns to movement.":destination?"Click another highlighted square to extend the route, then Confirm Move or repeat the destination to commit. Escape clears the preview.":game.match&&game.phase==="setup"?"Select a player, then place them in an empty square in their own half.":"Click a player for legal actions. Hover or focus a square for stats and step checks.";
  if(game.match&&game.phase==="kickAim")hint.textContent="Aim in the highlighted "+(game.ownHalf(game.receiving,0)?"left":"right")+" half ("+teams[game.receiving].name+"). Click once to preview; click the same square again to kick.";
  if(game.match&&game.phase==="swarming")hint.textContent="Swarming: select a reserve Lineman in the coach panel, then place them in an empty square in their own half.";
  const direction=document.getElementById("pitch-direction"),attacksRight=i=>game.match?game.right(i):i===0;direction.textContent=teams.map((team,i)=>team.name+" "+(attacksRight(i)?"→":"←")).join(" · ");direction.setAttribute("aria-label",teams.map((team,i)=>team.name+" attacks "+(attacksRight(i)?"right":"left")).join("; "));
