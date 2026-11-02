@@ -1,20 +1,20 @@
-# FFB parity gaps — v0.0.28, November 1, 2026
+# FFB parity gaps — v0.0.29, November 1, 2026
 
-Full parity remains incomplete. The browser now offers **48 named players / 45
-hiring entries**. [STAR-BACKLOG](STAR-BACKLOG.md) lists the eighteen unsupported
-entries from the earlier checked 63-entry index and one additional known entry,
-Da Red Gobbo's Squigmobile. Do not confuse this bounded catalogue inventory with
-every supplemental publication or a complete Java match comparison.
+Full parity remains incomplete. The checked star catalogue is complete: **67
+named players / 64 hiring entries**, including all three pairs and supplemental
+exhibition-only Squigmobile. The original index has 63 hiring entries; this
+bounded inventory is not every supplemental publication or a full Java match
+comparison.
 
-All three indexed pairs and the Bugman/Varag/Grim/Zug injury-alternative group
-are implemented. See [STAR-INJURY-PAIRS](STAR-INJURY-PAIRS.md) and
-[STAR-SPECIALS-28](STAR-SPECIALS-28.md) for behavior, executable source paths,
-validation and deliberate precedence over conflicting printed wording.
+See [remaining star abilities](STAR-SPECIALS-29.md), [earlier specials](STAR-SPECIALS-28.md)
+and [injury alternatives / pairs](STAR-INJURY-PAIRS.md) for behavior, executable
+source paths, validation and deliberate precedence over conflicting wording.
+Squigmobile has no definition in the pinned FFB tree and follows its published
+supplemental profile and restrictions.
 
-Next work is the remaining compound/ranged actions, teammate enhancements and
-special action allowances. Wider kickoff/medical/skill/prayer/Wizard/star
-combinations still need comparison. The isolated geometry oracle is not a full
-Java/JavaScript match differential runner.
+Wider kickoff/medical/skill/prayer/Wizard/star combinations still need comparison.
+The isolated geometry oracle is not a full Java/JavaScript match differential
+runner. No inert profiles were added to close the catalogue.
 
 ## Match and product systems
 

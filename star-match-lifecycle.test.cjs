@@ -4,6 +4,13 @@ function settle(g){let n=0;while(g.pending){assert.ok(n++<30,'Decision loop: '+g
 function deployStars(g){const team=g.setupTeam,stars=g.available(team).filter(p=>p.star&&!g.onPitch(p));for(const p of stars){const regular=g.players.find(q=>q.team===team&&!q.star&&g.onPitch(q));assert.ok(regular);const {x,y}=regular;assert.ok(g.benchSetup(regular.id));assert.ok(g.placeSetup(p.id,x,y));}assert.deepEqual(g.setupErrors(team),[]);assert.ok(g.confirmSetup());}
 function kickoff(g){deployStars(g);deployStars(g);assert.equal(g.phase,'kicker');assert.ok(g.nominateKicker(g.eligibleKickers()[0].id));assert.ok(g.kick(g.ownHalf(g.receiving,25)?25:0,7));settle(g);assert.equal(g.phase,'play');}
 const cases=[
+ {label:'Barik, Thorsson, Grombrindal and Ivar',ids:['human','human'],hires:[['barik-farblast','thorsson-stoutmead'],['grombrindal','ivar-eriksson']]},
+ {label:'Karina',ids:['vampire','human'],hires:[['captain-karina'],['akhorne']]},
+ {label:'Estelle, Glotl, Rodney and Maple',ids:['lizardmen','halfling'],leagues:[null,'Woodland League'],hires:[['estelle-la-veneaux','glotl-stop'],['rodney-roachbait','maple-highgrove']]},
+ {label:'Guffle and Scyla',ids:['nurgle','khorne'],hires:[['guffle-pusmaw'],['scyla-anfingrimm']]},
+ {label:'Jeremiah and Swiftvine',ids:['wood-elf','wood-elf'],leagues:[null,'Woodland League'],hires:[['jeremiah-kool'],['swiftvine-glimmershard']]},
+ {label:'Nobbla, Scrappa, Black Gobbo and Squigmobile',ids:['goblin','black-orc'],hires:[['nobbla-blackwart','scrappa-sorehead'],['black-gobbo','red-gobbo-squigmobile']]},
+ {label:'Rumbelow and Zzharg',ids:['halfling','chaos-dwarf'],hires:[['rumbelow-sheepskin'],['zzharg-madeye']]},
  {label:'Jordell, Rowana and Cindy',ids:['wood-elf','human'],leagues:['Woodland League',null],hires:[['jordell-freshbreeze','rowana-forestfoot'],['cindy-piewhistle','skrorg-snowpelt']]},
  {label:'Grashnak',ids:['chaos-chosen','human'],hires:[['grashnak-blackhoof','lord-borak'],['griff-oberwald','puggy-baconbreath']]},
  {label:'Hakflem and Withergrasp',ids:['skaven','nurgle'],hires:[['hakflem-skuttlespike','skitter-stab-stab'],['withergrasp-doubledrool','bilerot-vomitflesh']]},
@@ -25,7 +32,7 @@ const cases=[
 ];
 for(const c of cases)test('named-star match completes both halves with '+c.label,()=>{
  const teams=c.ids.map((id,i)=>{const r=structuredClone(rosters.find(r=>r.id===id));if(c.leagues?.[i])r.league=c.leagues[i];return r;}),before=JSON.stringify(teams),g=new MatchGame(teams,{learning:true,dice:s=>s});
- for(const [team,ids] of c.hires.entries())for(const id of ids)assert.ok(g.hireStar(team,id),id);
+ g.squigApproved=[true,true];for(const [team,ids] of c.hires.entries())for(const id of ids)assert.ok(g.hireStar(team,id),id);
  const profiles=g.players.filter(p=>p.star).map(p=>[p.id,JSON.stringify(p.profileOverride)]),fees=[0,1].map(i=>g.resourceCosts(i).inducements);
  g.phase='leagueSteps';assert.ok(g.advancePregame());assert.equal(g.prayerCount,0);g.phase='kickChoice';assert.ok(g.chooseKicking(0));kickoff(g);
  assert.ok(g.players.filter(p=>p.star).every(p=>g.onPitch(p)&&p.fieldedDrive===1));
