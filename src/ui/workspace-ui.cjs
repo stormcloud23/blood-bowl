@@ -218,10 +218,22 @@ function refreshWorkspace(){
  if(game.match&&game.phase==="finished"&&game.leagueFixtureId)flow.append(button("Record result in Teams & leagues",()=>switchWorkspace("teams",true)));
  refreshRecordedResult();
  const phaseKey=[game.phase,game.setupTeam,game.swarmState?.team].join(":"),coachPanel=document.getElementById("coach-panel");if(displayedPhase!==phaseKey||displayedDecision&&!game.pending)coachPanel.scrollTop=0;displayedPhase=phaseKey;
- if(game.pending&&game.pending!==displayedDecision){choices.tabIndex=-1;choices.focus({preventScroll:true});choices.scrollIntoView({block:"start",inline:"nearest"});}displayedDecision=game.pending;
+ if(game.pending&&game.pending!==displayedDecision){choices.tabIndex=-1;choices.focus({preventScroll:true});}displayedDecision=game.pending;
 }
 const renderBeforeWorkspace=render;
-render=function(){const setup=game.match&&game.phase==="setup"?{game,drive:game.drive,team:game.setupTeam}:null;if(setup&&(!setupSelectionContext||setup.game!==setupSelectionContext.game||setup.drive!==setupSelectionContext.drive||setup.team!==setupSelectionContext.team))selected=null;setupSelectionContext=setup;const focused=document.activeElement?.closest?.(".square"),index=focused?Array.from(pitch.children).indexOf(focused):-1,logTop=log.scrollTop,followLog=log.scrollHeight-log.scrollTop-log.clientHeight<24;renderBeforeWorkspace();refreshWorkspace();log.scrollTop=followLog?log.scrollHeight:logTop;if(index>=0&&!game.pending)pitch.children[index]?.focus({preventScroll:true});};
+render=function(){
+ const setup=game.match&&game.phase==="setup"?{game,drive:game.drive,team:game.setupTeam}:null;
+ if(setup&&(!setupSelectionContext||setup.game!==setupSelectionContext.game||setup.drive!==setupSelectionContext.drive||setup.team!==setupSelectionContext.team))selected=null;
+ setupSelectionContext=setup;
+ const focused=document.activeElement?.closest?.(".square"),index=focused?Array.from(pitch.children).indexOf(focused):-1,logTop=log.scrollTop,followLog=log.scrollHeight-log.scrollTop-log.clientHeight<24;
+ const pageX=globalThis.scrollX||0,pageY=globalThis.scrollY||0;
+ renderBeforeWorkspace();refreshWorkspace();
+ log.scrollTop=followLog?log.scrollHeight:logTop;
+ if(index>=0&&!game.pending)pitch.children[index]?.focus({preventScroll:true});
+ // Rebuilding the coach's desk can change browser scroll anchoring or briefly
+ // shrink the document. Updating an action should not move the viewport.
+ if((globalThis.scrollX||0)!==pageX||(globalThis.scrollY||0)!==pageY)globalThis.scrollTo?.({left:pageX,top:pageY,behavior:"instant"});
+};
 const startLeagueMatchBeforeWorkspace=startLeagueMatch;
 startLeagueMatch=function(fixture){switchWorkspace("play");startLeagueMatchBeforeWorkspace(fixture);};
 const leagueDisclosureKey=e=>e.querySelector("summary")?.textContent.split(" · ")[0]||"";

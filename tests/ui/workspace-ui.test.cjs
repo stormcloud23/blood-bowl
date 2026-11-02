@@ -13,8 +13,8 @@ function workspaceFixture(scenario='block',timers={}){
   addEventListener(k,fn){(this.listeners[k]??=[]).push(fn);}
   emit(k,extra={}){const e={target:this,preventDefault(){},...extra};for(const fn of this.listeners[k]||[])fn(e);}
   click(){if(!this.disabled)this.emit('click');}
-  before(){}after(e){this.parentElement?.append(e);}scrollIntoView(){}
-  focus(){document.activeElement=this;}
+  before(){}after(e){this.parentElement?.append(e);}scrollIntoView(options){(this.scrollCalls??=[]).push(options);}
+  focus(options){document.activeElement=this;this.focusOptions=options;}
   matches(selector){return selector===':popover-open'?!!this.popoverOpen:selector==='.square'?this.className.split(' ').includes('square'):['button','details','summary','table','tr'].includes(selector)?this.tagName===selector.toUpperCase():false;}
   closest(selector){return this.matches(selector)?this:this.parentElement?.closest(selector)||null;}
   querySelectorAll(selector){return this.children.flatMap(e=>[...(e.matches(selector)?[e]:[]),...e.querySelectorAll(selector)]);}
@@ -176,6 +176,20 @@ test('the real Swarming panel selects reserve Linemen and guards stale finish co
 });
 test('new required decisions receive focus and new games reset coach-panel scrolling',()=>{
  const f=workspaceFixture('match');f.run('game.pending={type:"custom",kind:"Decision",team:0,options:["Continue"],resolve:()=>{game.pending=null;}};render()');assert.equal(f.document.activeElement,f.get('choices'));f.get('coach-panel').scrollTop=250;f.get('reset').click();assert.equal(f.get('coach-panel').scrollTop,0);assert.equal(f.run('game.pending'),null);
+});
+test('successive coach decisions keep accessible focus without scrolling the page',()=>{
+ const f=workspaceFixture('match'),choices=f.get('choices');
+ choices.scrollIntoView=()=>{throw Error('Decision updates must not scroll the viewport');};
+ f.run("globalThis.scrollY=340;globalThis.scrollX=12;game.skillChoice('First decision',0,['Next'],()=>game.skillChoice('Second decision',0,['Done'],()=>{}));render();");
+ assert.equal(f.document.activeElement,choices);assert.equal(choices.focusOptions.preventScroll,true);assert.equal(f.run('scrollY'),340);
+ choices.querySelectorAll('button').find(b=>b.textContent==='Next').click();
+ assert.equal(f.run('game.pending.kind'),'Second decision');assert.equal(f.document.activeElement,choices);assert.equal(f.run('scrollY'),340);assert.equal(f.run('scrollX'),12);
+});
+test('rerender restores the page offset after layout changes and preserves pitch focus',()=>{
+ const f=workspaceFixture(),cell=f.cell(0,0),choices=f.get('choices'),replace=choices.replaceChildren;
+ f.run("globalThis.scrollX=10;globalThis.scrollY=420;globalThis.scrollTo=options=>{globalThis.restoredScroll=options;globalThis.scrollX=options.left;globalThis.scrollY=options.top;};");
+ choices.replaceChildren=function(...items){replace.apply(this,items);f.run('globalThis.scrollY+=36');};cell.focus();f.run('render()');
+ assert.equal(f.run('scrollY'),420);assert.equal(f.run('scrollX'),10);assert.equal(f.run('restoredScroll.behavior'),'instant');assert.equal(f.document.activeElement,f.cell(0,0));assert.equal(f.cell(0,0).focusOptions.preventScroll,true);
 });
 function dugoutNodes(e){return [e,...e.children.flatMap(dugoutNodes)];}
 test('visual dugouts partition reserves, KO, injury, death, send-off and drive-unavailable players',()=>{
