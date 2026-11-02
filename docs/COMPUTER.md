@@ -1,4 +1,4 @@
-# Computer opponent — v0.0.36
+# Computer opponent — v0.0.37
 
 In Play, choose Computer · Human team or Computer · Orc team in the Opponent
 menu. Changing this choice starts a new exhibition. You control home; the
@@ -26,6 +26,21 @@ enumerate bounded adjacent routes, scoring progress, ball recovery, carrier
 protection, pressure, marking and risk. Actions are reconsidered after each
 activation; engine legality is checked before each planned step. Plans are
 discarded after interruption, drive or turn changes.
+
+Field control uses the marginal value of each player's tackle zones: new
+coverage is worth more than doubling existing coverage, and further overlap
+has little value. Moving away also loses the value of the coverage left
+behind. This replaces the old reward for every supporter to converge on a
+single point ahead of the carrier. Defensive pressure has diminishing returns
+for additional markers too.
+
+Carrier protection rewards all four diagonal cage corners equally, including
+the rear, plus distinct tackle-zone coverage on the eight adjacent squares.
+Overlapping protection saturates, so a complete cage does not attract the
+whole team. Only standing, non-distracted guards count. A moving carrier can
+give limited credit to distinct unused escorts that could reach missing
+corners; this is an estimate, not a complete path/threat simulation. Blitzes
+also account for the coverage and protection abandoned at their origin.
 
 It can stand up, pick up the ball, advance and score, move supporters, block
 and Blitz. It chooses block dice, pushes, rerolls and skill prompts. It uses
@@ -55,5 +70,8 @@ block selection, mandatory bomb rethrows, chain-push ownership, empty teams and
 seeded full matches. Full matches assert pitch
 occupancy and turn bounds while advancing to the final whistle. Workspace tests
 exercise the actual bundled selector, timers, pause, reset, takeover and reactions.
+Tactical regressions cover rear cage completion in both directions, redundant
+support, maintaining width through complete turns, disabled tackle zones and
+protecting a cage corner instead of taking an unnecessary Blitz.
 These checks are distinct from visual browser review or comprehensive tactical
 and roster-combination testing.

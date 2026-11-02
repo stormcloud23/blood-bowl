@@ -1,4 +1,13 @@
-# Match workspace — v0.0.36
+# Match workspace — v0.0.37
+
+## Stable action viewport — v0.0.37
+
+New decisions retain accessible focus with preventScroll; they no longer call
+scrollIntoView, which previously pulled the page toward the coach's desk after
+button presses. Match rerenders preserve both page offsets, and the rebuilt
+game session is excluded from browser scroll anchoring. Intentional navigation
+such as switching tabs, inspecting a roster or selecting a dugout player keeps
+its existing behavior.
 
 ## Computer exhibitions — v0.0.36
 

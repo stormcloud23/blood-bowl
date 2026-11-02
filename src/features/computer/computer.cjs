@@ -83,21 +83,63 @@ class ComputerCoach {
   }
   return [...best.values()];
  }
- positionValue(g,p,n){
-  const dir=g.right(p.team)?1:-1,carrier=g.players.find(p=>p.id===g.ball.carrier),own=carrier?.team===p.team,marks=g.markingAt(p,n.x,n.y);
-  let value=-marks*3-n.risk*5-n.path.length*.12;
+ // Evaluate the marginal value of this player's zones, rather than paying
+ // every player to approach the same point. Existing unique coverage matters
+ // just as much as new coverage; redundant zones have diminishing returns.
+ positionContext(g,p){
+  const allies=g.players.filter(q=>q!==p&&q.team===p.team&&g.onPitch(q)&&q.status==="standing"&&!q.distracted),coverage=new Uint8Array(390);
+  for(const q of allies)for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)if((dx||dy)&&g.inside(q.x+dx,q.y+dy))coverage[(q.y+dy)*26+q.x+dx]++;
+  const carrier=g.players.find(q=>q.id===g.ball.carrier),enemies=g.players.filter(q=>q.team!==p.team&&g.onPitch(q)&&q.status==="standing"&&!q.distracted);
+  return {allies,coverage,carrier,enemies,budgets:new Map(allies.filter(q=>!q.used).map(q=>[q.id,g.movementAllowance(q)]))};
+ }
+ coverageValue(g,n,coverage){
+  let value=0;
+  for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)if((dx||dy)&&g.inside(n.x+dx,n.y+dy)){
+   const count=coverage[(n.y+dy)*26+n.x+dx];value+=count===0?1.3:count===1?.25:.05;
+  }
+  return value;
+ }
+ protectionValue(g,carrier,guards,context,{potential=false}={}){
+  const occupied=new Set(guards.map(q=>q.x+","+q.y));let value=0,corners=0;
+  const missing=[];
+  for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){
+   if(!dx&&!dy)continue;const square={x:carrier.x+dx,y:carrier.y+dy};if(!g.inside(square.x,square.y))continue;
+   const count=guards.filter(q=>g.distance(q,square)===1).length;
+   value+=count?1.5+(count>1?.5:0):0;
+   if(dx&&dy){if(occupied.has(square.x+","+square.y)){value+=4;corners++;}else missing.push(square);}
+  }
+  if(corners===4)value+=4;
+  // A carrier may advance ahead of unused escorts, but used/prone/distracted
+  // players cannot promise future corners. Match distinct escorts to corners
+  // so one fast player cannot be counted as an entire future cage.
+  if(potential){
+   const assigned=new Map(),eligible=missing.map(square=>guards.filter(q=>context.budgets.has(q.id)&&g.marking(q)===0&&g.distance(q,square)<=context.budgets.get(q.id)&&!g.at(square.x,square.y)&&!context.enemies.some(e=>g.distance(e,square)===1)));
+   const match=(i,seen)=>{for(const q of eligible[i])if(!seen.has(q.id)){seen.add(q.id);if(!assigned.has(q.id)||match(assigned.get(q.id),seen)){assigned.set(q.id,i);return true;}}return false;};
+   for(let i=0;i<missing.length;i++)if(match(i,new Set()))value+=1.5;
+  }
+  return value;
+ }
+ positionValue(g,p,n,context=this.positionContext(g,p)){
+  const dir=g.right(p.team)?1:-1,{carrier}=context,own=carrier?.team===p.team,marks=g.markingAt(p,n.x,n.y);
+  let value=-marks*3-n.risk*5-n.path.length*.12+(carrier===p?0:this.coverageValue(g,n,context.coverage));
   if(carrier===p){
    value+=(n.x-p.x)*dir*3;
    if(n.x===(dir===1?25:0))value+=200-n.risk*2;
-   value+=g.players.filter(q=>q.team===p.team&&q!==p&&g.onPitch(q)&&q.status==="standing"&&g.distance(q,n)<=2).length;
+   value+=this.protectionValue(g,n,context.allies,context,{potential:true})*.45;
   }else if(!carrier&&g.inside(g.ball.x,g.ball.y)&&!g.has(p,"No Ball")){
-   value+=(g.distance(p,g.ball)-g.distance(n,g.ball))*3;
+   value+=(Math.min(6,g.distance(p,g.ball))-Math.min(6,g.distance(n,g.ball)))*2;
    if(n.path.some(s=>s.x===g.ball.x&&s.y===g.ball.y))value+=30+this.carrierValue(g,p);
   }else if(carrier){
-   const goal=own?{x:Math.max(0,Math.min(25,carrier.x+dir*2)),y:carrier.y}:carrier;
-   value+=(g.distance(p,goal)-g.distance(n,goal))*2;
-   if(own){if(g.distance(n,carrier)<=2)value+=4;value-=marks*2;}
-   else if(g.distance(n,carrier)===1)value+=8;
+   if(own){
+    const guards=context.allies.filter(q=>q!==carrier).concat(n);
+    value+=this.protectionValue(g,carrier,guards,context)*1.4;
+    value+=Math.max(-4,Math.min(4,(n.x-carrier.x)*dir))*.35;
+    value-=marks*2;
+   }else{
+    value+=(Math.min(4,g.distance(p,carrier))-Math.min(4,g.distance(n,carrier)))*2;
+    const markers=context.allies.filter(q=>g.distance(q,carrier)===1).length;
+    if(g.distance(n,carrier)===1)value+=markers===0?8:markers===1?3:0;
+   }
   }else value+=(n.x-p.x)*dir;
   if(n.y===0||n.y===14)value-=2;
   return value;
@@ -107,9 +149,9 @@ class ComputerCoach {
   const offer=c=>{if(!best||c.score>best.score)best=c;};
   const enemies=g.players.filter(q=>q.team!==this.team&&g.onPitch(q)&&q.status==="standing");
   for(const p of g.players.filter(p=>g.canStart(p))){
-   const routes=this.routes(g,p),base=this.positionValue(g,p,routes[0]);
+   const routes=this.routes(g,p),context=this.positionContext(g,p),values=new Map(routes.map(n=>[n,this.positionValue(g,p,n,context)])),base=values.get(routes[0]);
    for(const n of routes){
-    const score=this.positionValue(g,p,n)-base+(p.status==="prone"?5:0);
+    const score=values.get(n)-base+(p.status==="prone"?5:0);
     if(n.path.length||p.status==="prone")offer({kind:"move",p,route:n,score});
    }
    for(const d of enemies){
@@ -118,7 +160,7 @@ class ComputerCoach {
     // Prefer a nearby Blitz; a path must leave one MA for the block. Strength
     // is checked conservatively without assuming future assists.
     if(!g.blitzUsed[this.team]&&Number(g.profile(p).st)>=Number(g.profile(d).st)&&g.distance(p,d)<=g.movementAllowance(p)){
-     for(const n of routes)if(g.distance(n,d)===1&&n.spent<g.movementAllowance(p)&&n.risk<=2)offer({kind:"blitz",p,target:d,route:n,score:(g.ball.carrier===d.id?30:9)-n.risk*5-n.path.length*.2});
+     for(const n of routes)if(g.distance(n,d)===1&&n.spent<g.movementAllowance(p)&&n.risk<=2)offer({kind:"blitz",p,target:d,route:n,score:(g.ball.carrier===d.id?30:9)+values.get(n)-base-n.path.length*.08});
     }
    }
   }

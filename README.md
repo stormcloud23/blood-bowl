@@ -74,6 +74,10 @@ Choose its speed, pause/resume, or take over its team during the match. This bas
 opponent uses a ground game, blocks and Blitzes; it does not pass or buy optional
 inducements. League games remain hotseat. See [computer opponent](docs/COMPUTER.md).
 
+Computer positioning rewards distinct tackle-zone coverage and all four cage
+corners around its carrier, with diminishing returns for extra nearby players.
+Action and decision updates preserve the page position.
+
 Testing contains the learning match, skills laboratory and all practice drills.
 Choose a mode and press **Start testing mode**. Switching workspace tabs preserves
 the current game; starting another game or mode replaces it.
