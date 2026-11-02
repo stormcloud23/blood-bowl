@@ -4,6 +4,23 @@ const teams=JSON.parse(document.getElementById("team-data").textContent);
 const rosterCatalog=JSON.parse(document.getElementById("roster-data")?.textContent||document.getElementById("team-data").textContent);
 const pitch=document.getElementById("pitch"),coach=document.getElementById("coach"),selection=document.getElementById("selection"),log=document.getElementById("log");
 const money=n=>n.toLocaleString("en-US")+" gp";
+// Presentation roles follow roster keywords, never the player's skills or team.
+const POSITION_MARKERS={
+ lineman:{label:"Lineman",shape:"circle",svg:'<circle cx="20" cy="20" r="17"/>'},
+ blitzer:{label:"Blitzer",shape:"triangle",svg:'<polygon points="20,2 38,37 2,37"/>'},
+ blocker:{label:"Blocker",shape:"square",svg:'<rect x="3" y="3" width="34" height="34" rx="2"/>'},
+ special:{label:"Special",shape:"star",svg:'<polygon points="20,2 25,14 38,15 28,24 31,38 20,31 9,38 12,24 2,15 15,14"/>'},
+ thrower:{label:"Thrower",shape:"diamond",svg:'<polygon points="20,1 39,20 20,39 1,20"/>'},
+ catcher:{label:"Catcher",shape:"hexagon",svg:'<polygon points="10,3 30,3 39,20 30,37 10,37 1,20"/>'},
+ runner:{label:"Runner",shape:"pentagon",svg:'<polygon points="20,2 39,16 32,38 8,38 1,16"/>'},
+ "big guy":{label:"Big Guy",shape:"octagon",svg:'<polygon points="12,2 28,2 38,12 38,28 28,38 12,38 2,28 2,12"/>'}
+};
+function positionMarker(profile){
+ const tags=(profile.traits||"").toLowerCase().split(",").map(s=>s.trim());
+ const role=tags.includes("big guy")?"big guy":tags.includes("special")?"special":tags.find(tag=>POSITION_MARKERS[tag])||"special";
+ return POSITION_MARKERS[role];
+}
+function markerGraphic(marker){const graphic=document.createElement("span");graphic.className="token-shape";graphic.setAttribute("aria-hidden","true");graphic.innerHTML='<svg viewBox="0 0 40 40" focusable="false" aria-hidden="true">'+marker.svg+'</svg>';return graphic;}
 let game,selected=null,destination=null,blockMode=false,ballMode=false,throwDestination=null;
 function reset(){if(globalThis.resetLeagueTeams)globalThis.resetLeagueTeams();const scenario=document.getElementById("scenario").value;game=scenario.startsWith("match")?new MatchGame(teams,{learning:scenario==="match-learning"}):new SkillGame(teams,{scenario});selected=game.practicePlayer;destination=null;blockMode=false;ballMode=false;throwDestination=null;render();document.getElementById("coach-panel").scrollTop=0;const p=game.players.find(p=>p.id===selected);showProfile(p?.team??0,p?.role??0,p?.number??null);}
 function escapeTeamText(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;", "'":"&#39;"}[c]));}
@@ -137,7 +154,7 @@ function render(){
   cell.setAttribute("aria-label","Square "+(x+1)+", "+(y+1)+", "+label+(ballHere?", ball":"")+(routeIndex?", route step "+routeIndex:""));cell.title=blockTarget?"Valid Block target · "+label:routeIndex?"Route step "+routeIndex+" of "+chosen.path.length+" · "+label:reach?.path.length?"Reachable in "+reach.spent+" movement · "+label:label;
   if(plan){const detail=checks.length?checks.join(" → "):"no roll on this step";cell.title+=" · "+detail;cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+detail);}
   if(game.match&&game.onTrapdoor({x,y})){cell.className+=" trapdoor";cell.title+=" · Trapdoor: falls through on 1";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", trapdoor (2+ to cross)");const marker=document.createElement("span");marker.className="trapdoor-marker";marker.textContent="⊠";marker.setAttribute("aria-hidden","true");cell.append(marker);}
-  if(p){const token=document.createElement("span");token.className="token"+(p.team?" blue":"")+(p.used&&p.id!==game.mover?" used":"")+" "+p.status+(p.distracted?" distracted":"");token.textContent=p.number;cell.append(token);}
+  if(p){const marker=positionMarker(game.profile(p)),token=document.createElement("span");token.className="token role-"+marker.shape+(p.team?" blue":"")+(p.used&&p.id!==game.mover?" used":"")+" "+p.status+(p.distracted?" distracted":"");token.dataset.role=marker.label;token.append(markerGraphic(marker));const number=document.createElement("span");number.className="token-number";number.textContent=p.number;token.append(number);cell.append(token);cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+marker.label+" marker ("+marker.shape+")");}
   if(routeIndex){const n=document.createElement("span");n.className="route-index";n.textContent=routeIndex;cell.append(n);}
   if(game.bomb&&game.bomb.x===x&&game.bomb.y===y){const b=document.createElement("span");b.className="ball";b.textContent="●";b.title="Bomb";cell.append(b);cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", bomb");}
   if(ballHere){const b=document.createElement("span");b.className="ball";b.textContent="◆";cell.append(b);}
