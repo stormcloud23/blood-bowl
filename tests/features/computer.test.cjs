@@ -106,12 +106,14 @@ test('a caught bomb is rethrown by its computer catcher during the human turn',(
  assert.ok(g.events.some(e=>e.includes('Pass #')));
 });
 for(const [seed,ids] of [[33,['human','orc']],[71,['orc','human']],[927,['human','human']]])test('seeded full match reaches full time: '+seed,()=>{
- const g=fixture(seed,ids),coaches=[new ComputerCoach(0),new ComputerCoach(1)];let steps=0;
+ const g=fixture(seed,ids),coaches=[new ComputerCoach(0),new ComputerCoach(1)],actions=[0,0];let steps=0;
  for(;steps<4000&&g.phase!=='finished';steps++){
   const owner=computerDecisionTeam(g);assert.ok([0,1].includes(owner));
+  actions[owner]++;
   assert.ok(coaches[owner].step(g),'Stalled in '+g.phase+' / '+g.pending?.kind);
   const occupied=g.players.filter(p=>g.onPitch(p)).map(p=>p.x+','+p.y);assert.equal(new Set(occupied).size,occupied.length);
   assert.ok(g.turns.every(n=>n>=0&&n<=8));
  }
  assert.equal(g.phase,'finished','Action bound reached at '+steps);assert.equal(g.half,2);assert.deepEqual(g.turns,[8,8]);
+ assert.ok(actions.every(n=>n<=1600),'Exceeded browser controller action limit: '+actions.join('/'));
 });
