@@ -265,10 +265,12 @@ function renderSkillControls(){
  if(game.match&&game.phase!=="play"&&game.action!=="blitz")document.getElementById("special").disabled=true;
 }
 function renderSkillCoverage(){
- const section=document.createElement("details");section.className="panel";section.id="skillcoverage";const summary=document.createElement("summary"),counts={Implemented:0,Partial:0,Deferred:0};SKILL_CATALOG.forEach(s=>counts[s.status]=(counts[s.status]||0)+1);summary.textContent="Skills & traits coverage · "+SKILL_CATALOG.length+" audited · "+counts.Implemented+" implemented · "+counts.Partial+" partial · "+counts.Deferred+" deferred";section.append(summary);
- const intro=document.createElement("p");intro.textContent="The Skills laboratory can add abilities to practice players. These coverage labels describe supported interactions, not complete FFB parity. Optional abilities default on; their owner can turn them off before a roll.";section.append(intro);
- const table=document.createElement("table"),head=document.createElement("tr");for(const label of ["Skill / Trait","Category","Use","Status","Coverage / next dependency"]){const th=document.createElement("th");th.textContent=label;head.append(th);}table.append(head);
- for(const s of SKILL_CATALOG){const row=document.createElement("tr");for(const value of [s.name,s.category,s.kind+(s.mandatory?" · mandatory":""),s.status,s.notes]){const td=document.createElement("td");td.textContent=value;row.append(td);}table.append(row);}const wrap=document.createElement("div");wrap.className="table-scroll";wrap.append(table);section.append(wrap);document.getElementById("reference-view").append(section);
+ const section=document.createElement("details");section.className="panel";section.id="skillcoverage";section.open=true;
+ const summary=document.createElement("summary");summary.textContent="Skills & traits · "+SKILL_CATALOG.length+" quick descriptions";section.append(summary);
+ const intro=document.createElement("p");intro.textContent="Find an ability by name, category or effect. These are short reminders; consult the linked full rules for exceptions and timing. X identifies the listed player type or required roll. Mandatory abilities cannot normally be switched off.";section.append(intro);
+ const rows=[...SKILL_CATALOG].sort((a,b)=>a.name.localeCompare(b.name)).map(s=>{if(!SKILL_DESCRIPTIONS[s.name])throw Error("Missing skill description: "+s.name);return [s.name,s.category,SKILL_DESCRIPTIONS[s.name]];});
+ referenceTable(section,"Skill and trait descriptions",["Skill / Trait","Category","What it does"],rows);
+ const link=document.createElement("a");link.href="https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/";link.textContent="Full BB2025 skill and trait rules";section.append(link);document.getElementById("reference-view").append(section);
 }
 function matchRun(fn){fn();destination=null;blockMode=false;ballMode=false;throwDestination=null;render();}
 function renderMatch(){
@@ -351,4 +353,4 @@ document.getElementById("finish").addEventListener("click",()=>{game.finish();de
 document.getElementById("end").addEventListener("click",()=>{game.endTurn();destination=null;selected=null;render();});
 document.getElementById("reset").addEventListener("click",reset);
 document.getElementById("scenario").addEventListener("change",reset);
-renderRosters();renderSkillCoverage();reset();
+renderRosters();renderRulesReference();renderSkillCoverage();reset();

@@ -22,7 +22,7 @@ function workspaceFixture(scenario='block'){
   showPopover(){this.popoverOpen=true;}hidePopover(){this.popoverOpen=false;}
   getBoundingClientRect(){return {top:100,left:200,right:230,bottom:130,width:this===get('pitch-popup')?280:30,height:this===get('pitch-popup')?300:30};}
  }
- const get=id=>{if(!elements.has(id)){const e=new Element(id.startsWith('tab-')?'button':'div');e.id=id;elements.set(id,e);}return elements.get(id);};
+ const get=id=>{const find=node=>node.id===id?node:node.children.map(find).find(Boolean);const found=[...elements.values()].map(find).find(Boolean);if(found){elements.set(id,found);return found;}if(!elements.has(id)){const e=new Element(id.startsWith('tab-')?'button':'div');e.id=id;elements.set(id,e);}return elements.get(id);};
  const document={getElementById:get,createElement:tag=>new Element(tag),querySelectorAll:()=>[],listeners:{},addEventListener(k,f){(this.listeners[k]??=[]).push(f);},activeElement:null};
  get('team-data').textContent=html.match(/type="application\/json">([\s\S]*?)<\/script>/)[1];get('scenario').value=scenario;get('player-details').append(get('profile'));get('coach-panel').append(get('pitch-popup'));get('pitch-popup').hidden=true;
  get('roster-data').textContent=html.match(/id="roster-data" type="application\/json">([\s\S]*?)<\/script>/)[1];
@@ -92,7 +92,7 @@ test('closed action-panel callbacks cannot execute and switching tabs clears the
  const f=workspaceFixture();const p=JSON.parse(f.run('JSON.stringify(game.players.find(p=>p.id===selected))'));f.cell(p.x,p.y).click();const move=f.action('Show full profile & skills');f.run('closePitchPopup()');move.click();assert.equal(f.run('game.mover'),null);f.cell(p.x,p.y).click();f.get('tab-teams').click();assert.equal(!f.get('pitch-popup').hidden,false);
 });
 test('new presentation assets are embedded exactly in the standalone page',()=>{
- const html=fs.readFileSync(projectPath('index.html'),'utf8');for(const [tag,id,file] of [['script','workspace-ui','src/ui/workspace-ui.cjs'],['style','workspace-style','src/ui/workspace.css']])assert.equal(html.match(new RegExp('<'+tag+' id="'+id+'">\\n([\\s\\S]*?)\\n</'+tag+'>'))[1],fs.readFileSync(projectPath(file),'utf8').trimEnd());assert.ok(html.includes('counts={Implemented:0,Partial:0,Deferred:0}'));
+ const html=fs.readFileSync(projectPath('index.html'),'utf8');for(const [tag,id,file] of [['script','workspace-ui','src/ui/workspace-ui.cjs'],['style','workspace-style','src/ui/workspace.css']])assert.equal(html.match(new RegExp('<'+tag+' id="'+id+'">\\n([\\s\\S]*?)\\n</'+tag+'>'))[1],fs.readFileSync(projectPath(file),'utf8').trimEnd());assert.ok(html.includes('Skills & traits · '));
 });
 test('a Foul target is selectable directly from its occupied tile',()=>{
  const f=workspaceFixture('skills');f.run('globalThis.a=game.players[0];globalThis.d=game.players[11];d.x=11;d.y=7;d.status="prone";selected=a.id;game.start(a.id,"foul");render();game.dice=()=>2;choose(d.x,d.y)');assert.ok(f.action('Foul #1'));f.action('Foul #1').click();assert.ok(f.run('game.events.some(e=>e.includes("Foul"))'));
@@ -262,4 +262,25 @@ test('preset and custom selectors stay separate and selecting a preset clears th
  f.get('exhibition-home-custom').value=f.run("'saved:'+leagueStore.data.teams[0].id");f.get('exhibition-home-custom').emit('change');assert.equal(f.run('teams[0].name'),'My custom team');assert.equal(f.get('exhibition-home-league').hidden,true);
  f.run('refreshExhibitionRosters()');assert.ok(f.get('exhibition-home-custom').value.startsWith('saved:'));
  f.get('exhibition-home').value=f.run('demoLeagueTeams[1].id');f.get('exhibition-home').emit('change');assert.equal(f.get('exhibition-home-custom').value,'');assert.equal(f.run('teams[0].id'),f.run('demoLeagueTeams[1].id'));
+});
+
+
+test('Reference explains every catalogue ability and searches names, categories and effects without coverage metadata',()=>{
+ const f=workspaceFixture('match'),panel=f.get('skillcoverage'),rows=panel.querySelectorAll('tr');
+ assert.equal(rows.length,109);assert.deepEqual(rows[0].children.map(c=>c.textContent),['Skill / Trait','Category','What it does']);
+ const names=rows.slice(1).map(row=>row.children[0].textContent);assert.equal(new Set(names).size,108);assert.equal(f.run('SKILL_CATALOG.every(s=>typeof SKILL_DESCRIPTIONS[s.name]==="string"&&SKILL_DESCRIPTIONS[s.name].length>15)'),true);
+ for(const row of rows.slice(1)){assert.equal(row.children.length,3);assert.ok(row.children[2].textContent.length>15);assert.doesNotMatch(row.children.map(c=>c.textContent).join(' '),/Implemented|Deferred|Supported in the available actions|Coverage \/ next dependency/);row.textContent=row.children.map(c=>c.textContent).join(' ');}
+ const input=panel.children.find(c=>c.className==='skill-search').children[0];input.value='casualty';input.emit('input');assert.ok(rows.slice(1).some(r=>!r.hidden&&r.children[0].textContent==='Violent Innovator'));assert.ok(rows.slice(1).some(r=>r.hidden));input.value='a word with no skill match';input.emit('input');assert.ok(rows.slice(1).every(r=>r.hidden));input.value='';input.emit('input');assert.ok(rows.slice(1).every(r=>!r.hidden));
+ assert.equal(f.run('game.match'),true);assert.equal(f.run('game.phase'),'fans');
+});
+
+test('Reference includes updated controls and complete quick-reference rule groups in the standalone bundle',()=>{
+ const f=workspaceFixture('match'),html=fs.readFileSync(projectPath('index.html'),'utf8');
+ const guide=dugoutNodes(f.get('playing-guide')).map(e=>e.textContent).join(' '),sheet=dugoutNodes(f.get('rules-cheat-sheet')).map(e=>e.textContent).join(' ');
+ for(const text of ['Confirm Move','Testing','2+ through 6+','six eligible MVP','cannot currently be saved','snapshots'])assert.ok(guide.includes(text),text);
+ for(const text of ['Match sequence','Common actions','Strength and dice','Block faces','Weather','Kick-off','Casualty','Lasting injury','turns 7–8','SPP','Crowds skip armour'])assert.ok(sheet.includes(text),text);
+ assert.ok(html.includes(fs.readFileSync(projectPath('src/ui/reference.cjs'),'utf8').trimEnd()));
+ assert.equal(f.get('rules-cheat-sheet').querySelectorAll('table').length,12);
+ const glossary=f.get('skillcoverage').querySelectorAll('tr').slice(1),find=name=>glossary.find(r=>r.children[0].textContent===name).children[2].textContent;
+ assert.doesNotMatch(find('Catch'),/intercept/i);assert.match(find('Hypnotic Gaze'),/3\+/);assert.match(find('Decay'),/Casualty/);
 });

@@ -1,8 +1,37 @@
-# Match workspace — v0.0.32
+# Match workspace — v0.0.34
 
-The long development page is now four workspaces: **Play**, **Teams & leagues**,
-**Rosters**, and **Reference**. Switching tabs preserves the live game and each
-workspace's scroll position. Changing the game mode still starts a fresh game.
+Five tabs separate **Play**, **Teams & leagues**, **Rosters**, **Testing**, and
+**Reference**. Switching tabs preserves the current game and each tab's scroll
+position. Starting another mode or changing an exhibition team starts a new game.
+
+## Reference guide — v0.0.34
+
+Reference now contains an updated playing guide, a collapsible BB2025 cheat
+sheet and searchable basic descriptions for all 108 skills and traits. It
+covers current route confirmation, per-step roll colours, preset/custom team
+selection, hotseat decisions, league post-game recording and browser backups.
+
+The cheat sheet groups match sequence/actions, movement/passing checks, blocks,
+weather, kickoff events, injuries/treatment, turnovers/fouls and SPP. It links
+to the owner-supplied Blood Bowl Base sheet and detailed rules. Short entries
+are reminders; skill interactions and coach-panel choices still apply. Numeric
+rules and timing were checked against the current engine, including strict
+more-than-double Strength, 3+ Hypnotic Gaze and no stalling crowd roll in turns 7–8.
+
+Skills show name, category and effect, replacing the player-facing audit status
+and dependency notes. Search matches all three fields and reports its result
+count. The catalogue's implementation metadata and generated SKILLS.md remain
+available for development. Text and tables are embedded in index.html and work
+offline; external source links are optional. Reference content is maintained in
+src/ui/reference.cjs and bundled before app.js by scripts/build.cjs.
+
+## Play and Testing — v0.0.33
+
+Play holds full exhibitions and league-game entry. Each exhibition side has
+separate preset/custom dropdowns. Custom selections override the preset; choosing
+a preset clears that override. Only submitted custom teams appear. Testing holds
+the learning match, laboratory and drills. Starting a mode explicitly replaces
+the current game; switching tabs does not.
 
 ## Straighter route previews — v0.0.32
 
