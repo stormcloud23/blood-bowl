@@ -173,7 +173,7 @@ class MovementGame {
  }
  reactionChoice(kind,team,candidates,resolve){
   const options=candidates.map(p=>"#"+p.number+" ("+p.id+")").concat("Decline");
-  const q={type:"custom",kind:this.teams[team].name+" — "+kind,team,options,resolve:choice=>{
+  const q={type:"custom",kind:this.teams[team].name+" — "+kind,team,options,pitchChoices:candidates.map((p,i)=>({x:p.x,y:p.y,option:options[i]})),resolve:choice=>{
    if(this.pending!==q||!options.includes(choice))return false;
    this.pending=null;resolve(candidates[options.indexOf(choice)]||null);return true;
   }};this.pending=q;
@@ -273,7 +273,7 @@ class MovementGame {
  interceptPass(p,to,accurate,land){
   const candidates=this.interceptionCandidates(p,to);if(!candidates.length){land();return;}
   const options=candidates.map(q=>"Intercept with #"+q.number);options.push("Decline interception");
-  const decision={type:"custom",team:1-p.team,kind:this.teams[1-p.team].name+" interception",options,resolve:choice=>{
+  const decision={type:"custom",team:1-p.team,kind:this.teams[1-p.team].name+" interception",options,pitchChoices:candidates.map((q,i)=>({x:q.x,y:q.y,option:options[i]})),resolve:choice=>{
    if(this.pending!==decision||!options.includes(choice))return false;this.pending=null;const index=options.indexOf(choice);if(index===candidates.length){land();return true;}
    const q=candidates[index];this.test(q,"Intercept",Number.parseInt(this.profile(q).ag)+(accurate?3:2)+this.marking(q),()=>{
     this.ball={x:q.x,y:q.y,carrier:q.id};this.recordStat(q,"interception");this.note("#"+q.number+" intercepts the pass.");this.checkScore();this.endTurn(true);

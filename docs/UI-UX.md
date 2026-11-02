@@ -1,4 +1,16 @@
-# Match workspace — v0.0.40
+# Match workspace — v0.0.41
+
+## Pitch decisions and exhibition values — v0.0.41
+
+Skill moves, relocations, ball placements and eligible-player reactions highlight
+their legal pitch targets. Click the highlighted tile instead of searching a
+coordinate list. Named Stop/Stay/Decline options remain at the coach's desk;
+off-board crowd pushes use named edge actions. Setup and kickoff redeployments
+also highlight legal destinations after selecting a player.
+
+Exhibition pregame/setup now displays full roster TV, player and permanent staff
+components, plus separately labelled CTV and inducement values. See the
+[choice audit and valuation details](PITCH-CHOICES.md).
 
 ## Observe computer matches — v0.0.40
 

@@ -58,7 +58,7 @@ class SkillGame extends SkillBase {
    const candidates=this.interceptionCandidates(p,{x:lx,y:ly}).filter(q=>!this.has(q,"Ball & Chain"));
    if(!candidates.length){land();return;}
    const options=candidates.map(q=>"Intercept bomb with #"+q.number+" ("+q.id+")").concat("Decline interception");
-   this.skillChoice("Bomb interception",1-p.team,options,choice=>{
+   this.pitchChoice("Bomb interception",1-p.team,candidates,options,choice=>{
     const q=candidates[options.indexOf(choice)];if(!q){land();return;}
     const target=parseInt(this.profile(q).ag)+(accurate?3:2)+(this.skill(q,"Nerves of Steel")?0:this.marking(q))+this.disturbance(q)-(this.skill(q,"Extra Arms")?1:0)-(this.skill(q,"Very Long Legs")?2:0);
     this.test(q,"Bomb interception",target,()=>this.rethrowBomb(q),land);
@@ -415,6 +415,11 @@ class SkillGame extends SkillBase {
  skillChoice(kind,team,options,resolve){
   const q={type:"custom",kind,team,options,resolve:choice=>{if(this.pending!==q||!options.includes(choice))return false;this.pending=null;resolve(choice);return true;}};this.pending=q;return q;
  }
+ pitchChoice(kind,team,squares,options,resolve,subject=null){
+  const q=this.skillChoice(kind,team,options,resolve);
+  q.pitchChoices=squares.map((pos,i)=>({x:pos.x,y:pos.y,option:options[i]})).filter(pos=>this.inside(pos.x,pos.y));
+  q.subjectId=typeof subject==="string"?subject:subject?.id;return q;
+ }
  rollChoice(p,kind,sides,done,skill=null){
   const n=this.roll(kind,sides),sources=this.rerollSources(p),labels=sources.map(s=>this.rerollLabel(s)),options=["Keep "+n,...labels];if(this.skill(p,"Pro")&&!p.proUsed)options.push("Pro");
   if(skill&&this.skill(p,skill)&&!this.used(p,kind+" "+skill))options.push(skill);
@@ -762,12 +767,12 @@ class SkillGame extends SkillBase {
   if(this.dumpContext||!this.skill(d,"Dump-off")||this.ball.carrier!==d.id||this.has(d,"My Ball")){done();return;}
   const squares=[];for(let y=0;y<15;y++)for(let x=0;x<26;x++)if(super.passRange(d,{x,y})?.band===0)squares.push({x,y});
   const options=squares.map(pos=>"Quick pass to "+(pos.x+1)+", "+(pos.y+1)).concat("Keep the ball");
-  this.skillChoice("Dump-off",d.team,options,choice=>{
+  this.pitchChoice("Dump-off",d.team,squares,options,choice=>{
    const pos=squares[options.indexOf(choice)];if(!pos){done();return;}
    const keys=["mover","action","ballActionDone","passContext","blitzTarget","blitzBlocked","attackRoller","nextFrenzyRound"],saved=Object.fromEntries(keys.map(k=>[k,this[k]]));
    this.dumpContext={defender:d.id,attacker:a.id,saved,done};this.scoreDeferrals=(this.scoreDeferrals||0)+1;this.mover=d.id;this.action="pass";this.ballActionDone=false;this.attackRoller=a.id;
    this.animosity(d,this.at(pos.x,pos.y),()=>super.pass(pos.x,pos.y),()=>this.finishDumpOff());
-  });
+  },d);
  }
  finishDumpOff(){
   const context=this.dumpContext;if(!context||this.pending)return false;
@@ -782,7 +787,7 @@ class SkillGame extends SkillBase {
   const offer=()=>{
    remaining=remaining.filter(q=>this.onPitch(q)&&this.skill(q,"On the Ball"));if(!remaining.length){done();return;}
    const options=remaining.map(q=>"Move #"+q.number+" ("+q.id+")").concat("Finish reactions");
-   this.skillChoice("On the Ball",team,options,choice=>{
+   this.pitchChoice("On the Ball",team,remaining,options,choice=>{
     const q=remaining[options.indexOf(choice)];if(!q){done();return;}remaining=remaining.filter(v=>v!==q);
     this.beginBoundedMove(q,failed=>{if(failed||kickoff)done();else offer();},{ownHalf:kickoff?team:null});
    });
@@ -798,7 +803,7 @@ class SkillGame extends SkillBase {
   const squares=[];for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)if(dx||dy){const x=p.x+dx,y=p.y+dy,plan=this.plan(x,y);if(plan&&!plan.rushes&&p.spent+plan.cost<=3&&(context.ownHalf===null||this.ownHalf(context.ownHalf,x)))squares.push({x,y});}
   const options=squares.map(pos=>"Move to "+(pos.x+1)+", "+(pos.y+1)).concat("Stop moving");
   if(!squares.length){this.finishBoundedMove(false);return;}
-  this.skillChoice("On the Ball movement",p.team,options,choice=>{const pos=squares[options.indexOf(choice)];if(pos)this.step(pos.x,pos.y);else this.finishBoundedMove(false);});
+  this.pitchChoice("On the Ball movement",p.team,squares,options,choice=>{const pos=squares[options.indexOf(choice)];if(pos)this.step(pos.x,pos.y);else this.finishBoundedMove(false);},p);
  }
  movementCompleted(p){if(this.moveContext?.player===p)this.offerBoundedMove();}
  finishBoundedMove(failed){const context=this.moveContext;if(!context||this.pending)return false;this.moveContext=null;context.player.spent=context.spent;Object.assign(this,context.saved);this.scoreDeferrals--;context.done(failed);return true;}
@@ -813,18 +818,18 @@ class SkillGame extends SkillBase {
   if(!this.skill(d,"Trickster")||d.rooted||this.isChomped(d)){done();return;}
   const squares=this.adjacentEmpty(a);if(!squares.length){done();return;}
   const options=squares.map(pos=>"Relocate to "+(pos.x+1)+", "+(pos.y+1)).concat("Stay");
-  this.skillChoice("Trickster",d.team,options,choice=>{
+  this.pitchChoice("Trickster",d.team,squares,options,choice=>{
    const pos=squares[options.indexOf(choice)];if(!pos){done();return;}
    this.scoreDeferrals=(this.scoreDeferrals||0)+1;
    this.reactionMove(d,pos,()=>{this.scoreDeferrals--;done();},{optionalPickup:true});
-  });
+  },d);
  }
  hitAndRun(p,done){
   if(!this.skill(p,"Hit and Run")||this.has(p,"Frenzy")||p.rooted||this.isChomped(p)||this.used(p,"Hit and Run")||this.finished){done();return;}
   const squares=this.adjacentEmpty(p).filter(pos=>!this.players.some(q=>q.team!==p.team&&this.onPitch(q)&&this.distance(q,pos)===1));
   if(!squares.length){done();return;}
   const options=squares.map(pos=>"Move free to "+(pos.x+1)+", "+(pos.y+1)).concat("Stay");
-  this.skillChoice("Hit and Run",p.team,options,choice=>{const pos=squares[options.indexOf(choice)];if(pos){this.use(p,"Hit and Run");this.reactionMove(p,pos,done);}else done();});
+  this.pitchChoice("Hit and Run",p.team,squares,options,choice=>{const pos=squares[options.indexOf(choice)];if(pos){this.use(p,"Hit and Run");this.reactionMove(p,pos,done);}else done();},p);
  }
  injuryResult(p,total,done=()=>{},options={}){this.resolveInjury(p,total,done,options);}
  armourOnly(p,done,{bonus=0,injuryBonus=0,onDice=null,source=null,plague=false}={}){
@@ -907,7 +912,7 @@ class SkillGame extends SkillBase {
   if(!squares.length){done(false);return;}
   this.interrupt("Safe Pair of Hands",finish=>{
    const options=squares.map(pos=>"Place ball at "+(pos.x+1)+", "+(pos.y+1)).concat("Bounce normally");
-   const q={type:"custom",kind:"Safe Pair of Hands",team:p.team,options,squares,resolve:choice=>{
+   const q={type:"custom",kind:"Safe Pair of Hands",team:p.team,options,squares,subjectId:p.id,pitchChoices:squares.map((pos,i)=>({...pos,option:options[i]})),resolve:choice=>{
     if(this.pending!==q||!options.includes(choice))return false;
     this.pending=null;const pos=squares[options.indexOf(choice)];
     if(pos){this.ball={...pos,carrier:null};this.note("Safe Pair of Hands: ball placed at "+(pos.x+1)+", "+(pos.y+1)+".");}

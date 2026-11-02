@@ -11,7 +11,7 @@ globalThis.resetLeagueTeams=()=>{
  const match=scenario.startsWith("match"),home=exhibitionTeam(exhibitionSelection("home")),away=exhibitionTeam(exhibitionSelection("away")),copy=(roster,side)=>{const r=JSON.parse(JSON.stringify(roster));if(r.exhibitionSaved)return r;r.league=document.getElementById("exhibition-"+side+"-league")?.value||r.league;if(r.alignments?.length)r.alignment=document.getElementById("exhibition-"+side+"-alignment")?.value||r.alignments[0];return r;};teams.splice(0,teams.length,...(match&&home&&away?[copy(home,"home"),copy(away,"away")]:JSON.parse(JSON.stringify(practiceLeagueTeams))));
 };
 function exhibitionSelection(side){return document.getElementById("exhibition-"+side+"-custom")?.value||document.getElementById("exhibition-"+side)?.value;}
-function exhibitionTeam(value,snapshot=true){if(value?.startsWith("saved:")){const t=leagueStore.data.teams.find(t=>"saved:"+t.id===value);return t&&!t.draft?{...(snapshot?leagueStore.matchTeam(t):leagueStore.rosterSnapshot(t)),exhibitionSaved:true}:null;}return demoLeagueTeams.find(t=>t.id===value);}
+function exhibitionTeam(value,snapshot=true){if(value?.startsWith("saved:")){const t=leagueStore.data.teams.find(t=>"saved:"+t.id===value);return t&&!t.draft?{...(snapshot?leagueStore.matchTeam(t):leagueStore.rosterSnapshot(t)),exhibitionSaved:true,exhibitionTV:leagueStore.values(t).tv}:null;}return demoLeagueTeams.find(t=>t.id===value);}
 let leagueStore,leagueSelected=null,leagueMessage="",leagueStorageError="",leagueRawBackup="",leagueStoredSnapshot=null;
 const leagueDraftFields={};
 const leagueSelectValues={};
