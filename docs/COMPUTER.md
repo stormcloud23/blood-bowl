@@ -1,4 +1,31 @@
-# Computer opponent — v0.0.38
+# Computer matches — v0.0.40
+
+## Watch both coaches
+
+Open Testing and use Watch a computer match. Choose Human or Orc independently
+for home and away, then Start watching new match. Alternatively, choose Observe
+computer match in the Testing mode menu and Start testing mode. These are full
+regulation matches, with normal weather and kickoff events. Both coaches handle
+pregame, setup, decisions, turns, drive recovery and halftime automatically.
+
+Speed changes the delay between actions. Pause freezes the match; Step one action
+advances one computer decision/action while remaining paused. Automatic dice and
+effects belonging to that action may resolve together. Each coach's latest
+action is displayed. While paused, click a player to inspect their profile;
+those clicks cannot move players, stand them up or resolve decisions.
+
+Start watching new match replaces the current game and uses the current observer
+team choices. Changing those choices alone does not restart an ongoing game.
+Switching tabs preserves the match and its coaches; pause first if you do not
+want it to continue while you visit another tab. Take over both teams preserves
+the current board and hands both coaches to humans. Starting a drill, learning
+match or exhibition replaces the observation and cancels its scheduled work.
+
+Observed matches use fresh preset teams and do not change saved teams, league
+records or exhibition selections. The current supported computer rosters are
+Human and Orc. Match save/resume and a replay export are not part of this mode.
+
+## Play against one coach
 
 In Play, choose Computer · Human team or Computer · Orc team in the Opponent
 menu. Changing this choice starts a new exhibition. You control home; the
@@ -9,7 +36,7 @@ Pregame shared progression remains available to the human. The computer handles
 its own kick/receive choice, formation confirmation, kicker and kick aim,
 kickoff decisions, activations and defensive reactions. It keeps the suggested
 formation and skips optional kickoff movement. League and Testing modes have
-no computer controller.
+human controls, except for the dedicated observation mode above.
 
 Normal, Fast and Slow control the delay between actions. Pause stops computer
 actions; it does not grant control of its team. Take over computer team keeps
@@ -61,11 +88,14 @@ Computer matches enable individual Both Down prompts in the rules engine.
 Each coach chooses their own optional Block/Wrestle use; a computer cannot
 select a human player's skill use. Ordinary hotseat prompts remain compatible.
 
-`computer-ui.cjs` binds the controller to exhibitions, schedules one action per
+`computer-ui.cjs` binds the controllers to exhibitions and observation, schedules one action per
 timer, protects human decisions and blocks human actions during computer-owned
 decisions. Timers validate the match/session and pending decision before acting.
 Pause, replacement matches and takeover cancel scheduled work. A finite action
-bound and explicit failed-action pause prevent silent infinite loops.
+bound per coach and explicit failed-action pause prevent silent infinite loops.
+Timer epochs also reject cancelled callbacks before they can overwrite a newer
+timer. Observation creates two independent coach instances and dispatches by
+decision ownership, including defensive choices during the other coach's turn.
 
 The build embeds both modules into existing script blocks, preserving the
 self-contained offline application. There are no dependencies or network calls.
@@ -78,6 +108,8 @@ block selection, mandatory bomb rethrows, chain-push ownership, empty teams and
 seeded full matches. Full matches assert pitch
 occupancy and turn bounds while advancing to the final whistle. Workspace tests
 exercise the actual bundled selector, timers, pause, reset, takeover and reactions.
+They also cover observation launch, both decision owners, single-action stepping,
+read-only inspection, restart cancellation and a full scheduler-driven match.
 Tactical regressions cover rear cage completion in both directions, redundant
 support, maintaining width through complete turns, disabled tackle zones and
 protecting a cage corner instead of taking an unnecessary Blitz.

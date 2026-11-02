@@ -87,6 +87,10 @@ skill re-rolls and block reliability, and adjusts defensive pressure to the scor
 and clock. See [strategy sources and limits](docs/AI-STRATEGY.md).
 
 Testing contains the learning match, skills laboratory and all practice drills.
+It also includes **Watch a computer match**: choose Human or Orc for each side
+and start watching a full match between two computer coaches. Pause to inspect
+players, step one action at a time, or change the playback speed. Both coaches'
+latest actions are shown. Observations do not change saved teams or leagues.
 Choose a mode and press **Start testing mode**. Switching workspace tabs preserves
 the current game; starting another game or mode replaces it.
 

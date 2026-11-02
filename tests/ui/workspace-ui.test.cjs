@@ -6,6 +6,7 @@ function workspaceFixture(scenario='block',timers={}){
  const html=fs.readFileSync(projectPath('index.html'),'utf8'),elements=new Map();let context;
  class Element{
   constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[];this.listeners={};this.dataset={};this.style={};this.textContent='';this.value='';this.className='';this.parentElement=null;this.disabled=false;this.hidden=false;this.isConnected=true;this.popoverOpen=false;}
+  get id(){return this.elementId||'';}set id(value){this.elementId=value;elements.set(value,this);}
   append(...items){for(const item of items){if(item.parentElement)item.parentElement.children=item.parentElement.children.filter(e=>e!==item);item.parentElement=this;this.children.push(item);}}
   prepend(...items){const before=[...this.children];this.children=[];this.append(...items,...before);}
   replaceChildren(...items){for(const child of this.children){child.isConnected=false;child.parentElement=null;}this.children=[];this.append(...items);}
@@ -22,11 +23,15 @@ function workspaceFixture(scenario='block',timers={}){
   showPopover(){this.popoverOpen=true;}hidePopover(){this.popoverOpen=false;}
   getBoundingClientRect(){return {top:100,left:200,right:230,bottom:130,width:this===get('pitch-popup')?280:30,height:this===get('pitch-popup')?300:30};}
  }
- const get=id=>{const find=node=>node.id===id?node:node.children.map(find).find(Boolean);const found=[...elements.values()].map(find).find(Boolean);if(found){elements.set(id,found);return found;}if(!elements.has(id)){const e=new Element(id.startsWith('tab-')?'button':'div');e.id=id;elements.set(id,e);}return elements.get(id);};
+ // Real DOM IDs are indexed. Re-index newly assigned IDs as well, so rebuilt
+ // Reference nodes replace old entries without scanning every tree per lookup.
+ const get=id=>{if(!elements.has(id)){const e=new Element(id.startsWith('tab-')?'button':'div');e.id=id;}return elements.get(id);};
  const document={getElementById:get,createElement:tag=>new Element(tag),querySelectorAll:()=>[],listeners:{},addEventListener(k,f){(this.listeners[k]??=[]).push(f);},activeElement:null};
  get('team-data').textContent=html.match(/type="application\/json">([\s\S]*?)<\/script>/)[1];get('scenario').value=scenario;get('player-details').append(get('profile'));get('coach-panel').append(get('pitch-popup'));get('pitch-popup').hidden=true;
  get('roster-data').textContent=html.match(/id="roster-data" type="application\/json">([\s\S]*?)<\/script>/)[1];
- const storage=new Map();context=vm.createContext({...timers,document,console,innerWidth:1200,innerHeight:800,addEventListener(){},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)}});
+ // Match browser arithmetic without vm global-proxy overhead on the many
+ // forecast calculations performed during an entire observed match.
+ const storage=new Map();context=vm.createContext({...timers,document,console,Math,Number,JSON,innerWidth:1200,innerHeight:800,addEventListener(){},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)}});
  const scripts=[...html.matchAll(/<script(?: id="(?:(?:movement|skills|match|league)-engine|league-ui|workspace-ui)")?>([\s\S]*?)<\/script>/g)].map(m=>m[1]).join('\n');vm.runInContext(scripts,context);
  const run=code=>vm.runInContext(code,context),popup=()=>get('pitch-popup').querySelectorAll('button'),action=label=>{const b=popup().find(b=>b.textContent===label);assert.ok(b,'Popup action '+label);return b;};
  return {get,run,document,popup,action,key:key=>document.listeners.keydown.forEach(fn=>fn({key})),cell:(x,y)=>get('pitch').children[y*26+x]};
@@ -79,6 +84,56 @@ test('pending decisions, another mover and Blitz targeting cannot be bypassed by
 });
 test('human clicks cannot stand the computer coach player',()=>{
  const f=proneFixture();f.get('computer-opponent').value='human';f.get('computer-opponent').emit('change');f.run("game.phase='play';game.active=1;globalThis.prone=game.players.find(p=>p.team===1);Object.assign(prone,{x:8,y:7,status:'prone',used:false});selected=null;render();");f.cell(8,7).click();f.cell(8,7).click();assert.equal(f.run('prone.status'),'prone');assert.equal(f.run('prone.used'),false);
+});
+function observerFixture(home='human',away='orc'){
+ const queue=new Map();let next=0;
+ const f=workspaceFixture('match',{setTimeout:(fn,delay)=>{queue.set(++next,{fn,delay});return next;},clearTimeout:id=>queue.delete(id)});
+ f.get('observer-home').value=home;f.get('observer-away').value=away;f.get('start-observation').click();
+ return {...f,queue,tick(){const entry=queue.entries().next().value;assert.ok(entry,'Expected a scheduled computer action');queue.delete(entry[0]);entry[1].fn();}};
+}
+for(const home of ['human','orc'])for(const away of ['human','orc'])test('Testing starts independent computer coaches: '+home+' / '+away,()=>{
+ const f=observerFixture(home,away);assert.equal(f.run('game.teams[0].id'),home);assert.equal(f.run('game.teams[1].id'),away);assert.equal(f.run('game.learning'),false);assert.equal(f.run('game.observing'),true);assert.equal(f.run('computerSession.coaches[0].team'),0);assert.equal(f.run('computerSession.coaches[1].team'),1);assert.equal(f.run('computerSession.coaches[0]===computerSession.coaches[1]'),false);
+ assert.equal(f.run('workspaceView'),'testing');assert.equal(f.get('game-session').parentElement,f.get('testing-view'));assert.equal(f.get('exhibition-rosters').hidden,true);assert.equal(f.queue.size,1);assert.equal(f.get('computer-takeover').textContent,'Take over both teams');
+ const staff=f.get('matchflow').querySelectorAll('button').filter(b=>b.dataset.coachTeam!==undefined);assert.ok(staff.some(b=>b.dataset.coachTeam==='0'));assert.ok(staff.some(b=>b.dataset.coachTeam==='1'));assert.ok(staff.every(b=>b.disabled));
+ f.tick();assert.equal(f.run('game.phase'),'weather');assert.equal(f.run('computerSession.steps[0]'),1);assert.equal(f.run('computerSession.steps[1]'),0);assert.equal(f.queue.size,1);
+});
+test('paused observation advances exactly one action and handles the defending coach decisions',()=>{
+ const f=observerFixture();f.get('computer-pause').click();assert.equal(f.queue.size,0);assert.equal(f.get('computer-step').disabled,false);f.get('computer-step').click();assert.equal(f.run('game.phase'),'weather');assert.equal(f.run('computerPaused'),true);assert.equal(f.queue.size,0);
+ f.run("game.phase='play';game.active=0;game.skillChoice('Defensive response',1,['No response'],()=>{});render();");f.get('computer-step').click();assert.equal(f.run('game.pending'),null);assert.equal(f.run('game.active'),0);assert.equal(f.run('computerSession.steps[1]'),1);assert.equal(f.queue.size,0);
+ f.get('computer-pause').click();assert.equal(f.queue.size,1);f.get('computer-speed').value='80';f.get('computer-speed').emit('change');assert.equal(f.queue.size,1);assert.equal([...f.queue.values()][0].delay,80);
+});
+test('paused observation allows read-only player inspection even during a pending choice',()=>{
+ const f=observerFixture();f.get('computer-pause').click();
+ f.run("game.phase='play';game.active=0;game.players.forEach(p=>Object.assign(p,{x:null,y:null,status:'reserve'}));globalThis.home=game.players.find(p=>p.team===0);globalThis.away=game.players.find(p=>p.team===1);Object.assign(home,{x:8,y:7,status:'prone'});Object.assign(away,{x:12,y:7,status:'standing'});game.skillChoice('Waiting for AI',1,['Continue'],()=>{});globalThis.waiting=game.pending;globalThis.beforePlayers=JSON.stringify(game.players);render();");
+ f.cell(8,7).click();f.cell(8,7).click();assert.equal(f.run('selected'),f.run('home.id'));assert.equal(f.run('JSON.stringify(game.players)===beforePlayers'),true);assert.equal(f.run('game.pending===waiting'),true);assert.equal(f.get('player-details').open,true);assert.equal(f.get('pitch-popup').hidden,true);
+ f.cell(12,7).click();assert.equal(f.run('selected'),f.run('away.id'));assert.ok(f.get('skillcontrols').querySelectorAll('button').every(b=>b.disabled));assert.ok(f.get('choices').querySelectorAll('button').every(b=>b.disabled));assert.equal(f.queue.size,0);
+});
+test('restarting an observation cancels the old action without creating duplicate timers',()=>{
+ const f=observerFixture(),old=[...f.queue.values()][0].fn;f.run('globalThis.oldMatch=game');f.get('observer-home').value='orc';f.get('observer-away').value='human';assert.equal(f.run('game.teams[0].id'),'human');f.get('start-observation').click();assert.equal(f.run('game===oldMatch'),false);assert.equal(f.run('game.teams[0].id'),'orc');assert.equal(f.run('game.teams[1].id'),'human');assert.equal(f.queue.size,1);
+ const timer=f.run('computerTimer');old();assert.equal(f.queue.size,1);assert.equal(f.run('computerTimer'),timer);assert.equal(f.run('game.phase'),'fans');f.tick();assert.equal(f.run('game.phase'),'weather');
+});
+test('observed movement does not compute unused human route previews',()=>{
+ const f=observerFixture();f.get('computer-pause').click();
+ f.run("game.phase='play';game.active=0;globalThis.actor=game.players.find(p=>p.team===0);Object.assign(actor,{x:8,y:7,status:'standing'});game.mover=actor.id;game.action='move';selected=null;game.search=()=>{throw Error('Observer must not compute human routes');};render();");assert.equal(f.run('planningPlayer()'),null);
+});
+test('paused inspection does not redirect an ongoing computer activation',()=>{
+ const f=observerFixture();f.get('computer-pause').click();
+ f.run("game.phase='play';game.active=0;game.turns=[1,1];game.players.forEach(p=>Object.assign(p,{x:null,y:null,status:'reserve'}));globalThis.actor=game.players.find(p=>p.team===0);globalThis.other=game.players.find(p=>p.team===1);Object.assign(actor,{x:5,y:7,status:'standing',used:false});actor.profileOverride={...game.profile(actor),ma:6,skills:[]};Object.assign(other,{x:20,y:12,status:'standing'});game.ball={x:5,y:7,carrier:actor.id};render();");
+ f.get('computer-step').click();assert.equal(f.run('game.mover'),f.run('actor.id'));f.cell(20,12).click();assert.equal(f.run('selected'),f.run('other.id'));f.get('computer-step').click();assert.equal(f.run('game.mover'),f.run('actor.id'));assert.equal(f.run('actor.spent'),1);assert.equal(f.run('other.x'),20);assert.equal(f.run('other.y'),12);assert.equal(f.queue.size,0);
+});
+test('observation leaves exhibition choices and saved teams untouched and supports both launch controls',()=>{
+ const f=observerFixture();f.get('exhibition-home').value='wood-elf';f.get('exhibition-away').value='dwarf';f.get('computer-opponent').value='orc';f.run('globalThis.savedData=JSON.stringify(leagueStore.data)');f.get('testing-scenario').value='match-observe';f.get('start-testing').click();
+ assert.equal(f.run('computerSession.observing'),true);assert.equal(f.get('exhibition-home').value,'wood-elf');assert.equal(f.get('exhibition-away').value,'dwarf');assert.equal(f.get('computer-opponent').value,'orc');assert.equal(f.run('JSON.stringify(leagueStore.data)===savedData'),true);
+ f.run('globalThis.observed=game');f.get('computer-takeover').click();assert.equal(f.run('game===observed'),true);assert.equal(f.run('computerSession'),null);assert.equal(f.run('game.observing'),false);assert.equal(f.queue.size,0);assert.equal(f.get('computer-opponent').value,'orc');
+});
+test('switching tabs keeps an observed match, while starting a drill cancels its coaches',()=>{
+ const f=observerFixture(),old=[...f.queue.values()][0].fn;f.run('globalThis.observed=game;globalThis.observedSession=computerSession');f.get('tab-play').click();f.get('tab-testing').click();assert.equal(f.run('game===observed&&computerSession===observedSession'),true);assert.equal(f.queue.size,1);
+ f.get('testing-scenario').value='match-learning';f.get('start-testing').click();assert.equal(f.run('game.learning'),true);assert.equal(f.run('computerSession'),null);assert.equal(f.queue.size,0);old();assert.equal(f.queue.size,0);assert.equal(f.run('game.phase'),'fans');
+});
+test('an observed match runs through the real bundled scheduler to the final whistle',()=>{
+ const f=observerFixture('human','orc');f.run('globalThis.randomState=33;game.dice=s=>{randomState=(Math.imul(randomState,1664525)+1013904223)>>>0;return 1+Math.floor(randomState/4294967296*s);};');const phases=new Set();let actions=0;
+ for(;actions<4000&&f.run('game.phase')!=='finished';actions++){phases.add(f.run('game.phase'));f.tick();assert.equal(f.run('computerFault'),'');}
+ assert.equal(f.run('game.phase'),'finished');assert.equal(f.run('game.half'),2);assert.equal(f.run('JSON.stringify(game.turns)'),'[8,8]');assert.ok(phases.has('setup'));assert.ok(phases.has('play'));assert.ok(phases.has('endDrive'));assert.equal(f.queue.size,0);assert.equal(f.run('computerTimer'),null);assert.equal(f.get('computer-step').disabled,true);assert.match(f.get('computer-status').textContent,/match finished/);assert.equal(f.run('computerSession.steps.every(n=>n<=1600)'),true);
 });
 test('computer exhibition selector creates an away preset controller and leaves hotseat as default',()=>{
  const f=workspaceFixture('match');assert.equal(f.run('computerSession'),null);

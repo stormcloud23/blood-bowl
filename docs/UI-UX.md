@@ -1,4 +1,15 @@
-# Match workspace — v0.0.39
+# Match workspace — v0.0.40
+
+## Observe computer matches — v0.0.40
+
+Testing includes Watch a computer match with independent Human/Orc selections
+and Start watching new match, plus an Observe computer match mode option. Both
+coaches play automatically from pregame to full time. The existing speed/pause
+controls now include Step one action, and both coaches' last actions are shown.
+Paused player clicks open read-only profiles; manual action controls stay locked.
+Take over both teams keeps the board but removes both computer controllers.
+Switching tabs preserves the game; starting another mode cancels scheduled work.
+See [controls and limits](COMPUTER.md).
 
 ## Stand in place — v0.0.39
 
@@ -28,7 +39,7 @@ Changing it starts an exhibition with a home human coach and the selected away
 preset. Computer controls show the current action explanation, speed, pause and
 takeover. Computer-owned decisions disable human action controls; human-owned
 reactions interrupt the computer. Takeover preserves the current game. League
-and Testing modes remain manual. See [scope and verification](COMPUTER.md).
+and other Testing modes remain manual. See [scope and verification](COMPUTER.md).
 
 Five tabs separate **Play**, **Teams & leagues**, **Rosters**, **Testing**, and
 **Reference**. Switching tabs preserves the current game and each tab's scroll
