@@ -23,6 +23,62 @@ function computerDecisionTeam(g){
 class ComputerCoach {
  constructor(team){this.team=team;this.plan=null;this.explanation="Ready";}
  act(g,label,run){this.explanation=label;return run()!==false;}
+ strategy(g){
+  const carrier=g.players.find(p=>p.id===g.ball.carrier),turn=g.turns[this.team]||1,lead=g.scores[this.team]-g.scores[1-this.team];
+  const mustSteal=g.half===2&&lead<0&&turn>=5;
+  return {carrier,turn,lead,mustSteal,holdLine:!!carrier&&carrier.team!==this.team&&!mustSteal,urgentScore:g.half===2&&lead<0&&turn>=5};
+ }
+ importantAction(g,p,target=null){
+  const carrier=g.players.find(q=>q.id===g.ball.carrier);
+  return carrier===p||target===carrier||!!(carrier?.team===this.team&&target&&g.distance(target,carrier)===1);
+ }
+ spendLastReroll(g,p,target=null){return this.importantAction(g,p,target)||this.strategy(g).mustSteal||(g.turns[p.team]||1)>=7||g.rerollsAvailable(p.team)>1;}
+ checkChance(g,target){let successes=0;for(let die=1;die<=6;die++)if(g.success(die,target))successes++;return successes/6;}
+ activationChance(g,p,action){
+  let chance=1;
+  if(g.has(p,"Bone Head"))chance*=this.checkChance(g,2);
+  if(g.has(p,"Really Stupid")){
+   const helper=g.players.some(q=>q!==p&&q.team===p.team&&g.onPitch(q)&&q.status==="standing"&&!q.distracted&&!g.has(q,"Really Stupid")&&g.distance(q,p)===1);
+   chance*=this.checkChance(g,helper?2:4);
+  }
+  for(const name of ["Unchannelled Fury","Animal Savagery"])if(g.has(p,name))chance*=this.checkChance(g,["block","blitz"].includes(action)?2:4);
+  const lust=g.parameter(p,"Bloodlust");if(lust)chance*=this.checkChance(g,Number(lust.match(/\d+/)?.[0]||2));
+  if(action!=="block"&&g.has(p,"Take Root"))chance*=this.checkChance(g,2);
+  if(action!=="block"&&p.status==="prone"&&g.movementAllowance(p)<=2&&!g.has(p,"Jump Up"))chance*=this.checkChance(g,g.forecastTarget(p,"Stand up",4));
+  if(action==="block"&&p.status==="prone")chance*=this.checkChance(g,Math.max(2,Number.parseInt(g.profile(p).ag)-1));
+  return chance;
+ }
+ routeChance(g,p,route,context){
+  // Probability mass tracks whether once-per-activation Dodge/Sure Feet is
+  // still available. Team re-rolls are deliberately not assumed by planning.
+  const initial=(g.skill(p,"Dodge")&&!p.dodgeUsed?1:0)|(g.skill(p,"Sure Feet")&&!g.used(p,"Sure Feet")?2:0);
+  let states=[0,0,0,0];states[initial]=1;let pickedUp=false;
+  const check=(target,bit=0,free=false)=>{
+   const pass=this.checkChance(g,target),next=[0,0,0,0];
+   states.forEach((mass,mask)=>{next[mask]+=mass*pass;if(free)next[mask]+=mass*(1-pass)*pass;else if(mask&bit)next[mask^bit]+=mass*(1-pass)*pass;});states=next;
+  };
+  for(const step of route.path){
+   const plan=step.plan||g.planFrom(p,step.x,step.y,step.fromX??p.x,step.fromY??p.y,0);if(!plan)return 0;
+   if(plan.dodge||plan.jump){
+    const tackle=context.enemies.some(e=>g.distance(e,{x:step.fromX,y:step.fromY})===1&&g.skill(e,"Tackle"));
+    check(g.forecastTarget(p,plan.jump?"Jump":"Dodge",plan.divingTackleTarget??plan.target),plan.dodge&&!tackle?1:0);
+    // Tentacles can end an activation without a turnover; it still reduces
+    // the chance that this route reaches its intended destination.
+    let held=0;for(const e of context.enemies)if(g.distance(e,{x:step.fromX,y:step.fromY})===1&&g.skill(e,"Tentacles"))held=Math.max(held,this.checkChance(g,Math.max(2,6-Number(g.profile(e).st)+Number(g.profile(p).st))));
+    states=states.map(m=>m*(1-held));
+   }
+   for(let i=0;i<plan.rushes;i++)check(g.forecastTarget(p,"Rush",2),2);
+   if(plan.pickup&&!pickedUp){check(g.forecastTarget(p,"Pick up",Number.parseInt(g.profile(p).ag)+g.markingAt(p,step.x,step.y)),0,g.skill(p,"Sure Hands"));pickedUp=true;}
+  }
+  return states.reduce((a,b)=>a+b,0);
+ }
+ blockOdds(g,p,target,origin=p){
+  const assists=g.assists({...p,x:origin.x,y:origin.y},target),a=Number(g.profile(p).st)+assists.offensive,d=Number(g.profile(target).st)+assists.defensive;
+  const count=a===d?1:Math.max(a,d)>2*Math.min(a,d)?3:2,own=a>=d;
+  const safeBoth=g.skill(p,"Block")||g.skill(p,"Wrestle")&&g.ball.carrier!==p.id;
+  const bad=safeBoth?1/6:2/6,knock=(1+Number(!g.skill(target,"Dodge")||g.skill(p,"Tackle"))+Number(g.skill(p,"Block")&&!g.skill(target,"Block")))/6;
+  return {count,own,failure:own?bad**count:1-(1-bad)**count,knockdown:own?1-(1-knock)**count:knock**count};
+ }
  blockValue(g,b,face){
   const a=b.attacker,d=b.target;
   const value=face==="POW"?8:face==="Stumble"?(!g.skill(d,"Dodge")||g.skill(a,"Tackle")?8:3):face==="Push Back"?3:face==="Both Down"?(g.skill(a,"Block")?(g.skill(d,"Block")?1:7):g.skill(a,"Wrestle")?2:-7):-10;
@@ -32,7 +88,8 @@ class ComputerCoach {
   const q=g.pending;
   if(q.type==="blockSelect"){
    const b=g.blockAction,rank=b.dice.map((die,i)=>({i,value:this.blockValue(g,b,g.blockFace(die))})).sort((a,b)=>b.value-a.value);
-   if(b.attacker.team===this.team&&rank[0].value<0&&!b.poolLocked&&g.rerollSources(b.attacker).length)return this.act(g,"Re-roll an unsafe block",()=>g.rerollBlock(g.rerollSources(b.attacker)[0]));
+   const sources=g.rerollSources(b.attacker),source=sources.find(s=>s!=="Team")||(this.spendLastReroll(g,b.attacker,b.target)?sources[0]:null);
+   if(b.attacker.team===this.team&&rank[0].value<0&&!b.poolLocked&&source)return this.act(g,"Re-roll an unsafe block",()=>g.rerollBlock(source));
    return this.act(g,"Choose the best block die",()=>g.selectBlockDie(rank[0].i));
   }
   if(q.type==="blockProChoose"){
@@ -46,7 +103,8 @@ class ComputerCoach {
    return this.act(g,own?"Choose a safe push destination":"Push the opponent back",()=>{q.resolve(pos);return true;});
   }
   if(q.type!=="custom"){
-   const skill=q.options.find(s=>s!=="Team"&&!g.isRerollSource(s)),choice=q.lookAhead?"Accept":skill||q.options[0]||"Accept";
+   const skill=q.options.find(s=>s!=="Team"&&!g.isRerollSource(s)),source=q.options.find(s=>g.isRerollSource(s)&&s!=="Team"),important=q.kind==="Pick up"||this.importantAction(g,q.p)||this.plan?.scoring;
+   const choice=q.lookAhead?"Accept":skill||source||(important||this.spendLastReroll(g,q.p)?q.options[0]:null)||"Accept";
    return this.act(g,choice==="Accept"?"Accept the result":"Use "+choice,()=>g.decide(choice));
   }
   const options=q.options;
@@ -75,7 +133,7 @@ class ComputerCoach {
     if(!dx&&!dy)continue;
     const plan=g.planFrom(p,n.x+dx,n.y+dy,n.x,n.y,n.spent);if(!plan)continue;
     const risk=n.risk+plan.rushes*1.4+(plan.dodge?Math.max(1,plan.target-1)*1.5:0)+(plan.pickup?Math.max(1,Number.parseInt(g.profile(p).ag)-1):0);
-    const next={x:plan.x,y:plan.y,spent:n.spent+plan.cost,risk,path:n.path.concat({x:plan.x,y:plan.y})},key=next.x+","+next.y,state=key+","+next.spent;
+    const next={x:plan.x,y:plan.y,spent:n.spent+plan.cost,risk,path:n.path.concat({x:plan.x,y:plan.y,fromX:n.x,fromY:n.y,plan})},key=next.x+","+next.y,state=key+","+next.spent;
     if(states.has(state)&&states.get(state)<=risk)continue;
     states.set(state,risk);queue.push(next);
     const old=best.get(key);if(!old||risk*4+next.spent<old.risk*4+old.spent)best.set(key,next);
@@ -90,7 +148,7 @@ class ComputerCoach {
   const allies=g.players.filter(q=>q!==p&&q.team===p.team&&g.onPitch(q)&&q.status==="standing"&&!q.distracted),coverage=new Uint8Array(390);
   for(const q of allies)for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)if((dx||dy)&&g.inside(q.x+dx,q.y+dy))coverage[(q.y+dy)*26+q.x+dx]++;
   const carrier=g.players.find(q=>q.id===g.ball.carrier),enemies=g.players.filter(q=>q.team!==p.team&&g.onPitch(q)&&q.status==="standing"&&!q.distracted);
-  return {allies,coverage,carrier,enemies,budgets:new Map(allies.filter(q=>!q.used).map(q=>[q.id,g.movementAllowance(q)]))};
+  return {allies,coverage,carrier,enemies,strategy:this.strategy(g),budgets:new Map(allies.filter(q=>!q.used).map(q=>[q.id,g.movementAllowance(q)]))};
  }
  coverageValue(g,n,coverage){
   let value=0;
@@ -106,7 +164,7 @@ class ComputerCoach {
    if(!dx&&!dy)continue;const square={x:carrier.x+dx,y:carrier.y+dy};if(!g.inside(square.x,square.y))continue;
    const count=guards.filter(q=>g.distance(q,square)===1).length;
    value+=count?1.5+(count>1?.5:0):0;
-   if(dx&&dy){if(occupied.has(square.x+","+square.y)){value+=4;corners++;}else missing.push(square);}
+   if(dx&&dy){if(occupied.has(square.x+","+square.y)){value+=context.enemies.some(e=>g.distance(e,square)===1)?1:4;corners++;}else missing.push(square);}
   }
   if(corners===4)value+=4;
   // A carrier may advance ahead of unused escorts, but used/prone/distracted
@@ -123,9 +181,11 @@ class ComputerCoach {
   const dir=g.right(p.team)?1:-1,{carrier}=context,own=carrier?.team===p.team,marks=g.markingAt(p,n.x,n.y);
   let value=-marks*3-n.risk*5-n.path.length*.12+(carrier===p?0:this.coverageValue(g,n,context.coverage));
   if(carrier===p){
-   value+=(n.x-p.x)*dir*3;
+   value+=(n.x-p.x)*dir*(context.strategy.urgentScore?5:3);
    if(n.x===(dir===1?25:0))value+=200-n.risk*2;
    value+=this.protectionValue(g,n,context.allies,context,{potential:true})*.45;
+   value-=Math.max(0,3-Math.min(n.y,14-n.y))*(context.strategy.turn<=4?2:.6);
+   value-=marks*10;
   }else if(!carrier&&g.inside(g.ball.x,g.ball.y)&&!g.has(p,"No Ball")){
    value+=(Math.min(6,g.distance(p,g.ball))-Math.min(6,g.distance(n,g.ball)))*2;
    if(n.path.some(s=>s.x===g.ball.x&&s.y===g.ball.y))value+=30+this.carrierValue(g,p);
@@ -138,7 +198,15 @@ class ComputerCoach {
    }else{
     value+=(Math.min(4,g.distance(p,carrier))-Math.min(4,g.distance(n,carrier)))*2;
     const markers=context.allies.filter(q=>g.distance(q,carrier)===1).length;
-    if(g.distance(n,carrier)===1)value+=markers===0?8:markers===1?3:0;
+    if(g.distance(n,carrier)===1)value+=markers===0?(context.strategy.mustSteal?12:3):markers===1?1:0;
+    if(context.strategy.holdLine){
+     const depth=(carrier.x-n.x)*dir;
+     value-=marks*2;
+     value+=Math.max(0,4-Math.abs(depth-2))*1.5;
+     if(depth<0)value-=Math.min(8,-depth)*1.5;
+     const safety=context.allies.some(q=>(carrier.x-q.x)*dir>=4);
+     if(!safety)value+=Math.max(0,Math.min(6,depth-2))*1.3;
+    }
    }
   }else value+=(n.x-p.x)*dir;
   if(n.y===0||n.y===14)value-=2;
@@ -146,25 +214,43 @@ class ComputerCoach {
  }
  chooseAction(g){
   let best=null;
-  const offer=c=>{if(!best||c.score>best.score)best=c;};
+  const strategy=this.strategy(g),goal=g.right(this.team)?25:0;
+  const threatened=!!(strategy.carrier?.team===this.team&&g.marking(strategy.carrier)>0);
+  const stopScore=!!(strategy.carrier?.team!==this.team&&strategy.carrier&&Math.abs(strategy.carrier.x-(g.right(strategy.carrier.team)?25:0))<=g.movementAllowance(strategy.carrier));
+  const offer=c=>{
+   if(c.score<=.75)return;
+   c.priority=c.scoring?4:c.urgent?3:c.success>=1-1e-9?2:1;
+   c.utility=c.score*c.success-(1-c.success)*18;
+   if(c.utility<=0&&!c.scoring)return;
+   if(!best||c.priority>best.priority||c.priority===best.priority&&c.utility>best.utility)best=c;
+  };
   const enemies=g.players.filter(q=>q.team!==this.team&&g.onPitch(q)&&q.status==="standing");
   for(const p of g.players.filter(p=>g.canStart(p))){
    const routes=this.routes(g,p),context=this.positionContext(g,p),values=new Map(routes.map(n=>[n,this.positionValue(g,p,n,context)])),base=values.get(routes[0]);
+   const chances=new Map(),chance=n=>{if(!chances.has(n))chances.set(n,this.routeChance(g,p,n,context));return chances.get(n);};
+   const moving=this.activationChance(g,p,"move"),blitzing=this.activationChance(g,p,"blitz"),blocking=this.activationChance(g,p,"block");
    for(const n of routes){
     const score=values.get(n)-base+(p.status==="prone"?5:0);
-    if(n.path.length||p.status==="prone")offer({kind:"move",p,route:n,score});
+    if(score>.75&&(n.path.length||p.status==="prone"))offer({kind:"move",p,route:n,score,success:moving*chance(n),scoring:strategy.carrier===p&&n.x===goal,urgent:threatened&&strategy.carrier===p&&g.markingAt(p,n.x,n.y)===0});
    }
    for(const d of enemies){
-    const assists=g.assists(p,d),strength=Number(g.profile(p).st)+assists.offensive-Number(g.profile(d).st)-assists.defensive;
-    if(g.canBlock(p,d)&&strength>=0)offer({kind:"block",p,target:d,score:strength>0?12:4});
-    // Prefer a nearby Blitz; a path must leave one MA for the block. Strength
-    // is checked conservatively without assuming future assists.
-    if(!g.blitzUsed[this.team]&&Number(g.profile(p).st)>=Number(g.profile(d).st)&&g.distance(p,d)<=g.movementAllowance(p)){
-     for(const n of routes)if(g.distance(n,d)===1&&n.spent<g.movementAllowance(p)&&n.risk<=2)offer({kind:"blitz",p,target:d,route:n,score:(g.ball.carrier===d.id?30:9)+values.get(n)-base-n.path.length*.08});
+    const important=this.importantAction(g,p,d);
+    if(g.canBlock(p,d)){
+     const odds=this.blockOdds(g,p,d);
+     if(odds.own)offer({kind:"block",p,target:d,score:(odds.count>1?8:3)+odds.knockdown*8+(important?10:0),success:blocking*(1-odds.failure),urgent:threatened&&important||(stopScore||strategy.mustSteal)&&d===strategy.carrier});
+    }
+    // A Blitz must leave one MA for the block. Evaluate assists at its landing
+    // square with all other players in their current positions.
+    if(!g.blitzUsed[this.team]&&g.distance(p,d)<=g.movementAllowance(p)){
+     for(const n of routes)if(g.distance(n,d)===1&&n.spent<g.movementAllowance(p)&&n.risk<=2){
+      if(!n.path.length&&p.status==="standing"&&g.canBlock(p,d))continue;
+      const odds=this.blockOdds(g,p,d,n);
+      if(odds.own)offer({kind:"blitz",p,target:d,route:n,score:(g.ball.carrier===d.id?30:9)+(threatened&&important?12:0)+values.get(n)-base-n.path.length*.08,success:blitzing*chance(n)*(1-odds.failure),urgent:threatened&&important||(stopScore||strategy.mustSteal)&&d===strategy.carrier});
+     }
     }
    }
   }
-  return best?.score>0?best:null;
+  return best;
  }
  step(g){
   if(g.phase==="finished"||computerDecisionTeam(g)!==this.team)return false;
@@ -205,7 +291,8 @@ class ComputerCoach {
   if(!action)return this.act(g,"End the team turn",()=>g.endTurn());
   const {p,route,target,kind}=action;
   if(kind==="block")return this.act(g,"Take a favourable block with #"+p.number,()=>g.block(p.id,target.id));
-  this.plan={id:p.id,drive:g.drive,turn:g.turns[this.team],kind,path:route.path.slice(),goal:g.ball.carrier===p.id?"the end zone":g.ball.carrier?"the ball carrier":"the ball"};
+  const strategy=this.strategy(g),goal=strategy.carrier===p?"the end zone":strategy.holdLine?"a goal-side defensive screen":strategy.carrier?.team===this.team?"supporting space":strategy.carrier?"the opposing carrier":"the ball";
+  this.plan={id:p.id,drive:g.drive,turn:g.turns[this.team],kind,path:route.path.slice(),scoring:action.scoring,goal};
   return this.act(g,(kind==="blitz"?"Declare Blitz":"Activate")+" #"+p.number,()=>kind==="blitz"?g.startBlitz(p.id,target.id):g.start(p.id,"move"));
  }
 }

@@ -77,6 +77,9 @@ inducements. League games remain hotseat. See [computer opponent](docs/COMPUTER.
 Computer positioning rewards distinct tackle-zone coverage and all four cage
 corners around its carrier, with diminishing returns for extra nearby players.
 Action and decision updates preserve the page position.
+The coach also orders useful safe actions before optional risks, considers common
+skill re-rolls and block reliability, and adjusts defensive pressure to the score
+and clock. See [strategy sources and limits](docs/AI-STRATEGY.md).
 
 Testing contains the learning match, skills laboratory and all practice drills.
 Choose a mode and press **Start testing mode**. Switching workspace tabs preserves

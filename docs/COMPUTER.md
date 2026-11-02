@@ -1,4 +1,4 @@
-# Computer opponent — v0.0.37
+# Computer opponent — v0.0.38
 
 In Play, choose Computer · Human team or Computer · Orc team in the Opponent
 menu. Changing this choice starts a new exhibition. You control home; the
@@ -41,6 +41,14 @@ whole team. Only standing, non-distracted guards count. A moving carrier can
 give limited credit to distinct unused escorts that could reach missing
 corners; this is an estimate, not a complete path/threat simulation. Blitzes
 also account for the coverage and protection abandoned at their origin.
+
+Useful safe actions now precede optional risky rolls, with exceptions for scoring
+and immediate ball emergencies. Route and block completion estimates account for
+common skills, native re-rolls and activation checks. Carrier positioning favours
+central, unmarked space early; defensive screens favour goal-side coverage and
+restraint, switching to pressure when behind late. The last team re-roll is
+conserved on peripheral failures. See [strategy sources, implementation and
+limits](AI-STRATEGY.md) for the three King_Ghidra articles and the adaptations.
 
 It can stand up, pick up the ball, advance and score, move supporters, block
 and Blitz. It chooses block dice, pushes, rerolls and skill prompts. It uses
