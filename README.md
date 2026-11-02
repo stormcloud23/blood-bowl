@@ -68,6 +68,10 @@ Testing contains the learning match, skills laboratory and all practice drills.
 Choose a mode and press **Start testing mode**. Switching workspace tabs preserves
 the current game; starting another game or mode replaces it.
 
+Reference includes the current playing guide, a BB2025 rules cheat sheet and
+searchable explanations for all 108 skills and traits. All reference content is
+bundled for offline use.
+
 ## Current scope
 
 - Regulation two-half exhibition matches, practice modes and a skills laboratory.

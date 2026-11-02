@@ -239,6 +239,6 @@ if(coverageTable){
  const label=document.createElement("label");label.className="skill-search";label.textContent="Find a skill or trait ";const input=document.createElement("input");input.type="search";input.placeholder="Name, category or behavior";label.append(input);coverage.querySelector("summary").after(label);
  const status=document.createElement("p");status.className="muted";status.setAttribute("role","status");label.after(status);
  const rows=Array.from(coverageTable.querySelectorAll("tr")).slice(1);
- input.addEventListener("input",()=>{const query=input.value.trim().toLocaleLowerCase();for(const row of rows)row.hidden=!row.textContent.toLocaleLowerCase().includes(query);const count=rows.filter(r=>!r.hidden).length;status.textContent=count+" of "+rows.length+" entries";});
+ const filterSkills=()=>{const query=input.value.trim().toLocaleLowerCase();for(const row of rows)row.hidden=!row.textContent.toLocaleLowerCase().includes(query);const count=rows.filter(r=>!r.hidden).length;status.textContent=count+" of "+rows.length+" entries";};input.addEventListener("input",filterSkills);filterSkills();
 }
 switchWorkspace("play");refreshWorkspace();
