@@ -33,6 +33,7 @@ function showProfile(team,role,number,roster=null){
 
 
 function planningPlayer(){
+ if(game.observing)return null;
  const mover=game.players.find(p=>p.id===game.mover);if(mover)return mover;
  const p=game.players.find(p=>p.id===selected);return game.canStart(p)?p:null;
 }
@@ -237,7 +238,7 @@ function render(){
  document.getElementById("finish").disabled=!game.mover||!!game.pending||game.finished||!!game.bombContext?.rethrows;
  document.getElementById("end").disabled=!!game.pending||game.finished||!!game.bombContext;
  log.replaceChildren(...game.events.map(e=>{const li=document.createElement("li");li.textContent=e;return li;}));
- document.getElementById("mode-notice").textContent=game.match?(game.league?"League fixture: saved players and resources are in use. Record the completed result for SPP, injuries and post-game progression.":"Exhibition match: play through pre-game, setup, kickoff, turns, drive recovery, and two halves."):"Practice actions with Perfect Conditions. Select a drill to try individual rules.";
+ document.getElementById("mode-notice").textContent=game.observing?"Observation match: both coaches are computer-controlled. Pause to inspect players or step through individual actions. These matches do not change saved teams or league records.":game.match?(game.league?"League fixture: saved players and resources are in use. Record the completed result for SPP, injuries and post-game progression.":"Exhibition match: play through pre-game, setup, kickoff, turns, drive recovery, and two halves."):"Practice actions with Perfect Conditions. Select a drill to try individual rules.";
  if(game.match)renderMatch();else document.getElementById("matchflow").hidden=true;
  if(inspected)showProfile(inspected.team,inspected.role,inspected.number);
  renderSkillControls();

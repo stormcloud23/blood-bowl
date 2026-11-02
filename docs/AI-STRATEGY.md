@@ -55,7 +55,7 @@ they do not replace current engine rules. In particular, this increment does
 not introduce intentional eight-turn stalling from the older guides. Available
 touchdowns are still taken, and current crowd/stalling rules remain intact.
 
-This is shared coaching logic for the existing Human/Orc computer exhibitions.
+This is shared coaching logic for Human/Orc computer exhibitions and observed matches.
 It does not unlock other opponent rosters, passing, handoffs, fouling, deliberate
 chain pushes or a complete coordinated cage-advancement planner. Existing
 field coverage and rear cage protection regressions remain in the test suite.
