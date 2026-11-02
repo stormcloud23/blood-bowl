@@ -1,8 +1,24 @@
-# Match workspace — v0.0.34
+# Match workspace — v0.0.35
 
 Five tabs separate **Play**, **Teams & leagues**, **Rosters**, **Testing**, and
 **Reference**. Switching tabs preserves the current game and each tab's scroll
 position. Starting another mode or changing an exhibition team starts a new game.
+
+## Setup swaps — v0.0.35
+
+During ordinary drive setup, select a player and click a fielded team-mate to
+swap their locations. The selected player stays selected at the new square.
+Clicking an empty square still places the selected player normally. A selected
+reserve can replace a fielded team-mate even when eleven players are on the
+pitch; the displaced player goes to Reserves. Use the roster or Dugouts to
+select a different player directly.
+
+Swaps use the setup placement checks and do not spend movement or roll dice.
+Both players must belong to the coach currently setting up and be eligible.
+Formation confirmation still validates the line, wide zones and captain.
+Selection clears when the setup coach, drive or game changes, so a selection
+from the previous setup cannot cause an accidental swap. Kickoff redeployment
+and live play retain their existing controls.
 
 ## Reference guide — v0.0.34
 

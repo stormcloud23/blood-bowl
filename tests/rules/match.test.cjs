@@ -117,3 +117,26 @@ test("weather adjusts rush and ball checks, Sunny accuracy, and Blizzard range",
  g.weather="Blizzard";assert.equal(g.passRange({x:0,y:0},{x:10,y:0}),null);assert.equal(g.passRange({x:0,y:0},{x:6,y:0}).band,1);
 });
 
+
+
+test('setup swaps are atomic for both coaches, later drives and reversed second-half orientation',()=>{
+ const g=fixture();
+ for(const half of [1,2]){g.half=half;for(const kicking of [0,1]){g.prepareDrive(kicking);for(const team of [kicking,1-kicking]){
+  const players=g.players.filter(p=>p.team===team&&g.onPitch(p)),[a,b]=players,origin={x:a.x,y:a.y},target={x:b.x,y:b.y},errors=g.setupErrors(),state={drive:g.drive,turns:[...g.turns],scores:[...g.scores],rerolls:[...g.rerolls]};
+  assert.ok(g.placeSetup(a.id,b.x,b.y));assert.deepEqual({x:a.x,y:a.y},target);assert.deepEqual({x:b.x,y:b.y},origin);assert.deepEqual(g.setupErrors(),errors);assert.equal(new Set(players.map(p=>p.x+','+p.y)).size,players.length);assert.deepEqual({drive:g.drive,turns:g.turns,scores:g.scores,rerolls:g.rerolls},state);assert.ok(g.confirmSetup());
+ }}}
+});
+
+test('a reserve can replace a fielded setup player without adding a twelfth player',()=>{
+ const g=fixture();g.prepareDrive(0);const p={...g.players[0],id:'extra-reserve',number:12,x:null,y:null,status:'reserve'};g.players.push(p);const target=g.players[0],spot={x:target.x,y:target.y};
+ assert.ok(g.placeSetup(p.id,target.x,target.y));assert.deepEqual({x:p.x,y:p.y},spot);assert.equal(target.status,'reserve');assert.equal(target.x,null);assert.equal(target.y,null);assert.equal(g.players.filter(p=>p.team===0&&g.onPitch(p)).length,11);assert.deepEqual(g.setupErrors(),[]);
+ assert.equal(g.placeSetup(target.id,0,0),false);assert.equal(target.status,'reserve');
+});
+
+test('setup swap rejects wrong-coach, unavailable, invalid-square and out-of-setup requests without moving players',()=>{
+ const g=fixture();g.prepareDrive(0);g.autoSetup();g.setupTeam=1;g.active=1;g.autoSetup();g.setupTeam=0;g.active=0;const [a,b]=g.players.filter(p=>p.team===0),opponent=g.players.find(p=>p.team===1),positions=()=>JSON.stringify(g.players);
+ const reject=(id,x,y)=>{const before=positions();assert.equal(g.placeSetup(id,x,y),false);assert.equal(positions(),before);};
+ reject(a.id,opponent.x,opponent.y);reject(opponent.id,a.x,a.y);reject(a.id,a.x,a.y);reject(a.id,-1,b.y);reject('missing',b.x,b.y);
+ a.heatOut=true;reject(a.id,b.x,b.y);a.heatOut=false;g.pending={type:'custom'};reject(a.id,b.x,b.y);g.pending=null;
+ g.phase='play';reject(a.id,b.x,b.y);g.phase='eventMove';reject(a.id,b.x,b.y);
+});
