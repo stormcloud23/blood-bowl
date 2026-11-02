@@ -211,8 +211,8 @@ test('a commit button from an older preview cannot commit or erase its replaceme
 test('saved exhibition teams use developed profiles, ordered CTV budgets and isolated snapshots',()=>{
  const f=workspaceFixture('match');
  f.run(`for(let i=0;i<2;i++){const t=leagueStore.create(demoLeagueTeams[0].id,'Custom '+i);for(let n=0;n<11;n++)leagueStore.hire(t.id,0,'Player '+n);leagueStore.submit(t.id);}leagueStore.setStaff(leagueStore.data.teams[0].id,'assistants',1);leagueSave();renderLeague();globalThis.beforeExhibition=JSON.stringify(leagueStore.data);`);
- assert.ok(f.get('exhibition-home').children.some(o=>o.textContent==='Saved team: Custom 0'));
- f.run(`document.getElementById('exhibition-home').value='saved:'+leagueStore.data.teams[0].id;document.getElementById('exhibition-away').value='saved:'+leagueStore.data.teams[1].id;reset();`);
+ assert.ok(f.get('exhibition-home-custom').children.some(o=>o.textContent==='Custom 0'));
+ f.run(`document.getElementById('exhibition-home-custom').value='saved:'+leagueStore.data.teams[0].id;document.getElementById('exhibition-away-custom').value='saved:'+leagueStore.data.teams[1].id;reset();`);
  assert.equal(f.run('game.exhibition&&game.league'),true);
  assert.equal(f.run('game.teams[0].name'),'Custom 0');
  assert.equal(f.get('exhibition-rosters').hidden,false);
@@ -224,7 +224,7 @@ test('saved exhibition teams use developed profiles, ordered CTV budgets and iso
  assert.equal(f.run('game.setResource(1,"kegs",1)'),true);
  assert.equal(f.run('game.setResource(1,"kegs",2)'),false);
  assert.equal(f.run('JSON.stringify(leagueStore.data)===beforeExhibition'),true);
- f.run(`document.getElementById('exhibition-away').value=demoLeagueTeams[1].id;reset();`);
+ f.run(`document.getElementById('exhibition-away-custom').value='';document.getElementById('exhibition-away').value=demoLeagueTeams[1].id;reset();`);
  assert.equal(f.run('game.league'),false);
  assert.equal(f.run('!!game.players[0].profileOverride'),true);
 });
@@ -240,4 +240,26 @@ test('pitch marks sweet spots and closed or active trapdoors',()=>{
 test('movement risk colors follow the hardest check on each tile',()=>{
  const f=workspaceFixture('match');
  for(const target of [2,3,4,5,6]){f.run(`game.players.forEach(p=>Object.assign(p,{x:null,y:null,status:'reserve'}));Object.assign(game.players[0],{x:10,y:7,status:'standing'});selected=game.players[0].id;game.phase='play';game.active=0;game.planFrom=()=>({x:11,y:7,cost:1,rushes:0,dodge:true,target:${target}});remainingRange=()=>new Map([['11,7',{spent:1,path:[{x:11,y:7,plan:{x:11,y:7,cost:1,rushes:0,dodge:true,target:${target}}}]}]]);render();`);assert.match(f.cell(11,7).className,new RegExp('risk-'+target));}
+});
+
+
+test('Testing owns drills and learning matches while Play owns full games without resetting on tab changes',()=>{
+ const f=workspaceFixture('match');f.run('globalThis.originalGame=game');
+ f.get('tab-testing').click();assert.equal(f.run('game===originalGame'),true);assert.equal(f.get('game-session').parentElement,f.get('play-view'));
+ f.get('testing-scenario').value='dodge';f.get('start-testing').click();assert.equal(f.run('game.match'),undefined);assert.equal(f.get('game-session').parentElement,f.get('testing-view'));
+ f.run('globalThis.practice=game');f.get('tab-play').click();f.get('tab-testing').click();assert.equal(f.run('game===practice'),true);
+ f.get('testing-scenario').value='match-learning';f.get('start-testing').click();assert.equal(f.run('game.learning'),true);assert.equal(f.get('game-session').parentElement,f.get('testing-view'));
+ f.get('start-exhibition').click();assert.equal(f.run('game.learning'),false);assert.equal(f.run('workspaceView'),'play');assert.equal(f.get('game-session').parentElement,f.get('play-view'));
+ f.get('open-leagues').click();assert.equal(f.run('workspaceView'),'teams');
+ f.get('tab-rosters').emit('keydown',{key:'ArrowRight'});assert.equal(f.run('workspaceView'),'testing');f.get('tab-testing').emit('keydown',{key:'End'});assert.equal(f.run('workspaceView'),'reference');f.get('tab-reference').emit('keydown',{key:'ArrowRight'});assert.equal(f.run('workspaceView'),'play');
+ const html=fs.readFileSync(projectPath('index.html'),'utf8'),testing=html.match(/<select id="testing-scenario">([\s\S]*?)<\/select>/)[1];assert.ok(!testing.includes('value="match"'));assert.ok(testing.includes('value="skills"'));
+});
+
+test('preset and custom selectors stay separate and selecting a preset clears the custom override',()=>{
+ const f=workspaceFixture('match');assert.equal(f.get('exhibition-home-custom').disabled,true);
+ f.run(`const club=leagueStore.create(demoLeagueTeams[0].id,'My custom team');for(let i=0;i<11;i++)leagueStore.hire(club.id,0,'Player '+i);leagueStore.submit(club.id);refreshExhibitionRosters();`);
+ assert.equal(f.get('exhibition-home-custom').disabled,false);assert.ok(!f.get('exhibition-home').children.some(o=>o.value.startsWith('saved:')));
+ f.get('exhibition-home-custom').value=f.run("'saved:'+leagueStore.data.teams[0].id");f.get('exhibition-home-custom').emit('change');assert.equal(f.run('teams[0].name'),'My custom team');assert.equal(f.get('exhibition-home-league').hidden,true);
+ f.run('refreshExhibitionRosters()');assert.ok(f.get('exhibition-home-custom').value.startsWith('saved:'));
+ f.get('exhibition-home').value=f.run('demoLeagueTeams[1].id');f.get('exhibition-home').emit('change');assert.equal(f.get('exhibition-home-custom').value,'');assert.equal(f.run('teams[0].id'),f.run('demoLeagueTeams[1].id'));
 });

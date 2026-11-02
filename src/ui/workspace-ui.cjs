@@ -1,14 +1,37 @@
 "use strict";
 // Presentation only. Engine guards remain the authority for every offered action.
-const workspaceTabs=["play","teams","rosters","reference"];
+const workspaceTabs=["play","teams","rosters","testing","reference"];
 const workspaceScroll={};
 let workspaceView="play",pitchFocus=0,popupAnchor=null,popupEpoch=0,hoverSquare=null,staffDetailsOpen=false,popoverTransition=false;
 let displayedDecision=null,displayedPhase="";
 const popup=document.getElementById("pitch-popup"),tooltip=document.getElementById("pitch-tooltip");
-function exhibitionRosterChoices(side){const roster=exhibitionTeam(document.getElementById("exhibition-"+side).value,false);if(!roster)return;for(const [kind,options] of [["league",roster.leagues||[roster.league]],["alignment",roster.alignments||[]]]){const select=document.getElementById("exhibition-"+side+"-"+kind),previous=select.value;select.replaceChildren();for(const name of options){const option=document.createElement("option");option.value=name;option.textContent=name;select.append(option);}select.value=options.includes(previous)?previous:options[0]||"";select.hidden=!!roster.exhibitionSaved||options.length<2;document.getElementById("exhibition-"+side+"-"+kind+"-label").hidden=select.hidden;}}
-globalThis.refreshExhibitionRosters=()=>{for(const side of ["home","away"]){const select=document.getElementById("exhibition-"+side),previous=select.value;select.replaceChildren();for(const roster of rosterCatalog){const option=document.createElement("option");option.value=roster.id;option.textContent=roster.name;select.append(option);}for(const team of leagueStore.data.teams.filter(t=>!t.draft)){const option=document.createElement("option");option.value="saved:"+team.id;option.textContent="Saved team: "+team.name;select.append(option);}select.value=exhibitionTeam(previous,false)?previous:practiceLeagueTeams[side==="home"?0:1].id;exhibitionRosterChoices(side);}};
+function exhibitionRosterChoices(side){const roster=exhibitionTeam(exhibitionSelection(side),false);if(!roster)return;for(const [kind,options] of [["league",roster.leagues||[roster.league]],["alignment",roster.alignments||[]]]){const select=document.getElementById("exhibition-"+side+"-"+kind),previous=select.value;select.replaceChildren();for(const name of options){const option=document.createElement("option");option.value=name;option.textContent=name;select.append(option);}select.value=options.includes(previous)?previous:options[0]||"";select.hidden=!!roster.exhibitionSaved||options.length<2;document.getElementById("exhibition-"+side+"-"+kind+"-label").hidden=select.hidden;}}
+globalThis.refreshExhibitionRosters=()=>{for(const side of ["home","away"]){
+ const preset=document.getElementById("exhibition-"+side),custom=document.getElementById("exhibition-"+side+"-custom"),previous=preset.value,saved=custom.value;
+ preset.replaceChildren();custom.replaceChildren();
+ const option=(select,value,text)=>{const o=document.createElement("option");o.value=value;o.textContent=text;select.append(o);};
+ for(const roster of rosterCatalog)option(preset,roster.id,roster.name);
+ const clubs=leagueStore.data.teams.filter(t=>!t.draft);option(custom,"","Use preset team");
+ for(const team of clubs)option(custom,"saved:"+team.id,team.name);
+ preset.value=rosterCatalog.some(t=>t.id===previous)?previous:practiceLeagueTeams[side==="home"?0:1].id;
+ custom.value=clubs.some(t=>"saved:"+t.id===saved)?saved:"";custom.disabled=!clubs.length;
+ document.getElementById("exhibition-"+side+"-custom-note").textContent=clubs.length?"Custom team overrides the preset. Choose Use preset team to switch back.":"No submitted custom teams. Create and submit one in Teams & leagues.";
+ exhibitionRosterChoices(side);
+}};
 refreshExhibitionRosters();
-for(const [id,index] of [["exhibition-home",0],["exhibition-away",1]]){const select=document.getElementById(id),side=index?"away":"home";exhibitionRosterChoices(side);select.addEventListener("change",()=>{exhibitionRosterChoices(side);reset();});for(const kind of ["league","alignment"])document.getElementById(id+"-"+kind).addEventListener("change",reset);}
+for(const side of ["home","away"]){
+ const id="exhibition-"+side;
+ for(const suffix of ["","-custom"])document.getElementById(id+suffix).addEventListener("change",()=>{if(!suffix)document.getElementById(id+"-custom").value="";exhibitionRosterChoices(side);reset();});
+ for(const kind of ["league","alignment"])document.getElementById(id+"-"+kind).addEventListener("change",reset);
+}
+function refreshSessionLocation(){
+ const session=document.getElementById("game-session");if(document.getElementById("mode-notice").parentElement!==session)session.prepend(document.getElementById("mode-notice"));
+ const testing=document.getElementById("scenario").value!=="match";
+ const panel=document.getElementById(testing?"testing-view":"play-view");if(session.parentElement!==panel)panel.append(session);
+}
+document.getElementById("start-exhibition").addEventListener("click",()=>{document.getElementById("scenario").value="match";reset();switchWorkspace("play");});
+document.getElementById("start-testing").addEventListener("click",()=>{document.getElementById("scenario").value=document.getElementById("testing-scenario").value||"match-learning";reset();switchWorkspace("testing");});
+document.getElementById("open-leagues").addEventListener("click",()=>switchWorkspace("teams",true));
 function closePitchPopup(restore=false){
  popupEpoch++;popoverTransition=true;
  try{popup.hidden=true;if(restore&&popupAnchor?.isConnected)popupAnchor.focus({preventScroll:true});popupAnchor=null;}finally{popoverTransition=false;}
@@ -29,7 +52,7 @@ for(const view of workspaceTabs){
  tab.addEventListener("click",()=>switchWorkspace(view));
  tab.addEventListener("keydown",event=>{
   if(event.altKey||event.ctrlKey||event.metaKey)return;
-  const i=workspaceTabs.indexOf(view),next=event.key==="ArrowRight"?(i+1)%4:event.key==="ArrowLeft"?(i+3)%4:event.key==="Home"?0:event.key==="End"?3:null;
+  const i=workspaceTabs.indexOf(view),next=event.key==="ArrowRight"?(i+1)%workspaceTabs.length:event.key==="ArrowLeft"?(i+workspaceTabs.length-1)%workspaceTabs.length:event.key==="Home"?0:event.key==="End"?workspaceTabs.length-1:null;
   if(next!==null){event.preventDefault();switchWorkspace(workspaceTabs[next],true);}
  });
 }
@@ -156,6 +179,7 @@ document.getElementById("pitch-scale").addEventListener("change",event=>{
  const p=game.players.find(p=>p.id===selected&&game.onPitch(p));if(p)pitch.children[p.y*26+p.x].scrollIntoView({block:"nearest",inline:"center"});
 });
 function refreshWorkspace(){
+ refreshSessionLocation();
  closePitchPopup();hidePitchTooltip();
  document.getElementById("exhibition-rosters").hidden=!game.match||!!game.league&&!game.exhibition;
  const pregame=game.match&&["fans","weather","leagueSteps","prayers","rolloff","kickChoice"].includes(game.phase),overview=document.getElementById("pregame-overview");

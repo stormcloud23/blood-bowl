@@ -102,3 +102,5 @@ main>aside #matchflow .control{max-width:100%}
 .position-key{margin:6px 0}.position-key>summary{padding:6px 0;font-size:12px}.position-key>div{display:flex;flex-wrap:wrap;gap:8px 16px;padding:6px 0}.position-key-item{display:inline-flex;align-items:center;gap:7px;color:#b8c9c7;font-size:12px}.position-key-item .token{width:26px;height:26px;flex-shrink:0;margin:0}
 
 .pitch-legend span[style]::before{background:var(--key-color);border-color:var(--key-color)}
+
+#exhibition-rosters[open]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}#exhibition-rosters>summary{grid-column:1/-1}.exhibition-side{display:grid;grid-template-columns:1fr;gap:8px;padding:14px;background:#101b20;border:1px solid #34474d;border-radius:6px}.exhibition-side select{width:100%}.exhibition-side label{font-size:13px;font-weight:650}.exhibition-side .muted{font-size:12px;margin-bottom:8px}@media(max-width:650px){#exhibition-rosters[open]{grid-template-columns:1fr}}
