@@ -1,8 +1,19 @@
-# Match workspace — v0.0.31
+# Match workspace — v0.0.32
 
 The long development page is now four workspaces: **Play**, **Teams & leagues**,
 **Rosters**, and **Reference**. Switching tabs preserves the live game and each
 workspace's scroll position. Changing the game mode still starts a fresh game.
+
+## Straighter route previews — v0.0.32
+
+Automatic route selection first minimizes the existing required-check count,
+then movement spent, then direction changes. A clear four-square horizontal or
+vertical run therefore stays straight instead of forming a same-cost triangle.
+Safer routes retain priority, and explicit coach waypoints remain unchanged.
+Arrival heading is part of the search state so equally good prefixes are not
+pruned before their future bends can be compared. A stable priority queue keeps
+these additional states efficient. This is a preview preference, not a change
+to legal Blood Bowl movement, costs, tests or action rules.
 
 ## Unified movement — v0.0.31
 

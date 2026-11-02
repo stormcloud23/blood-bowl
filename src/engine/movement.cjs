@@ -565,24 +565,40 @@ class MovementGame {
  search(p,startX=p?.x,startY=p?.y,startSpent=p?.spent||0){
   const reached=new Map();
   if(!p||!this.onPitch(p)||!this.inside(startX,startY))return reached;
-  const key=(x,y)=>x+","+y,origin={x:startX,y:startY,spent:startSpent,checks:0,path:[]};
-  const compare=(a,b)=>a.checks-b.checks||a.spent-b.spent;
-  // Keep each movement-budget state: a shorter risky prefix may be the
-  // only way to reach a distant square even when a safe prefix exists.
-  const states=new Map([[key(startX,startY)+","+startSpent,origin]]);
+  let order=0;
+  const key=(x,y)=>x+","+y,origin={x:startX,y:startY,spent:startSpent,checks:0,turns:0,heading:null,order:order++,path:[]};
+  const compare=(a,b)=>a.checks-b.checks||a.spent-b.spent||a.turns-b.turns||a.order-b.order;
+  // Retain both movement budget and arrival heading: equally good prefixes
+  // can need different numbers of turns to reach the same later destination.
+  const stateKey=node=>key(node.x,node.y)+","+node.spent+":"+node.heading;
+  const states=new Map([[stateKey(origin),origin]]);
+  const frontiers=new Map([[key(startX,startY)+":"+origin.heading,[origin]]]);
+  const dominates=(a,b)=>a.checks<=b.checks&&a.spent<=b.spent&&(a.checks<b.checks||a.spent<b.spent||a.turns<=b.turns);
   reached.set(key(startX,startY),origin);
-  const queue=[origin];
+  // A stable min-heap avoids repeatedly sorting the expanded heading states.
+  const queue=[];
+  const plans=new Map();
+  const enqueue=node=>{let i=queue.length;queue.push(node);while(i){const parent=(i-1)>>1;if(compare(queue[parent],node)<=0)break;queue[i]=queue[parent];i=parent;}queue[i]=node;};
+  const dequeue=()=>{const first=queue[0],last=queue.pop();if(queue.length){let i=0;while(i*2+1<queue.length){let child=i*2+1;if(child+1<queue.length&&compare(queue[child+1],queue[child])<0)child++;if(compare(last,queue[child])<=0)break;queue[i]=queue[child];i=child;}queue[i]=last;}return first;};
+  enqueue(origin);
   while(queue.length){
-   queue.sort(compare);const node=queue.shift();
-   if(states.get(key(node.x,node.y)+","+node.spent)!==node)continue;
-   const candidates=this.searchOffsets(p,node);
-   for(const [x,y] of candidates){
-    const plan=this.planFrom(p,x,y,node.x,node.y,node.spent);if(!plan)continue;
-    const spent=node.spent+plan.cost,k=key(x,y),stateKey=k+","+spent;
+   const node=dequeue();
+   if(states.get(stateKey(node))!==node)continue;
+   const planKey=key(node.x,node.y)+","+node.spent;
+   if(!plans.has(planKey))plans.set(planKey,this.searchOffsets(p,node).map(([x,y])=>this.planFrom(p,x,y,node.x,node.y,node.spent)).filter(Boolean));
+   for(const plan of plans.get(planKey)){
+    const {x,y}=plan;
+    const spent=node.spent+plan.cost,k=key(x,y),dx=x-node.x,dy=y-node.y,scale=Math.max(Math.abs(dx),Math.abs(dy)),heading=dx/scale+","+dy/scale;
     const checks=node.checks+plan.rushes+Number(plan.dodge||plan.jump)+Number(plan.pickup);
-    const next={x,y,spent,checks,path:node.path.concat({x,y,plan})};
-    if(states.has(stateKey)&&compare(states.get(stateKey),next)<=0)continue;
-    states.set(stateKey,next);queue.push(next);
+    const next={x,y,spent,checks,turns:node.turns+Number(node.heading!==null&&node.heading!==heading),heading,order:order++,path:node.path.concat({x,y,plan})},state=stateKey(next);
+    if(states.has(state)&&compare(states.get(state),next)<=0)continue;
+    // Discard strictly worse budgets with the same heading, while preserving
+    // shorter risky versus longer safe trade-offs needed by distant squares.
+    const frontierKey=k+":"+heading,frontier=frontiers.get(frontierKey)||[];
+    if(frontier.some(previous=>dominates(previous,next)))continue;
+    const retained=frontier.filter(previous=>{if(!dominates(next,previous))return true;states.delete(stateKey(previous));return false;});
+    frontiers.set(frontierKey,[...retained,next]);
+    states.set(state,next);enqueue(next);
     if(!reached.has(k)||compare(next,reached.get(k))<0)reached.set(k,next);
    }
   }
