@@ -8,7 +8,7 @@
     "build": "node scripts/build.cjs",
     "docs": "node scripts/generate-skill-docs.cjs && node scripts/generate-roster-docs.cjs",
     "test": "node --test",
-    "test:computer:full": "node -e \"process.env.BB_FULL_MATCH_TESTS='1';require('./tests/features/computer.test.cjs')\"",
+    "test:computer:full": "node -e \"process.env.BB_FULL_MATCH_TESTS='1';require('./tests/features/computer.test.cjs');require('./tests/ui/workspace-ui.test.cjs')\"",
     "check": "npm run docs && npm run build && npm test",
     "verify:ffb": "node tools/verify-ffb-geometry.cjs"
   }
