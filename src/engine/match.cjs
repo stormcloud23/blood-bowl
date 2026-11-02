@@ -662,7 +662,7 @@ class MatchGame extends MatchBase {
   for(const team of [0,1]){const amount=this.nextDriveStarBonus?.[team]||0;if(amount){this.rerolls[team]+=amount;this.driveBonus[team]+=amount;this.nextDriveStarBonus[team]=0;}}
   this.swarmCounts=[0,0];this.swarmState=null;
   this.throwUsed=[false,false];this.throwMate=null;
-  this.drive++;this.kicking=kicking;this.receiving=1-kicking;this.active=kicking;this.setupTeam=kicking;this.phase="setup";this.finished=false;this.pending=null;this.mover=null;this.action=null;this.blockAction=null;this.ball={x:null,y:null,carrier:null};this.kickTouchback=false;this.eventState=null;
+  this.drive++;this.kicking=kicking;this.receiving=1-kicking;this.active=kicking;this.setupTeam=kicking;this.phase="setup";this.finished=false;this.pending=null;this.mover=null;this.action=null;this.blockAction=null;this.ball={x:null,y:null,carrier:null};this.kickTouchback=false;this.kickLanding=null;this.eventState=null;
   this.kickDistanceHalved=false;this.kickChoiceMade=false;for(const p of this.players){p.rooted=false;p.gouged=false;p.chompers=[];if(!p.eaten&&!["casualty","knocked-out","sent-off"].includes(p.status))Object.assign(p,{status:"reserve",x:null,y:null,distracted:false,used:false,spent:0});}
   this.note("Drive "+this.drive+": "+this.teams[kicking].name+" sets up first.");this.autoSetup(kicking);
  }

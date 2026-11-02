@@ -1,4 +1,22 @@
-# Match workspace — v0.0.41
+# Match workspace — v0.0.42
+
+## Kickoff reaction clarity — v0.0.42
+
+The current deviated kick landing square displays the existing ball symbol while
+On the Ball and other airborne kickoff decisions resolve. This is a forecast,
+not ball possession: the rules engine still lands/catches/bounces the ball later.
+The forecast is hidden for touchbacks and cleared when a new drive begins.
+
+During On the Ball player selection, eligible player icons remain fully visible
+and other icons fade using the same opacity as completed activations. Once a
+reactor is selected, it stays bright while others fade; remaining eligible
+reactors become bright again if another selection is offered. These are temporary
+display styles, not changes to activation flags. On the Ball does not add an
+activation badge or movement-square glyph; legal movement tiles still highlight.
+
+Kick aiming suppresses hover/focus tooltips and player action popups over target
+squares. First click highlights the aim square, clicking a different square
+changes the preview, and a second click on the same square commits the kick.
 
 ## Pitch decisions and exhibition values — v0.0.41
 

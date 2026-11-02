@@ -63,6 +63,16 @@ function pendingPitchChoices(q=game.pending){
  const choices=q.type==="pushChoice"?q.options.filter(pos=>!pos.standFirm).map(pos=>({x:pos.x,y:pos.y,option:pos})):q.pitchChoices||[];
  return choices.filter(pos=>game.inside(pos.x,pos.y)&&q.options.includes(pos.option));
 }
+function onTheBallPresentation(q=game.pending){
+ const targets=pendingPitchChoices(q);
+ if(q?.kind==="On the Ball")return {selecting:true,players:new Set(targets.map(pos=>game.at(pos.x,pos.y)?.id).filter(Boolean))};
+ if(game.moveContext&&(q?.kind==="On the Ball movement"||!targets.length))return {selecting:false,players:new Set([game.moveContext.player.id])};
+ return null;
+}
+function visibleKickLanding(){
+ const pos=game.kickLanding;
+ return game.match&&!game.kickTouchback&&["kickAim","kickEvent","eventMove","charge"].includes(game.phase)&&pos&&game.inside(pos.x,pos.y)?pos:null;
+}
 function resolvePitchChoice(q,choice){
  if(game.pending!==q||!pendingPitchChoices(q).some(pos=>pos.x===choice.x&&pos.y===choice.y&&pos.option===choice.option))return false;
  if(q.type==="pushChoice")q.resolve(choice.option);else game.decide(choice.option);
@@ -159,6 +169,7 @@ function render(){
  const blockAttacker=blockMode?game.players.find(p=>p.id===selected):null;
  const pushDecision=game.pending?.type==="pushChoice"?game.pending:null;
  const pitchDecision=game.pending,pitchTargets=new Map(pendingPitchChoices(pitchDecision).map(pos=>[routeKey(pos.x,pos.y),pos]));
+ const onTheBall=onTheBallPresentation(pitchDecision),kickLanding=visibleKickLanding();
  const placementTargets=new Set((game.match?game.placementSquares(selected):[]).map(pos=>routeKey(pos.x,pos.y)));
  const routeIndices=new Map((chosen?.path||[]).map((step,i)=>[routeKey(step.x,step.y),i+1]));
  const routePlans=new Map((chosen?.path||[]).map(step=>[routeKey(step.x,step.y),step.plan]));
@@ -166,7 +177,7 @@ function render(){
  for(let y=0;y<15;y++)for(let x=0;x<26;x++){
   const p=game.at(x,y),reach=range.get(routeKey(x,y)),plan=routePlans.get(routeKey(x,y))||reach?.path.at(-1)?.plan,cell=document.createElement("button"),routeIndex=routeIndices.get(routeKey(x,y)),blockTarget=!!(blockAttacker&&p&&(blockMode==="blitz"?game.canBlitz(blockAttacker,p):game.canBlock(blockAttacker,p)));
   const checks=plan&&planner?planChecks(plan,planner):[],risky=checks.length>0;
-  cell.type="button";cell.className="square"+((x+y)%2===0?" turf-light":"")+(x===0?" endzone endzone-left":x===25?" endzone endzone-right":"")+(x===12?" middle":"")+(y===3||y===10?" wide":"")+(p&&p.id===selected?" selected":"")+(reach&&reach.path.length||routeIndex?" legal":"")+(risky?" risk risk-"+Math.max(...checks.map(check=>Number(check.match(/([2-6])\+/)?.[1]||2))):"")+(plan?.jump?" jump":"")+(routeIndex?" route":"")+(destination?.x===x&&destination?.y===y?" destination":"")+(blockTarget?" block-target":"");
+  cell.type="button";cell.className="square"+((x+y)%2===0?" turf-light":"")+(x===0?" endzone endzone-left":x===25?" endzone endzone-right":"")+(x===12?" middle":"")+(y===3||y===10?" wide":"")+(p&&p.id===selected&&(!onTheBall||onTheBall.players.has(p.id))?" selected":"")+(reach&&reach.path.length||routeIndex?" legal":"")+(risky?" risk risk-"+Math.max(...checks.map(check=>Number(check.match(/([2-6])\+/)?.[1]||2))):"")+(plan?.jump?" jump":"")+(routeIndex?" route":"")+(destination?.x===x&&destination?.y===y?" destination":"")+(blockTarget?" block-target":"");
   const ballTarget=ballMode&&(["throw-team-mate","kick-team-mate"].includes(game.action)?!!game.throwPreview(x,y):game.action==="handoff"?game.canHandoff(p):!!game.passPreview(x,y));
   if(ballTarget)cell.className+=" legal";
   if(game.match&&game.pending?.spell&&game.spellTargets(game.pending.spell,x,y).length){cell.className+=" kick-target";cell.setAttribute("data-spell-target",game.pending.spell);}
@@ -177,10 +188,12 @@ function render(){
   if(plan){const detail=checks.length?checks.join(" → "):"no roll on this step";cell.title+=" · "+detail;cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+detail);}
   if(y===7&&(x===6||x===19)){const spot=document.createElement("span");spot.className="sweet-spot";spot.setAttribute("aria-hidden","true");cell.append(spot);cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", kick sweet spot");}
   if(game.match&&((x===6&&y===1)||(x===19&&y===13))){cell.className+=" trapdoor";if(game.onTrapdoor({x,y})){cell.className+=" trapdoor-active";cell.title+=" · Trapdoor: falls through on 1";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", trapdoor (2+ to cross)");const marker=document.createElement("span");marker.className="trapdoor-marker";marker.textContent="⊠";marker.setAttribute("aria-hidden","true");cell.append(marker);}else {cell.title+=" · Closed trapdoor";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", closed trapdoor");}}
-  if(p){const marker=positionMarker(game.profile(p)),token=document.createElement("span");token.className="token role-"+marker.shape+(p.team?" blue":"")+(p.used&&p.id!==game.mover?" used":"")+" "+p.status+(p.distracted?" distracted":"");token.dataset.role=marker.label;token.append(markerGraphic(marker));const number=document.createElement("span");number.className="token-number";number.textContent=p.number;token.append(number);cell.append(token);cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+marker.label+" marker ("+marker.shape+")");}
+  if(p){const marker=positionMarker(game.profile(p)),available=onTheBall?.players.has(p.id),token=document.createElement("span");token.className="token role-"+marker.shape+(p.team?" blue":"")+(p.used&&p.id!==game.mover&&!available?" used":"")+" "+p.status+(p.distracted?" distracted":"")+(onTheBall?(available?" reaction-available":" reaction-unavailable"):"");token.dataset.role=marker.label;token.append(markerGraphic(marker));const number=document.createElement("span");number.className="token-number";number.textContent=p.number;token.append(number);cell.append(token);cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+marker.label+" marker ("+marker.shape+")"+(onTheBall?(available?", On the Ball reactor":", not available for On the Ball"):""));}
   if(routeIndex){const n=document.createElement("span");n.className="route-index";n.textContent=routeIndex;cell.append(n);}
   if(game.bomb&&game.bomb.x===x&&game.bomb.y===y){const b=document.createElement("span");b.className="ball";b.textContent="●";b.title="Bomb";cell.append(b);cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", bomb");}
-  if(ballHere){const b=document.createElement("span");b.className="ball";b.textContent="◆";cell.append(b);}
+  const landingHere=kickLanding?.x===x&&kickLanding?.y===y;
+  if(ballHere||landingHere){const b=document.createElement("span");b.className="ball"+(landingHere?" airborne-ball":"");b.textContent="◆";b.title=landingHere?"Expected kick landing square — ball still airborne":"Ball";cell.append(b);}
+  if(landingHere){cell.className+=" kick-landing";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", expected kick landing square, ball still airborne");}
   const pushOption=pushDecision?.options.find(pos=>!pos.standFirm&&pos.x===x&&pos.y===y);
   if(pushOption){
    cell.className+=" push-option";cell.title="Click to push here"+(p?" — chain push #"+p.number:"");
@@ -189,12 +202,12 @@ function render(){
   }
   if(pushDecision&&pushDecision.target===p){cell.className+=" push-subject";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", player being pushed");}
   if(pitchTargets.has(routeKey(x,y))&&!pushDecision){
-   cell.className+=" tile-choice";cell.title=pitchDecision.kind+" — click this highlighted target";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+pitchDecision.kind+" decision target");
-   const marker=document.createElement("span");marker.className="push-marker";marker.textContent="◎";marker.setAttribute("aria-hidden","true");cell.append(marker);
+   cell.className+=onTheBall?.selecting?" reaction-choice":" tile-choice";cell.title=pitchDecision.kind+" — click this highlighted target";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+pitchDecision.kind+" decision target");
+   if(!onTheBall){const marker=document.createElement("span");marker.className="push-marker";marker.textContent="◎";marker.setAttribute("aria-hidden","true");cell.append(marker);}
   }
-  if(p&&pitchDecision?.subjectId===p.id){cell.className+=" tile-subject";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", player resolving "+pitchDecision.kind);}
+  if(p&&pitchDecision?.subjectId===p.id&&!onTheBall){cell.className+=" tile-subject";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", player resolving "+pitchDecision.kind);}
   if(placementTargets.has(routeKey(x,y))){cell.className+=" tile-choice";cell.title=game.phase==="touchback"?"Place the touchback ball here":p?"Swap with or replace this teammate":"Place the selected player here";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", legal "+game.phase+" placement");}
-  if(game.match&&game.phase==="kickAim"&&game.ownHalf(game.receiving,x)){cell.className+=" kick-target";cell.title="Kick target in "+teams[game.receiving].name+" half — click to aim, repeat to kick";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", valid kick target");}
+  if(game.match&&game.phase==="kickAim"&&!game.kickLanding&&game.ownHalf(game.receiving,x)){cell.className+=" kick-target";cell.title="Kick target in "+teams[game.receiving].name+" half — click to aim, repeat to kick";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", valid kick target");}
   cell.addEventListener("click",()=>choose(x,y,pitchDecision));pitch.append(cell);
  }
  coach.textContent=game.bombActor()?teams[game.bombActor().team].name+(game.bombContext.rethrows?" · Must rethrow bomb":" · Throw Bomb"):teams[game.active].name+" · Turn "+game.turns[game.active];
@@ -339,7 +352,7 @@ function renderMatch(){
   const s=game.swarmState;say(teams[s.team].name+" Swarming: "+s.placed.length+" / "+s.limit+" additional Linemen placed. Select a reserve Lineman, then click an empty square in your own half.");for(const id of s.eligible){const p=game.players.find(p=>p.id===id);add("Swarming Lineman #"+p.number,()=>{if(game.swarmState!==s)return;selected=id;showProfile(p.team,p.role,p.number);});}add("Finish Swarming",()=>{if(game.swarmState===s)game.finishSwarming();});
  }else if(game.phase==="kicker"){
   say(teams[game.kicking].name+": nominate a kicker outside the Wide Zones and away from the LOS when possible.");for(const p of game.eligibleKickers())add("Kicker #"+p.number+" · "+playerLabel(p),()=>game.nominateKicker(p.id));
- }else if(game.phase==="kickAim")say("Click any square in the receiving half to aim the kick; click the same square again to kick. Deviation and the Kick-off Event resolve before the ball lands.");
+ }else if(game.phase==="kickAim")say(game.kickLanding?"Kick is airborne. Resolve On the Ball reactions before the Kick-off Event and landing.":"Click any square in the receiving half to aim the kick; click the same square again to kick. Deviation and the Kick-off Event resolve before the ball lands.");
  else if(game.phase==="eventMove"||game.phase==="charge"){
   const e=game.eventState;say(e.kind+": "+teams[e.team].name+" · "+e.used.length+" / "+e.limit+" players used. "+(e.kind==="charge"?"Select an eligible Open player and declare Move or Blitz. End their activation before selecting the next. One player may declare Throw Team-mate. Kick Team-mate remains deferred.":"Select an eligible player below, then click an empty square. "+(e.kind==="snap"?"Each player moves at most one square.":"Finish with a legal formation.")));
   for(const id of e.eligible){const p=game.players.find(q=>q.id===id);if(!e.used.includes(id)||e.kind==="defence")add("Event player #"+p.number,()=>{selected=id;showProfile(p.team,p.role,p.number);});}

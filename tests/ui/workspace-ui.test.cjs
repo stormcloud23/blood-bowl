@@ -89,13 +89,47 @@ function tileFixture(){
  const f=workspaceFixture('match');f.run("game.phase='play';game.active=0;game.turns=[1,0];game.players.forEach(p=>Object.assign(p,{x:null,y:null,status:'reserve',extraSkills:[],profileOverride:{name:'Fixture',cost:50000,max:16,primary:'G',secondary:'A',ma:6,st:3,ag:'3+',pa:'3+',av:'9+',skills:[],traits:'Lineman, Human'}}));globalThis.a=game.players[0];globalThis.b=game.players[1];globalThis.d=game.players.find(p=>p.team===1);Object.assign(a,{x:8,y:7,status:'standing'});Object.assign(b,{x:7,y:7,status:'standing'});Object.assign(d,{x:9,y:7,status:'standing'});game.rerolls=[0,0];game.ball={x:20,y:14,carrier:null};game.dice=()=>6;selected=a.id;render();");return f;
 }
 function firstTile(f){return JSON.parse(f.run('JSON.stringify(pendingPitchChoices()[0])'));}
+function kickReactionFixture(){
+ const f=tileFixture();f.run("game.learning=true;game.phase='kickAim';game.kicking=0;game.receiving=1;game.kicker=a.id;game.kickTouchback=false;game.ball={x:null,y:null,carrier:null};Object.assign(d,{x:16,y:4,used:true});d.extraSkills=['On the Ball'];b.extraSkills=['On the Ball'];globalThis.second=game.players.filter(p=>p.team===1)[1];Object.assign(second,{x:18,y:4,status:'standing',used:false,extraSkills:['On the Ball']});globalThis.rooted=game.players.filter(p=>p.team===1)[2];Object.assign(rooted,{x:20,y:4,status:'standing',rooted:true,extraSkills:['On the Ball']});globalThis.kickRolls=[2,5];game.dice=s=>kickRolls.length?kickRolls.shift():Math.min(s,6);render();");
+ f.cell(18,7).click();f.cell(18,7).click();return f;
+}
+function tokenAt(f,x,y){return f.cell(x,y).children.find(e=>e.className.startsWith('token '));}
+test('deviated kick landing stays visible throughout On the Ball selection and movement',()=>{
+ const f=kickReactionFixture();assert.equal(f.run('game.pending.kind'),'On the Ball');assert.equal(f.run('game.kickLanding.x'),20);assert.equal(f.run('game.ball.x'),null);assert.equal(f.get('pitch').children.some(c=>c.className.includes('kick-target')),false);assert.match(f.get('pitch-hint').textContent,/On the Ball/);
+ const landing=()=>f.cell(20,7).children.find(e=>e.className.includes('airborne-ball'));assert.ok(landing());assert.equal(landing().textContent,'◆');assert.match(f.cell(20,7)['aria-label'],/kick landing square.*airborne/);
+ f.cell(16,4).click();assert.equal(f.run('game.pending.kind'),'On the Ball movement');assert.ok(landing());f.cell(17,4).click();assert.ok(landing());assert.equal(f.run('game.ball.x'),null);assert.equal(f.run('d.used'),true);
+ f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Stop moving').click();assert.equal(f.run('game.moveContext'),null);assert.equal(f.run('game.phase'),'play');assert.equal(f.get('pitch').children.some(c=>c.className.includes('kick-landing')),false);assert.ok(f.cell(f.run('game.ball.x'),f.run('game.ball.y')).children.some(e=>e.className==='ball'));
+});
+test('On the Ball uses fading instead of activation badges and never changes used flags',()=>{
+ const f=kickReactionFixture();assert.ok(tokenAt(f,16,4).className.includes('reaction-available'));assert.equal(tokenAt(f,16,4).className.includes(' used'),false,'An already-used player can still react');assert.ok(tokenAt(f,18,4).className.includes('reaction-available'));assert.ok(tokenAt(f,8,7).className.includes('reaction-unavailable'));assert.ok(tokenAt(f,7,7).className.includes('reaction-unavailable'),'Wrong-team skill cannot react');assert.ok(tokenAt(f,20,4).className.includes('reaction-unavailable'),'Rooted player cannot react');
+ assert.equal(f.cell(16,4).className.includes('tile-choice'),false);assert.equal(f.cell(16,4).children.some(e=>e.className==='push-marker'),false);assert.equal(f.run('d.used'),true);assert.equal(f.run('second.used'),false);
+ f.cell(16,4).click();assert.ok(tokenAt(f,16,4).className.includes('reaction-available'));assert.ok(tokenAt(f,18,4).className.includes('reaction-unavailable'));assert.equal(f.cell(16,4).className.includes('tile-subject'),false);assert.ok(f.cell(17,4).className.includes('tile-choice'));assert.equal(f.cell(17,4).children.some(e=>e.className==='push-marker'),false);
+});
+test('remaining On the Ball players stay bright after another reactor finishes',()=>{
+ const f=tileFixture();f.run("Object.assign(d,{x:12,y:4,used:false});d.extraSkills=['On the Ball'];globalThis.second=game.players.filter(p=>p.team===1)[1];Object.assign(second,{x:16,y:4,status:'standing',extraSkills:['On the Ball']});b.x=15;game.ball={x:a.x,y:a.y,carrier:a.id};game.interceptionCandidates=()=>[];game.start(a.id,'pass');game.pass(15,7);render();");
+ assert.ok(tokenAt(f,12,4).className.includes('reaction-available'));assert.ok(tokenAt(f,16,4).className.includes('reaction-available'));f.cell(12,4).click();f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Stop moving').click();assert.equal(f.run('game.pending.kind'),'On the Ball');assert.ok(tokenAt(f,12,4).className.includes('reaction-unavailable'));assert.ok(tokenAt(f,16,4).className.includes('reaction-available'));assert.equal(f.run('d.used'),false);
+ f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Finish reactions').click();assert.equal(f.run('game.pending'),null);assert.equal(f.get('pitch').children.some(c=>c.children.some(e=>e.className.includes('reaction-'))),false);
+});
+test('the landing forecast does not survive touchback, normal passing, or the next drive',()=>{
+ const f=kickReactionFixture();f.run('game.kickTouchback=true;render();');assert.equal(f.run('visibleKickLanding()'),null);assert.equal(f.get('pitch').children.some(c=>c.className.includes('kick-landing')),false);
+ f.run("game.phase='play';game.kickTouchback=false;render();");assert.equal(f.run('visibleKickLanding()'),null);
+ f.run('game.prepareDrive(0);game.phase="kickAim";render();');assert.equal(f.run('game.kickLanding'),null);assert.equal(f.run('visibleKickLanding()'),null);
+});
+test('kick aim has no hover/focus tooltip or action popup and commits only on the second click',()=>{
+ for(const occupied of [false,true]){
+  const f=tileFixture();f.run("game.phase='kickAim';game.kicking=0;game.receiving=1;game.kicker=a.id;game.learning=true;game.kickLanding=null;game.ball={x:null,y:null,carrier:null};globalThis.kickCount=0;globalThis.rollCount=0;globalThis.originalKick=game.kick.bind(game);game.kick=(x,y)=>{kickCount++;return originalKick(x,y);};game.dice=s=>{rollCount++;return 1;};"+(occupied?"Object.assign(d,{x:18,y:7});":"")+"render();");
+  f.get('pitch-tooltip').showPopover=()=>{throw Error('Kick aim must not open a tooltip');};f.cell(18,7).click();f.get('pitch').emit('pointerover',{target:f.cell(18,7),pointerType:'mouse'});f.get('pitch').emit('focusin',{target:f.cell(18,7)});
+  assert.equal(f.run('kickCount'),0);assert.equal(f.run('rollCount'),0);assert.equal(f.get('pitch-popup').hidden,true);assert.equal(f.get('pitch-tooltip').popoverOpen,false);assert.ok(f.cell(18,7).className.includes('destination'));
+  f.cell(19,7).click();assert.equal(f.run('kickCount'),0);assert.ok(f.cell(19,7).className.includes('destination'));assert.equal(f.cell(18,7).className.includes('destination'),false);f.cell(19,7).click();assert.equal(f.run('kickCount'),1);assert.ok(f.run('rollCount')>0);assert.equal(f.run('destination'),null);assert.equal(f.get('pitch-popup').hidden,true);
+ }
+});
 test('Trickster exposes legal pitch targets, no coordinate buttons, and rejects stale tiles',()=>{
  const f=tileFixture();f.run("d.extraSkills=['Trickster'];game.block(a.id,d.id);render();");const q=f.run('game.pending'),pos=firstTile(f),cell=f.cell(pos.x,pos.y);
  assert.ok(cell.className.includes('tile-choice'));assert.ok(f.cell(9,7).className.includes('tile-subject'));assert.equal(f.get('choices').querySelectorAll('button').some(b=>b.textContent.startsWith('Relocate to')),false);assert.ok(f.get('choices').querySelectorAll('button').some(b=>b.textContent==='Stay'));
  f.cell(0,0).click();assert.equal(f.run('game.pending'),q);cell.click();assert.equal(f.run('d.x'),pos.x);assert.equal(f.run('d.y'),pos.y);assert.equal(f.run('game.pending.type'),'blockSelect');const next=f.run('game.pending');cell.click();assert.equal(f.run('game.pending'),next);
 });
 test('On the Ball chooses its player and all three reactive steps on the pitch',()=>{
- const f=tileFixture();f.run("d.x=12;d.spent=2;d.used=true;d.extraSkills=['On the Ball'];b.x=15;game.ball={x:a.x,y:a.y,carrier:a.id};game.interceptionCandidates=()=>[];game.start(a.id,'pass');game.pass(15,7);render();");assert.ok(f.cell(12,7).className.includes('tile-choice'));f.cell(12,7).click();assert.equal(f.run('game.pending.kind'),'On the Ball movement');assert.ok(f.cell(12,8).className.includes('tile-choice'));
+ const f=tileFixture();f.run("d.x=12;d.spent=2;d.used=true;d.extraSkills=['On the Ball'];b.x=15;game.ball={x:a.x,y:a.y,carrier:a.id};game.interceptionCandidates=()=>[];game.start(a.id,'pass');game.pass(15,7);render();");assert.ok(f.cell(12,7).className.includes('reaction-choice'));f.cell(12,7).click();assert.equal(f.run('game.pending.kind'),'On the Ball movement');assert.ok(f.cell(12,8).className.includes('tile-choice'));
  f.cell(12,8).click();assert.equal(f.run('d.spent'),1);f.cell(12,9).click();f.cell(12,10).click();assert.equal(f.run('game.moveContext'),null);assert.equal(f.run('d.y'),10);assert.equal(f.run('d.spent'),2);assert.equal(f.run('d.used'),true);assert.equal(f.run('game.ball.carrier'),f.run('b.id'));assert.equal(f.run('game.active'),0);
 });
 test('kickoff On the Ball only highlights legal receiving-half steps',()=>{

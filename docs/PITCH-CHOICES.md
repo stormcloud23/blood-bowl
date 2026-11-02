@@ -1,4 +1,4 @@
-# Pitch choices and exhibition values — v0.0.41
+# Pitch choices and exhibition values — v0.0.42
 
 ## Choosing squares
 
@@ -8,6 +8,11 @@ second set of movement rules. Gold tiles are clickable native buttons with
 decision labels for keyboard/screen-reader use. Where applicable, the player
 being moved is outlined. Choosing an invalid or stale tile cannot answer a
 different pending decision.
+
+On the Ball player selection uses fully visible eligible icons and temporarily
+faded unavailable players instead of gold activation badges. Its legal movement
+tiles still highlight, without an extra glyph. During kickoff reactions, the
+existing ball symbol marks the current deviated landing square while airborne.
 
 Coordinate lists are removed from the coach's desk for in-pitch choices. Named
 options such as Stay, Stop moving, Finish reactions, Decline and Bounce normally
