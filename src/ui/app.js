@@ -58,18 +58,32 @@ function remainingRange(p,route){
 }
 function cancelMovementPreview(){destination=null;render();}
 function routeKey(x,y){return x+","+y;}
+function pendingPitchChoices(q=game.pending){
+ if(!q)return [];
+ const choices=q.type==="pushChoice"?q.options.filter(pos=>!pos.standFirm).map(pos=>({x:pos.x,y:pos.y,option:pos})):q.pitchChoices||[];
+ return choices.filter(pos=>game.inside(pos.x,pos.y)&&q.options.includes(pos.option));
+}
+function resolvePitchChoice(q,choice){
+ if(game.pending!==q||!pendingPitchChoices(q).some(pos=>pos.x===choice.x&&pos.y===choice.y&&pos.option===choice.option))return false;
+ if(q.type==="pushChoice")q.resolve(choice.option);else game.decide(choice.option);
+ destination=null;throwDestination=null;blockMode=false;ballMode=false;render();return true;
+}
 function resolvePushChoice(q,pos){
  if(game.pending!==q||!q.options.includes(pos))return;
  q.resolve(pos);destination=null;throwDestination=null;ballMode=false;blockMode=false;render();
 }
 function choose(x,y,pushDecision=game.pending){
+ if(pushDecision!==game.pending)return;
  if(game.match&&game.pending?.spell){game.aimSpell(x,y);render();return;}
+ const targets=pendingPitchChoices(pushDecision);
+ if(targets.length){const choice=targets.find(pos=>pos.x===x&&pos.y===y);if(choice)resolvePitchChoice(pushDecision,choice);else selection.textContent="Choose a highlighted decision target on the pitch.";return;}
  if(pushDecision?.type==="pushChoice"){
   if(game.pending!==pushDecision)return;
   const pos=pushDecision.options.find(pos=>!pos.standFirm&&pos.x===x&&pos.y===y);
   if(pos)resolvePushChoice(pushDecision,pos);else selection.textContent="Choose a gold push square. Use the side-panel buttons for a crowd push or Stand Firm.";
   return;
  }
+ if(game.pending)return;
  const p=game.at(x,y);
  if(game.match&&!["play","charge"].includes(game.phase)){
   if(game.phase==="setup"||game.phase==="eventMove"||game.phase==="swarming"||game.phase==="dwarfenWisdom"){
@@ -144,6 +158,8 @@ function render(){
  const planner=planningPlayer(),chosen=previewRoute(planner),range=ballMode?new Map():remainingRange(planner,chosen);
  const blockAttacker=blockMode?game.players.find(p=>p.id===selected):null;
  const pushDecision=game.pending?.type==="pushChoice"?game.pending:null;
+ const pitchDecision=game.pending,pitchTargets=new Map(pendingPitchChoices(pitchDecision).map(pos=>[routeKey(pos.x,pos.y),pos]));
+ const placementTargets=new Set((game.match?game.placementSquares(selected):[]).map(pos=>routeKey(pos.x,pos.y)));
  const routeIndices=new Map((chosen?.path||[]).map((step,i)=>[routeKey(step.x,step.y),i+1]));
  const routePlans=new Map((chosen?.path||[]).map(step=>[routeKey(step.x,step.y),step.plan]));
  pitch.replaceChildren();
@@ -172,14 +188,20 @@ function render(){
    const marker=document.createElement("span");marker.className="push-marker";marker.textContent="↪";marker.setAttribute("aria-hidden","true");cell.append(marker);
   }
   if(pushDecision&&pushDecision.target===p){cell.className+=" push-subject";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", player being pushed");}
+  if(pitchTargets.has(routeKey(x,y))&&!pushDecision){
+   cell.className+=" tile-choice";cell.title=pitchDecision.kind+" — click this highlighted target";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+pitchDecision.kind+" decision target");
+   const marker=document.createElement("span");marker.className="push-marker";marker.textContent="◎";marker.setAttribute("aria-hidden","true");cell.append(marker);
+  }
+  if(p&&pitchDecision?.subjectId===p.id){cell.className+=" tile-subject";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", player resolving "+pitchDecision.kind);}
+  if(placementTargets.has(routeKey(x,y))){cell.className+=" tile-choice";cell.title=game.phase==="touchback"?"Place the touchback ball here":p?"Swap with or replace this teammate":"Place the selected player here";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", legal "+game.phase+" placement");}
   if(game.match&&game.phase==="kickAim"&&game.ownHalf(game.receiving,x)){cell.className+=" kick-target";cell.title="Kick target in "+teams[game.receiving].name+" half — click to aim, repeat to kick";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", valid kick target");}
-  cell.addEventListener("click",()=>pushDecision?choose(x,y,pushDecision):choose(x,y));pitch.append(cell);
+  cell.addEventListener("click",()=>choose(x,y,pitchDecision));pitch.append(cell);
  }
  coach.textContent=game.bombActor()?teams[game.bombActor().team].name+(game.bombContext.rethrows?" · Must rethrow bomb":" · Throw Bomb"):teams[game.active].name+" · Turn "+game.turns[game.active];
  selection.textContent=game.finished?"Practice drive complete. Reset to start again.":blockMode?"Select a highlighted target for #"+(blockAttacker?.number??"?")+".":inspected?"#"+inspected.number+" "+playerLabel(inspected)+" · "+inspected.status+(inspected.distracted?" · Distracted":"")+(inspected.used?" · activated this turn":""):"Select a player to inspect or activate.";
  const movement=document.getElementById("movement");
  const rangeCount=Math.max(0,range.size-1);
- movement.textContent=(game.blockAction?"Block: ST "+game.blockAction.aStrength+" vs "+game.blockAction.dStrength+" · "+game.blockAction.assists.offensive+" offensive assist(s), "+game.blockAction.assists.defensive+" defensive assist(s). ":mover?"Moving #"+mover.number+": "+mover.spent+" / "+game.profile(mover).ma+" MA used · "+Math.max(0,mover.spent-game.profile(mover).ma)+" / "+game.rushLimit(mover)+" rushes used. ":planner?"Forecast for #"+planner.number+": "+rangeCount+" reachable destinations, including up to "+game.rushLimit(planner)+" rushes. ":"")+"Team re-rolls left: "+game.rerollsAvailable(game.active)+"."+(game.action==="blitz"?" Blitz target: #"+game.players.find(p=>p.id===game.blitzTarget)?.number+(game.blitzBlocked?" · block completed; continue moving.":" · move adjacent, then choose Blitz Block (1 MA).") : "");
+ movement.textContent=(game.blockAction?"Block: ST "+game.blockAction.aStrength+" vs "+game.blockAction.dStrength+" · "+game.blockAction.assists.offensive+" offensive assist(s), "+game.blockAction.assists.defensive+" defensive assist(s). ":mover?"Moving #"+mover.number+": "+mover.spent+" / "+game.movementAllowance(mover)+" MA used · "+Math.max(0,mover.spent-game.profile(mover).ma)+" / "+game.rushLimit(mover)+" rushes used. ":planner?"Forecast for #"+planner.number+": "+rangeCount+" reachable destinations, including up to "+game.rushLimit(planner)+" rushes. ":"")+"Team re-rolls left: "+game.rerollsAvailable(game.active)+"."+(game.action==="blitz"?" Blitz target: #"+game.players.find(p=>p.id===game.blitzTarget)?.number+(game.blitzBlocked?" · block completed; continue moving.":" · move adjacent, then choose Blitz Block (1 MA).") : "");
  const choices=document.getElementById("choices");choices.replaceChildren();
  if(chosen&&!ballMode){const remaining=document.createElement("p");remaining.textContent="From preview square "+(chosen.x+1)+", "+(chosen.y+1)+": "+Math.max(0,game.profile(planner).ma-chosen.spent)+" normal MA and "+Math.max(0,game.rushLimit(planner)-Math.max(0,chosen.spent-game.profile(planner).ma))+" Rush(es) remaining · "+rangeCount+" possible next destinations. The player has not moved.";choices.append(remaining);const routeGame=game;choices.append(button("Confirm Move",()=>{if(game===routeGame&&destination===chosen&&!game.pending)commitRoute();}));choices.append(button("Cancel movement preview",()=>{if(game===routeGame&&destination===chosen&&!game.pending)cancelMovementPreview();}));}
  if(ballMode&&["throw-team-mate","kick-team-mate"].includes(game.action)){
@@ -204,11 +226,11 @@ function render(){
    const p=document.createElement("p");p.textContent="Pro succeeded. Choose one Block die to re-roll:";choices.append(p);
    game.blockAction.dice.forEach((die,i)=>choices.append(button("Re-roll die "+(i+1)+" · "+game.blockFace(die),()=>{game.rerollBlockDie(i);render();})));
   }else if(q.type==="pushChoice"){
-   const p=document.createElement("p");p.textContent=(q.kind==="Chain push"?"Chain push: ":"")+"Click a gold square on the pitch to push the red-outlined player. Buttons below also work, including crowd pushes and Stand Firm:";choices.append(p);
-   q.options.forEach(pos=>{const label=pos.standFirm?"Use Stand Firm":!game.inside(pos.x,pos.y)?"Push into the Crowd":"Push to "+(pos.x+1)+", "+(pos.y+1);choices.append(button(label,()=>resolvePushChoice(q,pos)));});
+   const p=document.createElement("p");p.textContent=(q.kind==="Chain push"?"Chain push: ":"")+"Click a gold square on the pitch to push the red-outlined player. Crowd pushes and Stand Firm are available below when legal.";choices.append(p);
+   q.options.filter(pos=>pos.standFirm||!game.inside(pos.x,pos.y)).forEach(pos=>{const label=pos.standFirm?"Use Stand Firm":"Push into the Crowd — "+(pos.y<0?"top":pos.y>14?"bottom":pos.x<0?"left":"right")+" edge";choices.append(button(label,()=>resolvePushChoice(q,pos)));});
   }else if(q.type==="custom"){
-   const p=document.createElement("p"),coach=Number.isInteger(q.team)?teams[q.team].name:"";p.textContent=(coach&&!q.kind.includes(coach)?coach+" — ":"")+q.kind+" — choose:";choices.append(p);
-   q.options.forEach(option=>choices.append(button(option,()=>{if(game.pending!==q)return;game.decide(option);destination=null;render();})));
+   const targets=pendingPitchChoices(q),p=document.createElement("p"),coach=Number.isInteger(q.team)?teams[q.team].name:"";p.textContent=(coach&&!q.kind.includes(coach)?coach+" — ":"")+q.kind+(targets.length?" — click a highlighted target on the pitch:":" — choose:");choices.append(p);
+   q.options.filter(option=>!targets.some(pos=>pos.option===option)).forEach(option=>choices.append(button(option,()=>{if(game.pending!==q)return;game.decide(option);destination=null;render();})));
   }else{
    const p=document.createElement("p");p.textContent=teams[q.p.team].name+" #"+q.p.number+" — "+q.kind+(q.lookAhead?" succeeded ("+q.roll+"), but Diving Tackle may make it fail. Choose before the defender decides:":" failed ("+q.roll+"). Choose:");choices.append(p);
    for(const option of [...q.options,"Accept"])choices.append(button(option==="Team"?"Use team re-roll":option==="Accept"?(q.lookAhead?"Keep this result":"Accept failure"):"Use "+option,()=>{if(game.pending!==q)return;game.decide(option);destination=null;render();}));
@@ -284,6 +306,9 @@ function renderMatch(){
  const info=document.createElement("p");info.className="match-meta";const resources=[["Dwarfen Wisdom",game.dwarfenWisdom],["Bugman KO bonus",game.resourceChoices.map(r=>r.josefBugman)],["Rocks",game.rocks],["Wizards",game.wizards],["Apothecaries",game.apothecaries],["Bribes",game.bribes],["Mortuary Assistants",game.mortuaryAssistants],["Plague Doctors",game.plagueDoctors],["Mascots",game.mascots],["Weather Mages",game.weatherMages],["Biased Referees",game.biasedRefs],["Kegs",game.resourceChoices.map(r=>r.kegs)]].filter(([,values])=>values.some(n=>n>0));info.textContent="Half "+game.half+" · Drive "+game.drive+" · Turn markers "+game.turns.join(" / ")+" · "+game.weather+" · Fan Factors "+game.fans.join(" / ")+resources.map(([name,values])=>" · "+name+" "+values.join(" / ")).join("")+(game.learning?" · Learning rules: configured Dedicated Fans, Perfect Conditions, no Kick-off Event.":"");panel.append(info);
  const say=(text,kind="")=>{const p=document.createElement("p");p.textContent=text;p.className=kind;panel.append(p);};
  const add=(label,fn,kind="",owner=null)=>{const b=button(label,()=>matchRun(fn));if(kind)b.className+=" "+kind;if(Number.isInteger(owner))b.dataset.coachTeam=String(owner);panel.append(b);};
+ if((!game.league||game.exhibition)&&["fans","weather","leagueSteps","prayers","rolloff","kickChoice","setup","dwarfenWisdom","swarming","kicker","kickAim"].includes(game.phase)){
+  for(const team of [0,1]){const value=game.teamValues(team);say((team===0?"Home":"Away")+" — "+teams[team].name+": "+(value.tv===null?"":"Team value (TV) "+money(value.tv)+" · players "+money(value.players)+" + permanent staff/re-rolls "+money(value.staff)+". ")+"Current team value (CTV) "+money(value.ctv)+" · inducements "+money(value.inducements)+" · match value including inducements "+money(value.match)+".","team-value-summary");}
+ }
  if(game.selectedStars?.some(list=>list.length)){for(const team of [0,1])if(game.selectedStars[team].length){const p=document.createElement("p");p.className="muted";p.textContent=teams[team].name+" star hires: "+game.selectedStars[team].map(id=>{const star=MATCH_STARS.find(s=>s.id===id);return star.name+(game.starsFinalized&&!game.players.some(p=>p.team===team&&p.star===id)?" (unavailable: hired by both teams)":"");}).join(" · ");panel.append(p);}}
  if(game.prayers?.some(list=>list.length)){const details=document.createElement("details"),summary=document.createElement("summary");summary.textContent="Active prayers · last until full time";details.append(summary);for(const team of [0,1])if(game.prayers[team].length){const p=document.createElement("p");p.textContent=teams[team].name+": "+game.prayers[team].map(name=>{const affected=game.prayerHistory.find(r=>r.team===team&&r.name===name);return name+(affected?.wasted?" (no eligible player)":affected?.players.length?" ("+affected.players.map(id=>{const p=game.players.find(p=>p.id===id);return teams[p.team].name+" #"+p.number;}).join(", ")+")":"");}).join(" · ");details.append(p);}panel.append(details);}
  if(["fans","weather","leagueSteps","rolloff"].includes(game.phase)){

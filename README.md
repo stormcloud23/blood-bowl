@@ -73,6 +73,11 @@ the same player, or choose **Stand up in place**. This begins a normal Move with
 the usual stand-up costs/checks; remaining movement is available and limited team
 actions such as Blitz and Pass are preserved.
 
+Skill and reaction destinations, including On the Ball and Trickster, are
+highlighted and selected directly on the pitch. Exhibition pregame/setup shows
+full player-plus-staff TV, with CTV and inducement values labelled separately.
+See [pitch choices and value details](docs/PITCH-CHOICES.md).
+
 For solo exhibitions, choose **Computer · Human team** or **Computer · Orc team**
 in the Opponent menu. You coach home; the computer coaches the away preset team.
 Choose its speed, pause/resume, or take over its team during the match. This basic

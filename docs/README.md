@@ -8,6 +8,7 @@ documents, not runtime dependencies.
 
 - [Current parity gaps](PARITY-GAPS.md): what remains and what existing tests prove.
 - [Workspace and controls](UI-UX.md): navigation, match decisions and team tools.
+- [Pitch choices and exhibition values](PITCH-CHOICES.md): spatial prompt audit and TV/CTV display.
 - [Computer exhibitions](COMPUTER.md): solo play, controller behavior and limits.
 - [AI strategy](AI-STRATEGY.md): general coaching sources and implemented priorities.
 - [Roster catalogue](ROSTERS.md) and [team creation / leagues](LEAGUES.md).
