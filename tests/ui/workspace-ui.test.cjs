@@ -2,7 +2,7 @@ const {projectPath}=require('../helpers/project.cjs');
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 // A DOM event harness executes the complete bundled application, including the
 // workspace layer. Visual/browser verification remains a separate requirement.
-function workspaceFixture(scenario='block'){
+function workspaceFixture(scenario='block',timers={}){
  const html=fs.readFileSync(projectPath('index.html'),'utf8'),elements=new Map();let context;
  class Element{
   constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[];this.listeners={};this.dataset={};this.style={};this.textContent='';this.value='';this.className='';this.parentElement=null;this.disabled=false;this.hidden=false;this.isConnected=true;this.popoverOpen=false;}
@@ -26,12 +26,49 @@ function workspaceFixture(scenario='block'){
  const document={getElementById:get,createElement:tag=>new Element(tag),querySelectorAll:()=>[],listeners:{},addEventListener(k,f){(this.listeners[k]??=[]).push(f);},activeElement:null};
  get('team-data').textContent=html.match(/type="application\/json">([\s\S]*?)<\/script>/)[1];get('scenario').value=scenario;get('player-details').append(get('profile'));get('coach-panel').append(get('pitch-popup'));get('pitch-popup').hidden=true;
  get('roster-data').textContent=html.match(/id="roster-data" type="application\/json">([\s\S]*?)<\/script>/)[1];
- const storage=new Map();context=vm.createContext({document,console,innerWidth:1200,innerHeight:800,addEventListener(){},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)}});
+ const storage=new Map();context=vm.createContext({...timers,document,console,innerWidth:1200,innerHeight:800,addEventListener(){},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)}});
  const scripts=[...html.matchAll(/<script(?: id="(?:(?:movement|skills|match|league)-engine|league-ui|workspace-ui)")?>([\s\S]*?)<\/script>/g)].map(m=>m[1]).join('\n');vm.runInContext(scripts,context);
  const run=code=>vm.runInContext(code,context),popup=()=>get('pitch-popup').querySelectorAll('button'),action=label=>{const b=popup().find(b=>b.textContent===label);assert.ok(b,'Popup action '+label);return b;};
  return {get,run,document,popup,action,key:key=>document.listeners.keydown.forEach(fn=>fn({key})),cell:(x,y)=>get('pitch').children[y*26+x]};
 }
 
+test('computer exhibition selector creates an away preset controller and leaves hotseat as default',()=>{
+ const f=workspaceFixture('match');assert.equal(f.run('computerSession'),null);
+ f.get('computer-opponent').value='orc';f.get('computer-opponent').emit('change');
+ assert.equal(f.run('game.teams[1].id'),'orc');assert.equal(f.run('computerSession.coach.team'),1);assert.equal(f.run('game.individualBlockChoices'),true);assert.equal(f.get('exhibition-away').disabled,true);
+ f.get('computer-takeover').click();assert.equal(f.run('computerSession'),null);assert.equal(f.get('exhibition-away').disabled,false);assert.equal(f.get('computer-controls').hidden,true);
+});
+test('computer timers pause, cancel on reset, and cannot mutate a replacement game',()=>{
+ const callbacks=new Map();let id=0;const f=workspaceFixture('match',{setTimeout:fn=>{callbacks.set(++id,fn);return id;},clearTimeout:key=>callbacks.delete(key)});
+ f.get('computer-opponent').value='human';f.get('computer-opponent').emit('change');
+ f.run("game.phase='setup';game.setupTeam=1;game.active=1;game.autoSetup(1);render();");
+ assert.equal(callbacks.size,1);assert.equal(f.get('end').disabled,true);assert.ok(f.get('matchflow').querySelectorAll('button').every(b=>b.disabled));
+ const selected=f.run('selected');f.run('choose(19,7)');assert.equal(f.run('selected'),selected);
+ const old=[...callbacks.values()][0];f.get('computer-pause').click();assert.equal(callbacks.size,0);assert.equal(f.run('computerPaused'),true);old();assert.equal(f.run('game.phase'),'setup');
+ f.get('computer-pause').click();assert.equal(callbacks.size,1);const pending=[...callbacks.values()][0];
+ f.get('start-exhibition').click();f.run('globalThis.replacement=game');pending();assert.equal(f.run('game===replacement'),true);assert.equal(f.run('game.phase'),'fans');assert.equal(f.run('computerSession.game===game'),true);
+ f.get('reset').click();assert.equal(f.run('computerSession.game===game'),true);
+});
+test('computer resolves its defensive prompt and returns controls to the human',()=>{
+ const callbacks=[];const f=workspaceFixture('match',{setTimeout:fn=>{callbacks.push(fn);return callbacks.length;},clearTimeout(){}});
+ f.get('computer-opponent').value='orc';f.get('computer-opponent').emit('change');
+ f.run("game.phase='play';game.active=0;game.skillChoice('Defensive reaction',1,['No reaction'],()=>{});render();");assert.equal(f.get('choices').querySelectorAll('button')[0].disabled,true);
+ callbacks.shift()();assert.equal(f.run('game.pending'),null);assert.equal(f.run('game.active'),0);assert.equal(f.run('computerOwnsDecision()'),false);
+});
+test('same-name human teams retain separate staff controls and Testing stays manual',()=>{
+ const f=workspaceFixture('match');f.get('exhibition-home').value='human';f.get('computer-opponent').value='human';f.get('computer-opponent').emit('change');
+ const buttons=f.get('matchflow').querySelectorAll('button');assert.equal(buttons.find(b=>b.dataset.coachTeam==='0').disabled,false);assert.equal(buttons.find(b=>b.dataset.coachTeam==='1').disabled,true);
+ f.run("game.phase='play';game.active=0;selected=game.players.find(p=>p.team===1).id;render();");assert.ok(f.get('skillcontrols').querySelectorAll('button').every(b=>b.disabled));
+ f.get('start-testing').click();assert.equal(f.run('computerSession'),null);assert.equal(f.get('computer-controls').hidden,true);
+});
+test('a repeated computer state pauses visibly and takeover preserves the match',()=>{
+ const callbacks=[];const f=workspaceFixture('match',{setTimeout:fn=>{callbacks.push(fn);return callbacks.length;},clearTimeout(){}});
+ f.get('computer-opponent').value='orc';f.get('computer-opponent').emit('change');
+ f.run("game.phase='setup';game.setupTeam=1;game.active=1;computerSession.coach.step=()=>true;globalThis.sameMatch=game;render();");
+ for(let n=0;n<9;n++)callbacks.shift()();
+ assert.equal(f.run('computerPaused'),true);assert.match(f.get('computer-status').textContent,/repeated state/);assert.equal(callbacks.length,0);
+ f.get('computer-takeover').click();assert.equal(f.run('game===sameMatch'),true);assert.equal(f.run('computerSession'),null);
+});
 test('Wizard targeting highlights legal squares, confirms mixed-team victims and rejects stale target dialogs',()=>{
  const f=workspaceFixture('match');f.run(`game.setResource(0,'wizards',1);game.phase='play';game.turns=[1,0];game.players.forEach(p=>Object.assign(p,{x:null,y:null,status:'reserve'}));Object.assign(game.players[0],{x:10,y:7,status:'standing'});Object.assign(game.players.find(p=>p.team===1),{x:11,y:7,status:'standing'});game.endTurn();game.decide('Fireball');globalThis.oldTarget=game.pending;render();`);
  assert.equal(f.cell(10,7)['data-spell-target'],'Fireball');assert.equal(f.cell(0,0)['data-spell-target'],undefined);
@@ -92,7 +129,7 @@ test('closed action-panel callbacks cannot execute and switching tabs clears the
  const f=workspaceFixture();const p=JSON.parse(f.run('JSON.stringify(game.players.find(p=>p.id===selected))'));f.cell(p.x,p.y).click();const move=f.action('Show full profile & skills');f.run('closePitchPopup()');move.click();assert.equal(f.run('game.mover'),null);f.cell(p.x,p.y).click();f.get('tab-teams').click();assert.equal(!f.get('pitch-popup').hidden,false);
 });
 test('new presentation assets are embedded exactly in the standalone page',()=>{
- const html=fs.readFileSync(projectPath('index.html'),'utf8');for(const [tag,id,file] of [['script','workspace-ui','src/ui/workspace-ui.cjs'],['style','workspace-style','src/ui/workspace.css']])assert.equal(html.match(new RegExp('<'+tag+' id="'+id+'">\\n([\\s\\S]*?)\\n</'+tag+'>'))[1],fs.readFileSync(projectPath(file),'utf8').trimEnd());assert.ok(html.includes('Skills & traits · '));
+ const html=fs.readFileSync(projectPath('index.html'),'utf8');for(const [tag,id,file] of [['script','workspace-ui','src/ui/workspace-ui.cjs'],['style','workspace-style','src/ui/workspace.css']])assert.equal(html.match(new RegExp('<'+tag+' id="'+id+'">\\n([\\s\\S]*?)\\n</'+tag+'>'))[1],(fs.readFileSync(projectPath(file),'utf8')+(id==='workspace-ui'?'\n'+fs.readFileSync(projectPath('src/features/computer/computer-ui.cjs'),'utf8'):'')).trimEnd());assert.ok(html.includes('Skills & traits · '));
 });
 test('a Foul target is selectable directly from its occupied tile',()=>{
  const f=workspaceFixture('skills');f.run('globalThis.a=game.players[0];globalThis.d=game.players[11];d.x=11;d.y=7;d.status="prone";selected=a.id;game.start(a.id,"foul");render();game.dice=()=>2;choose(d.x,d.y)');assert.ok(f.action('Foul #1'));f.action('Foul #1').click();assert.ok(f.run('game.events.some(e=>e.includes("Foul"))'));

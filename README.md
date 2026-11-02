@@ -68,6 +68,12 @@ During drive setup, select a player and click a team-mate to swap their position
 A selected reserve replaces the clicked fielded player; empty squares still move
 the selected player normally.
 
+For solo exhibitions, choose **Computer · Human team** or **Computer · Orc team**
+in the Opponent menu. You coach home; the computer coaches the away preset team.
+Choose its speed, pause/resume, or take over its team during the match. This basic
+opponent uses a ground game, blocks and Blitzes; it does not pass or buy optional
+inducements. League games remain hotseat. See [computer opponent](docs/COMPUTER.md).
+
 Testing contains the learning match, skills laboratory and all practice drills.
 Choose a mode and press **Start testing mode**. Switching workspace tabs preserves
 the current game; starting another game or mode replaces it.
@@ -83,10 +89,11 @@ bundled for offline use.
 - Thirty curated rosters and 67 named stars across 64 hiring selections.
 - Staff, inducements, Wizards, mercenaries and all sixteen underdog prayers.
 - Team drafting, saved local leagues, fixtures, progression and JSON backups.
-- A self-contained hotseat application with coach-owned decisions and re-rolls.
+- Hotseat play and a local computer opponent for Human/Orc preset exhibitions,
+  with coach-owned decisions and re-rolls.
 
 The checked catalogues are complete; exhaustive FFB parity is not established.
-Live match save/resume, AI, concessions/extra time/penalties, broader competition
+Live match save/resume, stronger AI, concessions/extra time/penalties, broader competition
 settings, fuller season/redraft rules and interaction audits remain. See the
 [current parity gaps](docs/PARITY-GAPS.md).
 

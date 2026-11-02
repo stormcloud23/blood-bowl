@@ -18,9 +18,9 @@ for(const [id,file] of [
  ['league-engine','src/features/league/league.cjs'],
  ['league-ui','src/features/league/league-ui.cjs'],
  ['workspace-ui','src/ui/workspace-ui.cjs']
-])embed(new RegExp('<script id="'+id+'">[\\s\\S]*?<\\/script>'),'<script id="'+id+'">\n'+read(file).trimEnd()+'\n</script>',id);
+])embed(new RegExp('<script id="'+id+'">[\\s\\S]*?<\\/script>'),'<script id="'+id+'">\n'+(read(file)+(id==='workspace-ui'?'\n'+read('src/features/computer/computer-ui.cjs'):'')).trimEnd()+'\n</script>',id);
 embed(/<style id="workspace-style">[\s\S]*?<\/style>/,'<style id="workspace-style">\n'+read('src/ui/workspace.css').trimEnd()+'\n</style>','workspace style');
-embed(/<script>[\s\S]*?<\/script>/,'<script>\n'+read('src/ui/reference.cjs').trimEnd()+'\n'+read('src/ui/app.js').trimEnd()+'\n</script>','app UI');
+embed(/<script>[\s\S]*?<\/script>/,'<script>\n'+read('src/features/computer/computer.cjs').trimEnd()+'\n'+read('src/ui/reference.cjs').trimEnd()+'\n'+read('src/ui/app.js').trimEnd()+'\n</script>','app UI');
 return html;
 }
 if(require.main===module)fs.writeFileSync(path.join(root,'index.html'),build());

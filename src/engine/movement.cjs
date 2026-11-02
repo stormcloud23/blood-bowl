@@ -380,6 +380,7 @@ class MovementGame {
   this.finishBlock();
  }
  resolveBothDown(){
+  if(this.individualBlockChoices)return this.resolveIndividualBothDown();
   const b=this.blockAction,{attacker:a,target:d}=b,options=["Apply Both Down"];
   const canAttackerBlock=this.has(a,"Block")&&!a.distracted,canDefenderBlock=this.has(d,"Block")&&!d.distracted;
   if(canAttackerBlock)options.push("Attacker uses Block");
@@ -389,6 +390,23 @@ class MovementGame {
   if(this.has(d,"Wrestle")&&!d.distracted)options.push("Defender uses Wrestle");
   if(options.length===1){this.resolveBothDownChoice(options[0]);return;}
   this.pending={type:"custom",kind:"Both Down",options,resolve:choice=>{this.pending=null;this.resolveBothDownChoice(choice);}};
+ }
+ // Ask each coach separately in computer matches: optional opposing skills
+ // must never be selected on behalf of a human coach.
+ resolveIndividualBothDown(){
+  const b=this.blockAction,used=new Set(),players=[b.attacker,b.target];
+  const next=i=>{
+   if(i===players.length){this.resolveBothDownChoice(used.size===2?"Both use Block":used.has(0)?"Attacker uses Block":used.has(1)?"Defender uses Block":"Apply Both Down");return;}
+   const p=players[i],options=[];
+   if(this.has(p,"Block")&&!p.distracted)options.push("Use Block");
+   if(this.has(p,"Wrestle")&&!p.distracted)options.push("Use Wrestle");
+   if(!options.length){next(i+1);return;}
+   this.skillChoice("Both Down — #"+p.number,p.team,[...options,"Do not use a skill"],choice=>{
+    if(choice==="Use Wrestle"){this.resolveBothDownChoice(i===0?"Attacker uses Wrestle":"Defender uses Wrestle");return;}
+    if(choice==="Use Block")used.add(i);
+    next(i+1);
+   });
+  };next(0);
  }
  resolveBothDownChoice(choice){
   const b=this.blockAction,{attacker:a,target:d}=b;
@@ -452,11 +470,14 @@ class MovementGame {
   const occupant=this.at(destination.x,destination.y);
   if(occupant){
    const choices=this.pushSquares(from,occupant,false),free=choices.filter(pos=>this.inside(pos.x,pos.y)&&!this.at(pos.x,pos.y)),options=free.length?free:choices;
-   if(occupant.status==="standing"&&this.has(occupant,"Stand Firm")&&!occupant.distracted)options.unshift({standFirm:true});
-   this.pending={type:"pushChoice",kind:"Chain push",target:occupant,options,resolve:pos=>{
+   const firm=occupant.status==="standing"&&this.has(occupant,"Stand Firm")&&!occupant.distracted;
+   if(firm&&!this.individualBlockChoices)options.unshift({standFirm:true});
+   const choosePush=()=>{this.pending={type:"pushChoice",kind:"Chain push",target:occupant,options,resolve:pos=>{
     this.pending=null;if(pos.standFirm){this.note("#"+occupant.number+" uses Stand Firm; the chain push stops.");done(false);return;}
     this.pushPlayer(occupant,pos,ok=>{if(!ok){done(false);return;}this.placePushed(victim,destination,done);},depth+1);
-   }};return;
+   }};};
+   if(firm&&this.individualBlockChoices)this.skillChoice("Stand Firm",occupant.team,["Stand Firm","Be pushed"],choice=>{if(choice==="Stand Firm"){this.note("#"+occupant.number+" uses Stand Firm; the chain push stops.");done(false);}else choosePush();});
+   else choosePush();return;
   }
   this.placePushed(victim,destination,done);
  }

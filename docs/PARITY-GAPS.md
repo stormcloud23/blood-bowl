@@ -24,7 +24,7 @@ runner. No inert profiles were added to close the catalogue.
 | Inducement options | Purchased prayers stay disabled by pinned max zero. Equal-CTV Treasury spending and alternate option values are not exposed. Supplemental special inducements outside this selected collection need a separately scoped inventory before claiming parity with them. |
 | Match completion | Regulation two-half play exists. Concessions, competition extra time/penalties and a broader competition-options UI remain unsupported. Sources to compare include the selected end-game generators, option factory and concession handlers. |
 | Persistence | Team/league local storage and import/export exist. A live match uses callbacks and is not serializable; reloading an unfinished league fixture restarts pregame. Save/resume needs serializable decisions and continuations, not just a player snapshot. |
-| Computer opponent | No AI opponent. Current match play remains hotseat/manual. This is separate from FFB rules equivalence. |
+| Computer opponent | Basic local Human/Orc computer exhibitions exist; league AI, other opponent teams and stronger tactics remain. See [computer scope](COMPUTER.md). This is separate from FFB rules equivalence. |
 | League completeness | Roster construction, progression and league fixtures exist; this audit does not certify every competition configuration, season/redraft rule or supplemental option. Older handoff sections saying no roster/league feature exists are historical. |
 | Verification | Deterministic rules, full-bundle UI and transition suites exist. Visual desktop/mobile review and random multi-ability exploration are separate checks; no new visual inspection is claimed for this increment. |
 
