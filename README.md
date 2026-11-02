@@ -58,6 +58,16 @@ Commit generated `index.html`, `docs/SKILLS.md` and `docs/ROSTERS.md` alongside
 source changes. CI rebuilds these outputs, rejects unexpected generated changes,
 and runs the full rules/UI suite. Keep `git diff --check` clean.
 
+## Playing and testing
+
+Play starts full exhibition matches or opens Teams & leagues for league fixtures.
+Each exhibition side has separate preset and submitted custom team dropdowns.
+A custom choice overrides the preset; selecting a preset switches back.
+
+Testing contains the learning match, skills laboratory and all practice drills.
+Choose a mode and press **Start testing mode**. Switching workspace tabs preserves
+the current game; starting another game or mode replaces it.
+
 ## Current scope
 
 - Regulation two-half exhibition matches, practice modes and a skills laboratory.
