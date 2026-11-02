@@ -64,6 +64,10 @@ Play starts full exhibition matches or opens Teams & leagues for league fixtures
 Each exhibition side has separate preset and submitted custom team dropdowns.
 A custom choice overrides the preset; selecting a preset switches back.
 
+During drive setup, select a player and click a team-mate to swap their positions.
+A selected reserve replaces the clicked fielded player; empty squares still move
+the selected player normally.
+
 Testing contains the learning match, skills laboratory and all practice drills.
 Choose a mode and press **Start testing mode**. Switching workspace tabs preserves
 the current game; starting another game or mode replaces it.

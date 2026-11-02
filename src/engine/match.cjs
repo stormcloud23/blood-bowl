@@ -674,7 +674,13 @@ class MatchGame extends MatchBase {
   list.slice(0,11).forEach((p,i)=>Object.assign(p,{x:spots[i][0],y:spots[i][1],status:"standing"}));return true;
  }
  placeSetup(id,x,y){
-  const p=this.players.find(p=>p.id===id);if(this.phase!=="setup"||!p||p.team!==this.setupTeam||!this.available(this.setupTeam).includes(p)||!this.inside(x,y)||!this.ownHalf(p.team,x)||this.at(x,y))return false;
+  const p=this.players.find(p=>p.id===id),available=this.available(this.setupTeam);if(this.phase!=="setup"||this.pending||!p||p.team!==this.setupTeam||!available.includes(p)||!this.inside(x,y)||!this.ownHalf(p.team,x))return false;
+  const target=this.at(x,y);
+  if(target){
+   if(target===p||target.team!==p.team||!available.includes(target)||target.status!=="standing"||this.onPitch(p)&&!this.ownHalf(p.team,p.x))return false;
+   const origin=this.onPitch(p)?{x:p.x,y:p.y,status:"standing"}:{x:null,y:null,status:"reserve"};
+   Object.assign(p,{x,y,status:"standing"});Object.assign(target,origin);return true;
+  }
   if(!this.onPitch(p)&&this.players.filter(q=>q.team===p.team&&this.onPitch(q)).length>=11)return false;Object.assign(p,{x,y,status:"standing"});return true;
  }
  confirmSetup(){

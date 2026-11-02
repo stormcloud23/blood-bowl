@@ -284,3 +284,18 @@ test('Reference includes updated controls and complete quick-reference rule grou
  const glossary=f.get('skillcoverage').querySelectorAll('tr').slice(1),find=name=>glossary.find(r=>r.children[0].textContent===name).children[2].textContent;
  assert.doesNotMatch(find('Catch'),/intercept/i);assert.match(find('Hypnotic Gaze'),/3\+/);assert.match(find('Decay'),/Casualty/);
 });
+
+
+test('setup clicks swap selected team-mates, keep selection and reset it for each coach and drive',()=>{
+ const f=workspaceFixture('match');f.run('game.phase="kickChoice";game.chooseKicking(0);render();globalThis.a=game.players[0];globalThis.b=game.players[1];globalThis.origin={x:a.x,y:a.y};globalThis.target={x:b.x,y:b.y};');
+ f.cell(f.run('a.x'),f.run('a.y')).click();assert.equal(f.run('selected'),f.run('a.id'));f.cell(f.run('b.x'),f.run('b.y')).click();assert.equal(f.run('a.x===target.x&&a.y===target.y&&b.x===origin.x&&b.y===origin.y'),true);assert.equal(f.run('selected'),f.run('a.id'));assert.equal(f.get('pitch-popup').hidden,true);assert.ok(f.cell(f.run('a.x'),f.run('a.y')).className.includes('selected'));
+ const before=f.run('JSON.stringify(game.players)');f.cell(f.run('a.x'),f.run('a.y')).click();assert.equal(f.run('JSON.stringify(game.players)'),before);
+ f.run('game.confirmSetup();render()');assert.equal(f.run('selected'),null);f.run('globalThis.c=game.players.find(p=>p.team===1)');f.cell(f.run('c.x'),f.run('c.y')).click();assert.equal(f.run('selected'),f.run('c.id'));
+ const positioned=f.run('JSON.stringify(game.players)');f.cell(f.run('a.x'),f.run('a.y')).click();assert.equal(f.run('JSON.stringify(game.players)'),positioned);
+ f.run('game.prepareDrive(1);render()');assert.equal(f.run('selected'),null);f.cell(f.run('c.x'),f.run('c.y')).click();assert.equal(f.run('selected'),f.run('c.id'));
+});
+
+test('a dugout reserve can swap onto a full setup pitch and bench the clicked team-mate',()=>{
+ const f=workspaceFixture('match');f.run('game.players.push({...game.players[0],id:"setup-reserve",number:12,status:"reserve",x:null,y:null});game.phase="kickChoice";game.chooseKicking(0);render();globalThis.target=game.players[0];globalThis.spot={x:target.x,y:target.y};');
+ const card=dugoutNodes(f.get('dugout')).find(e=>e.dataset.playerId==='setup-reserve');card.click();f.action('Select for setup').click();f.cell(f.run('target.x'),f.run('target.y')).click();assert.equal(f.run('selected'),'setup-reserve');assert.equal(f.run('target.status'),'reserve');assert.equal(f.run('game.at(spot.x,spot.y).id'),'setup-reserve');assert.equal(f.run('game.players.filter(p=>p.team===0&&game.onPitch(p)).length'),11);
+});

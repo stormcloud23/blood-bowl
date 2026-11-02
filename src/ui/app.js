@@ -73,7 +73,11 @@ function choose(x,y,pushDecision=game.pending){
  if(game.match&&!["play","charge"].includes(game.phase)){
   if(game.phase==="setup"||game.phase==="eventMove"||game.phase==="swarming"||game.phase==="dwarfenWisdom"){
    const team=game.phase==="setup"?game.setupTeam:game.phase==="swarming"?game.swarmState.team:game.phase==="dwarfenWisdom"?game.wisdomState.team:game.eventState.team;
-   if(p?.team===team){selected=p.id;showProfile(p.team,p.role,p.number);}
+   if(p?.team===team){
+    const swapped=game.phase==="setup"&&selected&&selected!==p.id&&game.placeSetup(selected,x,y);
+    if(!swapped)selected=p.id;
+    const chosen=game.players.find(q=>q.id===selected);showProfile(chosen.team,chosen.role,chosen.number);
+   }
    else if(selected){if(game.phase==="setup")game.placeSetup(selected,x,y);else if(game.phase==="swarming")game.placeSwarm(selected,x,y);else if(game.phase==="dwarfenWisdom")game.placeWisdom(selected,x,y);else game.eventPlace(selected,x,y);}
   }else if(game.phase==="kickAim"){
    if(destination?.x===x&&destination?.y===y){game.kick(x,y);destination=null;}else if(game.ownHalf(game.receiving,x))destination={x,y};
@@ -298,7 +302,7 @@ function renderMatch(){
  else if(game.phase==="kickChoice"){
   say(teams[game.rolloffWinner].name+" won the roll-off. Choose who kicks first.");for(const t of [0,1])add(teams[t].name+" kicks",()=>game.chooseKicking(t));
  }else if(game.phase==="setup"){
-  say(teams[game.setupTeam].name+" sets up. Select a player, then an empty square in their own half. Central LOS needs three players; each Wide Zone permits two.");
+  say(teams[game.setupTeam].name+" sets up. Select a player, then click an empty square to move or a team-mate to swap. A selected reserve replaces the clicked player. Central LOS needs three players; each Wide Zone permits two.");
   say(game.setupErrors().join(" ")||"Formation is legal. Confirm when ready.");
   for(const p of game.available(game.setupTeam))add("Select #"+p.number+" · "+playerLabel(p),()=>{selected=p.id;showProfile(p.team,p.role,p.number);},"setup-player");
   add("Use suggested formation",()=>game.autoSetup());if(game.players.some(p=>p.id===selected&&p.team===game.setupTeam&&game.onPitch(p)))add("Bench selected player",()=>game.benchSetup(selected));add("Confirm formation",()=>game.confirmSetup());
