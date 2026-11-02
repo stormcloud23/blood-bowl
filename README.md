@@ -47,11 +47,13 @@ included, along with shared Big Guy caps and saved league/alignment choices.
 
 ## Current capabilities
 
+v0.0.28 adds 26 named players, bringing the catalogue to 48 players / 45 hires.
+See [star abilities](docs/STAR-SPECIALS-28.md), [injury alternatives and paired
+abilities](docs/STAR-INJURY-PAIRS.md), and the [remaining catalogue](docs/STAR-BACKLOG.md).
+
 v0.0.27 adds Deeproot Strongbranch, Skrull Halfheight and Bilerot Vomitflesh.
-The catalogue now offers 22 named players through 21 hiring entries. The
-[remaining-gap audit](docs/PARITY-GAPS.md) lists 42 unsupported entries from the
-checked published index and the remaining match/system work. Full FFB parity
-is not complete.
+The [remaining-gap audit](docs/PARITY-GAPS.md) records the current catalogue
+and remaining match/system work. Full FFB parity is not complete.
 
 v0.0.26 adds Max Spleenripper and Bomber Dribblesnot with their unique abilities.
 v0.0.25 extends [named stars](docs/STARS.md) with Morg, Fungus, Glart and the Swift Twins, and

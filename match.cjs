@@ -4,6 +4,36 @@ const MatchSkillGroups=typeof module!=="undefined"?require("./skills.cjs").SKILL
 const MATCH_PRAYERS=["Treacherous Trapdoor","Friends with the Ref","Stiletto","Iron Man","Knuckle Dusters","Bad Habits","Greasy Cleats","Blessing of Nuffle","Moles under the Pitch","Perfect Passing","Dazzling Catching","Fan Interaction","Fouling Frenzy","Throw a Rock","Under Scrutiny","Intensive Training"];
 // BB2025 profile data; unique ability behavior follows pinned FFB.
 const MATCH_STARS=[
+ {id:"cindy-piewhistle",name:"Cindy Piewhistle",cost:100000,ma:5,st:2,ag:"3+",pa:"3+",av:"7+",traits:"Halfling, Special",skills:["Accurate","Bombardier","Dodge","Loner (4+)","Secret Weapon","Stunty","All You Can Eat"],leagues:["Halfling Thimble Cup","Old World Classic"],primary:"",secondary:"",max:1},
+ {id:"grashnak-blackhoof",name:"Grashnak Blackhoof",cost:240000,ma:6,st:6,ag:"4+",pa:"6+",av:"9+",traits:"Big Guy, Minotaur",skills:["Frenzy","Horns","Loner (4+)","Mighty Blow","Thick Skull","Unchannelled Fury","Gored By The Bull"],leagues:["Chaos Clash"],primary:"",secondary:"",max:1},
+ {id:"jordell-freshbreeze",name:"Jordell Freshbreeze",cost:280000,ma:8,st:3,ag:"1+",pa:"3+",av:"8+",traits:"Blitzer, Elf",skills:["Block","Diving Catch","Dodge","Leap","Loner (4+)","Sidestep","Steady Footing","Swift As The Breeze"],leagues:["Elven Kingdoms League","Woodland League"],primary:"",secondary:"",max:1},
+ {id:"rowana-forestfoot",name:"Rowana Forestfoot",cost:160000,ma:6,st:3,ag:"3+",pa:"4+",av:"8+",traits:"Blocker, Gnome",skills:["Dodge","Dump-off","Guard","Horns","Jump Up","Leap","Loner (4+)","Bounding Leap"],leagues:["Woodland League"],primary:"",secondary:"",max:1},
+ {id:"rashnak-backstabber",name:"Rashnak Backstabber",cost:130000,ma:7,st:3,ag:"3+",pa:"5+",av:"8+",traits:"Goblin, Special",skills:["Loner (4+)","Shadowing","Sidestep","Sneaky Git","Stab","Toxin Connoisseur"],leagues:["Badlands Brawl"],primary:"",secondary:"",max:1},
+ {id:"wilhelm-chaney",name:"Wilhelm Chaney",cost:220000,ma:8,st:4,ag:"3+",pa:"4+",av:"9+",traits:"Blitzer, Undead, Werewolf",skills:["Catch","Claws","Frenzy","Loner (4+)","Regeneration","Wrestle","Savage Mauling"],leagues:["Sylvanian Spotlight"],primary:"",secondary:"",max:1},
+ {id:"hakflem-skuttlespike",name:"Hakflem Skuttlespike",cost:200000,ma:8,st:3,ag:"2+",pa:"3+",av:"8+",traits:"Runner, Skaven",skills:["Dodge","Extra Arms","Loner (4+)","Prehensile Tail","Two Heads","Treacherous"],leagues:["Underworld Challenge"],primary:"",secondary:"",max:1},
+ {id:"boa-konssstriktr",name:"Boa Kon'ssstriktr",cost:180000,ma:6,st:3,ag:"3+",pa:"4+",av:"9+",traits:"Runner, Snakeman",skills:["Dodge","Fend","Hypnotic Gaze","Loner (4+)","Prehensile Tail","Safe Pair of Hands","Sidestep","Look Into My Eyes"],leagues:["Lustrian Superleague"],primary:"",secondary:"",max:1},
+ {id:"count-luthor",name:"Count Luthor von Drakenborg",cost:300000,ma:6,st:5,ag:"2+",pa:"3+",av:"10+",traits:"Blocker, Vampire",skills:["Block","Hypnotic Gaze","Loner (4+)","Regeneration","Sidestep","Star of the Show"],leagues:["Sylvanian Spotlight"],primary:"",secondary:"",max:1},
+ {id:"skrorg-snowpelt",name:"Skrorg Snowpelt",cost:240000,ma:5,st:5,ag:"4+",pa:"6+",av:"9+",traits:"Big Guy, Yhetee",skills:["Block","Claws","Disturbing Presence","Juggernaut","Loner (4+)","Mighty Blow","Pump Up The Crowd"],leagues:["Old World Classic","Worlds Edge Superleague"],primary:"",secondary:"",max:1},
+ {id:"withergrasp-doubledrool",name:"Withergrasp Doubledrool",cost:170000,ma:6,st:3,ag:"3+",pa:"4+",av:"9+",traits:"Beastman, Blocker",skills:["Foul Appearance","Loner (4+)","Prehensile Tail","Tackle","Tentacles","Two Heads","Wrestle","Watch Out!"],leagues:[],special:["Favoured of Nurgle"],primary:"",secondary:"",max:1},
+ {id:"kreek-rustgouger",name:"Kreek Rustgouger",cost:180000,ma:4,st:7,ag:"4+",pa:"-",av:"10+",traits:"Big Guy, Skaven, Special",skills:["Ball & Chain","Loner (4+)","Mighty Blow","No Ball","Prehensile Tail","Secret Weapon","I'll Be Back!"],leagues:["Underworld Challenge"],primary:"",secondary:"",max:1},
+ {id:"gretchen-wachter",name:"Gretchen Wächter",cost:180000,ma:7,st:3,ag:"2+",pa:"-",av:"9+",traits:"Special, Undead, Wraith",skills:["Disturbing Presence","Dodge","Foul Appearance","Jump Up","Loner (4+)","No Ball","Regeneration","Shadowing","Sidestep","Incorporeal"],leagues:["Sylvanian Spotlight"],primary:"",secondary:"",max:1},
+ {id:"gloriel-summerbloom",name:"Gloriel Summerbloom",cost:150000,ma:7,st:2,ag:"2+",pa:"2+",av:"8+",traits:"Elf, Thrower",skills:["Accurate","Dodge","Loner (3+)","Pass","Sidestep","Sure Hands","Shot to Nothing"],leagues:["Elven Kingdoms League"],primary:"",secondary:"",max:1},
+ {id:"roxanna-darknail",name:"Roxanna Darknail",cost:270000,ma:8,st:3,ag:"1+",pa:"3+",av:"8+",traits:"Elf, Special",skills:["Dodge","Frenzy","Jump Up","Juggernaut","Leap","Loner (4+)","Slashing Nails"],leagues:["Elven Kingdoms League"],primary:"",secondary:"",max:1},
+ {id:"helmut-wulf",name:"Helmut Wulf",cost:140000,ma:6,st:3,ag:"3+",pa:"-",av:"9+",traits:"Human, Special",skills:["Chainsaw","Loner (4+)","No Ball","Pro","Secret Weapon","Stand Firm","Old Pro"],leagues:["Old World Classic"],primary:"",secondary:"",max:1},
+ {id:"ivan-deathshroud",name:"Ivan 'the Animal' Deathshroud",cost:210000,ma:6,st:4,ag:"4+",pa:"5+",av:"9+",traits:"Blitzer, Human, Skeleton, Undead",skills:["Block","Disturbing Presence","Hatred (Dwarf)","Juggernaut","Loner (4+)","Regeneration","Strip Ball","Tackle","Dwarven Scourge"],leagues:["Sylvanian Spotlight"],primary:"",secondary:"",max:1},
+ {id:"skitter-stab-stab",name:"Skitter Stab-Stab",cost:170000,ma:9,st:2,ag:"2+",pa:"4+",av:"8+",traits:"Runner, Skaven",skills:["Dodge","Loner (4+)","Prehensile Tail","Shadowing","Stab","Master Assassin"],leagues:["Underworld Challenge"],primary:"",secondary:"",max:1},
+ {id:"grak-crumbleberry",name:"Grak and Crumbleberry",cost:250000,anyTeam:true,leagues:[],players:[
+  {id:"grak",name:"Grak",ma:5,st:5,ag:"4+",pa:"4+",av:"10+",traits:"Big Guy, Ogre",skills:["Bone Head","Kick Team-mate","Loner (4+)","Mighty Blow","Thick Skull","I'll Carry You"]},
+  {id:"crumbleberry",name:"Crumbleberry",ma:5,st:2,ag:"3+",pa:"5+",av:"7+",traits:"Halfling, Lineman",skills:["Dodge","Lethal Flight","Loner (4+)","Right Stuff","Stunty","Sure Hands","I'll Carry You"]}
+ ]},
+ {id:"dribl-drull",name:"Dribl and Drull",cost:230000,leagues:["Lustrian Superleague"],players:[
+  {id:"dribl",name:"Dribl",ma:8,st:2,ag:"3+",pa:"4+",av:"8+",traits:"Skink, Special",skills:["Dirty Player","Dodge","Loner (4+)","Quick Foul","Sidestep","Sneaky Git","Stunty","A Sneaky Pair"]},
+  {id:"drull",name:"Drull",ma:8,st:2,ag:"3+",pa:"4+",av:"8+",traits:"Skink, Special",skills:["Dodge","Loner (4+)","Sidestep","Stab","Stunty","A Sneaky Pair"]}
+ ]},
+ {id:"josef-bugman",name:"Josef Bugman",cost:180000,ma:5,st:3,ag:"3+",pa:"4+",av:"9+",traits:"Blocker, Dwarf",skills:["Block","Drunkard","Fend","Loner (3+)","Tackle","Taunt","Thick Skull","Dwarfen Grit"],leagues:["Old World Classic","Worlds Edge Superleague"],primary:"",secondary:"",max:1},
+ {id:"varag-ghoul-chewer",name:"Varag Ghoul-Chewer",cost:260000,ma:6,st:5,ag:"3+",pa:"5+",av:"10+",traits:"Blocker, Orc",skills:["Block","Hatred (Undead)","Jump Up","Loner (4+)","Mighty Blow","Thick Skull","Unsteady","Krump and Smash"],leagues:["Badlands Brawl"],primary:"",secondary:"",max:1},
+ {id:"grim-ironjaw",name:"Grim Ironjaw",cost:190000,ma:5,st:4,ag:"3+",pa:"6+",av:"9+",traits:"Dwarf, Special",skills:["Block","Dauntless","Frenzy","Hatred (Big Guy)","Loner (4+)","Multiple Block","Thick Skull","Slayer"],leagues:["Worlds Edge Superleague"],primary:"",secondary:"",max:1},
+ {id:"mighty-zug",name:"The Mighty Zug",cost:220000,ma:5,st:5,ag:"4+",pa:"6+",av:"10+",traits:"Blocker, Human",skills:["Block","Loner (4+)","Mighty Blow","Unsteady","Crushing Blow"],leagues:["Old World Classic","Worlds Edge Superleague"],primary:"",secondary:"",max:1},
  {id:"bilerot-vomitflesh",name:"Bilerot Vomitflesh",cost:180000,ma:4,st:5,ag:"4+",pa:"6+",av:"10+",traits:"Blocker, Human",skills:["Dirty Player","Disturbing Presence","Foul Appearance","Lone Fouler","Loner (4+)","Regeneration","Unsteady","Putrid Regurgitation"],leagues:[],special:["Favoured of Nurgle"],primary:"",secondary:"",max:1},
  {id:"deeproot-strongbranch",name:"Deeproot Strongbranch",cost:280000,ma:2,st:7,ag:"5+",pa:"4+",av:"11+",traits:"Big Guy, Treeman",skills:["Block","Bullseye","Loner (4+)","Mighty Blow","Stand Firm","Strong Arm","Thick Skull","Throw Team-mate","Timmm-ber!","Reliable"],leagues:["Woodland League"],primary:"",secondary:"",max:1},
  {id:"skrull-halfheight",name:"Skrull Halfheight",cost:150000,ma:6,st:3,ag:"4+",pa:"3+",av:"9+",traits:"Dwarf, Skeleton, Thrower, Undead",skills:["Accurate","Loner (4+)","Nerves of Steel","Pass","Regeneration","Sure Hands","Thick Skull","Strong Passing Game"],leagues:["Sylvanian Spotlight","Worlds Edge Superleague"],primary:"",secondary:"",max:1},
@@ -84,6 +114,7 @@ class MatchGame extends MatchBase {
   if(key==="biasedRefs"&&this.hasTeamRule(team,"Bribery and Corruption"))spec.cost=80000;
   if(key==="masterChef"&&(this.teams[team].rosterKeywords||[]).some(k=>k.toLowerCase()==="master chef"))spec.cost=100000;
   if(key==="riotousRookies"&&!this.hasTeamRule(team,"Low Cost Linemen"))spec.max=0;
+  if(key==="josefBugman"&&this.selectedStars?.[team]?.includes("josef-bugman"))spec.max=0;
   return spec;
  }
  validResource(team,key,value){if(![0,1].includes(team)||!Number.isInteger(value))return false;const spec=this.resourceSpec(team,key);return !!spec&&value>=(spec.min||0)&&value<=spec.max;}
@@ -108,7 +139,7 @@ class MatchGame extends MatchBase {
   };menu();return true;
  }
  canBuyPlayers(team){return [0,1].includes(team)&&!this.pending&&this.phase===(this.league?"leagueSteps":"fans")&&(!this.league||this.leaguePurchaseOrder[this.leaguePurchaseStep]===team);}
- starEligible(team,star){return !!star&&!(star.excludeLeagues||[]).includes(this.teams[team].league)&&(star.anyTeam||star.leagues.includes(this.teams[team].league)||(star.special||[]).some(rule=>this.hasTeamRule(team,rule)));}
+ starEligible(team,star){return !!star&&!(star.id==="josef-bugman"&&this.resourceChoices[team].josefBugman)&&!(star.excludeLeagues||[]).includes(this.teams[team].league)&&(star.anyTeam||star.leagues.includes(this.teams[team].league)||(star.special||[]).some(rule=>this.hasTeamRule(team,rule)));}
  canHireStar(team,id){
   const star=MATCH_STARS.find(s=>s.id===id);return this.canBuyPlayers(team)&&this.starEligible(team,star)&&this.selectedStars[team].length<2&&!this.selectedStars[team].includes(id)&&this.players.filter(p=>p.team===team).length+(star.players?.length||1)<=16&&(!this.league||this.resourceCosts(team).inducements+star.cost<=this.leagueBudget(team));
  }
@@ -134,7 +165,132 @@ class MatchGame extends MatchBase {
   const duplicates=this.selectedStars[0].filter(id=>this.selectedStars[1].includes(id));
   for(const id of duplicates){this.players=this.players.filter(p=>p.star!==id);this.note(MATCH_STARS.find(s=>s.id===id).name+" was hired by both teams and plays for neither; both fees remain spent.");}
  }
- has(p,name){if(name==="Projectile Vomit"&&super.has(p,"Putrid Regurgitation")&&p.putridHalf!==this.half)return true;return super.has(p,name);}
+ injurySpecial(by,p){if(!by||by.team===p.team||by.injurySpecialUsed)return null;return ["Krump and Smash","Crushing Blow","Slayer","Dwarven Scourge","Old Pro","Savage Mauling"].find(name=>this.has(by,name)&&(name!=="Slayer"||!p.zapped&&this.bigGuy(p))&&(name!=="Old Pro"||this.oldProAvailable(by)))||null;}
+ injuryOnlyAlternative(by,p,c,options,{spotted=false}={}){
+  if(!by||by.injurySpecialUsed||!c.entry)return null;const mauling=this.has(by,"Savage Mauling"),toxin=this.has(by,"Toxin Connoisseur")&&options.source?.cause==="Stab"&&by.team!==p.team;if(!mauling&&!toxin||c.entry.record.initialStatus==="casualty"&&!(mauling&&spotted))return null;
+  const skill=mauling?"Savage Mauling":"Toxin Connoisseur",alternate=this.captureDamageReports(()=>{const dice=mauling?[this.roll("Injury re-roll"),this.roll("Injury re-roll")]:c.injuryDice,bonus=(c.injuryBonus||0)+(toxin?1:0);return {...c,injuryDice:dice,injuryBonus:bonus,entry:this.createInjury(p,dice[0]+dice[1]+bonus,()=>{},options)};});
+  return mauling||alternate.entry.record.initialStatus!==c.entry.record.initialStatus?{skill,alternate}:null;
+ }
+ oldProAvailable(p){return !!p&&p.team===this.active&&this.has(p,"Old Pro")&&!p.injurySpecialUsed&&!p.proUsed&&this.skill(p,"Pro");}
+ oldProAlternative(owner,p,original,makeArmour,makeInjury,{self=false,spotted=false}={}){
+  if(!this.oldProAvailable(owner)||this.has(p,"Iron Hard Skin")||original.broken!==self&&!spotted)return null;
+  const index=(original.dice[0]<original.dice[1])!==self?0:1,best=[...original.dice];best[index]=self?1:6;if(!spotted&&makeArmour(best).broken===self)return null;
+  return this.captureDamageReports(()=>{const dice=[...original.dice];dice[index]=this.roll("Old Pro armour die re-roll");return makeInjury(makeArmour(dice));});
+ }
+ carryPartner(p){return p?.starRole==="grak"&&this.has(p,"I'll Carry You")&&p.carryHalf!==this.half&&!this.carried?this.players.find(q=>q.team===p.team&&q.starRole==="crumbleberry"&&this.has(q,"I'll Carry You")&&this.onPitch(q)&&this.distance(p,q)===1):null;}
+ pickUpCarry(p,mate){this.carried={carrier:p,mate,origin:{x:mate.x,y:mate.y},status:mate.status,ball:this.ball.carrier===mate.id};mate.status="carried";mate.x=null;mate.y=null;if(this.carried.ball){this.ball.x=null;this.ball.y=null;}this.note("Grak carries Crumbleberry; Dodge and Break Tackle are temporary.");}
+ offerCarryStart(p,begin){const mate=this.carryPartner(p);if(!mate||this.carryDeclined===p.id)return false;p.carryInitialPartner=mate.id;this.skillChoice("I'll Carry You — pick up #"+mate.number,p.team,["Carry Crumbleberry","Keep I'll Carry You"],choice=>{this.carryDeclined=p.id;if(choice==="Carry Crumbleberry")this.pickUpCarry(p,mate);const result=begin();if(!result&&this.carried)this.undoCarry();});return true;}
+ canCarryDuringActivation(p){const mate=p&&this.carryPartner(p);return !!mate&&!this.pending&&this.mover===p.id&&p.status==="standing"&&!p.distracted&&p.carryInitialPartner===mate.id;}
+ useCarryPartner(){const p=this.players.find(q=>q.id===this.mover);if(!this.canCarryDuringActivation(p))return false;this.pickUpCarry(p,this.carryPartner(p));return true;}
+ undoCarry(){const c=this.carried;if(!c)return;this.carried=null;Object.assign(c.mate,c.origin,{status:c.status});if(c.ball)this.ball={...c.origin,carrier:c.mate.id};this.note("I'll Carry You: failed activation restores Crumbleberry without spending the half use.");}
+ placeCarried(done){
+  const c=this.carried;if(!c){done(false);return;}const {carrier:a,mate:p}=c,origin={x:a.x??c.carrierOrigin?.x??c.origin.x,y:a.y??c.carrierOrigin?.y??c.origin.y};
+  const finish=turnover=>{a.carryHalf=this.half;this.carried=null;this.carryForcedTurnover||=!!turnover;done(!!turnover);},restore=pos=>{Object.assign(p,pos,{status:c.status});if(c.ball)this.ball={...pos,carrier:p.id};finish(false);};
+  const squares=[];for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if((dx||dy)&&this.inside(origin.x+dx,origin.y+dy))squares.push({x:origin.x+dx,y:origin.y+dy});const empty=squares.filter(pos=>!this.at(pos.x,pos.y));
+  const crowd=()=>{p.status=c.status;p.x=null;p.y=null;const complete=()=>{if(c.ball){this.ball={...origin,carrier:null};this.throwIn(origin.x,origin.y,()=>finish(true));}else finish(true);};this.resolveInjury(p,this.roll("Carried player crowd Injury")+this.roll("Carried player crowd Injury"),complete,{crowd:true});};
+  if(!empty.length&&(origin.x===0||origin.x===25||origin.y===0||origin.y===14)){crowd();return;}
+  const place=pos=>{if(empty.length){restore(pos);return;}this.carried=null;a.carryHalf=this.half;p.status=c.status;this.scatterCarried(p,pos,c.ball,turnover=>{this.carryForcedTurnover||=turnover;done(turnover);});};
+  const targets=empty.length?empty:squares,labels=targets.map(pos=>(empty.length?"Place Crumbleberry at ":"Drop onto player at ")+(pos.x+1)+", "+(pos.y+1));if(targets.length===1){place(targets[0]);return;}
+  this.skillChoice("I'll Carry You — place Crumbleberry"+(empty.length?"":"; no empty adjacent square"),a.team,labels,choice=>place(targets[labels.indexOf(choice)]));
+ }
+ scatterCarried(p,first,carrying,done){
+  let turnover=false,collided=false;const dirs=[[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]],bounce=pos=>{const [dx,dy]=dirs[this.roll("Carried player bounce",8)-1];land({x:pos.x+dx,y:pos.y+dy},pos);};
+  const land=(pos,from)=>{if(!this.inside(pos.x,pos.y)){p.x=from.x;p.y=from.y;this.pushPlayer(p,pos,()=>done(true));return;}const victim=this.at(pos.x,pos.y);
+   if(victim&&victim!==p){const subsequent=!!from;collided||=subsequent;this.fall(victim,{turnover:false,prevented:()=>bounce(pos),after:()=>{turnover||=victim.team===this.active;bounce(pos);}});return;}
+   p.x=pos.x;p.y=pos.y;if(carrying)this.ball={...pos,carrier:p.id};
+   const fail=()=>this.fall(p,{turnover:false,prevented:()=>done(turnover),after:()=>done(turnover||carrying)});
+   this.beforeThrownLanding(p,fell=>{if(fell){done(true);return;}if(collided||p.status!=="standing"||p.distracted){fail();return;}this.test(p,"Landing",parseInt(this.profile(p).ag)+1+this.marking(p),()=>{this.recordStat(p,"landing");done(turnover);},fail);});
+  };land(first,null);
+ }
+ beforeProne(p,origin,done){if(this.carried?.carrier===p){this.carried.carrierOrigin=origin;this.placeCarried(()=>super.beforeProne(p,origin,done));return;}super.beforeProne(p,origin,done);}
+ pushPlayer(p,pos,done,depth=0){if(this.carried?.carrier===p&&!this.inside(pos.x,pos.y)){this.carried.carrierOrigin={x:p.x,y:p.y};this.placeCarried(()=>super.pushPlayer(p,pos,done,depth));return;}super.pushPlayer(p,pos,done,depth);}
+ partnerDamageBonus(source,target){const by=this.players.find(p=>p.id===source?.playerId);return by&&["Stab","Foul"].includes(source.cause)&&this.has(by,"A Sneaky Pair")&&this.players.filter(p=>p.team===by.team&&this.has(p,"A Sneaky Pair")&&this.onPitch(p)&&p.status==="standing"&&!p.distracted&&this.distance(p,target)===1).length>1?1:0;}
+ gritAvailable(p){return this.has(p,"Dwarfen Grit")&&!p.injurySpecialUsed&&!this.has(p,"Iron Hard Skin");}
+ prepareGritDamage(p,makeArmour,makeInjury){
+  const original=makeArmour(null),alternate=original.broken&&this.gritAvailable(p)?this.captureDamageReports(()=>makeInjury(makeArmour(original))):null;
+  makeInjury(original);return done=>this.chooseDamageContext(original,alternate,p,"Dwarfen Grit",done);
+ }
+ simpleArmourContext(p,dice,bonus=0){return {p,dice,bonus,raw:dice[0]+dice[1],broken:dice[0]+dice[1]+bonus>=parseInt(this.profile(p).av)};}
+ simpleInjuryContext(p,c,bonus=0,options={}){if(c.broken){c.injuryDice=[this.roll("Injury"),this.roll("Injury")];c.injuryBonus=bonus;c.entry=this.createInjury(p,c.injuryDice[0]+c.injuryDice[1]+bonus,()=>{},options);}return c;}
+ armourOnly(p,done,options={}){
+  const by=this.players.find(q=>q.id===options.source?.playerId),assassin=by&&by.team!==p.team&&options.source?.cause==="Stab"&&this.has(by,"Master Assassin")&&!by.injurySpecialUsed,oldPro=this.oldProAvailable(by)&&["Chainsaw","Stab","Projectile Vomit"].includes(options.source?.cause);
+  const injurySpecial=by&&!by.injurySpecialUsed&&((this.has(by,"Toxin Connoisseur")&&options.source?.cause==="Stab")||(this.has(by,"Savage Mauling")&&["Stab","Projectile Vomit"].includes(options.source?.cause)));
+  if(!injurySpecial&&!oldPro&&!assassin&&!this.gritAvailable(p)&&this.carried?.carrier!==p)return super.armourOnly(p,done,options);
+  const pair=this.partnerDamageBonus(options.source,p),origin={x:p.x,y:p.y},carrying=this.ball.carrier===p.id,makeArmour=old=>{const dice=[this.roll("Armour"),this.roll("Armour")],base=options.bonus||0,pairArmour=old?.pairArmour||pair&&dice[0]+dice[1]+base<parseInt(this.profile(p).av)?1:0;return {...this.simpleArmourContext(p,dice,base+pairArmour),pairArmour};},makeInjury=c=>this.simpleInjuryContext(p,c,(options.injuryBonus||0)+(pair&&!c.pairArmour?1:0),options);
+  const original=makeArmour(null);let alternate=null,skill="Dwarfen Grit",owner=p;
+  if(oldPro){const adapt=dice=>({...this.simpleArmourContext(p,dice,original.bonus),pairArmour:original.pairArmour});alternate=this.oldProAlternative(by,p,original,adapt,makeInjury,{self:by.team===p.team});if(alternate){skill="Old Pro";owner=by;}}
+  if(!alternate&&assassin&&!original.broken&&!this.has(p,"Iron Hard Skin")){skill="Master Assassin";owner=by;alternate=this.captureDamageReports(()=>makeInjury(makeArmour(original)));}
+  else if(!alternate&&original.broken&&this.gritAvailable(p))alternate=this.captureDamageReports(()=>makeInjury(makeArmour(original)));
+  makeInjury(original);if(!alternate&&injurySpecial){const extra=this.injuryOnlyAlternative(by,p,original,options);if(extra){alternate=extra.alternate;skill=extra.skill;owner=by;}}const select=next=>this.chooseDamageContext(original,alternate,owner,skill,next);
+  select(c=>{options.onDice?.("Armour",...c.dice);if(!c.broken){done();return;}options.onDice?.("Injury",...c.injuryDice);
+   this.beforeProne(p,origin,()=>{const e=c.entry;e.commit();e.prepare();this.releaseProneBall(p,origin,()=>this.scheduleInjury(e,()=>{this.syncLeader();if(carrying&&p.team===this.active)this.endTurn(true);else done();}));});
+  });
+ }
+ starFoulDamage(a,p,{dice,bonus,modifier,dirty,pair=0,pairArmour=0},done){
+  const mauling=this.has(a,"Savage Mauling")&&!a.injurySpecialUsed;if(!mauling&&!this.gritAvailable(p)&&!this.oldProAvailable(a))return false;const source={playerId:a.id,cause:"Foul"},makeArmour=values=>this.simpleArmourContext(p,values,modifier+bonus+pairArmour),makeInjury=c=>this.simpleInjuryContext(p,c,(dirty&&!bonus?1:0)+(pair&&!pairArmour?1:0),{source}),original=makeArmour(dice);
+  let alternate=this.oldProAlternative(a,p,original,makeArmour,makeInjury,{spotted:dice[0]===dice[1]}),owner=alternate?a:p,skill=alternate?"Old Pro":"Dwarfen Grit";
+  if(!alternate&&original.broken&&this.gritAvailable(p))alternate=this.captureDamageReports(()=>makeInjury(makeArmour([this.roll("Armour re-roll"),this.roll("Armour re-roll")])));makeInjury(original);if(!alternate&&mauling){const extra=this.injuryOnlyAlternative(a,p,original,{source},{spotted:!!original.injuryDice&&original.injuryDice[0]===original.injuryDice[1]});if(extra){alternate=extra.alternate;skill=extra.skill;owner=a;}}const select=next=>this.chooseDamageContext(original,alternate,owner,skill,next);
+  select(c=>{const finish=()=>done(c);if(c.entry){c.entry.commit();this.scheduleInjury(c.entry,finish);}else finish();});return true;
+ }
+ starBombDamage(p,c,origin,standing,carrier,next){
+  if(!this.gritAvailable(p)&&this.carried?.carrier!==p)return false;const select=this.prepareGritDamage(p,()=>this.simpleArmourContext(p,[this.roll("Bomb Armour"),this.roll("Bomb Armour")]),ctx=>this.simpleInjuryContext(p,ctx,0,{source:{playerId:c.original.id,cause:"Bomb"}}));
+  const choose=()=>select(ctx=>{const damage=()=>{if(standing){p.status="prone";p.rooted=false;this.onProne(p);if(p.team===c.team)c.turnover=true;}if(carrier&&p.team===c.team)c.turnover=true;ctx.entry?.commit();this.releaseProneBall(p,origin,()=>ctx.entry?this.scheduleInjury(ctx.entry,next):next());};if(standing)this.beforeProne(p,origin,damage);else damage();});
+  if(standing)this.preventFall(p,next,choose);else choose();return true;
+ }
+ starSpellDamage(p,kind,origin,standing,next){
+  if(!this.gritAvailable(p))return false;const select=this.prepareGritDamage(p,old=>{const dice=[this.roll(kind+" Armour"),this.roll(kind+" Armour")],raw=dice[0]+dice[1],bonus=kind==="Fireball"?(old?.bonus||raw<parseInt(this.profile(p).av)?1:0):0;return this.simpleArmourContext(p,dice,bonus);},c=>this.simpleInjuryContext(p,c,kind==="Fireball"&&!c.bonus?1:0,{source:{cause:kind}}));
+  const choose=()=>select(c=>{const damage=()=>{if(standing){p.status="prone";p.rooted=false;this.onProne(p);}const e=c.entry;if(e){e.commit();e.prepare();}this.releaseProneBall(p,origin,()=>e?this.scheduleInjury(e,next):next());};if(standing)this.beforeProne(p,origin,damage);else damage();});
+  if(standing)this.preventFall(p,next,choose);else choose();return true;
+ }
+ captureDamageReports(make){const previous=this.damageReports,reports=[];this.damageReports=reports;try{return {...make(),reports};}finally{this.damageReports=previous;}}
+ blockDamageContext(by,p,dice,extra=0,retainedMb=false){
+  const raw=dice[0]+dice[1],mb=retainedMb||this.canMightyArmour(by,p)&&!this.armourBroken(p,raw,extra,by),armourBonus=extra+(mb?1:0);
+  return {p,dice,raw,extra,mbArmour:!!mb,broken:this.armourBroken(p,raw,armourBonus,by)};
+ }
+ rollDamageInjury(p,context,options){
+  if(!context.broken)return context;const dice=[this.roll("Injury"),this.roll("Injury")],mb=!context.mbArmour&&(options.injuryModifier??(options.by&&this.canMighty(options.by,p)?1:0));
+  context.injuryDice=dice;context.injuryBonus=mb;context.entry=this.createInjury(p,dice[0]+dice[1]+mb,()=>{},options);return context;
+ }
+ chooseDamageContext(original,alternate,owner,skill,done){
+  if(!alternate){done(original);return;}
+  this.skillChoice(skill+" — "+this.teams[original.p?.team??original.entry?.p.team??alternate.entry?.p.team??owner.team].name+" #"+(original.p?.number??original.entry?.p.number??alternate.entry?.p.number??owner.number),owner.team,["Use "+skill,"Keep "+skill],choice=>{if(choice==="Use "+skill){const use=()=>{owner.injurySpecialUsed=true;for(const report of alternate.reports||[])this.note(report);this.note("#"+owner.number+" uses "+skill+".");done(alternate);};if(skill==="Old Pro")this.attemptPro(owner,use,()=>done(original));else use();}else done(original);});
+ }
+ starFall(p,options){
+  const by=options.impactBy||options.armBarBy||options.savageryBy||options.mightyBlowBy,b=this.blockAction,block=!!b&&!options.armBarBy&&!options.impactBy&&!options.savageryBy&&(!options.injurySource||options.injurySource.cause==="Block");
+  const selfOldPro=options.injurySource?.cause==="Chainsaw"&&options.injurySource.playerId===p.id&&this.oldProAvailable(p);let skill=block?this.injurySpecial(by,p):selfOldPro?"Old Pro":null,owner=selfOldPro?p:by;
+  if((!skill&&!this.gritAvailable(p)&&this.carried?.carrier!==p)||options.blockBlast||this.has(p,"Ball & Chain"))return false;
+  const skin=this.has(p,"Iron Hard Skin"),injuryModifier=options.savageryBy?0:options.impactBy?1:options.armBarBy?+!skin:undefined;
+  const source=options.injurySource||(by?{playerId:by.id,cause:options.impactBy?"Lethal Flight":options.armBarBy?"Arm Bar":options.savageryBy?"Animal Savagery":"Block"}:null);
+  const origin={x:p.x,y:p.y},injuryOptions={source,by,injuryModifier,plague:!this.multipleContext&&(options.plagueEligible||source?.cause==="Block"&&!!b)},dice=[this.roll("Armour"),this.roll("Armour")];
+  const makeArmour=(values,retained=null)=>{
+   if(!options.armBarBy&&!options.impactBy&&!options.savageryBy)return this.blockDamageContext(by,p,values,0,retained?.mbArmour);
+   const raw=values[0]+values[1]+(options.savageryBy&&!skin&&this.has(by,"Mighty Blow")?1:0),can=(!options.savageryBy&&!skin&&(options.impactBy||options.armBarBy)),mb=retained?.mbArmour||can&&!this.armourBroken(p,raw,0,options.mightyBlowBy);
+   return {dice:values,raw,mbArmour:!!mb,broken:this.armourBroken(p,raw,mb?1:0,options.mightyBlowBy)};
+  },original=makeArmour(dice);
+  const acting=b?.attacker,active=acting&&acting!==p&&acting.status==="standing"&&!acting.distracted;let alternate=null;
+  if(skill==="Old Pro")alternate=this.oldProAlternative(owner,p,original,values=>makeArmour(values,original),c=>this.rollDamageInjury(p,c,injuryOptions),{self:owner.team===p.team});
+  else if(skill!=="Savage Mauling"&&skill&&!skin&&(!original.broken||skill==="Crushing Blow"&&original.mbArmour)&&(skill==="Krump and Smash"||active)){
+   const specialBonus=skill==="Dwarven Scourge"&&!p.zapped&&this.keywords(p).includes("dwarf")?2:1,candidate=skill==="Krump and Smash"?null:this.blockDamageContext(by,p,dice,specialBonus);
+   if(skill==="Krump and Smash"||candidate.broken)alternate=this.captureDamageReports(()=>{const c=candidate||makeArmour([this.roll("Armour re-roll"),this.roll("Armour re-roll")],original);return this.rollDamageInjury(p,c,injuryOptions);});
+  }
+  if(!alternate&&original.broken&&this.gritAvailable(p)){skill="Dwarfen Grit";owner=p;alternate=this.captureDamageReports(()=>this.rollDamageInjury(p,makeArmour([this.roll("Armour re-roll"),this.roll("Armour re-roll")],original),injuryOptions));}
+  this.rollDamageInjury(p,original,injuryOptions);
+  if(!alternate&&skill==="Savage Mauling"){const extra=this.injuryOnlyAlternative(by,p,original,injuryOptions);if(extra)alternate=extra.alternate;}
+  if(!alternate&&["Slayer","Dwarven Scourge"].includes(skill)&&active&&original.entry&&original.entry.record.initialStatus!=="casualty"){
+   const bonus=skill==="Dwarven Scourge"&&!p.zapped&&this.keywords(p).includes("dwarf")?2:1,alt=this.captureDamageReports(()=>({...original,entry:this.createInjury(p,original.injuryDice[0]+original.injuryDice[1]+original.injuryBonus+bonus,()=>{},injuryOptions)}));
+   if(alt.entry.record.initialStatus!==original.entry.record.initialStatus)alternate=alt;
+  }
+  const resolve=context=>{
+    const damage=()=>{p.status="prone";p.rooted=false;this.onProne(p);if(b){b.downOutcomes||=new Map();b.downOutcomes.set(p.id,true);if(p===b.target&&by===b.attacker)b.targetKnocked=true;}
+     const complete=()=>{this.syncLeader();if(options.turnover??true){if(this.multipleContext?.stage==="effects"){this.multipleContext.turnover=true;options.after?options.after():this.finishBlock();}else this.endTurn(true);}else options.after?.();};
+     const entry=context.entry;if(entry){entry.commit();if(this.multipleContext?.stage!=="effects")entry.prepare();}
+     this.releaseProneBall(p,origin,()=>entry?this.scheduleInjury(entry,complete):complete());
+    };if(options.skipPlacement)damage();else this.beforeProne(p,origin,damage);
+  };
+  const select=()=>this.chooseDamageContext(original,alternate,owner,skill,resolve),prevented=()=>{if(options.prevented)options.prevented();else options.after?.();};
+  if(options.skipPrevention)select();else this.preventFall(p,prevented,select);return true;
+ }
+ has(p,name){if(name==="Dodge"&&this.blockAction?.target===p&&this.blockAction.watchOutActive)return true;if(name==="Projectile Vomit"&&super.has(p,"Putrid Regurgitation")&&p.putridHalf!==this.half)return true;return super.has(p,name);}
  putridAvailable(p){return !!p&&this.has(p,"Putrid Regurgitation")&&p.putridHalf!==this.half&&this.onPitch(p)&&p.status==="standing"&&!p.distracted&&!this.finished;}
  putridTargets(p){return this.putridAvailable(p)&&!this.pending&&this.mover===p.id&&this.action==="blitz"&&this.blitzBlocked&&(p.rooted||p.spent<this.movementAllowance(p)+this.rushLimit(p))?this.adjacentPutridTargets(p):[];}
  adjacentPutridTargets(p){return this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&q.status==="standing"&&this.distance(p,q)===1);}
@@ -163,6 +319,19 @@ class MatchGame extends MatchBase {
   const bonus=this.strongPassingBonus(p,roll,modifier,pa);if(!bonus){done(0);return;}
   this.skillChoice("Strong Passing Game — roll "+roll+", add "+bonus,p.team,["Use Strong Passing Game","Keep Strong Passing Game"],choice=>{if(choice==="Use Strong Passing Game"){this.useStrongPassing(p);done(bonus);}else done(0);});
  }
+ beginBomb(p){super.beginBomb(p);if(p.allEatPlanned){p.allEatPlanned=false;this.bombContext.twoBombs=1;this.note("All You Can Eat: committed to two bombs before the first throw.");}}
+ finishBomb(options={}){
+  const c=this.bombContext;if(!c)return;const p=c.original;
+  if(c.twoBombs===1&&c.stage==="aim"&&!c.rethrows){p.allEatUsed=true;super.finishBomb(options);return;}
+  if(c.twoBombs===1){p.allEatUsed=true;if(!c.turnover&&this.onPitch(p)&&p.status==="standing"&&!p.distracted){
+    this.bombContext=null;this.bomb=null;this.mover=null;this.action=null;this.blockAction=null;this.scoreDeferrals--;const restart=()=>{this.syncLeader();this.checkScore();if(!this.finished&&this.phase==="play"){this.beginBomb(p);this.bombContext.twoBombs=2;this.note("All You Can Eat: the second bomb must be thrown.");}};
+    if(c.ball){const {x,y,kind}=c.ball;if(kind==="throwIn")this.throwIn(x,y,restart);else this.bounce(x,y,restart);}else restart();return;
+   }}
+  if(c.twoBombs===2&&!c.allEatChecked){c.allEatChecked=true;const finish=()=>super.finishBomb(options),remove=()=>{if(!this.onPitch(p)){finish();return;}const origin={x:p.x,y:p.y},carrier=this.ball.carrier===p.id;p.status="sent-off";p.x=null;p.y=null;c.turnover=true;this.note("All You Can Eat: Cindy is Sent-off.");if(carrier){this.ball={...origin,carrier:null};this.bounce(origin.x,origin.y,finish);}else finish();};
+   const bribe=()=>{if(!this.onPitch(p)||!this.bribes[p.team]){remove();return;}this.skillChoice("All You Can Eat — Bribe (no Argue the Call)",p.team,["Use Bribe","Accept send-off"],choice=>{if(choice!=="Use Bribe"){remove();return;}this.bribes[p.team]--;if(this.roll("Bribe needs 2+")>=2)finish();else bribe();});};
+   this.test(p,"All You Can Eat",4,finish,bribe);return;
+  }super.finishBomb(options);
+ }
  beforeBombCatch(p,done,origin=p){const thrower=this.bombContext?.thrower;if(!thrower||!this.has(thrower,"Kaboom!")||thrower.kaboomUsed){done();return;}this.skillChoice("Kaboom! — explode before "+this.teams[p.team].name+" #"+p.number+" catches",thrower.team,["Use Kaboom!","Keep Kaboom!"],choice=>{if(choice==="Use Kaboom!"){thrower.kaboomUsed=true;this.bombContext.catchTest=null;this.explodeBomb(origin.x,origin.y);}else done();});}
  afterSpecialAttack(p,target,name,done){
   if(name!=="Chainsaw"||!this.has(p,"Maximum Carnage")||p.maximumCarnageUsed||p.status!=="standing"||p.distracted||this.finished){done();return;}
@@ -187,21 +356,47 @@ class MatchGame extends MatchBase {
   this.skillChoice(name,p.team,[...labels,"Keep "+name],choice=>{const q=targets[labels.indexOf(choice)];if(q){p.starDistractionUsed=true;q.distracted=true;this.refreshChomps();this.note(name+": "+this.teams[q.team].name+" #"+q.number+" is Distracted until their next activation.");}done();});return true;
  }
  offerFrenziedRush(p,action,done){if(action!=="blitz"||!this.has(p,"Frenzied Rush")||p.frenziedRushHalf===this.half){done();return;}this.skillChoice("Frenzied Rush — "+this.profile(p).name,p.team,["Use Frenzied Rush","Keep Frenzied Rush"],choice=>{if(choice==="Use Frenzied Rush"){p.frenziedRushHalf=this.half;p.frenziedRushTurn=this.skillTurn;this.note("Frenzied Rush: Frenzy for this activation; Grab is unavailable this turn.");}done();});}
- activationExtra(p,action,ready,failed){super.activationExtra(p,action,()=>this.offerFrenziedRush(p,action,()=>this.offerStarDistraction(p,ready)),failed);}
+ activeStarEnhancement(p,name){return !p.zapped&&p.starEnhancement?.name===name&&p.starEnhancement.turn===this.skillTurn&&(this.mover===p.id||this.blockAction?.attacker===p);}
+ offerStarEnhancement(p,action,done){
+  const name=action==="bomb"&&this.has(p,"All You Can Eat")&&!p.allEatUsed?"All You Can Eat":action==="blitz"&&this.has(p,"Gored By The Bull")&&!p.goredUsed?"Gored By The Bull":action==="blitz"&&this.has(p,"Slashing Nails")&&p.slashingHalf!==this.half?"Slashing Nails":this.has(p,"Incorporeal")&&!p.incorporealUsed?"Incorporeal":action==="pass"&&this.has(p,"Shot to Nothing")&&!p.shotUsed?"Shot to Nothing":null;if(!name){done();return;}
+  this.skillChoice(name,p.team,["Use "+name,"Keep "+name],choice=>{if(choice==="Use "+name){p.starEnhancement={name,turn:this.skillTurn};if(name==="All You Can Eat")p.allEatPlanned=true;else if(name==="Slashing Nails")p.slashingHalf=this.half;else if(name==="Incorporeal")p.incorporealUsed=true;else if(name==="Shot to Nothing")p.shotUsed=true;}done();});
+ }
+ planFrom(p,x,y,fx,fy,spent){const plan=super.planFrom(p,x,y,fx,fy,spent);if(plan&&!plan.jump&&this.activeStarEnhancement(p,"Incorporeal")){plan.dodge=false;delete plan.divingTackleTarget;}return plan;}
+ stealAbility(p){return this.has(p,"Treacherous")?"Treacherous":this.has(p,"Look Into My Eyes")?"Look Into My Eyes":null;}
+ stealTarget(p){const name=this.stealAbility(p);return name&&!p.stealUsed&&p.status==="standing"&&!p.distracted?this.players.find(q=>q.id===this.ball.carrier&&q!==p&&q.team===(name==="Treacherous"?p.team:1-p.team)&&this.onPitch(q)&&q.status==="standing"&&this.distance(p,q)===1):null;}
+ offerSteal(p,done){const name=this.stealAbility(p);if(!name){done();return;}if(p.status==="prone"){this.stand(p,()=>this.offerSteal(p,done));return;}p.stealOrigin={x:p.x,y:p.y,spent:p.spent};const target=this.stealTarget(p);if(!target){done();return;}
+  this.skillChoice(name+" — "+this.teams[target.team].name+" #"+target.number,p.team,["Use "+name,"Keep "+name],choice=>{if(choice!=="Use "+name){done();return;}this.resolveSteal(p,target,name,done);});
+ }
+ canStealDuringActivation(p){return !!p&&!this.pending&&this.mover===p.id&&this.stealTarget(p)&&p.stealOrigin?.x===p.x&&p.stealOrigin.y===p.y&&p.stealOrigin.spent===p.spent;}
+ useStealAbility(){const p=this.players.find(q=>q.id===this.mover);if(!this.canStealDuringActivation(p))return false;this.resolveSteal(p,this.stealTarget(p),this.stealAbility(p),()=>this.checkScore());return true;}
+ resolveSteal(p,target,name,done){p.stealUsed=true;const gain=()=>{this.ball={x:p.x,y:p.y,carrier:p.id};};
+  if(name==="Treacherous"){gain();this.armourOnly(target,()=>{done();this.checkScore();},{bonus:this.has(target,"Chainsaw")&&!this.has(target,"Iron Hard Skin")?3:0,source:{playerId:p.id,cause:"Stab"}});return;}
+  const end=()=>{gain();this.mover=null;this.action=null;this.checkScore();},roll=()=>this.test(p,name,2,end,done);
+  if(this.has(target,"Foul Appearance"))this.test(p,"Foul Appearance",2,roll,()=>{this.mover=null;this.action=null;});else roll();
+ }
+ activationExtra(p,action,ready,failed){super.activationExtra(p,action,()=>this.offerSteal(p,()=>this.offerStarEnhancement(p,action,()=>this.offerFrenziedRush(p,action,()=>this.offerStarDistraction(p,()=>{ready();if(action==="bomb"&&this.action==="bomb"&&!this.pending&&!this.bombContext)this.beginBomb(p);})))),failed);}
  afterDauntless(p,target,done){
   if(!this.has(p,"Indomitable")||p.indomitableUsed){super.afterDauntless(p,target,done);return;}
   this.skillChoice("Indomitable — "+this.profile(p).name,p.team,["Use Indomitable","Keep Indomitable"],choice=>{const use=choice==="Use Indomitable";if(use)p.indomitableUsed=true;p.blockST=+this.profile(target).st*(use?2:1);this.note("#"+p.number+" Dauntless strength: "+p.blockST+" before assists.");done();});
  }
- actionRerollSources(p,kind){return [...this.singleDieSources(p),...(["Pass","Throw Team-mate","Kick Team-mate"].includes(kind)&&this.has(p,"The Ballista")&&!p.ballistaUsed?["The Ballista"]:[]),...(kind==="Hypnotic Gaze"&&this.has(p,"Mesmerising Dance")&&p.danceHalf!==this.half?["Mesmerising Dance"]:[])];}
- useActionRerollSource(p,kind,source){if(!this.actionRerollSources(p,kind).includes(source))return false;if(source==="The Ballista"){p.ballistaUsed=true;this.note("#"+p.number+" uses The Ballista.");return true;}if(source==="Mesmerising Dance"){p.danceHalf=this.half;this.note("#"+p.number+" uses Mesmerising Dance.");return true;}return this.useSingleDieSource(p,source);}
+ actionRerollSources(p,kind){return [...this.singleDieSources(p),...(kind==="Jump"&&this.boundingActive(p)&&!p.boundingRerollUsed?["Bounding Leap"]:[]),...(["Pass","Throw Team-mate","Kick Team-mate"].includes(kind)&&this.has(p,"The Ballista")&&!p.ballistaUsed?["The Ballista"]:[]),...(kind==="Hypnotic Gaze"&&this.has(p,"Mesmerising Dance")&&p.danceHalf!==this.half?["Mesmerising Dance"]:[])];}
+ useActionRerollSource(p,kind,source){if(!this.actionRerollSources(p,kind).includes(source))return false;if(source==="Bounding Leap"){p.boundingRerollUsed=true;return true;}if(source==="The Ballista"){p.ballistaUsed=true;this.note("#"+p.number+" uses The Ballista.");return true;}if(source==="Mesmerising Dance"){p.danceHalf=this.half;this.note("#"+p.number+" uses Mesmerising Dance.");return true;}return this.useSingleDieSource(p,source);}
  savageBlockSelections(){const b=this.blockAction;if(this.pending?.type!=="blockSelect"||!b||b.poolLocked||!this.has(b.attacker,"Savage Blow")||b.attacker.savageBlowUsed)return [];return Array.from({length:2**b.dice.length-1},(_,i)=>b.dice.map((_,j)=>j).filter(j=>(i+1)&(1<<j)));}
  rerollSavageBlock(indices){const b=this.blockAction;if(!Array.isArray(indices)||!indices.length||new Set(indices).size!==indices.length||!this.savageBlockSelections().some(list=>list.length===indices.length&&list.every(i=>indices.includes(i))))return false;b.attacker.savageBlowUsed=true;b.poolLocked=true;for(const i of [...indices].sort((a,b)=>a-b))b.dice[i]=this.roll("Savage Blow re-roll die "+(i+1));this.pending={type:"blockSelect"};return true;}
  singleDieSources(p){return [this.has(p,"Thinking Man's Troll")&&p.thinkingHalf!==this.half?"Thinking Man's Troll":null,this.has(p,"Halfling Luck")&&!p.halflingLuckUsed?"Halfling Luck":null].filter(Boolean);}
  useSingleDieSource(p,source){if(!this.singleDieSources(p).includes(source))return false;if(source==="Thinking Man's Troll")p.thinkingHalf=this.half;else p.halflingLuckUsed=true;this.note("#"+p.number+" uses "+source+".");return true;}
  automaticTestReroll(p,kind){return kind==="Dauntless"&&this.has(p,"Blind Rage")?"Blind Rage":null;}
- additionalTestModifiers(p,kind){
-  return this.has(p,"Consummate Professional")&&!p.consummateUsed&&["Dodge","Jump","Pick up","Catch","Intercept","Landing","Jump Up Block"].includes(kind)?[{name:"Consummate Professional",bonus:1,use:()=>{p.consummateUsed=true;this.note("#"+p.number+" uses Consummate Professional (+1 to this Agility Test).");}}]:[];
+ additionalTestModifiers(p,kind,target=2){
+  const result=this.has(p,"Consummate Professional")&&!p.consummateUsed&&["Dodge","Jump","Pick up","Catch","Intercept","Landing","Jump Up Block"].includes(kind)?[{name:"Consummate Professional",bonus:1,use:()=>{p.consummateUsed=true;this.note("#"+p.number+" uses Consummate Professional (+1 to this Agility Test).");}}]:[];
+  if(this.has(p,"Swift As The Breeze")&&!p.swiftUsed&&["Dodge","Jump","Rush"].includes(kind))result.push({name:"Swift As The Breeze",bonus:Math.max(0,target-2),use:()=>{p.swiftUsed=true;this.note("Swift As The Breeze: ignore modifiers for this test.");}});return result;
  }
+ boundingActive(p){return !p.zapped&&p.boundingRollActive&&p.boundingTurn===this.skillTurn&&this.mover===p.id;}
+ jumpTarget(p,fx,fy,x,y,diving=0){return this.boundingActive(p)?parseInt(this.profile(p).ag):super.jumpTarget(p,fx,fy,x,y,diving);}
+ step(x,y){const p=this.players.find(q=>q.id===this.mover),plan=this.plan(x,y);if(plan?.jump&&this.has(p,"Bounding Leap")&&!p.boundingUsed&&!this.boundingChoice){
+   this.skillChoice("Bounding Leap — ignore Jump modifiers before rolling",p.team,["Use Bounding Leap","Keep Bounding Leap"],choice=>{this.boundingChoice=true;p.boundingRollActive=choice==="Use Bounding Leap";p.boundingTurn=this.skillTurn;this.step(x,y);});return true;
+  }this.boundingChoice=false;return super.step(x,y);
+ }
+ departureTest(p,plan,origin,kind,target,yes,no){if(kind==="Jump"&&this.boundingActive(p)){p.boundingUsed=true;p.boundingRerollUsed=false;const wrap=fn=>n=>{p.boundingRollActive=false;fn(n);};super.departureTest(p,plan,origin,kind,target,wrap(yes),wrap(no));return;}super.departureTest(p,plan,origin,kind,target,yes,no);}
  tandemBlockAvailable(a,target){return this.parameter(a,"Working in Tandem")==="Working in Tandem (block)"&&this.players.some(p=>p!==a&&p.team===a.team&&this.onPitch(p)&&p.status==="standing"&&!p.distracted&&this.distance(p,target)===1&&this.parameter(p,"Working in Tandem")==="Working in Tandem (pass)");}
  starBlockSources(){
   const b=this.blockAction,a=b?.attacker;if(!b||this.pending?.type!=="blockSelect"||b.poolLocked)return [];
@@ -281,7 +476,7 @@ class MatchGame extends MatchBase {
   if(successes.some(Boolean))this.note("Master Chef: half "+this.half+" gains "+successes.join(" / ")+" re-rolls; opposing regular pools are reduced. Leader is granted afterwards.");
  }
  teamSppAwards(team){const brutes=this.hasTeamRule(team,"Brawlin' Brutes");return {touchdown:brutes?2:3,casualty:brutes?3:2,completion:this.hasPrayer(team,"Perfect Passing")?2:1,interception:2,mvp:4,...(this.hasPrayer(team,"Dazzling Catching")?{prayerCatch:1}:{})};}
- profile(p){let base=super.profile(p);if(p.zapped)base={...base,name:"Frog ("+base.name+")",ma:5,st:1,ag:"2+",pa:"-",av:"5+",skills:["Dodge","No Ball","Titchy","Stunty","Very Long Legs","Leap"]};if(p.prayerSkills||p.prayerMA||p.prayerAV)base={...base,ma:Math.max(1,base.ma+(p.prayerMA||0)),av:Math.min(11,parseInt(base.av)+(p.prayerAV||0))+"+",skills:[...new Set([...base.skills,...(p.prayerSkills||[])])].filter(s=>!(p.disabledSkills||[]).includes(s))};if(!p.zapped&&p.frenziedRushTurn===this.skillTurn){base={...base,skills:base.skills.filter(s=>s!=="Grab")};if((this.mover===p.id||this.blockAction?.attacker===p)&&!(p.disabledSkills||[]).includes("Frenzy"))base.skills=[...new Set([...base.skills,"Frenzy"])];}return p.snack?{...base,ma:Math.max(1,base.ma-1),av:Math.max(3,parseInt(base.av)-1)+"+"}:base;}
+ profile(p){let base=super.profile(p);if(this.activeStarEnhancement(p,"Slashing Nails"))base={...base,skills:[...new Set([...base.skills,"Claws"])]};if(this.activeStarEnhancement(p,"Shot to Nothing"))base={...base,skills:[...new Set([...base.skills,"Hail Mary Pass"])]};if(this.carried?.carrier===p)base={...base,skills:[...new Set([...base.skills,"Dodge","Break Tackle"])]};if(p.zapped)base={...base,name:"Frog ("+base.name+")",ma:5,st:1,ag:"2+",pa:"-",av:"5+",skills:["Dodge","No Ball","Titchy","Stunty","Very Long Legs","Leap"]};if(p.prayerSkills||p.prayerMA||p.prayerAV)base={...base,ma:Math.max(1,base.ma+(p.prayerMA||0)),av:Math.min(11,parseInt(base.av)+(p.prayerAV||0))+"+",skills:[...new Set([...base.skills,...(p.prayerSkills||[])])].filter(s=>!(p.disabledSkills||[]).includes(s))};if(!p.zapped&&p.frenziedRushTurn===this.skillTurn){base={...base,skills:base.skills.filter(s=>s!=="Grab")};if((this.mover===p.id||this.blockAction?.attacker===p)&&!(p.disabledSkills||[]).includes("Frenzy"))base.skills=[...new Set([...base.skills,"Frenzy"])];}return p.snack?{...base,ma:Math.max(1,base.ma-1),av:Math.max(3,parseInt(base.av)-1)+"+"}:base;}
  hasPrayer(team,name){return !!this.prayers?.[team]?.includes(name);}
  prayerValue(team){const t=this.teams[team];return (t.ctv??t.lineup.reduce((n,r)=>n+(this.hasTeamRule(team,"Low Cost Linemen")&&t.positions[r].traits.includes("Lineman")?0:t.positions[r].cost),0)+this.resourceCosts(team).staff)+this.resourceCosts(team).inducements;}
  finishInducementPurchases(){
@@ -369,6 +564,7 @@ class MatchGame extends MatchBase {
  chooseKicking(team){if(this.phase!=="kickChoice"||![0,1].includes(team))return false;this.firstReceiver=1-team;this.prepareDrive(team);return true;}
  available(team){return this.players.filter(p=>p.team===team&&!p.eaten&&!["casualty","knocked-out","sent-off"].includes(p.status)&&!p.heatOut);}
  prepareDrive(kicking){
+  for(const team of [0,1]){const amount=this.nextDriveStarBonus?.[team]||0;if(amount){this.rerolls[team]+=amount;this.driveBonus[team]+=amount;this.nextDriveStarBonus[team]=0;}}
   this.swarmCounts=[0,0];this.swarmState=null;
   this.throwUsed=[false,false];this.throwMate=null;
   this.drive++;this.kicking=kicking;this.receiving=1-kicking;this.active=kicking;this.setupTeam=kicking;this.phase="setup";this.finished=false;this.pending=null;this.mover=null;this.action=null;this.blockAction=null;this.ball={x:null,y:null,carrier:null};this.kickTouchback=false;this.eventState=null;
@@ -502,7 +698,7 @@ class MatchGame extends MatchBase {
   const options=list.map(p=>"Give ball to #"+p.number);this.choice("Touchback — "+this.teams[this.receiving].name,options,option=>{const p=list[options.indexOf(option)];this.ball={x:p.x,y:p.y,carrier:p.id};this.startReceivingTurn();});
  }
  placeTouchback(x,y){if(this.phase!=="touchback"||this.pending||!this.inside(x,y)||!this.ownHalf(this.receiving,x)||this.at(x,y))return false;this.ball={x,y,carrier:null};this.startReceivingTurn();return true;}
- resetTeam(team){this.resetSkillTurn();this.syncLeader();this.foulUsed[team]=false;this.secureUsed[team]=false;this.blitzUsed[team]=false;this.passUsed[team]=false;this.handoffUsed[team]=false;for(const p of this.players){p.dodgeUsed=false;p.proUsed=false;if(p.team===team)Object.assign(p,{used:false,spent:0,stallingChecked:false,stunnedAtStart:p.status==="stunned"});}}
+ resetTeam(team){this.carryDeclined=null;for(const p of this.players)if(p.team===team)p.carryInitialPartner=null;this.resetSkillTurn();this.syncLeader();this.foulUsed[team]=false;this.secureUsed[team]=false;this.blitzUsed[team]=false;this.passUsed[team]=false;this.handoffUsed[team]=false;for(const p of this.players){p.dodgeUsed=false;p.proUsed=false;if(p.team===team)Object.assign(p,{used:false,spent:0,stallingChecked:false,stunnedAtStart:p.status==="stunned"});}}
  startReceivingTurn(){this.phase="play";this.eventState=null;this.finished=false;this.pending=null;this.beginTurn(this.receiving);}
  beginTurn(team){
   if(this.skip[team]){this.skip[team]=false;this.turns[team]++;this.note(this.teams[team].name+" skips a turn celebrating an opposition-turn Touchdown.");}
@@ -513,24 +709,30 @@ class MatchGame extends MatchBase {
  canStart(p){if(!super.canStart(p))return false;if(this.phase==="play")return true;const e=this.eventState;return this.phase==="charge"&&e?.eligible.includes(p.id)&&!e.used.includes(p.id)&&e.used.length<e.limit;}
  start(id,action="move"){
   if(this.phase==="charge"&&!["move","blitz","throw-team-mate"].includes(action))return false;const valid=this.players.find(p=>p.id===id);if(!this.canStart(valid))return false;
+  if(this.offerCarryStart(valid,()=>this.start(id,action)))return true;
   this.stallCandidate=this.phase==="play"&&this.canScoreWithoutDice(valid)?id:null;
   const result=super.start(id,action);if(result&&this.phase==="charge")this.eventState.used.push(id);return result;
  }
  canSecure(p){return this.phase==="play"&&super.canSecure(p);}
  canKickTeamMate(p){return this.phase==="play"&&super.canKickTeamMate(p);}
  canBallAction(p,kind){return this.phase==="play"&&super.canBallAction(p,kind);}
- block(a,d){if(this.phase!=="play")return false;const p=this.players.find(p=>p.id===a);this.stallCandidate=p&&this.canScoreWithoutDice(p)?a:null;return super.block(a,d);}
+ block(a,d){if(this.phase!=="play")return false;const p=this.players.find(p=>p.id===a);if(this.canBlock(p,d)&&this.offerCarryStart(p,()=>this.block(a,d)))return true;this.stallCandidate=p&&this.canScoreWithoutDice(p)?a:null;return super.block(a,d);}
  options(p,kind){const result=[...super.options(p,kind),...this.actionRerollSources(p,kind)];return this.phase==="play"?result:result.filter(s=>s!=="Team");}
- test(p,kind,target,yes,no){if((this.weather==="Blizzard"||this.hasPrayer(1-p.team,"Moles under the Pitch"))&&kind==="Rush")target+=(this.weather==="Blizzard"?1:0)+(this.hasPrayer(1-p.team,"Moles under the Pitch")?1:0);if(this.weather==="Pouring Rain"&&["Pick up","Catch","Intercept","Bomb interception"].includes(kind))target++;super.test(p,kind,target,yes,no);}
+ test(p,kind,target,yes,no){if((this.weather==="Blizzard"||this.hasPrayer(1-p.team,"Moles under the Pitch"))&&kind==="Rush")target+=(this.weather==="Blizzard"?1:0)+(this.hasPrayer(1-p.team,"Moles under the Pitch")?1:0);if(this.weather==="Pouring Rain"&&["Pick up","Catch","Intercept","Bomb interception"].includes(kind))target++;super.test(p,kind,target,yes,n=>{if(kind==="Bone Head"&&this.carried?.carrier===p)this.undoCarry();no(n);});}
  passPreview(x,y){const result=super.passPreview(x,y);if(result&&this.weather==="Very Sunny"&&this.action!=="bomb")result.target++;return result;}
  throwPreview(x,y){const result=super.throwPreview(x,y);if(result&&this.weather==="Very Sunny")result.target++;return result;}
  passRange(from,to){const result=super.passRange(from,to);if(this.weather==="Blizzard"&&result?.band>1)return null;const target=this.at(to.x,to.y);return result&&this.action==="pass"&&Number.isInteger(from.team)&&Number.isInteger(from.role)&&this.parameter(from,"Working in Tandem")==="Working in Tandem (pass)"&&target?.team===from.team&&this.parameter(target,"Working in Tandem")==="Working in Tandem (block)"?{...result,band:0,name:"Pass to Partner",partner:true}:result;}
  assists(a,d){const result=super.assists(a,d);if(this.cheer[a.team]&&!this.has(a,"Ball & Chain")&&!this.has(d,"Ball & Chain"))result.offensive++;return result;}
- onBlockRolled(a){this.cheer[a.team]=false;}
+ onBlockRolled(a,d){this.cheer[a.team]=false;const b=this.blockAction?.target===d?this.blockAction:this.multipleContext?.pools.at(-1);if(b?.blitz&&this.activeStarEnhancement(a,"Gored By The Bull")&&b.chooserTeam===a.team&&b.dice.length<3){b.dice.push(this.roll("Gored By The Bull additional Block die"));b.count=b.dice.length;a.goredUsed=true;}if(b&&d&&this.has(d,"Watch Out!")&&d.watchHalf!==this.half){b.watchOutActive=true;d.watchHalf=this.half;}}
+ blockCancelled(a,d){if(a.team!==d.team&&this.has(d,"Watch Out!"))d.watchHalf=this.half;}
+ onCasualtyCommitted(a,d,source){if(source.cause!=="Block"||a.team!==this.active||a.team===d.team||["prone","stunned"].includes(a.status)||!this.has(a,"Pump Up The Crowd")||a.pumpUsed)return;a.pumpUsed=true;this.rerolls[a.team]++;this.driveBonus[a.team]++;this.note("Pump Up The Crowd: an extra Team re-roll until drive end.");}
  decide(option){const q=this.pending;if(option==="Strong Passing Game"&&q?.passModifier&&q.options.includes(option)){return q.passModifier();}if(q?.p&&q.options?.includes(option)&&this.actionRerollSources(q.p,q.kind).includes(option)){this.pending=null;this.useActionRerollSource(q.p,q.kind,option);q.resolve(this.roll(q.kind+" re-roll ("+option+")"));return true;}const before=[...this.rerolls],result=super.decide(option);this.consumeBonus(before);return result;}
  rerollBlock(source,index=null){if(source==="Savage Blow")return this.rerollSavageBlock(index);if(["Lord of Chaos","Unstoppable Momentum","Woodland Fury","Thinking Man's Troll","Halfling Luck","Working in Tandem"].includes(source))return this.rerollStarBlock(source,index);const before=[...this.rerolls],result=super.rerollBlock(source,index);this.consumeBonus(before);return result;}
  consumeBonus(before){for(const t of [0,1])if(this.rerolls[t]<before[t])this.driveBonus[t]=Math.max(0,this.driveBonus[t]-(before[t]-this.rerolls[t]));}
  endTurn(turnover=false){
+  if(this.bombContext?.twoBombs===2&&this.bombContext.stage==="aim")return false;
+  if(this.carried&&!this.pending){this.placeCarried(forced=>this.endTurn(turnover||forced));return true;}
+  if(!this.pending){turnover||=!!this.carryForcedTurnover;this.carryForcedTurnover=false;}
   if(this.bombContext){if(turnover)this.bombContext.turnover=true;return false;}
   if(this.moveContext)return this.finishBoundedMove(true);
   if(this.dumpContext)return this.finishDumpOff();
@@ -567,7 +769,9 @@ class MatchGame extends MatchBase {
  throwPrayerRock(team,done){
   const list=this.players.filter(p=>p.team!==team&&this.onPitch(p)&&p.status==="standing");if(!list.length){this.note("Throw a Rock: no standing opponent; keep the use.");done();return;}
   this.rocks[team]--;this.prayers[team]=this.prayers[team].filter(n=>n!=="Throw a Rock");const p=this.randomPlayers(list,1,"Throw a Rock target")[0];if(this.roll("Throw a Rock needs 4+")<4){done();return;}
-  this.scoreDeferrals=(this.scoreDeferrals||0)+1;const origin={x:p.x,y:p.y},armour=this.roll("Rock Armour")+this.roll("Rock Armour");let entry=null;
+  this.scoreDeferrals=(this.scoreDeferrals||0)+1;const origin={x:p.x,y:p.y};
+  if(this.starSpellDamage(p,"Throw a Rock",origin,true,()=>{this.scoreDeferrals--;this.syncLeader();done();}))return;
+  const armour=this.roll("Rock Armour")+this.roll("Rock Armour");let entry=null;
   if(armour>=parseInt(this.profile(p).av)){this.spellInjuryCapture=e=>{entry=e;};try{this.resolveInjury(p,this.roll("Rock Injury")+this.roll("Rock Injury"),()=>{},{source:{cause:"Throw a Rock"}});}finally{this.spellInjuryCapture=null;}}
   const complete=()=>{this.scoreDeferrals--;this.syncLeader();done();},damage=()=>{p.status="prone";p.rooted=false;this.onProne(p);if(entry)entry.prepare();this.releaseProneBall(p,origin,()=>entry?super.scheduleInjury(entry,complete):complete());};
   this.preventFall(p,complete,()=>this.beforeProne(p,origin,damage));
@@ -601,6 +805,7 @@ class MatchGame extends MatchBase {
    if(i===targets.length){complete();return;}
    const p=targets[i++];if(this.roll("Fireball #"+p.number+" needs 4+")<4){next();return;}
    const origin={x:p.x,y:p.y},standing=p.status==="standing";
+   if(this.starSpellDamage(p,"Fireball",origin,standing,next))return;
    // FFB rolls the injury before offering Steady Footing; a successful save
    // discards that result, including any casualty dice already consumed.
    const armour=this.has(p,"Ball & Chain")?Infinity:this.roll("Fireball Armour")+this.roll("Fireball Armour"),av=parseInt(this.profile(p).av),bonus=armour<av&&!this.has(p,"Iron Hard Skin")?1:0;
@@ -614,7 +819,7 @@ class MatchGame extends MatchBase {
    const placed=()=>standing?this.beforeProne(p,origin,damage):damage();if(standing)this.preventFall(p,next,placed);else placed();
   };next();
  }
- scheduleInjury(entry,done){if(this.spellInjuryCapture){this.spellInjuryCapture(entry);return;}super.scheduleInjury(entry,done);}
+ scheduleInjury(entry,done){if(this.spellInjuryCapture){this.spellInjuryCapture(entry);return;}if(this.carried?.carrier===entry.p){this.carried.carrierOrigin=entry.origin;this.placeCarried(()=>super.scheduleInjury(entry,done));return;}super.scheduleInjury(entry,done);}
  finishBlock(){const block=this.blockAction;if(block?.trapdoorQueue?.length&&!block.trapdoorProcessing){block.trapdoorProcessing=true;const next=()=>{if(!block.trapdoorQueue.length){block.trapdoorProcessing=false;this.finishBlock();return;}const {p,pushed}=block.trapdoorQueue.shift();this.checkTrapdoor(p,next,{pushed});};next();return;}if(this.chainContext){super.finishBlock();return;}if(this.multipleContext){super.finishBlock();return;}const b=this.blockAction;super.finishBlock();if(this.pending)return;if(this.phase==="play"||this.phase==="charge")this.checkScore();if(b&&!b.blitz)this.checkStalling(b.attacker);}
  canScoreWithoutDice(p){
   if(!p||this.ball.carrier!==p.id||!this.onPitch(p)||p.status!=="standing"||p.distracted||["Bone Head","Really Stupid","Unchannelled Fury","Animal Savagery","Take Root"].some(s=>this.has(p,s))||this.parameter(p,"Bloodlust"))return false;
@@ -628,19 +833,23 @@ class MatchGame extends MatchBase {
   this.stallCandidate=null;p.stallingChecked=true;this.stalledTeams[p.team]=true;if(this.turns[this.active]>6){this.note("Stalling: no crowd roll in turns 7–8.");return;}
   this.note("Stalling: the crowd may take action.");if(this.roll("Crowd Takes Action")>=this.turns[this.active])this.fall(p,{prevented:afterPrevention});
  }
- finish(){const p=this.players.find(q=>q.id===this.mover),result=super.finish();if(result&&p)this.checkStalling(p);return result;}
+ finish(){if(this.bombContext?.twoBombs===2&&this.bombContext.stage==="aim")return false;if(this.carried&&!this.pending&&this.mover===this.carried.carrier.id){this.placeCarried(turnover=>{if(turnover)this.endTurn(true);else{this.checkScore();if(["play","charge"].includes(this.phase))this.finish();}});return true;}const p=this.players.find(q=>q.id===this.mover),result=super.finish();if(result&&p)this.checkStalling(p);return result;}
  checkScore(){
+  if(this.carried&&!this.pending){const a=this.carried.carrier;if(!this.mover&&!this.blockAction||this.ball.carrier===a.id&&a.x===(this.right(a.team)?25:0)){this.placeCarried(turnover=>{if(turnover)this.endTurn(true);else this.checkScore();});return;}}
   if(this.feedBeforeScore())return;
   if(this.scoreDeferrals)return;
   if(!["play","charge"].includes(this.phase))return;const p=this.players.find(q=>q.id===this.ball.carrier);
+  if(p&&p.status==="standing"&&p.x===(this.right(p.team)?25:0)&&this.has(p,"Star of the Show")&&!p.showUsed&&p.showCheckedDrive!==this.drive){p.showCheckedDrive=this.drive;this.skillChoice("Star of the Show",p.team,["Use Star of the Show","Keep Star of the Show"],choice=>{if(choice==="Use Star of the Show"){p.showUsed=true;this.nextDriveStarBonus||=[0,0];this.nextDriveStarBonus[p.team]++;}this.checkScore();});return;}
   if(p&&p.status==="standing"&&p.x===(this.right(p.team)?25:0)){this.scores[p.team]++;this.recordStat(p,"touchdown");this.note("TOUCHDOWN — "+this.teams[p.team].name+"! Score "+this.scores.join("–")+".");if(p.team!==this.active){this.turns[p.team]=Math.min(8,this.turns[p.team]+1);this.note("Scoring during the opponent's turn: the scoring team skips its next turn celebrating.");}this.endDrive(p.team);}
  }
+ afterActivation(p){if(this.carried?.carrier===p&&!this.pending){this.placeCarried(turnover=>{if(turnover)this.endTurn(true);else this.checkScore();});}}
+ finishBallAction(p,allowGiveAndGo,forcedTurnover=false){super.finishBallAction(p,allowGiveAndGo,forcedTurnover);if(!this.mover)this.afterActivation(p);}
  endDrive(scorer){this.phase="endDrive";this.finished=true;this.pending=null;this.mover=null;this.action=null;this.blockAction=null;this.lastScorer=scorer;this.note("End of Drive: resolve recovery and effects before continuing.");}
  // FFB StepEndTurn: each coach argues/retries, then both Bribe allocations.
  resolveSecretWeapons(){
   let c=this.weaponContext;
   if(!c){
-   const players=this.players.filter(p=>p.fieldedDrive===this.drive&&p.weaponResolvedDrive!==this.drive&&this.has(p,"Secret Weapon")&&!["sent-off","casualty"].includes(p.status)&&!p.eaten);
+   const players=this.players.filter(p=>p.fieldedDrive===this.drive&&p.weaponResolvedDrive!==this.drive&&this.has(p,"Secret Weapon")&&!["sent-off","casualty"].includes(p.status)&&!p.eaten).filter(p=>{if(!this.has(p,"I'll Be Back!")||p.backUsed)return true;p.backUsed=true;p.weaponResolvedDrive=this.drive;this.note("I'll Be Back!: #"+p.number+" ignores the first Secret Weapon send-off.");return false;});
    if(!players.length)return false;
    c=this.weaponContext={players,stage:0,argued:new Set(),saved:new Set(),retry:[],retryDone:new Set()};
   }

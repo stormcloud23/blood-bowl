@@ -63,18 +63,21 @@ class MovementGame {
  }
  // Treatment owns the continuation: no bounce, send-off or turn cleanup until
  // every medical decision for this injury has completed.
- resolveInjury(p,total,done=()=>{},{crowd=false,stunIsKo=false,stunty=true,source=null,plague=false,automaticBadlyHurt=false}={}){
+ resolveInjury(p,total,done=()=>{},options={}){const entry=this.createInjury(p,total,done,options);entry.commit();this.scheduleInjury(entry,done);}
+ createInjury(p,total,done=()=>{},{crowd=false,stunIsKo=false,stunty=true,source=null,plague=false,automaticBadlyHurt=false}={}){
   stunIsKo||=this.has(p,"Ball & Chain");
   const origin={x:p.x,y:p.y},small=stunty&&!this.has(p,"Iron Hard Skin")&&this.has(p,"Stunty"),thick=this.has(p,"Thick Skull"),stunMax=small?(thick?7:6):(thick?8:7),koMax=small?8:9;
   let state=total<=stunMax?(crowd?"reserve":stunIsKo?"knocked-out":"stunned"):total<=koMax?"knocked-out":"casualty";
   const record={playerId:p.id,team:p.team,injury:total,source:source?{...source}:null,original:null,selected:null,treatment:null};
   if(state==="casualty")record.original=record.selected=automaticBadlyHurt||small&&total===9?{result:"Badly hurt",automatic:true}:this.casualtyRoll(p);
-  if(record.original&&source){
+  let committed=false;record.initialStatus=state;
+  const commit=()=>{if(committed)return false;committed=true;if(record.original&&source){
    const by=this.players.find(q=>q.id===source.playerId);
    if(by&&by.team!==p.team&&(this.prayerCasualtySpp?.(p,source)||["Block","Arm Bar","Lethal Flight"].includes(source.cause)||this.has(by,"Violent Innovator")&&["Bomb","Chainsaw","Stab","Breathe Fire","Ball & Chain collision","Kick Team-mate"].includes(source.cause)))this.recordStat(by,"casualty");
    const kicker=this.players.find(q=>q.id===source.kickerId);
    if(source.cause==="Lethal Flight"&&kicker&&kicker!==by&&kicker.team!==p.team&&this.has(kicker,"Violent Innovator"))this.recordStat(kicker,"casualty");
-  }
+   if(by)this.onCasualtyCommitted?.(by,p,source);
+  }return true;};
   let resume=done;
   const finish=()=>{
    p.status=state;p.rooted=false;this.onProne(p);
@@ -122,7 +125,7 @@ class MovementGame {
    }
    next();
   };
-  this.scheduleInjury({p,record,origin,prepare,regenerate,retryRegeneration,canRetryRegeneration:()=>record.regenerationFailed&&this.regenerationSources(p).length>0,treat:next=>{resume=next;medical();}},done);
+  return {p,record,origin,commit,prepare,regenerate,retryRegeneration,canRetryRegeneration:()=>record.regenerationFailed&&this.regenerationSources(p).length>0,treat:next=>{resume=next;medical();}};
  }
  medicalSources(p){return this.apothecaries[p.team]>0?["Use Apothecary"]:[];}
  useMedicalSource(p,choice){if(choice!=="Use Apothecary"||!this.apothecaries[p.team])return false;this.apothecaries[p.team]--;return true;}
@@ -185,7 +188,7 @@ class MovementGame {
  marking(p,x=p.x,y=p.y){return this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&this.distance(q,{x,y})===1).length;}
  markingAt(p,x,y){return this.marking(p,x,y);}
  bigGuy(p){return this.profile(p).traits.split(",").map(s=>s.trim()).includes("Big Guy");}
- note(s){this.events.unshift(s);this.events=this.events.slice(0,150);}
+ note(s){if(this.damageReports){this.damageReports.push(s);return;}this.events.unshift(s);this.events=this.events.slice(0,150);}
  roll(label,sides=6){const n=this.dice(sides);if(!Number.isInteger(n)||n<1||n>sides)throw Error("Invalid die");this.note(label+": "+n+" (D"+sides+").");return n;}
  success(n,target){return n===6||(n!==1&&n>=target);}
  canStart(p){return p&&this.onPitch(p)&&p.team===this.active&&!p.used&&["standing","prone"].includes(p.status)&&!this.mover&&!this.pending&&!this.finished;}
@@ -336,7 +339,7 @@ class MovementGame {
   this.blockAction={attacker,target,assists,aStrength,dStrength,count,chooserTeam,dice:[],poolLocked:false,brawlerUsed:false,blitz};
   this.note("#"+attacker.number+" declares Block against "+this.teams[target.team].name+" #"+target.number+". Strength "+aStrength+" vs "+dStrength+" after "+assists.offensive+" offensive and "+assists.defensive+" defensive assist(s); roll "+count+" Block Dice.");
   this.blockAction.dice=Array.from({length:count},(_,i)=>this.roll("Block die "+(i+1)));
-  this.onBlockRolled(attacker);
+  this.onBlockRolled(attacker,target);
   this.pending={type:"blockSelect"};return true;
  }
  blockFace(n){return ["","Player Down","Both Down","Push Back","Push Back","Stumble","POW"][n];}
@@ -649,6 +652,7 @@ class MovementGame {
   if(this.ball.carrier===p.id||!this.ball.carrier&&this.ball.x===x&&this.ball.y===y){this.ball={x,y,carrier:null};this.bounce(x,y,done);}else done();
  }
  fall(p,options={}){
+  if(this.starFall?.(p,options))return;
   const resolve=()=>{if(options.skipPlacement)this.resolveFall(p,options);else this.beforeProne(p,{x:p.x,y:p.y},()=>this.resolveFall(p,options));};
   if(options.skipPrevention)resolve();else this.preventFall(p,()=>{if(options.prevented)options.prevented();else if(options.after)options.after();},resolve);
  }

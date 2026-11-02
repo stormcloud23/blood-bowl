@@ -89,6 +89,7 @@ class SkillGame extends SkillBase {
    if(i===victims.length){c.stage="medical";this.resolveMedicalGroups(c,()=>this.finishBomb());return;}
    const p=victims[i++];if((p.x!==x||p.y!==y)&&this.roll("Adjacent bomb blast needs 4+")<4){next();return;}
    const origin={x:p.x,y:p.y},standing=p.status==="standing",carrier=this.ball.carrier===p.id;
+   if(this.starBombDamage?.(p,c,origin,standing,carrier,next))return;
    const damage=()=>{
     if(standing){p.status="prone";p.rooted=false;this.onProne(p);if(p.team===c.team)c.turnover=true;}
     if(carrier&&p.team===c.team)c.turnover=true;
@@ -225,7 +226,7 @@ class SkillGame extends SkillBase {
    const assists=this.assists(a,d),base=Math.max(1,+this.profile(a).st-2),aStrength=(c.dauntless?.has(d.id)?Math.max(base,+this.profile(d).st):base)+assists.offensive,dStrength=+this.profile(d).st+assists.defensive;
    const count=aStrength===dStrength?1:Math.max(aStrength,dStrength)>2*Math.min(aStrength,dStrength)?3:2;
    const b={attacker:a,target:d,assists,aStrength,dStrength,count,chooserTeam:aStrength>=dStrength?a.team:d.team,dice:Array.from({length:count},()=>this.roll("Multiple Block vs #"+d.number)),poolLocked:false,brawlerUsed:false,blitz:false,multiple:true};
-   c.pools.push(b);this.onBlockRolled(a);this.note("Multiple Block vs #"+d.number+": ST "+aStrength+" vs "+dStrength+"; "+count+" dice.");
+   c.pools.push(b);this.onBlockRolled(a,d);this.note("Multiple Block vs #"+d.number+": ST "+aStrength+" vs "+dStrength+"; "+count+" dice.");
   }
   this.multipleDiceChoice();
  }
@@ -437,7 +438,7 @@ class SkillGame extends SkillBase {
  canBallAction(p,kind){return !!p&&!this.has(p,"Ball & Chain")&&!this.has(p,"My Ball")&&super.canBallAction(p,kind);}
  canBlock(a,d){if(typeof a==="string")a=this.players.find(p=>p.id===a);if(typeof d==="string")d=this.players.find(p=>p.id===d);if(a&&this.has(a,"Ball & Chain"))return false;return super.canBlock(a,d)||!!(this.canStart(a)&&a.status==="prone"&&this.has(a,"Jump Up")&&d&&d.team!==a.team&&d.status==="standing"&&this.onPitch(d)&&this.distance(a,d)===1);}
  activationExtra(p,action,ready,failed){
-  const complete=()=>this.bloodlustActivation(p,action,()=>{ready();if(this.has(p,"Ball & Chain"))this.offerChain();else if(action==="bomb"&&this.action==="bomb"&&!this.pending)this.beginBomb(p);});
+  const complete=()=>this.bloodlustActivation(p,action,()=>{ready();if(this.has(p,"Ball & Chain"))this.offerChain();else if(action==="bomb"&&this.action==="bomb"&&!this.pending&&!this.bombContext)this.beginBomb(p);});
   const root=()=>{if(this.has(p,"Take Root")&&p.status==="standing"&&!p.rooted)this.test(p,"Take Root",2,complete,()=>{p.rooted=true;this.note("#"+p.number+" is Rooted.");complete();});else complete();};
   const fury=()=>{if(this.has(p,"Unchannelled Fury"))this.test(p,"Unchannelled Fury",["block","blitz"].includes(action)?2:4,root,()=>{this.mover=null;this.action=null;this.note("Unchannelled Fury ends the activation.");this.blockActivationFailed();});else root();};
   if(!this.has(p,"Animal Savagery")){fury();return;}
@@ -494,7 +495,7 @@ class SkillGame extends SkillBase {
  additionalTestModifiers(p,kind){return [];}
  resolveSkillTest(p,kind,target,yes,no,departure=null){
   const tacklers=departure?.candidates||[];
-  const penalty=departure?.penalty||2;
+  const penalty=departure?.penalty??2;
   const finish=(n,bonus=0)=>{
    if(!this.success(n,target-bonus)){no(n);return;}
    if(!tacklers.length){yes(n);return;}
@@ -510,7 +511,7 @@ class SkillGame extends SkillBase {
    if(this.success(n,target-appliedBonus)&&!lookAhead){finish(n,appliedBonus);return;}
    const bonus=+this.profile(p).st<=3?1:+this.profile(p).st===4?2:3;
    const breakTackle=kind==="Dodge"&&this.skill(p,"Break Tackle")&&!this.used(p,"Break Tackle")&&this.success(n,target+(tacklers.length?penalty:0)-appliedBonus-bonus);
-   const modifiers=this.additionalTestModifiers(p,kind).filter(m=>this.success(n,target+(tacklers.length?penalty:0)-appliedBonus-m.bonus));
+   const modifiers=this.additionalTestModifiers(p,kind,target+(tacklers.length?penalty:0)).filter(m=>this.success(n,target+(tacklers.length?penalty:0)-appliedBonus-m.bonus));
    const options=mayReroll?this.options(p,kind):[];if(breakTackle)options.unshift("Break Tackle");options.unshift(...modifiers.map(m=>m.name));
    if(!options.length){finish(n,appliedBonus);return;}
    const q={p,kind,target,roll:n,options,lookAhead,resolved:false};
@@ -572,7 +573,7 @@ class SkillGame extends SkillBase {
    const target=Math.max(2,6-Number(this.profile(holder).st)+Number(this.profile(p).st));
    done(this.success(this.roll("Tentacles #"+holder.number+" needs "+Math.min(6,target)+"+"),target));
   }),held=>{
-   if(held){p.x=origin.x;p.y=origin.y;if(plan.fumblerooskiDropped&&!this.ball.carrier&&this.ball.x===p.x&&this.ball.y===p.y){this.ball.carrier=p.id;p.dropOnExit=true;}if(this.ball.carrier===p.id){this.ball.x=p.x;this.ball.y=p.y;}this.note("Tentacles: #"+p.number+" is held in place; activation ends.");this.mover=null;this.action=null;if(this.moveContext)this.finishBoundedMove(false);}
+   if(held){p.x=origin.x;p.y=origin.y;if(plan.fumblerooskiDropped&&!this.ball.carrier&&this.ball.x===p.x&&this.ball.y===p.y){this.ball.carrier=p.id;p.dropOnExit=true;}if(this.ball.carrier===p.id){this.ball.x=p.x;this.ball.y=p.y;}this.note("Tentacles: #"+p.number+" is held in place; activation ends.");this.mover=null;this.action=null;if(this.moveContext)this.finishBoundedMove(false);this.afterActivation?.(p);}
    else proceed();
   });return true;
  }
@@ -632,7 +633,7 @@ class SkillGame extends SkillBase {
   const strength=()=>{a.hornsBonus=blitz&&this.skill(a,"Horns")?1:0;const own=+super.profile(a).st,other=+this.profile(d).st;
    if(this.skill(a,"Dauntless")&&own<other&&own+6>other)this.test(a,"Dauntless",other-own+1,()=>this.afterDauntless(a,d,perform),perform);else perform();};
   const react=()=>this.dumpOff(a,d,strength);
-  if(this.has(d,"Foul Appearance"))this.test(a,"Foul Appearance",2,react,()=>{this.note("Foul Appearance cancels the attack and ends the activation.");this.mover=null;this.action=null;this.blockAction=null;this.attackRoller=null;});else react();
+  if(this.has(d,"Foul Appearance"))this.test(a,"Foul Appearance",2,react,()=>{this.note("Foul Appearance cancels the attack and ends the activation.");this.mover=null;this.action=null;this.blockAction=null;this.attackRoller=null;this.blockCancelled?.(a,d);this.afterActivation?.(a);});else react();
  }
  resolvePush(knock){const b=this.blockAction;b.pushResolved=true;if(b.target.rooted||this.isChomped(b.target)){if(knock)this.fall(b.target,{turnover:false,mightyBlowBy:b.attacker,after:()=>this.finishBlock()});else this.finishBlock();return;}super.resolvePush(knock);this.guardMultipleDecision();}
  pushSquares(a,d,grab=false){
@@ -726,7 +727,7 @@ class SkillGame extends SkillBase {
    const medical={source:{playerId:p.id,cause:name},plague:this.action==="blitz"};
    if(name==="Stab"){this.armourOnly(target,finish,medical);return;}
    if(name==="Projectile Vomit"){this.test(p,name,2,()=>this.armourOnly(target,finish,medical),()=>this.armourOnly(p,finish,medical));return;}
-   if(name==="Chainsaw"){this.test(p,"Chainsaw kick-back",2,()=>this.armourOnly(target,finish,{...medical,bonus:this.has(target,"Iron Hard Skin")?0:3}),()=>this.fall(p,{prevented:finish}));return;}
+   if(name==="Chainsaw"){this.test(p,"Chainsaw kick-back",2,()=>this.armourOnly(target,finish,{...medical,bonus:this.has(target,"Iron Hard Skin")?0:3}),()=>this.fall(p,{prevented:finish,injurySource:{playerId:p.id,cause:"Chainsaw"}}));return;}
    if(name==="Breathe Fire"){
     const penalty=+this.profile(target).st>=5?1:0;this.test(p,"Breathe Fire",4+penalty,n=>{
      if(n===6){this.fall(target,{turnover:false,after:finish,injurySource:medical.source,plagueEligible:medical.plague});return;}this.placeProne(target,finish);
@@ -823,10 +824,10 @@ class SkillGame extends SkillBase {
  }
  injuryResult(p,total,done=()=>{},options={}){this.resolveInjury(p,total,done,options);}
  armourOnly(p,done,{bonus=0,injuryBonus=0,onDice=null,source=null,plague=false}={}){
-  const a=this.roll("Armour"),b=this.roll("Armour");if(onDice)onDice("Armour",a,b);if(a+b+bonus<parseInt(this.profile(p).av)){this.note("Armour holds.");done();return;}
+  const a=this.roll("Armour"),b=this.roll("Armour"),pair=this.partnerDamageBonus?.(source,p)||0,pairArmour=pair&&!this.has(p,"Iron Hard Skin")&&a+b+bonus<parseInt(this.profile(p).av)?1:0;if(onDice)onDice("Armour",a,b);if(a+b+bonus+pairArmour<parseInt(this.profile(p).av)){this.note("Armour holds.");done();return;}
   const x=p.x,y=p.y,carrying=this.ball.carrier===p.id;
   this.beforeProne(p,{x,y},()=>{
-   const c=this.roll("Injury"),d=this.roll("Injury");if(onDice)onDice("Injury",c,d);const finish=()=>{this.syncLeader?.();if(carrying&&p.team===this.active)this.endTurn(true);else done();};this.injuryResult(p,c+d+injuryBonus,()=>this.releaseProneBall(p,{x,y},finish),{source,plague});
+   const c=this.roll("Injury"),d=this.roll("Injury");if(onDice)onDice("Injury",c,d);const finish=()=>{this.syncLeader?.();if(carrying&&p.team===this.active)this.endTurn(true);else done();};this.injuryResult(p,c+d+injuryBonus+(pair&&!pairArmour?1:0),()=>this.releaseProneBall(p,{x,y},finish),{source,plague});
   });
  }
  foul(p,target,{chainsaw=false,chosen=false,after=null}={}){
@@ -835,20 +836,21 @@ class SkillGame extends SkillBase {
     if(choice==="Foul normally"){this.foul(p,target,{chosen:true,after});return;}
     this.test(p,"Chainsaw kick-back",2,()=>this.foul(p,target,{chainsaw:true,chosen:true,after}),()=>{
      const cleanup=()=>{this.mover=null;this.action=null;};
-     this.fall(p,{turnover:false,skipPrevention:true,skipPlacement:!after,after:()=>{if(after)after(true);else{cleanup();this.endTurn(true);}}});
+     this.fall(p,{turnover:false,skipPrevention:true,skipPlacement:!after,injurySource:{playerId:p.id,cause:"Chainsaw"},after:()=>{if(after)after(true);else{cleanup();this.endTurn(true);}}});
     });
    });return;
   }
   const helpers=(team,victim,excluded,offensive)=>this.players.filter(q=>q.team===team&&q.id!==p.id&&q.id!==target.id&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&!q.gouged&&this.distance(q,victim)===1&&(this.markedByExcept(q,[excluded.id])===0||offensive&&this.skill(q,"Put the Boot In")&&!this.players.some(r=>r.team!==q.team&&r.team!==this.active&&this.skill(r,"Defensive")&&this.onPitch(r)&&this.distance(r,q)===1))).length;
   const offense=helpers(p.team,target,target,true),defense=helpers(target.team,p,p,false),modifier=this.has(target,"Iron Hard Skin")?0:offense-defense+(chainsaw?3:0);
   this.note("Foul: "+offense+" offensive and "+defense+" defensive assist(s).");let sent=false;
-  const finishNormal=()=>{if(after){after(false);return;}if(this.skill(p,"Quick Foul")){this.note("Quick Foul: remaining movement is available.");}else if(p.bloodlust)this.feed(p,()=>{this.mover=null;this.action=null;});else{this.mover=null;this.action=null;}},finish=()=>{if(!sent&&(this.biasedRefs?.[1-p.team]||0)>0){const n=this.roll("Biased Referee spots foul on 5+");sent=n>=5;this.note("Biased Referee "+(sent?"spots":"does not spot")+" the foul.");}if(sent)this.sendOff(p,turnover=>after?after(turnover):turnover?this.endTurn(true):finishNormal());else finishNormal();},rollArmour=(rerolled=false)=>{
+  const finishNormal=()=>{if(after){after(false);return;}if(this.skill(p,"Quick Foul")){this.note("Quick Foul: remaining movement is available.");}else if(p.bloodlust)this.feed(p,()=>{this.mover=null;this.action=null;});else{this.mover=null;this.action=null;this.afterActivation?.(p);}},finish=()=>{if(!sent&&(this.biasedRefs?.[1-p.team]||0)>0){const n=this.roll("Biased Referee spots foul on 5+");sent=n>=5;this.note("Biased Referee "+(sent?"spots":"does not spot")+" the foul.");}if(sent)this.sendOff(p,turnover=>after?after(turnover):turnover?this.endTurn(true):finishNormal());else finishNormal();},rollArmour=(rerolled=false)=>{
    const a=this.roll("Foul Armour"),b=this.roll("Foul Armour"),raw=a+b,dirty=this.skill(p,"Dirty Player"),skin=this.has(target,"Iron Hard Skin");
-   const afterArmour=bonus=>{const broken=raw+modifier+bonus>=parseInt(this.profile(target).av);
-    const keep=()=>{if(a===b&&(!this.skill(p,"Sneaky Git")||broken)||broken&&this.foulSpottedOnBreak?.(p.team))sent=true;
+   const afterArmour=bonus=>{const pair=this.partnerDamageBonus?.({playerId:p.id,cause:"Foul"},target)||0,pairArmour=pair&&!skin&&raw+modifier+bonus<parseInt(this.profile(target).av)?1:0,broken=raw+modifier+bonus+pairArmour>=parseInt(this.profile(target).av);
+    const keep=()=>{if(this.starFoulDamage?.(p,target,{dice:[a,b],bonus,modifier,dirty,pair,pairArmour},c=>{if(c.dice[0]===c.dice[1]&&(!this.skill(p,"Sneaky Git")||c.broken)||c.broken&&this.foulSpottedOnBreak?.(p.team)||c.injuryDice&&c.injuryDice[0]===c.injuryDice[1])sent=true;finish();}))return;
+     if(a===b&&(!this.skill(p,"Sneaky Git")||broken)||broken&&this.foulSpottedOnBreak?.(p.team))sent=true;
      if(!broken){finish();return;}
      const c=this.roll("Foul Injury"),d=this.roll("Foul Injury");if(c===d)sent=true;
-     const apply=add=>this.injuryResult(target,c+d+add,finish,{source:{playerId:p.id,cause:"Foul"}});if(dirty&&!bonus)this.pending={type:"custom",kind:"Dirty Player",options:["Add +1 to Injury","No modifier"],resolve:choice=>{this.pending=null;apply(choice==="Add +1 to Injury"?1:0);}};else apply(0);
+     const apply=add=>this.injuryResult(target,c+d+add+(pair&&!pairArmour?1:0),finish,{source:{playerId:p.id,cause:"Foul"}});if(dirty&&!bonus)this.pending={type:"custom",kind:"Dirty Player",options:["Add +1 to Injury","No modifier"],resolve:choice=>{this.pending=null;apply(choice==="Add +1 to Injury"?1:0);}};else apply(0);
     };
     const stalling=this.wouldEndTurnTriggerStalling?.(p);
     if(!rerolled&&!offense&&!defense&&this.skill(p,"Lone Fouler")&&(!broken||a===b||stalling))this.pending={type:"custom",kind:"Lone Fouler",options:["Re-roll Armour","Keep result"],resolve:choice=>{this.pending=null;if(choice==="Re-roll Armour"){sent=false;rollArmour(true);}else keep();}};
