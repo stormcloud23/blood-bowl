@@ -119,6 +119,7 @@ class SkillGame extends SkillBase {
   });
  }
  thralls(p){return this.players.filter(q=>q!==p&&q.team===p.team&&this.onPitch(q)&&this.distance(p,q)===1&&(q.thrall||this.profile(q).thrall||this.keywords(q).includes("thrall")));}
+ onFeed(p,q){}
  feed(p,done,{allow=true}={}){
   if(!p?.bloodlust){done();return false;}
   const victims=allow&&p.status==="standing"&&!p.distracted?this.thralls(p):[],fail=()=>{
@@ -129,7 +130,7 @@ class SkillGame extends SkillBase {
   const options=victims.map(q=>"Bite #"+q.number+" ("+q.id+")").concat("Do not feed");
   this.skillChoice("Bloodlust — choose a Thrall",p.team,options,choice=>{
    const q=victims[options.indexOf(choice)];if(!q){fail();return;}
-   p.bloodlust=false;const origin={x:q.x,y:q.y},carrying=this.ball.carrier===q.id;
+   p.bloodlust=false;this.onFeed(p,q);const origin={x:q.x,y:q.y},carrying=this.ball.carrier===q.id&&q.team===p.team;
    this.note("#"+p.number+" bites Thrall #"+q.number+".");q.status="prone";q.rooted=false;this.onProne(q);
    this.injuryResult(q,this.roll("Thrall bite Injury")+this.roll("Thrall bite Injury"),()=>this.releaseProneBall(q,origin,()=>{if(carrying)this.feedingTurnover();else done();}),{stunty:false,automaticBadlyHurt:true,source:{playerId:p.id,cause:"Bloodlust bite"}});
   });return true;
@@ -440,25 +441,28 @@ class SkillGame extends SkillBase {
  activationExtra(p,action,ready,failed){
   const complete=()=>this.bloodlustActivation(p,action,()=>{ready();if(this.has(p,"Ball & Chain"))this.offerChain();else if(action==="bomb"&&this.action==="bomb"&&!this.pending&&!this.bombContext)this.beginBomb(p);});
   const root=()=>{if(this.has(p,"Take Root")&&p.status==="standing"&&!p.rooted)this.test(p,"Take Root",2,complete,()=>{p.rooted=true;this.note("#"+p.number+" is Rooted.");complete();});else complete();};
-  const fury=()=>{if(this.has(p,"Unchannelled Fury"))this.test(p,"Unchannelled Fury",["block","blitz"].includes(action)?2:4,root,()=>{this.mover=null;this.action=null;this.note("Unchannelled Fury ends the activation.");this.blockActivationFailed();});else root();};
+  const fury=()=>{if(this.has(p,"Unchannelled Fury"))this.test(p,"Unchannelled Fury",["block","blitz"].includes(action)?2:4,root,()=>this.failedFury(p,action,root,()=>{this.mover=null;this.action=null;this.note("Unchannelled Fury ends the activation.");this.blockActivationFailed();}));else root();};
   if(!this.has(p,"Animal Savagery")){fury();return;}
   this.test(p,"Animal Savagery",["block","blitz"].includes(action)?2:4,fury,()=>{
-   const targets=this.players.filter(q=>q.id!==p.id&&q.team===p.team&&this.onPitch(q)&&q.status==="standing"&&this.distance(p,q)===1);
-   if(!targets.length){failed();return;}
-   const lash=q=>{const carrier=this.ball.carrier===q.id;this.fall(q,{turnover:carrier,savageryBy:p,prevented:fury,after:fury});};
-   if(targets.length===1)lash(targets[0]);else this.skillChoice("Animal Savagery — choose a team-mate",p.team,targets.map(q=>"#"+q.number+" ("+q.id+")"),choice=>lash(targets.find(q=>choice.includes("("+q.id+")"))));
+   this.savageryTargets(p,targets=>{if(!targets.length){failed();return;}
+   const lash=q=>{const carrier=this.ball.carrier===q.id&&q.team===p.team;this.fall(q,{turnover:carrier,savageryBy:p,prevented:fury,after:fury});};
+   if(targets.length===1)lash(targets[0]);else this.skillChoice("Animal Savagery — choose a victim",p.team,targets.map(q=>this.teams[q.team].name+" #"+q.number+" ("+q.id+")"),choice=>lash(targets.find(q=>choice.includes("("+q.id+")"))));});
   });
  }
+ savageryTargets(p,done){done(this.players.filter(q=>q!==p&&q.team===p.team&&this.onPitch(q)&&q.status==="standing"&&this.distance(p,q)===1));}
+ canFoul(p){return !this.foulUsed[p.team];}
+ spendBribe(team){this.bribes[team]--;}
+ failedFury(p,action,ready,failed){failed();}
  start(id,action="move"){
   this.refreshChomps();
   if(action==="special:Punt")action="punt";if(action==="special:Throw Bomb")action="bomb";
-  const p=this.players.find(q=>q.id===id);if(!this.canStart(p))return false;if(this.has(p,"Ball & Chain")&&(action!=="move"||p.status!=="standing"))return false;if(action==="bomb"){if(!this.canBomb(p))return false;this.bombUsed||=[false,false];this.bombUsed[p.team]=true;}p.bloodlustChecked=false;p.bloodlust=false;if(action==="foul"&&this.foulUsed[this.active])return false;
+  const p=this.players.find(q=>q.id===id);if(!this.canStart(p))return false;if(this.has(p,"Ball & Chain")&&(action!=="move"||p.status!=="standing"))return false;if(action==="bomb"){if(!this.canBomb(p))return false;this.bombUsed||=[false,false];this.bombUsed[p.team]=true;}p.bloodlustChecked=false;p.bloodlust=false;if(action==="foul"&&!this.canFoul(p))return false;
   if(action==="throw-team-mate"){if(!this.canThrowTeamMate(p))return false;this.throwUsed||=[false,false];this.throwUsed[p.team]=true;this.throwMate=null;this.note("#"+p.number+" declares Throw Team-mate.");}
   if(action==="kick-team-mate"){if(!this.canKickTeamMate(p))return false;this.kickUsed||=[false,false];this.kickUsed[p.team]=true;this.throwMate=null;this.note("#"+p.number+" declares Kick Team-mate.");}
   if(action==="punt"){if(!this.canPunt(p))return false;this.puntUsed||=[false,false];this.puntUsed[p.team]=true;}
   if(p.rooted&&["move","blitz"].includes(action))return false;
   if(action.startsWith("special:")){const name=action.slice(8);if(!this.skill(p,name==="Chomp"?"Monstrous Mouth":name)&&!(p.status==="prone"&&name==="Hypnotic Gaze"&&this.has(p,name)))return false;}
-  if(action==="foul")this.foulUsed[this.active]=true;p.specialDone=false;
+  if(action==="foul"&&!this.has(p,"Sneakiest of the Lot"))this.foulUsed[this.active]=true;p.specialDone=false;
   p.gouged=false;this.preactivation={p,action};return super.start(id,action);
  }
  // Block declarations retain the base activation-trait order, including prone Jump Up declarations.
@@ -712,7 +716,7 @@ class SkillGame extends SkillBase {
   }
   if(choice.includes("Wrestle")){b.attacker.rooted=false;b.target.rooted=false;}super.resolveBothDownChoice(choice);
  }
- specialActions(p){if(!p)return [];const result=[];if(this.has(p,"Ball & Chain"))return result;if(this.canBomb(p))result.push("Throw Bomb");if(this.canMultipleBlock(p))result.push("Multiple Block");if(this.skill(p,"Monstrous Mouth")&&(this.canStart(p)||this.action==="blitz"&&this.canBlitzBlock()))result.push("Chomp");if(this.canPunt(p))result.push("Punt");if(this.canStart(p)&&!this.foulUsed[this.active])result.push("Foul");for(const name of ["Stab","Projectile Vomit","Hypnotic Gaze","Breathe Fire","Chainsaw"])if(this.has(p,name)&&(p.status==="standing"||name==="Hypnotic Gaze")&&(this.canStart(p)||this.action==="blitz"&&this.canBlitzBlock()))result.push(name);return result;}
+ specialActions(p){if(!p)return [];const result=[];if(this.has(p,"Ball & Chain"))return result;if(this.canBomb(p))result.push("Throw Bomb");if(this.canMultipleBlock(p))result.push("Multiple Block");if(this.skill(p,"Monstrous Mouth")&&(this.canStart(p)||this.action==="blitz"&&this.canBlitzBlock()))result.push("Chomp");if(this.canPunt(p))result.push("Punt");if(this.canStart(p)&&this.canFoul(p))result.push("Foul");for(const name of ["Stab","Projectile Vomit","Hypnotic Gaze","Breathe Fire","Chainsaw"])if(this.has(p,name)&&(p.status==="standing"||name==="Hypnotic Gaze")&&(this.canStart(p)||this.action==="blitz"&&this.canBlitzBlock()))result.push(name);return result;}
  specialTargets(){const p=this.players.find(q=>q.id===this.mover);if(!p||this.pending||p.specialDone)return [];if(this.action!=="foul"&&!this.action?.startsWith("special:"))return [];return this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&this.distance(p,q)===1&&(this.action==="foul"?["prone","stunned"].includes(q.status):q.status==="standing"));}
  performSpecial(targetId,blitzName=null){
   const p=this.players.find(q=>q.id===this.mover),target=this.players.find(q=>q.id===targetId);if(!p||!target)return false;
@@ -867,7 +871,7 @@ class SkillGame extends SkillBase {
    if((this.bribes?.[p.team]||0)<1){remove();return;}
    this.skillChoice("Bribe",p.team,["Use Bribe","Accept send-off"],option=>{
     if(option!=="Use Bribe"){remove();return;}
-    this.bribes[p.team]--;if(this.roll("Bribe needs 2+")>=2){this.note("Bribe succeeds: no send-off or turnover.");complete(false);}else bribe();
+    this.spendBribe(p.team);if(this.roll("Bribe needs 2+")>=2){this.note("Bribe succeeds: no send-off or turnover.");complete(false);}else bribe();
    });
   };
   const options=["Accept send-off"];if(!this.argueBanned[p.team]&&p.status!=="casualty")options.unshift("Argue the Call");

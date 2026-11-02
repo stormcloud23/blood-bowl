@@ -47,7 +47,13 @@ included, along with shared Big Guy caps and saved league/alignment choices.
 
 ## Current capabilities
 
-v0.0.28 adds 26 named players, bringing the catalogue to 48 players / 45 hires.
+v0.0.29 completes the checked star catalogue: 67 players / 64 hires, including
+all three pairs and exhibition-only Squigmobile. The nineteen new entries have
+playable unique abilities, coach choices and usage/expiry boundaries.
+See [completed star abilities](docs/STAR-SPECIALS-29.md) and the
+[remaining broader parity work](docs/PARITY-GAPS.md).
+
+v0.0.28 added 26 named players, bringing that release to 48 players / 45 hires.
 See [star abilities](docs/STAR-SPECIALS-28.md), [injury alternatives and paired
 abilities](docs/STAR-INJURY-PAIRS.md), and the [remaining catalogue](docs/STAR-BACKLOG.md).
 

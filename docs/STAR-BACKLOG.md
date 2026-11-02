@@ -1,54 +1,29 @@
-# Remaining named-star work after v0.0.28
+# Checked star catalogue completed in v0.0.29
 
-Implemented: **48 named players / 45 hiring entries**, including all three
-pairs in the original checked index. Injury-alternative capture/commit and
-Bugman star/staff exclusion are implemented. See [STARS](STARS.md),
-[STAR-INJURY-PAIRS](STAR-INJURY-PAIRS.md) and [STAR-SPECIALS-28](STAR-SPECIALS-28.md).
+Implemented: **67 named players / 64 hiring entries**. All eighteen remaining
+entries from the checked 63-entry index are now playable, plus the supplemental
+Da Red Gobbo's Squigmobile. All three indexed pairs remain implemented.
 
-## Remaining catalogue
+See [STARS](STARS.md), [remaining specials](STAR-SPECIALS-29.md),
+[earlier specials](STAR-SPECIALS-28.md) and
+[injury alternatives / pairs](STAR-INJURY-PAIRS.md).
 
-Eighteen unsupported entries remain from the original checked 63-entry index:
+Squigmobile is exhibition-only, requires both coaches' agreement, and excludes
+the Dwarf roster. Its supplemental ability is not present in the pinned FFB
+tree; the published profile supplies the explicitly documented behavior.
 
-- Barik Farblast
-- Captain Karina von Riesz
-- Estelle la Veneaux
-- Glotl Stop
-- Grombrindal
-- Guffle Pusmaw
-- Ivar Eriksson
-- Jeremiah Kool
-- Maple Highgrove
-- Nobbla Blackwart
-- Rodney Roachbait
-- Rumbelow Sheepskin
-- Scrappa Sorehead
-- Scyla Anfingrimm
-- Swiftvine Glimmershard
-- The Black Gobbo
-- Thorsson Stoutmead
-- Zzharg Madeye
+## Remaining verification scope
 
-Da Red Gobbo's Squigmobile is also listed on newer roster/player pages; treat
-it as an additional known unsupported entry, outside the earlier 63-entry
-snapshot. The published index is not an exhaustive FFB or supplemental list.
+The bounded catalogue is complete; exhaustive FFB parity is not established.
+Broader medical, prayer, kickoff, Wizard and multi-star combinations still need
+comparison. The injury capture boundary and guarded continuations have targeted
+tests, not a full Java match differential runner. New supplemental publications
+need a separate inventory before claiming coverage of them.
 
-## Next implementation groups
+## Owner's requested reminder after stars
 
-Audit remaining compound/ranged actions, teammate enhancements, additional
-Foul/action allowances and their exact usage/expiry boundaries. Inspect selected
-BB2025 definitions and registered server steps, not old mixed-class comments.
-Keep ownership/target previews, normal action resources, stale-callback guards,
-injury credit and interrupted continuations covered. Do not add inert purchases.
-
-The injury capture boundary is reusable, but every additional injury type or
-ability still needs source-derived timing and modifier tests. Existing tests
-do not establish every medical, prayer, kickoff or multi-star combination.
-
-## Reminder after star implementation is finished
-
-The owner explicitly requested a reminder once the star catalogue is finished:
-live match save/resume, computer opponent, concessions/extra time/penalties,
+Live match save/resume, a computer opponent, concessions/extra time/penalties,
 competition settings/tournament packages and fuller season/redraft rules remain.
 Roster/league saving, ordinary progression, selected basic inducements and all
-sixteen underdog prayers already exist. Do not start those other features during
-the current star-focused work. Keep the application self-contained.
+sixteen underdog prayers already exist. These other features were not started
+during the star-focused work. Keep the application self-contained.

@@ -1,12 +1,31 @@
-# Named star players — v0.0.28
+# Named star players — v0.0.29
 
-**48 named players / 45 hiring entries** are available under Configure staff and
+**67 named players / 64 hiring entries** are available under Configure staff and
 inducements → Star players. Eligible selections follow the chosen roster league
 or alignment. Purchases show the actual profiles and skills before confirmation.
-This remains a partial catalogue; [STAR-BACKLOG](STAR-BACKLOG.md) lists the rest.
+This completes the checked catalogue plus Squigmobile; see [scope and remaining audits](STAR-BACKLOG.md).
 
 | Star | Fee | Eligibility | Unique ability |
 | --- | ---: | --- | --- |
+| Da Red Gobbo's Squigmobile | 200K | Exhibition only; any except Dwarf | Have a Present, Ya Git |
+| Barik Farblast | 80K | Old World Classic; Worlds Edge Superleague | Blast It! |
+| Guffle Pusmaw | 150K | Favoured of Nurgle | Quick Bite |
+| Jeremiah Kool | 300K | Elven Kingdoms League | The Flashing Blade |
+| Maple Highgrove | 210K | Woodland League | Vicious Vines |
+| Nobbla Blackwart | 120K | Badlands Brawl; Underworld Challenge | Kick 'em While They're Down! |
+| Scyla Anfingrimm | 200K | Favoured of Khorne | Fury of the Blood God |
+| Swiftvine Glimmershard | 110K | Woodland League | Furious Outburst |
+| Captain Karina von Riesz | 230K | Sylvanian Spotlight | Tasty Morsel |
+| Glotl Stop | 260K | Lustrian Superleague | Primal Savagery |
+| Scrappa Sorehead | 120K | Badlands Brawl; Underworld Challenge | Yoink! |
+| The Black Gobbo | 210K | Badlands Brawl; Underworld Challenge | Sneakiest of the Lot |
+| Thorsson Stoutmead | 170K | Old World Classic; Worlds Edge Superleague | Beer Barrel Bash! |
+| Zzharg Madeye | 130K | Favoured of Hashut | "Blastin' Solves Everything" |
+| Estelle la Veneaux | 190K | Lustrian Superleague | Baleful Hex |
+| Grombrindal | 170K | Halfling Thimble Cup; Old World Classic; Worlds Edge Superleague | Wisdom of the White Dwarf |
+| Ivar Eriksson | 215K | Old World Classic | Raiding Party |
+| Rodney Roachbait | 70K | Woodland League | Catch of the Day |
+| Rumbelow Sheepskin | 170K | Halfling Thimble Cup | Ram |
 | Cindy Piewhistle | 100K | Halfling Thimble Cup; Old World Classic | All You Can Eat |
 | Grashnak Blackhoof | 240K | Chaos Clash | Gored By The Bull |
 | Jordell Freshbreeze | 280K | Elven Kingdoms League; Woodland League | Swift As The Breeze |
@@ -99,7 +118,7 @@ Sources: mixed Reliable/StrongPassingGame, BB2025 PutridRegurgitation,
 StepRightStuff, StepPass/PassMechanic and StepEndBlocking/StepInitBlocking.
 
 All 108 standard skill coverage labels are inventory labels, not proof of every
-star/skill interaction. Rules scenarios, actual bundled UI cases and eighteen
+star/skill interaction. Rules scenarios, actual bundled UI cases and twenty-five
 two-half lifecycle cases are separate verification layers. No exhaustive full
 Java/JavaScript match differential or new visual browser review is claimed.
 See [PARITY-GAPS](PARITY-GAPS.md) for remaining systems and audit boundaries.
