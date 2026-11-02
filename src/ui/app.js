@@ -22,7 +22,7 @@ function positionMarker(profile){
 }
 function markerGraphic(marker){const graphic=document.createElement("span");graphic.className="token-shape";graphic.setAttribute("aria-hidden","true");graphic.innerHTML='<svg viewBox="0 0 40 40" focusable="false" aria-hidden="true">'+marker.svg+'</svg>';return graphic;}
 let game,selected=null,destination=null,blockMode=false,ballMode=false,throwDestination=null;
-function reset(){if(globalThis.resetLeagueTeams)globalThis.resetLeagueTeams();const scenario=document.getElementById("scenario").value;game=scenario.startsWith("match")?new MatchGame(teams,{learning:scenario==="match-learning"}):new SkillGame(teams,{scenario});selected=game.practicePlayer;destination=null;blockMode=false;ballMode=false;throwDestination=null;render();document.getElementById("coach-panel").scrollTop=0;const p=game.players.find(p=>p.id===selected);showProfile(p?.team??0,p?.role??0,p?.number??null);}
+function reset(){if(globalThis.resetLeagueTeams)globalThis.resetLeagueTeams();const scenario=document.getElementById("scenario").value;game=scenario.startsWith("match")?new MatchGame(teams,{learning:scenario==="match-learning"}):new SkillGame(teams,{scenario});selected=game.practicePlayer;destination=null;blockMode=false;ballMode=false;throwDestination=null;render();const p=game.players.find(p=>p.id===selected);showProfile(p?.team??0,p?.role??0,p?.number??null);}
 function escapeTeamText(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;", "'":"&#39;"}[c]));}
 function playerLabel(p){const profile=game.profile(p),name=p.leagueRecord?.name;return name&&name!==profile.name?name+" · "+profile.name:profile.name;}
 function showProfile(team,role,number,roster=null){

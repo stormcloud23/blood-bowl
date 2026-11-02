@@ -1,5 +1,16 @@
 # Match workspace — v0.0.42
 
+## Manual viewport control
+
+Game updates preserve the page, pitch, coach panel and match log scroll positions.
+New decisions do not take keyboard focus. Reserve selection, opening player
+actions, phase changes, new games and pitch resizing no longer reset or recenter
+scrolling. Pitch and action-menu arrow navigation uses focus without scrolling.
+On narrow screens the coach panel has a stable height and scrolls internally,
+so changing instructions and decisions do not move the pitch below it.
+Workspace tabs and explicit Reference inspection retain their navigation behavior.
+This supersedes the automatic decision focus and reserve scrolling described below.
+
 ## Kickoff reaction clarity — v0.0.42
 
 The current deviated kick landing square displays the existing ball symbol while

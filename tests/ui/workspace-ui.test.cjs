@@ -273,7 +273,7 @@ test('mercenary purchase controls hire a labeled reserve, then the dugout places
 });
 
 test('automatic prayers keep the pregame overview visible and expose the owning coach choice',()=>{
- const f=workspaceFixture('match');f.run("game.teams[0].ctv=900000;game.teams[1].ctv=950000;game.dice=()=>4;game.phase='leagueSteps';game.advancePregame();render();");assert.equal(f.run('game.phase'),'prayers');assert.equal(f.get('pregame-overview').hidden,false);assert.equal(f.get('pitch-board').hidden,true);assert.equal(f.document.activeElement,f.get('choices'));assert.equal(f.run('game.pending.team'),0);const button=f.get('choices').querySelectorAll('button')[0];button.click();assert.equal(f.run('game.phase'),'rolloff');assert.ok(dugoutNodes(f.get('matchflow')).some(e=>e.textContent==='Active prayers · last until full time'));
+ const f=workspaceFixture('match');f.get('reset').focus();f.run("game.teams[0].ctv=900000;game.teams[1].ctv=950000;game.dice=()=>4;game.phase='leagueSteps';game.advancePregame();render();");assert.equal(f.run('game.phase'),'prayers');assert.equal(f.get('pregame-overview').hidden,false);assert.equal(f.get('pitch-board').hidden,true);assert.equal(f.document.activeElement,f.get('reset'));assert.equal(f.run('game.pending.team'),0);const button=f.get('choices').querySelectorAll('button')[0];button.click();assert.equal(f.run('game.phase'),'rolloff');assert.ok(dugoutNodes(f.get('matchflow')).some(e=>e.textContent==='Active prayers · last until full time'));
 });
 test('trapdoor squares are marked, accessible and included in committed-route check summaries',()=>{
  const f=workspaceFixture('match');f.run("game.applyPrayer(0,'Treacherous Trapdoor');game.phase='play';game.players.forEach(p=>Object.assign(p,{x:null,y:null,status:'reserve'}));Object.assign(game.players[0],{x:5,y:1,status:'standing'});selected=game.players[0].id;render();");const cell=f.cell(6,1);assert.ok(cell.className.includes('trapdoor'));assert.ok(cell['aria-label'].includes('trapdoor (2+ to cross)'));assert.equal(f.cell(7,1).className.includes('trapdoor'),false);assert.ok(f.run('planChecks({x:6,y:1,rushes:0},game.players[0]).includes("Trapdoor 2+")'));
@@ -357,17 +357,23 @@ test('exhibition league/alignment choices affect only the selected side and expo
 test('the real Swarming panel selects reserve Linemen and guards stale finish controls across coaches',()=>{
  const f=workspaceFixture('match');f.run('teams.splice(0,2,...[0,1].map(()=>JSON.parse(JSON.stringify(rosterCatalog.find(r=>r.id==="snotling")))));game=new MatchGame(teams,{dice:()=>3});game.phase="kickChoice";game.chooseKicking(0);game.confirmSetup();game.confirmSetup();render()');const number=f.run('game.players.find(p=>p.id===game.swarmState.eligible[0]).number');f.get('matchflow').children.find(e=>e.textContent==='Swarming Lineman #'+number).click();f.run('choose(1,6)');assert.equal(f.run('game.swarmState.placed.length'),1);const finish=f.get('matchflow').children.find(e=>e.textContent==='Finish Swarming');finish.click();assert.equal(f.run('game.swarmState.team'),1);finish.click();assert.equal(f.run('game.swarmState.team'),1);f.get('matchflow').children.find(e=>e.textContent==='Finish Swarming').click();assert.equal(f.run('game.phase'),'kicker');
 });
-test('new required decisions receive focus and new games reset coach-panel scrolling',()=>{
- const f=workspaceFixture('match');f.run('game.pending={type:"custom",kind:"Decision",team:0,options:["Continue"],resolve:()=>{game.pending=null;}};render()');assert.equal(f.document.activeElement,f.get('choices'));f.get('coach-panel').scrollTop=250;f.get('reset').click();assert.equal(f.get('coach-panel').scrollTop,0);assert.equal(f.run('game.pending'),null);
+test('new required decisions preserve focus and new games preserve coach-panel scrolling',()=>{
+ const f=workspaceFixture('match');f.cell(0,0).focus();f.run('game.pending={type:"custom",kind:"Decision",team:0,options:["Continue"],resolve:()=>{game.pending=null;}};render()');assert.equal(f.document.activeElement,f.cell(0,0));f.get('coach-panel').scrollTop=250;f.get('reset').click();assert.equal(f.get('coach-panel').scrollTop,250);assert.equal(f.run('game.pending'),null);
 });
 test('successive coach decisions keep accessible focus without scrolling the page',()=>{
- const f=workspaceFixture('match'),choices=f.get('choices');
+ const f=workspaceFixture('match'),choices=f.get('choices');f.cell(0,0).focus();
  choices.scrollIntoView=()=>{throw Error('Decision updates must not scroll the viewport');};
  f.run("globalThis.scrollY=340;globalThis.scrollX=12;game.skillChoice('First decision',0,['Next'],()=>game.skillChoice('Second decision',0,['Done'],()=>{}));render();");
- assert.equal(f.document.activeElement,choices);assert.equal(choices.focusOptions.preventScroll,true);assert.equal(f.run('scrollY'),340);
+ assert.equal(f.document.activeElement,f.cell(0,0));assert.equal(f.cell(0,0).focusOptions.preventScroll,true);assert.equal(f.run('scrollY'),340);
  choices.querySelectorAll('button').find(b=>b.textContent==='Next').click();
- assert.equal(f.run('game.pending.kind'),'Second decision');assert.equal(f.document.activeElement,choices);assert.equal(f.run('scrollY'),340);assert.equal(f.run('scrollX'),12);
+ assert.equal(f.run('game.pending.kind'),'Second decision');assert.equal(f.document.activeElement,f.cell(0,0));assert.equal(f.run('scrollY'),340);assert.equal(f.run('scrollX'),12);
 });
+test('rerender preserves internal scroll positions and pitch resizing does not recenter',()=>{
+ const f=workspaceFixture();f.get('coach-panel').scrollTop=140;f.get('pitch-board').scrollLeft=210;f.run('log.scrollTop=35;render()');
+ assert.equal(f.get('coach-panel').scrollTop,140);assert.equal(f.get('pitch-board').scrollLeft,210);assert.equal(f.run('log.scrollTop'),35);
+ f.get('pitch-scale').value='2';f.get('pitch-scale').emit('change');assert.equal(f.get('pitch-board').scrollLeft,210);assert.ok(f.get('pitch').children.every(c=>!c.scrollCalls?.length));
+});
+
 test('rerender restores the page offset after layout changes and preserves pitch focus',()=>{
  const f=workspaceFixture(),cell=f.cell(0,0),choices=f.get('choices'),replace=choices.replaceChildren;
  f.run("globalThis.scrollX=10;globalThis.scrollY=420;globalThis.scrollTo=options=>{globalThis.restoredScroll=options;globalThis.scrollX=options.left;globalThis.scrollY=options.top;};");
