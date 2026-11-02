@@ -102,12 +102,12 @@ Pinned [FFB Java reference](https://github.com/christerk/ffb/tree/bf3f89d96b5143
   `step/mixed/move/StepDropDivingTackler.java`: placement eligibility by cause.
 
 All **337 tests pass**, including 43 new deterministic cases in
-`catch-placement.test.cjs` and four real bundled-UI scenarios. Cases cover
+`tests/rules/catch-placement.test.cjs` and four real bundled-UI scenarios. Cases cover
 contested choices, occupied/empty targets, re-rolls, bounce origins, throw-ins,
 kickoff touchbacks, fall prevention, Wrestle, injury/removal, throw landings,
 placement eligibility, stale callbacks and turnover preservation.
 
-Run `node generate-skill-docs.cjs`, `node build.cjs`, `node --test *.test.cjs`,
+Run `node scripts/generate-skill-docs.cjs`, `npm run build`, `npm test`,
 and `git diff --check`. Generated sources and docs are verified by CI.
 No visual browser inspection or automated Java/JavaScript differential runner
 is claimed. See [the remaining exhibition dependencies](EXHIBITION-PARITY.md).

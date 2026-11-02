@@ -110,7 +110,7 @@ groups home and away choices separately.
 
 ## Implementation and verification
 
-rosters.json is the catalogue source; build.cjs embeds it into the
+src/data/rosters.json is the catalogue source; scripts/build.cjs embeds it into the
 standalone HTML. Match engines receive exactly two active teams. Original
 practice fixtures remain separate in team-data. No runtime server or network
 request is introduced. Existing original-roster backups remain compatible;
@@ -126,7 +126,7 @@ controls, choices, roster reset isolation and guarded Swarming placement.
 Team-rule behavior was compared to the pinned FFB checkout at
 bf3f89d96b5143a8730910a841e7430791094492, especially BB2025 RollMechanic,
 SetupMechanic, StepSwarming, InjuryMechanic and StepApothecary. Reference
-downloads and the development-only import helpers are not used by the game.
+downloads were one-time development inputs and are not required by the game.
 
 This completes this roster catalogue and the shared rules above; it does not
 certify exhaustive FFB parity for all newly possible ability combinations.

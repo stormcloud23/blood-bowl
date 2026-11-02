@@ -33,6 +33,6 @@ With Java 21 and the reference checkout at `../vendor/ffb`:
 node tools/verify-ffb-geometry.cjs
 ```
 
-Set `FFB_SOURCE` to use another checkout. `--write-fixture` deliberately regenerates `test-fixtures/ffb-interception.json`; review reference version/hash changes before committing. The committed fixture records source hashes and powers the normal Node tests, so CI and players do not need Java. The game remains a self-contained static HTML page.
+Set `FFB_SOURCE` to use another checkout. `--write-fixture` deliberately regenerates `tests/fixtures/ffb-interception.json`; review reference version/hash changes before committing. The committed fixture records source hashes and powers the normal Node tests, so CI and players do not need Java. The game remains a self-contained static HTML page.
 
 Deterministic and embedded UI tests cover modifier boundaries, PA dash, stale choices, the new On the Ball interception window, victim selection, medical suspension, heat/recovery ordering and full time. Visual inspection remains unavailable because Work browser access is disabled.

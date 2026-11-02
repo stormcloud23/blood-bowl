@@ -44,10 +44,10 @@ try{fs.writeFileSync(javaFile,java);const run=spawnSync('java',[javaFile],{encod
 const rangeMethod=method(passSource,'protected String[] throwingRangeTable('),rangeRows=[...rangeMethod.matchAll(/"([TQSLB ]+)"/g)].map(m=>m[1].split(' '));
 assert.equal(rangeRows.length,14);
 const fixture={reference:'christerk/ffb@bf3f89d96b5143a8730910a841e7430791094492',method:'UtilPassing.canIntercept / BB2025 PassMechanic.evaluatePass',sourceSha256:crypto.createHash('sha256').update(source.replace(/\r\n/g,'\n')).digest('hex'),passSourceSha256:crypto.createHash('sha256').update(passSource.replace(/\r\n/g,'\n')).digest('hex'),width:Number(width),origin:[0,0],widthSquares:26,heightSquares:15,rows,passingResults,passingChart:rangeRows.map(row=>Array.from({length:14},(_,x)=>({Q:0,S:1,L:2,B:3}[row[x]]??null)))};
-const {MovementGame}=require('../movement.cjs'),game=Object.create(MovementGame.prototype);
+const {MovementGame}=require('../src/engine/movement.cjs'),game=Object.create(MovementGame.prototype);
 let comparisons=0;
 for(const row of rows){const bytes=Buffer.from(row.mask,'base64');for(let y=0;y<15;y++)for(let x=0;x<26;x++){const bit=y*26+x;assert.equal(game.interceptionSquare({x:0,y:0},{x:row.target[0],y:row.target[1]},{x,y}),!!(bytes[bit>>3]&(1<<(bit%8))),JSON.stringify({target:row.target,point:[x,y]}));comparisons++;}}
 for(const [pa,roll,modifier,safe,result] of passingResults)assert.equal(game.classifyPass(pa,roll,modifier,!!safe),result,JSON.stringify({pa,roll,modifier,safe}));
-if(process.argv.includes('--write-fixture')){fs.mkdirSync(path.join(root,'test-fixtures'),{recursive:true});fs.writeFileSync(path.join(root,'test-fixtures/ffb-interception.json'),JSON.stringify(fixture)+'\n');}
-else assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root,'test-fixtures/ffb-interception.json'),'utf8')),fixture);
+if(process.argv.includes('--write-fixture')){fs.mkdirSync(path.join(root,'tests/fixtures'),{recursive:true});fs.writeFileSync(path.join(root,'tests/fixtures/ffb-interception.json'),JSON.stringify(fixture)+'\n');}
+else assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/ffb-interception.json'),'utf8')),fixture);
 console.log('Pinned Java agrees on '+comparisons+' geometry pairs and '+passingResults.length+' passing outcomes; BB2025 range chart extracted.');

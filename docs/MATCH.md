@@ -39,6 +39,6 @@ The sequence review also corrected Block activation traits and Wrestle: both wre
 
 ## Development
 
-`match.cjs` extends the existing action engine. `build.cjs` embeds both engines in the self-contained Pages document. Run `node build.cjs` and `node --test movement.test.cjs match.test.cjs`. The suites use injected dice and cover both source/bundle equality and browser-script compilation.
+`src/engine/match.cjs` extends the existing action engine. `scripts/build.cjs` embeds both engines in the self-contained Pages document. Run `npm run build` and `node --test tests/rules/movement.test.cjs tests/rules/match.test.cjs`. The suites use injected dice and cover both source/bundle equality and browser-script compilation.
 
-Validation: 93 tests pass across movement.test.cjs and match.test.cjs, including 30 match-sequence tests and the complete two-half turn progression.
+Validation: 93 tests pass across tests/rules/movement.test.cjs and tests/rules/match.test.cjs, including 30 match-sequence tests and the complete two-half turn progression.

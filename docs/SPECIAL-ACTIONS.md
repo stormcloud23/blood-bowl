@@ -124,7 +124,7 @@ Cases include real MatchGame turn/score handling,
 fall prevention, carried balls, nested Dump-off → On the Ball → attack,
 sequential movement, kickoff bounds, direction/distance resources, stale
 decisions, mandatory selection, casualty attribution and Pile Driver cleanup.
-Run the documentation generator, `node build.cjs`, `node --test *.test.cjs`,
+Run the documentation generator, `npm run build`, `npm test`,
 and `git diff --check`. No visual browser inspection or Java differential
 runner is claimed.
 

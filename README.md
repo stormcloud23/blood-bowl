@@ -1,121 +1,85 @@
 # Blood Bowl browser game
 
-A self-contained browser game targeting **Blood Bowl 2025 matches and local league teams**, with rules behavior informed by the FFB Java engine.
+A self-contained **Blood Bowl 2025 browser game** with local teams and league
+progression. Rules behavior follows the selected FFB BB2025 executable sources.
 
-**[Play on GitHub Pages](https://stormcloud23.github.io/blood-bowl/)** — no installation, Java server, or backend required. You can also open `index.html` locally.
+**[Play on GitHub Pages](https://stormcloud23.github.io/blood-bowl/)**, or open
+`index.html` locally. Playing requires no installation, Java server or backend.
 
-## Visual review follow-up — October 30, 2026
+## Project layout
 
-**Updated October 31:** v0.0.16 addresses this review with workspace tabs,
-contextual tile actions, hover/focus information, compact match decisions,
-keyboard pitch navigation, adjustable pitch size, and clearer team/backup tools.
-See [the workspace guide and validation scope](docs/UI-UX.md). The notes below
-are retained as the original baseline findings.
-
-Browser screenshots now work. A brief desktop review of the published v0.0.15
-covered exhibition pregame, Block practice layout, and the empty league form
-and roster table. This was not a complete interaction or accessibility audit.
-No application code was changed during this review.
-
-Priorities after the usage reset:
-
-- Fix visible metadata: coverage shows “undefined partial / undefined deferred”;
-  footer feedback version is v0.0.14 while the header is v0.0.15.
-- Keep pitch and current actions closer together; shorten the large instruction
-  paragraph into contextual help plus an expandable reference.
-- Reduce pregame clutter from zero-valued resources and repeated staff text;
-  make the current step and next action easier to find.
-- Separate team creation, league creation, and backup tools. The blank backup
-  textarea dominates the form and needs a visible label/help.
-- Give relevant actions clearer emphasis in each practice mode; inspect small
-  token numerals while preserving the readable palette and roster alignment.
-
-Still to review visually: mobile/tablet wrapping and scrolling, keyboard focus
-and pitch navigation, Block dice/push interactions, movement previews, populated
-team creation/errors, and saved fixture/postgame flows. Existing automated tests
-do not establish visual correctness. Detailed continuation notes are in the
-workspace `HANDOFF.md`; work paused at 99% weekly usage.
-
-## Complete roster catalogue — v0.0.19
-
-All 30 rosters in the checked BB2025 team index are now available. Draft
-them in Teams & leagues, inspect them in Rosters, or choose exhibition home
-and away rosters in Play. See [roster data, team rules and scope](docs/ROSTERS.md).
-
-Team Captain, Swarming, Low Cost Linemen and Masters of Undeath support are
-included, along with shared Big Guy caps and saved league/alignment choices.
-
-## Current capabilities
-
-v0.0.29 completes the checked star catalogue: 67 players / 64 hires, including
-all three pairs and exhibition-only Squigmobile. The nineteen new entries have
-playable unique abilities, coach choices and usage/expiry boundaries.
-See [completed star abilities](docs/STAR-SPECIALS-29.md) and the
-[remaining broader parity work](docs/PARITY-GAPS.md).
-
-v0.0.28 added 26 named players, bringing that release to 48 players / 45 hires.
-See [star abilities](docs/STAR-SPECIALS-28.md), [injury alternatives and paired
-abilities](docs/STAR-INJURY-PAIRS.md), and the [remaining catalogue](docs/STAR-BACKLOG.md).
-
-v0.0.27 adds Deeproot Strongbranch, Skrull Halfheight and Bilerot Vomitflesh.
-The [remaining-gap audit](docs/PARITY-GAPS.md) records the current catalogue
-and remaining match/system work. Full FFB parity is not complete.
-
-v0.0.26 adds Max Spleenripper and Bomber Dribblesnot with their unique abilities.
-v0.0.25 extends [named stars](docs/STARS.md) with Morg, Fungus, Glart and the Swift Twins, and
-corrects medical treatment of Zapped Frogs.
-v0.0.24 adds [twelve named star players and unique abilities](docs/STARS.md).
-v0.0.23 adds [Josef Bugman staff, KO recovery and Dwarfen Wisdom](docs/BUGMAN.md).
-v0.0.22 adds [automatic underdog prayers and all sixteen effects](docs/PRAYERS.md).
-[Wizards and mercenaries](docs/WIZARDS-MERCENARIES.md) include Fireball/Zap
-targeting and funded temporary-player construction. Visual team
-dugouts, Solid Defence redeployment and Riotous Rookies are included.
-[The match-system audit](docs/MATCH-SYSTEM-AUDIT.md) records
-verified scope and the remaining inducement gaps; inducements are not complete.
-
-- Two-player hotseat play with 30 roster choices.
-- A team creator with draft budgets, positional limits, staff, saved rosters and local league entry.
-- Persistent match results, SPP, injuries, skills, characteristic advances, recruitment, finances and standings.
-- Guided exhibition flow through pregame, setup, kickoff, two halves, scoring, drive recovery, and full time.
-- Movement previews that prefer safer routes, explicit shortcuts and waypoints, and per-step risk highlights.
-- Movement, Blocks, Blitz, passing, interceptions, fouls, thrown/kicked players, and supported special actions.
-- Ball & Chain movement/collisions, Bloodlust feeding, and recursive bomb throws with grouped blast treatment.
-- Multiple Block with two committed attacks, coach dice choices and grouped injury treatment.
-- Configurable staff and basic inducements, kickoff staff bonuses, Keg recovery, Master Chefs, Biased Referees, and Bribery and Corruption.
-- Grouped end-of-drive Secret Weapon arguments and Bribe allocation.
-- Team Mascot re-roll choices, Weather Mages, and rule-gated Mortuary Assistants / Plague Doctors.
-- Casualty results, pregame team apothecaries, Regeneration treatment, Decay and Plague Ridden reserves.
-- Coach-controlled re-rolls and reaction choices, plus a skills laboratory and practice drills.
-- Clickable gold push destinations after Blocks, including Sidestep and chain pushes; the pushed player has a red outline. Side-panel buttons remain available for crowd pushes and Stand Firm.
-- **108 implemented, 0 partial, and 0 deferred** entries in the 108-skill/trait catalogue.
-
-These coverage labels describe available actions and local roster/progression behavior, not complete FFB parity. [Insignificant and Violent Innovator](docs/LEAGUE-SKILLS.md) now cover draft restrictions and special-action casualty SPP, including documented pinned exceptions. Exhibition interactions and several match systems still need further verification. League teams and completed results save in browser storage with JSON export/import. Unfinished fixtures restart from pre-game after reload. Live match save/resume and AI are not implemented. See [team creation and progression](docs/LEAGUES.md).
-
-## Build and verify
-
-GitHub Pages serves the committed `index.html` from the root of `main`. Playing needs no build step. For development, use Node.js 24, matching CI:
-
-```sh
-node generate-skill-docs.cjs
-node generate-roster-docs.cjs
-node build.cjs
-node --test *.test.cjs
-git diff --check
+```text
+src/
+  engine/           Movement, skills and match rules
+  features/league/  Team records, league progression and league controls
+  ui/               Main app controls, workspace navigation and styling
+  data/             Curated roster catalogue
+  index.template.html  Editable page shell and build placeholders
+scripts/            Standalone-page build and documentation generators
+tests/
+  build/            Published-page reproducibility
+  rules/            Match actions, reactions and resources
+  stars/            Named player abilities and lifecycle scenarios
+  features/         League, roster and team-rule scenarios
+  ui/               Actual bundled browser controls in DOM harnesses
+  fixtures/         Committed FFB-derived reference data
+  helpers/          Shared test file-path utilities
+docs/               Feature guides, rules references and parity audits
+tools/              Optional development-only FFB comparison tools
+index.html          Generated, committed GitHub Pages application
 ```
 
-The rules engines are `movement.cjs`, `skills.cjs`, and `match.cjs`; local roster management is in `league.cjs` and `league-ui.cjs`. The build embeds them into the standalone page. CI checks generated outputs and runs the regression/UI test suites.
+Edit files under `src/`, then rebuild. **Do not edit the generated `index.html`
+directly.** The build embeds the source, data and styles into that one file, so
+GitHub Pages and downloaded copies remain self-contained.
 
-## Planned features
+## Develop and verify
 
-1. Finish basic inducements, staff, relevant team rules and non-star exhibition verification.
-2. Extend the team creator to more rosters and racial rules.
-3. Add season scheduling, play-offs and off-season redrafting to local league progression.
-4. Complete the remaining star players and their unique abilities.
+Use Node.js 24 with its bundled npm, matching CI. There are no package dependencies
+and no install step is required.
 
-Live match save/resume and a computer opponent are also planned.
+```sh
+npm run build     # Rebuild index.html from src/
+npm run docs      # Regenerate skill and roster documentation
+npm test          # Discover and run all nested test suites
+npm run check     # Regenerate docs, rebuild the app, and run all tests
+```
 
-## Rules and implementation references
+Run commands from the repository root. The build and documentation scripts also
+resolve their files relative to the repository when invoked from another folder.
+To run a focused suite:
 
-Use [Blood Bowl Base BB2025](https://bloodbowlbase.ru/bb2025/) for rules as written and [FFB](https://github.com/christerk/ffb) for executable BB2025 behavior. The project's comparison policy and remaining gaps are documented in the [exhibition audit](docs/EXHIBITION-PARITY.md), [skill coverage](docs/SKILLS.md), and [FFB source map](docs/FFB-SKILL-MAP.md).
+```sh
+node --test tests/rules/movement.test.cjs
+node --test tests/stars/remaining-stars.test.cjs
+```
 
-See [third-party notices](THIRD_PARTY_NOTICES.md) for FFB attribution and licensing.
+Commit generated `index.html`, `docs/SKILLS.md` and `docs/ROSTERS.md` alongside
+source changes. CI rebuilds these outputs, rejects unexpected generated changes,
+and runs the full rules/UI suite. Keep `git diff --check` clean.
+
+## Current scope
+
+- Regulation two-half exhibition matches, practice modes and a skills laboratory.
+- Thirty curated rosters and 67 named stars across 64 hiring selections.
+- Staff, inducements, Wizards, mercenaries and all sixteen underdog prayers.
+- Team drafting, saved local leagues, fixtures, progression and JSON backups.
+- A self-contained hotseat application with coach-owned decisions and re-rolls.
+
+The checked catalogues are complete; exhaustive FFB parity is not established.
+Live match save/resume, AI, concessions/extra time/penalties, broader competition
+settings, fuller season/redraft rules and interaction audits remain. See the
+[current parity gaps](docs/PARITY-GAPS.md).
+
+## Documentation and sources
+
+Start with the [documentation index](docs/README.md) for guides, rule groups,
+audit scope and historical notes. Optional source comparison tools are described
+in [tools/README.md](tools/README.md). The former one-time roster-import scripts
+were removed because they required untracked work-session files; the curated
+roster data and its tests remain versioned.
+
+[Blood Bowl Base BB2025](https://bloodbowlbase.ru/bb2025/) supplies published
+profiles and rules wording; [FFB](https://github.com/christerk/ffb) supplies the
+executable BB2025 comparison baseline. See [third-party notices](THIRD_PARTY_NOTICES.md)
+for attribution and licensing.

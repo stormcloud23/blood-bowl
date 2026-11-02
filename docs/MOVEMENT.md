@@ -49,7 +49,7 @@ The action is available once per team turn to a non-Big-Guy player only when the
 ## Deliberate practice boundaries
 
 - Perfect Conditions only; no weather roll or weather modifiers.
-- Practice modes stop at a touchdown. The exhibition match sequence in match.cjs now adds halves, kickoff, drive restarts, KO recovery, and halftime re-roll replenishment; see MATCH.md.
+- Practice modes stop at a touchdown. The exhibition match sequence in src/engine/match.cjs now adds halves, kickoff, drive restarts, KO recovery, and halftime re-roll replenishment; see MATCH.md.
 - No AI. Move, Block, Blitz, Pass, Hand-off, and Secure the Ball work as practice actions; no full turn or match sequencing is implemented.
 - No apothecaries or permanent casualty/league outcomes. Casualties leave the pitch; regeneration can place a Troll in reserves.
 - Beneficial Thick Skull and Regeneration effects are applied automatically. Dice re-roll choices remain explicit.
@@ -58,9 +58,9 @@ The action is available once per team turn to a non-Big-Guy player only when the
 
 ## Development
 
-movement.cjs is the UI-independent engine; movement.test.cjs exercises it with injected dice. index.html contains a generated copy so root-of-main Pages hosting requires no runtime build.
+src/engine/movement.cjs is the UI-independent engine; tests/rules/movement.test.cjs exercises it with injected dice. index.html contains a generated copy so root-of-main Pages hosting requires no runtime build.
 
-After editing movement.cjs, run `node build.cjs`, then `node --test movement.test.cjs` when doing a requested verification pass. The tests verify that the embedded engine matches the source. Publish index.html with the supporting source and tests. Validation: 41 passing tests, including eight Block and Secure the Ball tests covering assists, result selection, turnovers, Wrestle, Stand Firm, eligibility, and pickup resolution.
+After editing src/engine/movement.cjs, run `npm run build`, then `node --test tests/rules/movement.test.cjs` when doing a requested verification pass. The tests verify that the embedded engine matches the source. Publish index.html with the supporting source and tests. Validation: 41 passing tests, including eight Block and Secure the Ball tests covering assists, result selection, turnovers, Wrestle, Stand Firm, eligibility, and pickup resolution.
 
 ## Blitz action
 
@@ -89,4 +89,4 @@ Amber now indicates a check on the individual arrival step (Dodge, Rush, Jump, o
 
 ## v0.0.10 skill audit
 
-The skill-aware engine now extends this engine; match.cjs and the practice UI use SkillGame. See SKILLS.md for the complete 108-entry inventory, status, and deferred dependencies. The skill audit also fixes Tackle's movement effect, Stunty's interception penalty, and three standard straight push squares. Modified pass results are not clamped below one under the current 2025 rules: only a modified result of exactly one or natural one fumbles; negative failed results are inaccurate.
+The skill-aware engine now extends this engine; src/engine/match.cjs and the practice UI use SkillGame. See SKILLS.md for the complete 108-entry inventory, status, and deferred dependencies. The skill audit also fixes Tackle's movement effect, Stunty's interception penalty, and three standard straight push squares. Modified pass results are not clamped below one under the current 2025 rules: only a modified result of exactly one or natural one fumbles; negative failed results are inaccurate.

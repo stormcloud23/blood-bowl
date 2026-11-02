@@ -12,11 +12,11 @@ Shadowing and Arm Bar use departure continuations before pickup or injury. Shado
 
 Earlier decisions include optional Break Tackle, Bullseye after a Superb Throw, and a team re-roll of a failed Pro check. Pro is once per player per turn; multiple team re-rolls on separate tests in one turn remain legal. Strong Arm modifies Throw Team-mate accuracy when enabled. Strong Arm and Bullseye require Throw Team-mate in the laboratory. Lone Fouler may re-roll broken-armour doubles before injury. Argue the Call one forbids a Bribe for that send-off; other failed Bribes may be followed by further available Bribes.
 
-Build with `node build.cjs` and verify all suites with `node --test *.test.cjs`. This includes FFB-derived regression scenarios and tests that execute the actual inline browser UI against a small DOM harness.
+Build with `npm run build` and verify all suites with `npm test`. This includes FFB-derived regression scenarios and tests that execute the actual inline browser UI against a small DOM harness.
 
 Reviewed October 28, 2026 against the full [Blood Bowl 2025 Skills & Traits list](https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/), [current FAQ](https://bloodbowlbase.ru/bb2025/core_rules/latest_faq/), [Foul / Argue the Call rules](https://bloodbowlbase.ru/bb2025/core_rules/the_game_of_blood_bowl/#foul-actions), and [Bribes](https://bloodbowlbase.ru/bb2025/core_rules/inducements/#0-3-bribes-0-6-for-teams-with-the-bribery-and-corruption-special-rule).
 
-All 108 entries are accounted for: **108 implemented**, **0 partial**, **0 deferred**. Implemented describes support within the available actions, roster builder and local league progression. It does not certify complete FFB parity or every future roster interaction. Insignificant and Violent Innovator now have focused roster/SPP coverage; see [league skills](LEAGUE-SKILLS.md). This table and the app inventory share the same registry in skills.cjs.
+All 108 entries are accounted for: **108 implemented**, **0 partial**, **0 deferred**. Implemented describes support within the available actions, roster builder and local league progression. It does not certify complete FFB parity or every future roster interaction. Insignificant and Violent Innovator now have focused roster/SPP coverage; see [league skills](LEAGUE-SKILLS.md). This table and the app inventory share the same registry in src/engine/skills.cjs.
 
 ## How to try them
 
@@ -147,7 +147,7 @@ Sources: [Throw Team-mate and landing](https://bloodbowlbase.ru/bb2025/core_rule
 
 ## Validation and remaining work
 
-Run `node build.cjs`, then `node --test movement.test.cjs match.test.cjs skills.test.cjs`. Tests use injected dice for movement, passing, activation traits, Block timing, Foul modifiers, send-offs, Bribes, end-of-drive Secret Weapon handling, Leader pools, and catalogue completeness. All browser engines are checked against their source and compiled together.
+Run `npm run build`, then `node --test tests/rules/movement.test.cjs tests/rules/match.test.cjs tests/rules/skills.test.cjs`. Tests use injected dice for movement, passing, activation traits, Block timing, Foul modifiers, send-offs, Bribes, end-of-drive Secret Weapon handling, Leader pools, and catalogue completeness. All browser engines are checked against their source and compiled together.
 
 The in-memory interruption stack supports current reactions and airborne bomb continuations. Grouped damage, casualties/treatment, roster creation and local league progression have dedicated regression suites. Remaining exhibition and progression boundaries are recorded in EXHIBITION-PARITY.md and LEAGUES.md; coverage labels do not certify complete rules parity.
 

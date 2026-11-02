@@ -66,7 +66,7 @@ printed skill wording has this exception.
 
 ## Validation
 
-`league-skills.test.cjs` covers draft boundaries, shared prerequisites, the
+`tests/features/league-skills.test.cjs` covers draft boundaries, shared prerequisites, the
 casualty source matrix, actual special attacks, all combinations of kick/throw,
 Violent Innovator, Lethal Flight and friendly/opposing collision victims, plus
 healed casualty SPP through post-game save/reload and duplicate-save rejection.
