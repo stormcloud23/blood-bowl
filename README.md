@@ -78,6 +78,11 @@ highlighted and selected directly on the pitch. Exhibition pregame/setup shows
 full player-plus-staff TV, with CTV and inducement values labelled separately.
 See [pitch choices and value details](docs/PITCH-CHOICES.md).
 
+During kickoff On the Ball reactions, the deviated landing point stays visible
+with the ball symbol. Eligible reactors stay bright while other players fade.
+Kick aiming uses a square highlight and second-click confirmation without a
+popup over the target.
+
 For solo exhibitions, choose **Computer · Human team** or **Computer · Orc team**
 in the Opponent menu. You coach home; the computer coaches the away preset team.
 Choose its speed, pause/resume, or take over its team during the match. This basic
