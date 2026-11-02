@@ -26,7 +26,7 @@ The [Insignificant and Violent Innovator audit](LEAGUE-SKILLS.md) completes thei
 
 ## Progression and persistence
 
-`league.cjs` owns versioned roster records, membership, fixtures and post-game changes. `league-ui.cjs` supplies the browser controls; `build.cjs` embeds both in the standalone HTML. No server or runtime dependencies were added.
+`src/features/league/league.cjs` owns versioned roster records, membership, fixtures and post-game changes. `src/features/league/league-ui.cjs` supplies the browser controls; `scripts/build.cjs` embeds both in the standalone HTML. No server or runtime dependencies were added.
 
 Match statistics are separate from the capped display log and use permanent roster IDs. A match result commits both teams together. MVP validation precedes dice, and duplicate submissions cannot apply awards twice. Final effective casualties determine lasting injuries; treatment does not remove earned casualty credit. Existing MNG clears after the missed fixture, while new injuries affect the next one. Dead/eaten players move to the archive. Journeymen can be retained after the match.
 

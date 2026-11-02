@@ -109,7 +109,7 @@ verification, then roster/team building, then league progression.
 
 ## Validation
 
-`node generate-skill-docs.cjs`, `node build.cjs`, `node --test *.test.cjs`,
+`node scripts/generate-skill-docs.cjs`, `npm run build`, `npm test`,
 and `git diff --check`. New deterministic scenarios cover defender choices,
 attempt caps, both movement outcomes, pickup marking, Jump versus Rush, bonus
 exclusivity, Iron Hard Skin, attribution, stacked reactions and stale callbacks.

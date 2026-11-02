@@ -88,10 +88,10 @@ Executable [FFB reference](https://github.com/christerk/ffb/tree/bf3f89d96b5143a
 - `ffb-common/.../skill/bb2025/Leap.java`, `Pogo.java`, `VeryLongLegs.java` and
   `factory/bb2025/JumpModifierFactory.java`: jump modifier interactions.
 
-All **290 tests pass**. `dodge-footing.test.cjs` adds 44 deterministic scenarios; four additional
-`throw-ui.test.cjs` scenarios execute the real inline UI. Earlier Tentacles and
+All **290 tests pass**. `tests/rules/dodge-footing.test.cjs` adds 44 deterministic scenarios; four additional
+`tests/ui/throw-ui.test.cjs` scenarios execute the real inline UI. Earlier Tentacles and
 Jump Rush tests are corrected to the source-derived ordering. Build with
-`node generate-skill-docs.cjs`, `node build.cjs`; run `node --test *.test.cjs` and
+`node scripts/generate-skill-docs.cjs`, `npm run build`; run `npm test` and
 `git diff --check`. No visual inspection or Java differential runner is claimed.
 
 Coverage is now **83 implemented, 3 partial, 22 deferred**. Full exhibition

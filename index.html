@@ -7216,8 +7216,8 @@ if(typeof module!=="undefined")module.exports={MatchGame,MATCH_RESOURCES,MATCH_P
 <script id="league-engine">
 "use strict";
 // Local roster management. Match behavior remains in the existing engines.
-const LeagueSkills=typeof module!=="undefined"?require("./skills.cjs").SKILL_GROUPS:SKILL_GROUPS;
-const LeagueSpecialTraits=typeof module!=="undefined"?require("./skills.cjs").SPECIAL_ACTION_TRAITS:SPECIAL_ACTION_TRAITS;
+const LeagueSkills=typeof module!=="undefined"?require("../../engine/skills.cjs").SKILL_GROUPS:SKILL_GROUPS;
+const LeagueSpecialTraits=typeof module!=="undefined"?require("../../engine/skills.cjs").SPECIAL_ACTION_TRAITS:SPECIAL_ACTION_TRAITS;
 const ADVANCEMENT_COSTS=[[3,6,10,14],[4,8,12,16],[6,12,16,20],[8,16,20,24],[10,20,24,28],[15,30,34,38]];
 const ELITE_SKILLS=["Block","Dodge","Guard","Mighty Blow"];
 const cloneLeague=value=>JSON.parse(JSON.stringify(value));

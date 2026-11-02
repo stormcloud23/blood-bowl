@@ -82,7 +82,7 @@ Final local validation: **842 tests pass**, including 22 complete-workspace
 scenarios and five additional league-UI scenarios. Generated outputs and
 whitespace checks pass.
 
-`workspace-ui.test.cjs` runs the actual bundled workspace code in a DOM event
+`tests/ui/workspace-ui.test.cjs` runs the actual bundled workspace code in a DOM event
 harness. It covers tab/game preservation, legal player and target menus, stale
 callbacks, decisions, keyboard navigation, focus tooltips, pregame, Foul and
 team-mate targeting, Block symbols, defender ownership, disclosure persistence

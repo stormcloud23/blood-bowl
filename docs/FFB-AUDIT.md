@@ -48,7 +48,7 @@ This is a targeted comparison and port, not certification that every rule or eve
 
 ## Conflicts corrected and behavior added
 
-All Java paths below are relative to the pinned reference above. Each row is exercised by `ffb-regression.test.cjs`; the new decision buttons also have inline-UI scenarios in `throw-ui.test.cjs`.
+All Java paths below are relative to the pinned reference above. Each row is exercised by `tests/rules/ffb-regression.test.cjs`; the new decision buttons also have inline-UI scenarios in `tests/ui/throw-ui.test.cjs`.
 
 | Mechanic | Previous browser behavior | FFB behavior now used | Java evidence |
 | --- | --- | --- | --- |
@@ -81,4 +81,4 @@ The browser's UI is tested by executing its embedded scripts against a small DOM
 
 Validation: **215 tests pass**, including 30 new source-derived rules regressions and three new inline-UI decision scenarios. GitHub Actions also verifies the generated skill documentation and embedded browser engines match their committed sources.
 
-Run `node build.cjs`, then `node --test *.test.cjs`. GitHub Pages still serves the committed `index.html` directly. See [third-party notices](../THIRD_PARTY_NOTICES.md) for FFB attribution and its MIT license.
+Run `npm run build`, then `npm test`. GitHub Pages still serves the committed `index.html` directly. See [third-party notices](../THIRD_PARTY_NOTICES.md) for FFB attribution and its MIT license.

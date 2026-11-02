@@ -1,0 +1,14 @@
+{
+  "name": "blood-bowl-browser",
+  "version": "0.0.29",
+  "private": true,
+  "description": "Self-contained Blood Bowl browser game",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "build": "node scripts/build.cjs",
+    "docs": "node scripts/generate-skill-docs.cjs && node scripts/generate-roster-docs.cjs",
+    "test": "node --test",
+    "check": "npm run docs && npm run build && npm test",
+    "verify:ffb": "node tools/verify-ffb-geometry.cjs"
+  }
+}

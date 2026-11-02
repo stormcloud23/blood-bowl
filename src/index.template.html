@@ -1,0 +1,300 @@
+<!doctype html>
+<!--
+# Third-party notices
+
+The BB2025 corrections and translated skill behavior described in [the FFB comparison](docs/FFB-AUDIT.md) are derived from [Fantasy Football Server/Client (FFB)](https://github.com/christerk/ffb), commit `bf3f89d96b5143a8730910a841e7430791094492`.
+
+FFB's license follows. This notice covers reused FFB software; it does not grant rights to unrelated game trademarks or artwork.
+
+MIT License
+
+Copyright (c) 2024 Christer Kaivo-oja
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blood Bowl · Match day</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101b20;color:#e7eeeb}*{box-sizing:border-box}body{margin:0;padding:28px;max-width:1500px;margin-inline:auto}header{display:flex;justify-content:space-between;gap:20px;align-items:center}h1{font-size:32px;margin:8px 0}h2{font-size:18px}p{line-height:1.6;color:#b8c9c7}.eyebrow{color:#e9bb69;font-size:12px;letter-spacing:2px;text-transform:uppercase}.badge{padding:8px 12px;border:1px solid #45595e;border-radius:20px;font-size:12px}.notice{border-left:3px solid #e9bb69;padding:12px 18px;background:#202d30;margin:24px 0}main{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:24px}.pitch-wrap{overflow:auto;border:1px solid #526a61;border-radius:8px}.pitch{display:grid;grid-template-columns:repeat(26,1fr);min-width:650px;background:#284f40;padding:8px}.square{aspect-ratio:1;border:1px solid #ffffff16;--turf:#2d573b;background:var(--turf);padding:0;min-width:0;font-size:12px;cursor:pointer;color:white;position:relative}.square.turf-light{--turf:#47794b}.square.endzone-left{--turf:#c5343d}.square.endzone-left.turf-light{--turf:#f8f8f4}.square.endzone-right{--turf:#3264b8}.square.endzone-right.turf-light{--turf:#f8f8f4}.square.middle{border-right:2px solid #ffffff80}.square.wide{border-bottom:2px dashed #ffffff70}.square:hover{background:linear-gradient(#ffffff25,#ffffff25) var(--turf)}.square:focus-visible{outline:3px solid #ffe0a0;z-index:2}.token{display:grid;place-items:center;width:85%;height:85%;margin:auto;border-radius:50%;background:#dbac60;color:#17242a;font-weight:bold;border:2px solid #ffdfaa}.token.blue{background:#8abacb;border-color:#c4e5ed}.selected{outline:3px solid white;outline-offset:-3px}.panel{background:#19282e;border:1px solid #34474d;border-radius:8px;padding:20px}button.control{padding:11px 16px;background:#e9bb69;border:0;border-radius:5px;color:#17242a;font-weight:650;cursor:pointer;margin:4px 4px 4px 0}button.secondary{background:#31474f;color:#e7eeeb}#log{padding-left:20px;font-size:13px;line-height:1.7;max-height:220px;overflow:auto}a{color:#b5d9df}footer{font-size:13px;margin-top:24px;color:#9aafae}.muted{font-size:13px}@media(max-width:950px){main{grid-template-columns:1fr}body{padding:16px}header{align-items:flex-start}h1{font-size:25px}}
+
+#rosters{margin-top:30px;display:grid;gap:24px}.table-scroll{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:12px 9px;text-align:left;border-bottom:1px solid #34474d}th{color:#e9bb69}td.skills{min-width:180px}td:first-child{min-width:150px}.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}.stat{background:#101b20;text-align:center;padding:8px 2px;border-radius:4px}.stat small{display:block;color:#b8c9c7}.profile-skills{font-size:13px;line-height:1.7}#profile{border-block:1px solid #34474d;padding:14px 0;margin:14px 0}.role-button{color:#b5d9df;background:none;border:0;padding:0;text-align:left;font:inherit;cursor:pointer;text-decoration:underline}.roster-heading{display:flex;justify-content:space-between;align-items:center;gap:16px}.team-summary{font-size:13px}.token{font-size:11px}.token small{font-size:8px;display:block}.token{line-height:1;display:flex;flex-direction:column;justify-content:center}
+
+.square.legal{background:linear-gradient(#69c58b40,#69c58b40) var(--turf);box-shadow:inset 0 0 0 1px #a0e3ad}.square.risk{background:linear-gradient(#e4a24755,#e4a24755) var(--turf)}.square.jump{box-shadow:inset 0 0 0 2px #cc96ed}.square.route{box-shadow:inset 0 0 0 2px #ffe0a0}.square.destination{outline:3px solid #fff;outline-offset:-3px}.square.block-target{background:linear-gradient(#e2686870,#e2686870) var(--turf);box-shadow:inset 0 0 0 3px #ff7b82}.route-index{position:absolute;top:1px;left:1px;display:grid;place-items:center;width:16px;height:16px;border-radius:50%;background:#fff;color:#17242a;font-size:10px;font-weight:700;z-index:1}.token.used{opacity:.45}.token.prone{border-style:dashed}.token.stunned{border-color:#ff6b70}.token.distracted{border-color:#ce96f0}.ball{position:absolute;right:1px;bottom:1px;color:#fff;font-size:12px;text-shadow:0 0 3px black}button:disabled{opacity:.4;cursor:not-allowed!important}select{padding:8px;background:#19282e;color:#e7eeeb;border:1px solid #526a61;border-radius:4px}#choices button{margin-block:5px}#movement{line-height:1.6;margin:10px 0}.dugout{font-size:12px}
+
+.square.push-option{background:linear-gradient(#ffd16680,#ffd16680) var(--turf);box-shadow:inset 0 0 0 3px #ffd166;cursor:pointer}.square.push-option:hover,.square.push-option:focus-visible{outline:3px solid #fff;outline-offset:-3px}.square.push-subject{outline:3px solid #ff7b82;outline-offset:-3px}.push-marker{position:absolute;left:1px;bottom:1px;color:#17242a;background:#ffd166;border-radius:3px;padding:0 2px;font-size:13px;font-weight:700;line-height:1.1;pointer-events:none}
+#league-panel{margin-top:24px}#league-panel label{display:inline-block;margin:8px 12px 8px 0}#league-panel input,#league-panel textarea{padding:8px;background:#101b20;color:#e7eeeb;border:1px solid #526a61;border-radius:4px}#league-panel details{padding:12px;margin-top:8px;border:1px solid #34474d;border-radius:5px}#league-panel summary{cursor:pointer;color:#e9bb69}#league-panel fieldset{margin:12px 0;border:1px solid #526a61}
+/* Keep keyboard focus clear without obscuring pitch destination markers. */
+:where(button:not(.square),a,input,select,textarea,summary):focus-visible{outline:3px solid #ffe0a0;outline-offset:3px}
+main>section,main>aside{min-width:0}
+select{max-width:100%}
+#league-panel input,#league-panel textarea,#league-panel select{max-width:100%}
+#league-panel fieldset{min-width:0}
+@media(max-width:600px){header{flex-wrap:wrap;gap:8px}button.control{min-height:44px;max-width:100%;white-space:normal}select,#league-panel input,#league-panel textarea{font-size:16px}#league-panel label{max-width:100%}}
+</style>
+<style id="workspace-style">
+</style>
+</head>
+<body>
+<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>Match day</h1></div><span class="badge">v0.0.29 · Star players</span></header>
+<nav class="workspace-tabs" role="tablist" aria-label="Game workspace"><button id="tab-play" role="tab" aria-controls="play-view" aria-selected="true">Play</button><button id="tab-teams" role="tab" aria-controls="teams-view" aria-selected="false" tabindex="-1">Teams & leagues</button><button id="tab-rosters" role="tab" aria-controls="rosters" aria-selected="false" tabindex="-1">Rosters</button><button id="tab-reference" role="tab" aria-controls="reference-view" aria-selected="false" tabindex="-1">Reference</button></nav>
+<section id="play-view" role="tabpanel" aria-labelledby="tab-play"><div class="notice" id="mode-notice"><strong>Movement and ball action practice</strong><br><span class="muted">Preview movement and its checks, resolve Block dice, pushes, and follow-ups, or secure a loose ball. Perfect Conditions. This remains a practice drive, not a complete match.</span></div>
+<div class="mode-toolbar">
+<label for="scenario">Game mode </label><select id="scenario"><option value="match">Exhibition match — pre-game</option><option value="match-learning">Learning match — simplified kickoff</option><option value="skills">Skills laboratory</option><option value="teams">Both teams</option><option value="dodge">Dodge practice</option><option value="jump">Jump & stand up</option><option value="pickup">Ball pickup</option><option value="throw-team-mate">Throw Team-mate practice</option><option value="traits">Ogre & Troll traits</option><option value="handoff">Hand-off practice</option><option value="pass">Pass & interception practice</option><option value="blitz">Blitz practice</option><option value="block">Block practice</option><option value="secure">Secure the Ball practice</option></select><span class="muted">Changing mode starts a new game.</span></div><details id="exhibition-rosters" class="panel"><summary>Exhibition teams · changing a roster starts a new exhibition</summary><div class="exhibition-side" role="group" aria-label="Home exhibition team"><label for="exhibition-home">Home roster </label><select id="exhibition-home"></select><label id="exhibition-home-league-label" for="exhibition-home-league">Home roster league </label><select id="exhibition-home-league"></select><label id="exhibition-home-alignment-label" for="exhibition-home-alignment">Home alignment </label><select id="exhibition-home-alignment"></select></div><div class="exhibition-side" role="group" aria-label="Away exhibition team"><label for="exhibition-away"> Away roster </label><select id="exhibition-away"></select><label id="exhibition-away-league-label" for="exhibition-away-league">Away roster league </label><select id="exhibition-away-league"></select><label id="exhibition-away-alignment-label" for="exhibition-away-alignment">Away alignment </label><select id="exhibition-away-alignment"></select></div></details><div id="match-scoreboard" aria-live="polite"></div><main><section><div id="pregame-overview" class="panel" hidden></div><div id="pitch-tools"><span id="pitch-direction"></span><a href="#dugout" class="dugout-link">Dugouts</a><label for="pitch-scale">Pitch size </label><select id="pitch-scale"><option value="1">Fit</option><option value="1.5">Large</option><option value="2">Extra large</option></select></div><p id="mobile-pitch-help" class="mobile-pitch-help">Swipe the pitch sideways to see the whole field.</p><div id="pitch-board" class="pitch-wrap"><div id="pitch" class="pitch" role="group" aria-label="Development pitch"></div></div><div id="pitch-legend" class="pitch-legend" aria-label="Movement highlight key"><span>No roll on this step</span><span>Check on this step</span><span>Jump</span></div><p id="pitch-hint" class="muted">Click a player for actions. Hover or focus a square for details.</p><details id="action-disclosure"><summary>Player actions</summary><div id="action-controls"><button class="control" id="start">Declare Move</button><button class="control secondary" id="handoff">Declare Hand-off</button><button class="control secondary" id="pass">Declare Pass</button><button class="control secondary" id="throw-mate">Declare Throw Team-mate</button><button class="control secondary" id="kick-mate">Declare Kick Team-mate</button><button class="control secondary" id="transfer">Choose ball target</button><button class="control secondary" id="blitz">Declare Blitz</button><button class="control secondary" id="block">Block</button><button class="control secondary" id="special">Foul / special action</button><button class="control secondary" id="secure">Secure the Ball</button></div></details><div class="turn-controls"><button class="control secondary" id="finish">End Move</button><button class="control secondary" id="end">End team turn</button><button class="control secondary" id="reset">New game / reset</button></div><section id="dugout" class="dugout-board" aria-label="Team dugouts"></section></section>
+<aside id="coach-panel" class="panel"><div class="eyebrow">Coach’s desk</div><h2 id="coach"></h2><div id="matchflow" class="notice" aria-live="polite"></div><p id="selection" role="status" aria-live="polite"></p><div id="movement" aria-live="polite"></div><div id="choices"></div><details id="player-details"><summary>Player profile & optional skills</summary><div id="profile"></div></details><details><summary>Session log</summary><ol id="log"></ol></details></aside></main></section><section id="teams-view" role="tabpanel" aria-labelledby="tab-teams" hidden></section><section id="rosters" role="tabpanel" aria-labelledby="tab-rosters" hidden><div class="roster-browser"><label for="roster-search">Find a roster </label><input id="roster-search" type="search" placeholder="Team name"><span id="roster-search-count" role="status"></span></div><div id="roster-list"></div></section><section id="reference-view" role="tabpanel" aria-labelledby="tab-reference" hidden><article class="panel"><h2>Playing guide</h2><p class="muted">Select a player and choose an action. For movement, click a destination to preview the remaining range from there. Click another highlighted tile to extend the route. Declare the action, then click the selected destination again to commit; Cancel movement preview restores the current range. For Pass or Hand-off, declare the action, move as needed, then choose a ball target. For Blitz, choose Declare Blitz and a highlighted target, move adjacent, then choose Blitz Block (1 MA). During Block, click a highlighted target. After choosing a push result, click a gold push square; the player being pushed has a red outline. Crowd pushes remain in the side panel. Green = no roll on that step; amber = a check on that step or an action target; purple border = jump. Earlier route steps may still require rolls.</p><p class="muted">Direction template: 1 NW · 2 N · 3 NE · 4 W · 5 E · 6 SW · 7 S · 8 SE. Green is a step without a roll; amber is a check or action target; purple marks a jump. Earlier route steps can still require rolls.</p><p class="muted">Use arrow keys to navigate the pitch. Enter opens actions or selects a square. Escape closes a popup or cancels targeting. Hover information is also available by keyboard focus; touch a player for the same information and actions.</p></article><div id="reference-profile" class="panel" hidden><h2>Position details</h2><p>Select a position in Rosters to inspect it here.</p></div></section><div id="pitch-popup" popover="auto" role="dialog" aria-label="Player information and actions"></div><div id="pitch-tooltip" popover="manual" role="tooltip"></div>
+<footer>FFB-derived corrections: <a href="docs/FFB-AUDIT.md">comparison and scope</a> · <a href="THIRD_PARTY_NOTICES.md">MIT attribution</a> · Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.29 with feedback.</footer>
+<script id="team-data" type="application/json">[
+  {
+    "id": "imperial-nobility",
+    "name": "Imperial Nobility",
+    "tier": 2,
+    "league": "Old World Classic",
+    "special": [],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Imperial_Nobility/",
+    "reroll": 60000,
+    "positions": [
+      {
+        "id": "retainer",
+        "name": "Imperial Retainer",
+        "traits": "Lineman, Human",
+        "max": 16,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Fend"
+        ],
+        "primary": "G",
+        "secondary": "A S",
+        "cost": 45000
+      },
+      {
+        "id": "thrower",
+        "name": "Imperial Thrower",
+        "traits": "Thrower, Human",
+        "max": 2,
+        "ma": 6,
+        "st": 3,
+        "ag": "3+",
+        "pa": "2+",
+        "av": "9+",
+        "skills": [
+          "Give and Go",
+          "Pass",
+          "Pro"
+        ],
+        "primary": "G P",
+        "secondary": "A S",
+        "cost": 75000
+      },
+      {
+        "id": "bodyguard",
+        "name": "Bodyguard",
+        "traits": "Blocker, Human",
+        "max": 4,
+        "ma": 5,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "9+",
+        "skills": [
+          "Stand Firm",
+          "Wrestle"
+        ],
+        "primary": "G S",
+        "secondary": "A",
+        "cost": 85000
+      },
+      {
+        "id": "blitzer",
+        "name": "Noble Blitzer",
+        "traits": "Blitzer, Human",
+        "max": 2,
+        "ma": 7,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "9+",
+        "skills": [
+          "Block",
+          "Catch",
+          "Pro"
+        ],
+        "primary": "A G",
+        "secondary": "P S",
+        "cost": 90000
+      },
+      {
+        "id": "ogre",
+        "name": "Ogre",
+        "traits": "Big Guy, Ogre",
+        "max": 1,
+        "ma": 5,
+        "st": 5,
+        "ag": "4+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Bone Head",
+          "Loner (3+)",
+          "Mighty Blow",
+          "Thick Skull",
+          "Throw Team-mate"
+        ],
+        "primary": "S",
+        "secondary": "A G",
+        "cost": 140000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      1,
+      2,
+      2,
+      2,
+      3,
+      3,
+      4
+    ],
+    "reviewed": "2026-10-28",
+    "staff": {
+      "cheerleader": 10000,
+      "assistantCoach": 10000,
+      "apothecary": 50000
+    }
+  },
+  {
+    "id": "black-orc",
+    "name": "Black Orcs",
+    "tier": 3,
+    "league": "Badlands Brawl",
+    "special": [
+      "Bribery and Corruption",
+      "Brawlin' Brutes"
+    ],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Black_Orc/",
+    "reroll": 60000,
+    "positions": [
+      {
+        "id": "goblin",
+        "name": "Goblin Bruiser",
+        "traits": "Lineman, Goblin",
+        "max": 16,
+        "ma": 6,
+        "st": 2,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Dodge",
+          "Right Stuff",
+          "Stunty",
+          "Thick Skull"
+        ],
+        "primary": "A D",
+        "secondary": "G P S",
+        "cost": 45000
+      },
+      {
+        "id": "black-orc",
+        "name": "Black Orc",
+        "traits": "Blocker, Orc",
+        "max": 6,
+        "ma": 4,
+        "st": 4,
+        "ag": "4+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Brawler",
+          "Grab"
+        ],
+        "primary": "G S",
+        "secondary": "A D",
+        "cost": 90000
+      },
+      {
+        "id": "troll",
+        "name": "Trained Troll",
+        "traits": "Big Guy, Troll",
+        "max": 1,
+        "ma": 4,
+        "st": 5,
+        "ag": "5+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Always Hungry",
+          "Mighty Blow",
+          "Projectile Vomit",
+          "Really Stupid",
+          "Regeneration",
+          "Throw Team-mate"
+        ],
+        "primary": "S",
+        "secondary": "A G P",
+        "cost": 115000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2
+    ],
+    "reviewed": "2026-10-28",
+    "staff": {
+      "cheerleader": 10000,
+      "assistantCoach": 10000,
+      "apothecary": 50000
+    }
+  }
+]</script>
+<script id="roster-data" type="application/json">
+</script>
+<script id="movement-engine">
+</script>
+<script id="skills-engine">
+</script>
+<script id="match-engine">
+</script>
+<script id="league-engine">
+</script>
+<script>
+</script>
+<script id="league-ui">
+</script>
+<script id="workspace-ui">
+</script>
+</body>
+</html>
