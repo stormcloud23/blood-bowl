@@ -3,13 +3,16 @@
 ## Throwing target overlay
 
 While choosing a ball-pass or throw/kick team-mate destination, legal squares
-show Q/S/L/B range letters and the existing movement difficulty colors: blue
+use the existing movement difficulty colors: blue
 2+, green 3+, yellow 4+, orange 5+, red 6+. A receiver's square uses the harder
 of passing accuracy and the accurate-delivery catch roll, with current skills,
-marking and weather. Hover or focus a square for the separate checks. Re-rolls
+marking and weather. Only occupied targets have text labels, showing pass/catch
+checks such as `2+/3+`. Empty targets retain their color, with range and checks
+available on hover/focus and in the coach panel after selection. Re-rolls
 and interceptions do not change the color. An automatic failure shows ×.
 Empty targets show accuracy only; Hail Mary shows its avoid-fumble roll and
-explicitly warns that it always scatters. P identifies a partner pass.
+explicitly warns that it always scatters; an occupied Hail Mary target shows `?`
+for its unknown catch. Range names remain in the hover/focus breakdown.
 
 Throw/kick team-mate targets use only Quick/Short range and color the Superb
 Throw check. Scatter, collisions and the eventual landing check are not
