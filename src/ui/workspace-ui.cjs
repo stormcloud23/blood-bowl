@@ -3,7 +3,7 @@
 const workspaceTabs=["play","teams","rosters","testing","reference"];
 const workspaceScroll={};
 let workspaceView="play",pitchFocus=0,popupAnchor=null,popupEpoch=0,hoverSquare=null,staffDetailsOpen=false,popoverTransition=false;
-let displayedDecision=null,displayedPhase="",setupSelectionContext=null;
+let setupSelectionContext=null;
 const popup=document.getElementById("pitch-popup"),tooltip=document.getElementById("pitch-tooltip");
 function exhibitionRosterChoices(side){const roster=exhibitionTeam(exhibitionSelection(side),false);if(!roster)return;for(const [kind,options] of [["league",roster.leagues||[roster.league]],["alignment",roster.alignments||[]]]){const select=document.getElementById("exhibition-"+side+"-"+kind),previous=select.value;select.replaceChildren();for(const name of options){const option=document.createElement("option");option.value=name;option.textContent=name;select.append(option);}select.value=options.includes(previous)?previous:options[0]||"";select.hidden=!!roster.exhibitionSaved||options.length<2;document.getElementById("exhibition-"+side+"-"+kind+"-label").hidden=select.hidden;}}
 globalThis.refreshExhibitionRosters=()=>{for(const side of ["home","away"]){
@@ -80,7 +80,7 @@ function dugoutState(p){if(p.eaten||p.casualty?.dead||p.casualty?.result==='Dead
 function dugoutReason(p){if(p.status==='carried')return 'Carried by Grak — temporarily off the pitch';return p.eaten?'Eaten':p.fixtureUnavailable?(p.leagueRecord.retired?'Temporarily retired':'Misses this fixture'):p.heatOut?'Heat exhaustion — misses this drive':p.snackOut?'Dodgy Snack — misses this drive':p.casualty?.result||(p.riotousRookie?'Riotous Rookie — temporary Loner (4+)':p.status);}
 function dugoutPlayers(team){const players=game.players.filter(p=>p.team===team);if(game.league){const saved=leagueStore.data.teams.find(t=>t.id===game.teams[team].leagueTeamId),ids=new Set(players.map(p=>p.leaguePlayerId));for(const record of saved?.players||[])if(!ids.has(record.id)&&(record.missNext||record.retired))players.push({id:'unavailable:'+record.id,number:record.number,team,role:record.role,status:'missing-next',fixtureUnavailable:true,profileOverride:record.profile,leagueRecord:record});}return players;}
 function showDugoutTooltip(p,card){if(popoverTransition||!popup.hidden)return;hidePitchTooltip();hoverSquare=card;card.setAttribute('aria-describedby','pitch-tooltip');tooltip.textContent=playerQuickInfo(p)+'\n'+dugoutReason(p);tooltip.showPopover();placePitchOverlay(tooltip,card);}
-function dugoutActions(p){if(game.pending||p.fixtureUnavailable||dugoutState(p)!=='reserve')return [];const setup=game.match&&game.phase==='setup'&&p.team===game.setupTeam&&game.available(p.team).includes(p),swarm=game.phase==='swarming'&&game.swarmState.eligible.includes(p.id)&&game.swarmState.placed.length<game.swarmState.limit;const defence=game.phase==='eventMove'&&game.eventState?.kind==='defence'&&game.eventState.eligible.includes(p.id);const wisdom=game.phase==='dwarfenWisdom'&&game.wisdomState?.placing&&game.wisdomState.selected.includes(p.id);if(!setup&&!swarm&&!defence&&!wisdom)return [];return [{label:wisdom?'Select for Dwarfen Wisdom':swarm?'Select for Swarming':defence?'Select for Solid Defence':'Select for setup',run:()=>{if(!dugoutActions(p).length)return;selected=p.id;showProfile(p.team,p.role,p.number);render();document.getElementById('pitch-board').scrollIntoView({block:'nearest'});}}];}
+function dugoutActions(p){if(game.pending||p.fixtureUnavailable||dugoutState(p)!=='reserve')return [];const setup=game.match&&game.phase==='setup'&&p.team===game.setupTeam&&game.available(p.team).includes(p),swarm=game.phase==='swarming'&&game.swarmState.eligible.includes(p.id)&&game.swarmState.placed.length<game.swarmState.limit;const defence=game.phase==='eventMove'&&game.eventState?.kind==='defence'&&game.eventState.eligible.includes(p.id);const wisdom=game.phase==='dwarfenWisdom'&&game.wisdomState?.placing&&game.wisdomState.selected.includes(p.id);if(!setup&&!swarm&&!defence&&!wisdom)return [];return [{label:wisdom?'Select for Dwarfen Wisdom':swarm?'Select for Swarming':defence?'Select for Solid Defence':'Select for setup',run:()=>{if(!dugoutActions(p).length)return;selected=p.id;showProfile(p.team,p.role,p.number);render();}}];}
 function renderDugouts(pregame){const board=document.getElementById('dugout');board.hidden=!!pregame;board.replaceChildren();if(pregame)return;const currentGame=game;for(const team of [0,1]){const players=dugoutPlayers(team),article=document.createElement('article');article.className='dugout-team '+(team?'dugout-blue':'dugout-gold');article.setAttribute('aria-label',teams[team].name+' dugout');const heading=document.createElement('h3');heading.textContent=teams[team].name;article.append(heading);const count=document.createElement('p');count.className='dugout-summary';count.textContent=players.filter(p=>dugoutState(p)==='pitch').length+' on pitch · '+players.filter(p=>dugoutState(p)!=='pitch').length+' off pitch';article.append(count);const lanes=document.createElement('div');lanes.className='dugout-lanes';article.append(lanes);for(const [state,label] of dugoutStates){const lane=document.createElement('section');lane.className='dugout-lane dugout-'+state;lane.dataset.state=state;const list=players.filter(p=>dugoutState(p)===state),title=document.createElement('h4');title.textContent=label+' · '+list.length;lane.append(title);const cards=document.createElement('div');cards.className='dugout-cards';lane.append(cards);if(!list.length){const empty=document.createElement('span');empty.className='dugout-empty';empty.textContent='—';cards.append(empty);}for(const p of list){const card=button('',()=>{if(game!==currentGame)return;showPitchPopup(card,'#'+p.number+' · '+playerLabel(p),playerQuickInfo(p)+'\n'+dugoutReason(p),dugoutActions(p));});card.className='dugout-card';card.dataset.playerId=p.id;card.setAttribute('aria-label','#'+p.number+' '+playerLabel(p)+' — '+label+' — '+dugoutReason(p));const number=document.createElement('span');number.className='dugout-number';number.textContent=p.number;const name=document.createElement('span');name.className='dugout-name';name.textContent=p.riotousRookie?'Riotous Rookie':p.leagueRecord?.name||game.profile(p).name;card.append(number,name);card.addEventListener('pointerenter',e=>{if(e.pointerType!=='touch')showDugoutTooltip(p,card);});card.addEventListener('pointerleave',hidePitchTooltip);card.addEventListener('focus',()=>showDugoutTooltip(p,card));card.addEventListener('blur',hidePitchTooltip);cards.append(card);}lanes.append(lane);}board.append(article);}}
 function kickTargetSelection(){return game.match&&game.phase==="kickAim"&&!game.kickLanding;}
 function showPitchTooltip(cell){
@@ -138,7 +138,7 @@ function showPitchPopup(cell,title,details,actions,help=""){
   if(epoch!==popupEpoch||game!==currentGame||game.pending!==currentPending||popup.hidden)return;
   closePitchPopup();action.run();
  });if(i>0)b.className+=" secondary";list.append(b);}
- if(lines.length>1){const info=document.createElement("details"),label=document.createElement("summary");label.textContent="Details & checks";info.append(label);for(const line of lines.slice(1)){const p=document.createElement("p");p.textContent=line;info.append(p);}popup.append(info);}popup.hidden=false;document.getElementById("coach-panel").scrollTop=0;
+ if(lines.length>1){const info=document.createElement("details"),label=document.createElement("summary");label.textContent="Details & checks";info.append(label);for(const line of lines.slice(1)){const p=document.createElement("p");p.textContent=line;info.append(p);}popup.append(info);}popup.hidden=false;
  (list.querySelector("button")||close).focus({preventScroll:true});
 }
 const chooseBeforeWorkspace=choose;
@@ -172,7 +172,7 @@ pitch.addEventListener("keydown",event=>{
  if(event.key==="ArrowUp")next=Math.max(0,y-1)*26+x;
  if(event.key==="ArrowDown")next=Math.min(14,y+1)*26+x;
  if(event.key==="Home")next=y*26;if(event.key==="End")next=y*26+25;
- if(next!==null){event.preventDefault();pitch.children[index].tabIndex=-1;pitchFocus=next;pitch.children[next].tabIndex=0;pitch.children[next].focus();}
+ if(next!==null){event.preventDefault();pitch.children[index].tabIndex=-1;pitchFocus=next;pitch.children[next].tabIndex=0;pitch.children[next].focus({preventScroll:true});}
 });
 pitch.addEventListener("pointerover",e=>{if(e.pointerType==="touch")return;const cell=e.target.closest(".square");if(cell&&cell!==hoverSquare)showPitchTooltip(cell);});
 pitch.addEventListener("focusin",e=>{const cell=e.target.closest(".square");if(cell)showPitchTooltip(cell);});
@@ -181,7 +181,7 @@ pitch.addEventListener("focusout",hidePitchTooltip);
 popup.addEventListener("keydown",event=>{
  if(event.key==="Escape"){event.preventDefault();event.stopPropagation();closePitchPopup(true);return;}
  const buttons=Array.from(popup.querySelectorAll("button"));let i=buttons.indexOf(document.activeElement);
- if(event.key==="ArrowDown"||event.key==="ArrowUp"){event.preventDefault();buttons[(i+(event.key==="ArrowDown"?1:buttons.length-1))%buttons.length].focus();}
+ if(event.key==="ArrowDown"||event.key==="ArrowUp"){event.preventDefault();buttons[(i+(event.key==="ArrowDown"?1:buttons.length-1))%buttons.length].focus({preventScroll:true});}
 });
 document.addEventListener("keydown",event=>{
  if(event.key!=="Escape")return;hidePitchTooltip();
@@ -193,7 +193,6 @@ document.addEventListener("scroll",hidePitchTooltip,true);
 document.getElementById("pitch-scale").addEventListener("change",event=>{
  const scale=Number(event.target.value);if(![1,1.5,2].includes(scale))return;
  closePitchPopup();hidePitchTooltip();pitch.style.minWidth=(650*scale)+"px";
- const p=game.players.find(p=>p.id===selected&&game.onPitch(p));if(p)pitch.children[p.y*26+p.x].scrollIntoView({block:"nearest",inline:"center"});
 });
 function refreshWorkspace(){
  refreshSessionLocation();
@@ -234,19 +233,21 @@ function refreshWorkspace(){
  if(setupPlayers.length){const details=document.createElement("details"),summary=document.createElement("summary");summary.textContent="Select a player from the roster (or click on the pitch)";details.append(summary,...setupPlayers);flow.append(details);}
  if(game.match&&game.phase==="finished"&&game.leagueFixtureId)flow.append(button("Record result in Teams & leagues",()=>switchWorkspace("teams",true)));
  refreshRecordedResult();
- const phaseKey=[game.phase,game.setupTeam,game.swarmState?.team].join(":"),coachPanel=document.getElementById("coach-panel");if(displayedPhase!==phaseKey||displayedDecision&&!game.pending)coachPanel.scrollTop=0;displayedPhase=phaseKey;
- if(game.pending&&game.pending!==displayedDecision){choices.tabIndex=-1;choices.focus({preventScroll:true});}displayedDecision=game.pending;
 }
 const renderBeforeWorkspace=render;
 render=function(){
  const setup=game.match&&game.phase==="setup"?{game,drive:game.drive,team:game.setupTeam}:null;
  if(setup&&(!setupSelectionContext||setup.game!==setupSelectionContext.game||setup.drive!==setupSelectionContext.drive||setup.team!==setupSelectionContext.team))selected=null;
  setupSelectionContext=setup;
- const focused=document.activeElement?.closest?.(".square"),index=focused?Array.from(pitch.children).indexOf(focused):-1,logTop=log.scrollTop,followLog=log.scrollHeight-log.scrollTop-log.clientHeight<24;
+ const focused=document.activeElement?.closest?.(".square"),index=focused?Array.from(pitch.children).indexOf(focused):-1,logTop=log.scrollTop;
+ const coach=document.getElementById("coach-panel"),coachTop=coach.scrollTop,coachLeft=coach.scrollLeft;
+ const board=document.getElementById("pitch-board"),boardTop=board.scrollTop,boardLeft=board.scrollLeft;
  const pageX=globalThis.scrollX||0,pageY=globalThis.scrollY||0;
  renderBeforeWorkspace();refreshWorkspace();
- log.scrollTop=followLog?log.scrollHeight:logTop;
- if(index>=0&&!game.pending)pitch.children[index]?.focus({preventScroll:true});
+ log.scrollTop=logTop;
+ coach.scrollTop=coachTop;coach.scrollLeft=coachLeft;
+ board.scrollTop=boardTop;board.scrollLeft=boardLeft;
+ if(index>=0)pitch.children[index]?.focus({preventScroll:true});
  // Rebuilding the coach's desk can change browser scroll anchoring or briefly
  // shrink the document. Updating an action should not move the viewport.
  if((globalThis.scrollX||0)!==pageX||(globalThis.scrollY||0)!==pageY)globalThis.scrollTo?.({left:pageX,top:pageY,behavior:"instant"});
