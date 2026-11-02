@@ -5,8 +5,10 @@ const workspaceScroll={};
 let workspaceView="play",pitchFocus=0,popupAnchor=null,popupEpoch=0,hoverSquare=null,staffDetailsOpen=false,popoverTransition=false;
 let displayedDecision=null,displayedPhase="";
 const popup=document.getElementById("pitch-popup"),tooltip=document.getElementById("pitch-tooltip");
-function exhibitionRosterChoices(side){const roster=rosterCatalog.find(r=>r.id===document.getElementById("exhibition-"+side).value);for(const [kind,options] of [["league",roster.leagues||[roster.league]],["alignment",roster.alignments||[]]]){const select=document.getElementById("exhibition-"+side+"-"+kind),previous=select.value;select.replaceChildren();for(const name of options){const option=document.createElement("option");option.value=name;option.textContent=name;select.append(option);}select.value=options.includes(previous)?previous:options[0]||"";select.hidden=options.length<2;document.getElementById("exhibition-"+side+"-"+kind+"-label").hidden=select.hidden;}}
-for(const [id,index] of [["exhibition-home",0],["exhibition-away",1]]){const select=document.getElementById(id),side=index?"away":"home";for(const roster of rosterCatalog){const option=document.createElement("option");option.value=roster.id;option.textContent=roster.name;select.append(option);}select.value=practiceLeagueTeams[index].id;exhibitionRosterChoices(side);select.addEventListener("change",()=>{exhibitionRosterChoices(side);reset();});for(const kind of ["league","alignment"])document.getElementById(id+"-"+kind).addEventListener("change",reset);}
+function exhibitionRosterChoices(side){const roster=exhibitionTeam(document.getElementById("exhibition-"+side).value,false);if(!roster)return;for(const [kind,options] of [["league",roster.leagues||[roster.league]],["alignment",roster.alignments||[]]]){const select=document.getElementById("exhibition-"+side+"-"+kind),previous=select.value;select.replaceChildren();for(const name of options){const option=document.createElement("option");option.value=name;option.textContent=name;select.append(option);}select.value=options.includes(previous)?previous:options[0]||"";select.hidden=!!roster.exhibitionSaved||options.length<2;document.getElementById("exhibition-"+side+"-"+kind+"-label").hidden=select.hidden;}}
+globalThis.refreshExhibitionRosters=()=>{for(const side of ["home","away"]){const select=document.getElementById("exhibition-"+side),previous=select.value;select.replaceChildren();for(const roster of rosterCatalog){const option=document.createElement("option");option.value=roster.id;option.textContent=roster.name;select.append(option);}for(const team of leagueStore.data.teams.filter(t=>!t.draft)){const option=document.createElement("option");option.value="saved:"+team.id;option.textContent="Saved team: "+team.name;select.append(option);}select.value=exhibitionTeam(previous,false)?previous:practiceLeagueTeams[side==="home"?0:1].id;exhibitionRosterChoices(side);}};
+refreshExhibitionRosters();
+for(const [id,index] of [["exhibition-home",0],["exhibition-away",1]]){const select=document.getElementById(id),side=index?"away":"home";exhibitionRosterChoices(side);select.addEventListener("change",()=>{exhibitionRosterChoices(side);reset();});for(const kind of ["league","alignment"])document.getElementById(id+"-"+kind).addEventListener("change",reset);}
 function closePitchPopup(restore=false){
  popupEpoch++;popoverTransition=true;
  try{popup.hidden=true;if(restore&&popupAnchor?.isConnected)popupAnchor.focus({preventScroll:true});popupAnchor=null;}finally{popoverTransition=false;}
@@ -155,7 +157,7 @@ document.getElementById("pitch-scale").addEventListener("change",event=>{
 });
 function refreshWorkspace(){
  closePitchPopup();hidePitchTooltip();
- document.getElementById("exhibition-rosters").hidden=!game.match||!!game.league;
+ document.getElementById("exhibition-rosters").hidden=!game.match||!!game.league&&!game.exhibition;
  const pregame=game.match&&["fans","weather","leagueSteps","prayers","rolloff","kickChoice"].includes(game.phase),overview=document.getElementById("pregame-overview");
  overview.hidden=!pregame;document.getElementById("pitch-board").hidden=!!pregame;document.getElementById("mobile-pitch-help").hidden=!!pregame;document.getElementById("pitch-hint").hidden=!!pregame;
  document.getElementById("pitch-tools").hidden=!!pregame;document.getElementById("position-key").hidden=!!pregame;
@@ -189,7 +191,7 @@ function refreshWorkspace(){
  if(resources.length){const details=document.createElement("details"),summary=document.createElement("summary");summary.textContent=game.league?"Inducement purchases — required before continuing":"Staff & inducements · optional";details.append(summary,...resources);details.open=staffDetailsOpen||!!game.league;details.addEventListener("toggle",()=>{staffDetailsOpen=details.open;});flow.append(details);}
  const setupPlayers=Array.from(flow.children).filter(e=>e.className.includes("setup-player"));
  if(setupPlayers.length){const details=document.createElement("details"),summary=document.createElement("summary");summary.textContent="Select a player from the roster (or click on the pitch)";details.append(summary,...setupPlayers);flow.append(details);}
- if(game.match&&game.phase==="finished"&&game.league)flow.append(button("Record result in Teams & leagues",()=>switchWorkspace("teams",true)));
+ if(game.match&&game.phase==="finished"&&game.leagueFixtureId)flow.append(button("Record result in Teams & leagues",()=>switchWorkspace("teams",true)));
  refreshRecordedResult();
  const phaseKey=[game.phase,game.setupTeam,game.swarmState?.team].join(":"),coachPanel=document.getElementById("coach-panel");if(displayedPhase!==phaseKey||displayedDecision&&!game.pending)coachPanel.scrollTop=0;displayedPhase=phaseKey;
  if(game.pending&&game.pending!==displayedDecision){choices.tabIndex=-1;choices.focus({preventScroll:true});choices.scrollIntoView({block:"start",inline:"nearest"});}displayedDecision=game.pending;

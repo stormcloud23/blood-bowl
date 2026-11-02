@@ -105,15 +105,17 @@ class MatchGame extends MatchBase {
  constructor(teams,{dice=null,learning=false,resources=null}={}){
   super(teams,{dice});this.events=[];this.match=true;this.learning=learning;this.phase="fans";this.half=1;this.drive=0;this.scores=[0,0];this.turns=[0,0];
   this.fans=[0,0];this.dedicatedFans=[1,1];this.weather="Perfect Conditions";this.cheer=[false,false];this.driveBonus=[0,0];this.bribes=[0,0];this.skip=[false,false];this.ball={x:null,y:null,carrier:null};
-  this.league=teams.every(t=>t.leagueTeamId);
+  // Saved-team exhibitions share fixed roster resources and CTV inducement rules.
+  // Only a leagueFixtureId permits recording progression in the league store.
+  this.league=teams.every(t=>t.leagueTeamId);this.exhibition=teams.some(t=>t.exhibitionSaved);
   this.resourceChoices=teams.map((t,i)=>({...Object.fromEntries(Object.entries(MATCH_RESOURCES).map(([key,spec])=>[key,spec.initial])),...(resources?.[i]||t.matchResources||{})}));
   for(const team of [0,1])for(const [key,value] of Object.entries(this.resourceChoices[team]))if(!this.validResource(team,key,value))throw new Error("Invalid match resource: "+key);
   this.playerStats={};this.stalledTeams=[false,false];this.prayers=[[],[]];this.prayerHistory=[];this.rocks=[0,0];this.selectedStars=[[],[]];
-  if(this.league)for(const [team,t] of teams.entries())for(const [i,p] of this.players.filter(p=>p.team===team).entries()){const record=t.matchPlayers[i];Object.assign(p,{leaguePlayerId:record.id,profileOverride:record.profile,nigglingInjuries:record.nigglingInjuries,journeyman:!!record.journeyman,leagueRecord:record,number:record.number,captain:!!record.captain});}
+  for(const [team,t] of teams.entries())if(t.matchPlayers)for(const [i,p] of this.players.filter(p=>p.team===team).entries()){const record=t.matchPlayers[i];Object.assign(p,{leaguePlayerId:record.id,profileOverride:record.profile,nigglingInjuries:record.nigglingInjuries,journeyman:!!record.journeyman,leagueRecord:record,number:record.number,captain:!!record.captain});}
   this.swarmCounts=[0,0];this.raisedDeadUsed=[false,false];
   const high=teams[0].ctv>teams[1].ctv?0:1;this.leaguePurchaseOrder=this.league&&teams[0].ctv!==teams[1].ctv?[high,1-high]:[];this.leaguePurchaseStep=0;
   this.refreshResources();this.chefHalf=0;this.chefHistory=[];
-  this.players.forEach(p=>Object.assign(p,{x:null,y:null,status:"reserve"}));this.note(this.league?"League fixture: roster resources are fixed; complete inducement purchases after fans and weather.":"Exhibition match: configure staff and basic inducements before determining fans. Selected named stars and their unique abilities are available under inducements.");
+  this.players.forEach(p=>Object.assign(p,{x:null,y:null,status:"reserve"}));this.note(this.league?(this.exhibition?"Saved-team exhibition: roster resources are fixed; compare CTV and purchase inducements after fans and weather. Saved teams are unchanged.":"League fixture: roster resources are fixed; complete inducement purchases after fans and weather."):"Exhibition match: configure staff and basic inducements before determining fans. Selected named stars and their unique abilities are available under inducements.");
  }
  hasTeamRule(team,name){const roster=this.teams[team],rules=[...(roster.special||[]),...(roster.leagueRules?.[roster.league]||[])];if(roster.alignments?.length)rules.push("Favoured of "+(roster.alignment||roster.alignments[0]));return rules.some(rule=>rule.toLowerCase()===name.toLowerCase());}
  afterDeath(victim,record,done){const team=1-victim.team;if(!this.hasTeamRule(team,"Masters of Undeath")||this.plagueUsed[team]||this.profile(victim).st>4||this.has(victim,"Stunty")){done();return;}const roles=this.teams[team].positions.map((p,i)=>p.traits.includes("Lineman")?i:-1).filter(i=>i>=0),raise=role=>{this.plagueUsed[team]=true;this.raisedDeadUsed[team]=true;const p=this.addRaisedLineman(team,role,victim,"Masters of Undeath");this.note("Masters of Undeath: #"+p.number+" joins reserves.");done();};if(!roles.length){done();return;}if(roles.length===1){raise(roles[0]);return;}const options=roles.map(role=>"Raise "+this.teams[team].positions[role].name);this.skillChoice("Raise Dead lineman",team,options,choice=>raise(roles[options.indexOf(choice)]));}
@@ -123,7 +125,7 @@ class MatchGame extends MatchBase {
  useTeamReroll(p){if(!this.canTeamReroll(p))return false;if(!this.captainSaves(p.team))return super.useTeamReroll(p);const loner=this.parameter(p,"Loner");return !loner||this.roll("Loner needs "+loner.match(/\d+/)[0]+"+")>=Number(loner.match(/\d+/)[0]);}
  resourceSpec(team,key){
   const base=MATCH_RESOURCES[key];if(!base)return null;const spec={...base};
-  if(key==="dedicatedFans"&&this.league)spec.max=7;
+  if(key==="dedicatedFans"&&(this.league||this.teams[team].exhibitionSaved))spec.max=7;
   if(key==="teamRerolls")spec.cost=this.teams[team].reroll;
   if(key==="apothecary"){spec.cost=this.teams[team].staff?.apothecary||0;if(!spec.cost)spec.max=0;}
   if(key==="wanderingApothecaries"&&!this.teams[team].staff?.apothecary)spec.max=0;
@@ -139,6 +141,7 @@ class MatchGame extends MatchBase {
  validResource(team,key,value){if(![0,1].includes(team)||!Number.isInteger(value))return false;const spec=this.resourceSpec(team,key);return !!spec&&value>=(spec.min||0)&&value<=spec.max;}
  setResource(team,key,value){
   if(this.phase!==(this.league?"leagueSteps":"fans")||this.pending||!this.validResource(team,key,value))return false;
+  if(this.teams[team].exhibitionSaved&&MATCH_RESOURCES[key].group==="staff")return false;
   if(this.league&&(MATCH_RESOURCES[key].group==="staff"||this.leaguePurchaseOrder[this.leaguePurchaseStep]!==team))return false;
   const old=this.resourceChoices[team][key];this.resourceChoices[team][key]=value;
   if(this.league&&[0,1].some(t=>this.resourceCosts(t).inducements>this.leagueBudget(t))){this.resourceChoices[team][key]=old;return false;}
@@ -147,7 +150,7 @@ class MatchGame extends MatchBase {
  configureResources(team){
   if(this.phase!==(this.league?"leagueSteps":"fans")||this.pending||![0,1].includes(team)||this.league&&this.leaguePurchaseOrder[this.leaguePurchaseStep]!==team)return false;
   const menu=()=>{
-   const keys=Object.keys(MATCH_RESOURCES).filter(key=>this.resourceSpec(team,key).max>0&&(!this.league||MATCH_RESOURCES[key].group==="inducement")),options=keys.map(key=>this.resourceSpec(team,key).label+": "+this.resourceChoices[team][key]);
+   const keys=Object.keys(MATCH_RESOURCES).filter(key=>this.resourceSpec(team,key).max>0&&(!(this.league||this.teams[team].exhibitionSaved)||MATCH_RESOURCES[key].group==="inducement")),options=keys.map(key=>this.resourceSpec(team,key).label+": "+this.resourceChoices[team][key]);
    this.skillChoice("Staff and inducements — "+this.teams[team].name,team,[...options,"Mercenaries","Star players","Done"],choice=>{
     if(choice==="Star players"){this.configureStars(team,menu);return;}
     if(choice==="Mercenaries"){this.configureMercenaries(team,menu);return;}
@@ -158,7 +161,7 @@ class MatchGame extends MatchBase {
   };menu();return true;
  }
  canBuyPlayers(team){return [0,1].includes(team)&&!this.pending&&this.phase===(this.league?"leagueSteps":"fans")&&(!this.league||this.leaguePurchaseOrder[this.leaguePurchaseStep]===team);}
- starEligible(team,star){return !!star&&!(star.exhibitionOnly&&this.league)&&!(star.excludeRosters||[]).includes(this.teams[team].id)&&!(star.id==="josef-bugman"&&this.resourceChoices[team].josefBugman)&&!(star.excludeLeagues||[]).includes(this.teams[team].league)&&(star.anyTeam||star.leagues.includes(this.teams[team].league)||(star.special||[]).some(rule=>this.hasTeamRule(team,rule)));}
+ starEligible(team,star){return !!star&&!(star.exhibitionOnly&&this.league&&!this.exhibition)&&!(star.excludeRosters||[]).includes(this.teams[team].id)&&!(star.id==="josef-bugman"&&this.resourceChoices[team].josefBugman)&&!(star.excludeLeagues||[]).includes(this.teams[team].league)&&(star.anyTeam||star.leagues.includes(this.teams[team].league)||(star.special||[]).some(rule=>this.hasTeamRule(team,rule)));}
  canHireStar(team,id){
   const star=MATCH_STARS.find(s=>s.id===id);return this.canBuyPlayers(team)&&this.starEligible(team,star)&&this.selectedStars[team].length<2&&!this.selectedStars[team].includes(id)&&this.players.filter(p=>p.team===team).length+(star.players?.length||1)<=16&&(!this.league||this.resourceCosts(team).inducements+star.cost<=this.leagueBudget(team));
  }

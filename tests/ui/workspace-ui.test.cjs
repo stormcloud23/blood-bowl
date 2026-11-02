@@ -207,3 +207,37 @@ test('both teams keep role shapes, shirt numbers, status classes, ball and selec
 test('repeating an unactivated destination confirms one Move without a separate declaration',()=>{const f=workspaceFixture('dodge');f.run('selected=game.players[0].id;game.dice=()=>6;render();choose(9,6)');assert.equal(f.run('game.mover'),null);assert.equal(f.run('game.players[0].used'),false);assert.ok(f.get('pitch-popup').hidden);f.run('choose(9,6)');assert.equal(f.run('game.players[0].x'),9);assert.equal(f.run('game.players[0].y'),6);assert.equal(f.run('game.players[0].spent'),1);assert.equal(f.run('destination'),null);});
 test('route confirmation honours activation-roll interruptions without moving or repeating dice',()=>{const f=workspaceFixture('dodge');f.run('selected=game.players[0].id;game.players[0].extraSkills=["Bone Head"];globalThis.rolls=0;game.dice=()=>{rolls++;return 1};render();choose(9,6)');const commit=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Confirm Move');commit.click();assert.equal(f.run('game.pending.kind'),'Bone Head');assert.equal(f.run('game.players[0].x'),10);assert.equal(f.run('game.players[0].spent'),0);assert.equal(f.run('destination'),null);commit.click();assert.equal(f.run('rolls'),1);});
 test('a commit button from an older preview cannot commit or erase its replacement route',()=>{const f=workspaceFixture('dodge');f.run('selected=game.players[0].id;render();choose(9,6)');const commit=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Confirm Move'),cancel=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Cancel movement preview');f.run('choose(8,6)');const before=f.run('JSON.stringify(destination)');commit.click();cancel.click();assert.equal(f.run('JSON.stringify(destination)'),before);assert.equal(f.run('game.mover'),null);});
+
+test('saved exhibition teams use developed profiles, ordered CTV budgets and isolated snapshots',()=>{
+ const f=workspaceFixture('match');
+ f.run(`for(let i=0;i<2;i++){const t=leagueStore.create(demoLeagueTeams[0].id,'Custom '+i);for(let n=0;n<11;n++)leagueStore.hire(t.id,0,'Player '+n);leagueStore.submit(t.id);}leagueStore.setStaff(leagueStore.data.teams[0].id,'assistants',1);leagueSave();renderLeague();globalThis.beforeExhibition=JSON.stringify(leagueStore.data);`);
+ assert.ok(f.get('exhibition-home').children.some(o=>o.textContent==='Saved team: Custom 0'));
+ f.run(`document.getElementById('exhibition-home').value='saved:'+leagueStore.data.teams[0].id;document.getElementById('exhibition-away').value='saved:'+leagueStore.data.teams[1].id;reset();`);
+ assert.equal(f.run('game.exhibition&&game.league'),true);
+ assert.equal(f.run('game.teams[0].name'),'Custom 0');
+ assert.equal(f.get('exhibition-rosters').hidden,false);
+ assert.equal(f.run('game.players[0].profileOverride.ma===leagueStore.data.teams[0].players[0].profile.ma'),true);
+ f.run(`game.phase='leagueSteps'`);
+ assert.equal(f.run('game.setResource(1,"bribes",1)'),false);
+ assert.equal(f.run('game.lockLeagueInducements(0)'),true);
+ assert.equal(f.run('game.leagueBudget(1)'),60000);
+ assert.equal(f.run('game.setResource(1,"kegs",1)'),true);
+ assert.equal(f.run('game.setResource(1,"kegs",2)'),false);
+ assert.equal(f.run('JSON.stringify(leagueStore.data)===beforeExhibition'),true);
+ f.run(`document.getElementById('exhibition-away').value=demoLeagueTeams[1].id;reset();`);
+ assert.equal(f.run('game.league'),false);
+ assert.equal(f.run('!!game.players[0].profileOverride'),true);
+});
+
+test('pitch marks sweet spots and closed or active trapdoors',()=>{
+ const f=workspaceFixture('match');
+ for(const x of [6,19])assert.ok(f.cell(x,7).children.some(e=>e.className==='sweet-spot'));
+ assert.match(f.cell(6,1).className,/trapdoor/);assert.doesNotMatch(f.cell(6,1).className,/trapdoor-active/);
+ f.run(`game.prayers[0].push('Treacherous Trapdoor');render();`);
+ assert.match(f.cell(6,1).className,/trapdoor-active/);assert.match(f.cell(19,13).className,/trapdoor-active/);
+});
+
+test('movement risk colors follow the hardest check on each tile',()=>{
+ const f=workspaceFixture('match');
+ for(const target of [2,3,4,5,6]){f.run(`game.players.forEach(p=>Object.assign(p,{x:null,y:null,status:'reserve'}));Object.assign(game.players[0],{x:10,y:7,status:'standing'});selected=game.players[0].id;game.phase='play';game.active=0;game.planFrom=()=>({x:11,y:7,cost:1,rushes:0,dodge:true,target:${target}});remainingRange=()=>new Map([['11,7',{spent:1,path:[{x:11,y:7,plan:{x:11,y:7,cost:1,rushes:0,dodge:true,target:${target}}}]}]]);render();`);assert.match(f.cell(11,7).className,new RegExp('risk-'+target));}
+});

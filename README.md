@@ -61,6 +61,7 @@ and runs the full rules/UI suite. Keep `git diff --check` clean.
 ## Current scope
 
 - Regulation two-half exhibition matches, practice modes and a skills laboratory.
+- Submitted saved teams in exhibition selectors, with CTV-based inducement purchases when both teams are saved. Exhibitions leave saved team records and Treasury unchanged.
 - Thirty curated rosters and 67 named stars across 64 hiring selections.
 - Staff, inducements, Wizards, mercenaries and all sixteen underdog prayers.
 - Team drafting, saved local leagues, fixtures, progression and JSON backups.
