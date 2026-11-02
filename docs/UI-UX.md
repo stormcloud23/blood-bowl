@@ -1,5 +1,11 @@
 # Match workspace — v0.0.42
 
+## Reset control placement
+
+New game / reset is below the dugouts, separated from End Move and End team turn
+by the dugout area and a spaced divider. The same reset action remains available
+in Play and Testing.
+
 ## Manual viewport control
 
 Game updates preserve the page, pitch, coach panel and match log scroll positions.
