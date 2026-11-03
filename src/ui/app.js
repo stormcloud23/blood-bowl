@@ -21,7 +21,7 @@ function positionMarker(profile){
  return POSITION_MARKERS[role];
 }
 function markerGraphic(marker){const graphic=document.createElement("span");graphic.className="token-shape";graphic.setAttribute("aria-hidden","true");graphic.innerHTML='<svg viewBox="0 0 40 40" focusable="false" aria-hidden="true">'+marker.svg+'</svg>';return graphic;}
-let blitzExecution=null,reactionExecution=null,ballExecution=null;
+let blitzExecution=null,reactionExecution=null,ballExecution=null,foulExecution=null;
 let game,selected=null,destination=null,blockMode=false,ballMode=false,throwDestination=null;
 function reset(){if(globalThis.resetLeagueTeams)globalThis.resetLeagueTeams();const scenario=document.getElementById("scenario").value;game=scenario.startsWith("match")?new MatchGame(teams,{learning:scenario==="match-learning"}):new SkillGame(teams,{scenario});selected=game.practicePlayer;destination=null;blockMode=false;ballMode=false;throwDestination=null;render();const p=game.players.find(p=>p.id===selected);showProfile(p?.team??0,p?.role??0,p?.number??null);}
 function escapeTeamText(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;", "'":"&#39;"}[c]));}
@@ -71,7 +71,7 @@ function ballForecastFor(player,route,kind){
 function previewBallTransfer(player,target){
  if(!player||!target||target.id===player.id||target.team!==player.team||!game.onPitch(target)||game.ball.carrier!==player.id)return false;
  const start=plannedStart(player),previous=previewRoute(player);
- const route=previous&&!previous.blockTarget&&!previous.blitzTarget&&!previous.reactionContext?previous:{x:player.x,y:player.y,spent:start.spent,path:[]};
+ const route=previous&&!previous.blockTarget&&!previous.blitzTarget&&!previous.foulTarget&&!previous.reactionContext?previous:{x:player.x,y:player.y,spent:start.spent,path:[]};
  const kind=game.mover&&["pass","handoff"].includes(game.action)?game.action:route.path.length&&game.distance(route,target)===1?"handoff":"pass";
  if(!canPlanBallAction(player,kind))return false;
  const view=ballForecastFor(player,route,kind),receiver=view.players.find(p=>p.id===target.id);
@@ -95,6 +95,39 @@ function continueBallRoute(){
  ballExecution=null;
  if(run.kind==="handoff"){if(game.canHandoff(target))game.handoff(target.id);}
  else if(game.passPreview(target.x,target.y))game.pass(target.x,target.y);
+}
+function canPlanFoul(player){
+ if(!player||game.pending||game.finished||player.team!==game.active||game.moveContext||game.dumpContext||game.bombContext||game.match&&game.phase!=="play")return false;
+ return game.mover?game.mover===player.id&&game.action==="foul"&&!player.specialDone&&player.status==="standing"&&!player.distracted:game.specialActions(player).includes("Foul");
+}
+function foulTargetLegal(player,target){return !!(player&&target&&target.team!==player.team&&game.onPitch(target)&&["prone","stunned"].includes(target.status));}
+function foulArmour(target){const value=game.profile(target).av,n=Number.parseInt(value);return Number.isFinite(n)?n+"+":String(value);}
+function previewFoul(player,target){
+ if(!foulTargetLegal(player,target)||!canPlanFoul(player))return false;
+ const start=plannedStart(player),previous=previewRoute(player);
+ if(previous?.foulTarget===target.id&&previous.targetX===target.x&&previous.targetY===target.y){commitRoute();return true;}
+ const planned=previous?.foulTarget?previous.foulBaseRoute:previous,base=planned&&!planned.ballAction&&!planned.blockTarget&&!planned.blitzTarget&&!planned.reactionContext?planned:null,from=base||start;
+ const approaches=game.distance(from,target)===1?[{x:from.x,y:from.y,spent:from.spent,path:[]}]:[...remainingRange(player,base).values()].filter(n=>game.distance(n,target)===1);
+ approaches.sort((a,b)=>a.checks-b.checks||a.spent-b.spent||a.turns-b.turns||a.order-b.order);
+ const route=approaches[0];if(!route)return false;
+ destination={...route,path:[...(base?.path||[]),...route.path],foulBaseRoute:base,foulTarget:target.id,targetX:target.x,targetY:target.y,playerId:player.id,startX:start.x,startY:start.y,startSpent:start.spent};
+ blockMode=false;ballMode=false;throwDestination=null;render();return true;
+}
+function continueFoulRoute(){
+ const run=foulExecution;if(!run)return;
+ const player=game.players.find(p=>p.id===run.playerId),target=game.players.find(p=>p.id===run.targetId);
+ if(run.game===game&&!game.finished&&game.pending&&!game.mover&&player&&!player.used)return;
+ if(run.game!==game||game.finished||game.mover!==run.playerId||game.action!=="foul"||!player||player.specialDone||!foulTargetLegal(player,target)||target.x!==run.targetX||target.y!==run.targetY){foulExecution=null;return;}
+ if(game.pending)return;
+ if(player.status!=="standing"||player.distracted||player.x!==run.x||player.y!==run.y){foulExecution=null;return;}
+ while(run.index<run.path.length){
+  const next=run.path[run.index++];run.x=next.x;run.y=next.y;
+  if(!game.step(next.x,next.y)){foulExecution=null;return;}
+  if(game.pending)return;
+  if(game.mover!==run.playerId||game.finished||player.status!=="standing"||player.x!==run.x||player.y!==run.y){foulExecution=null;return;}
+ }
+ foulExecution=null;
+ if(game.specialTargets().includes(target))game.performSpecial(target.id);
 }
 function previewBlock(player,target){
  if(!game.canBlock(player,target))return;
@@ -281,6 +314,11 @@ function planChecks(plan,mover){
 function commitRoute(){
  const player=planningPlayer();if(!player||!destination||game.pending&&!onTheBallMove())return;
  const route=previewRoute(player);if(!route)return;
+ if(route.foulTarget){
+  const target=game.players.find(p=>p.id===route.foulTarget);if(!canPlanFoul(player)||!foulTargetLegal(player,target)||target.x!==route.targetX||target.y!==route.targetY)return;
+  if(!game.mover&&!game.start(player.id,"foul"))return;
+  foulExecution={game,playerId:player.id,targetId:target.id,targetX:target.x,targetY:target.y,path:route.path,index:0,x:player.x,y:player.y};destination=null;ballMode=false;throwDestination=null;continueFoulRoute();render();return;
+ }
  if(route.ballAction){
   const target=game.players.find(p=>p.id===route.ballTarget);if(!canPlanBallAction(player,route.ballAction)||!target||target.x!==route.targetX||target.y!==route.targetY)return;
   if(!game.mover&&!game.start(player.id,route.ballAction))return;
@@ -349,13 +387,13 @@ function passingInterceptions(board=game,enabled=ballMode,target=throwDestinatio
  return threats;
 }
 function render(){
- continueBlitz();continueBallRoute();continueReactionRoute();
+ continueBlitz();continueBallRoute();continueFoulRoute();continueReactionRoute();
  if(destination?.reactionContext&&destination.reactionContext!==game.moveContext)destination=null;
  if(game.bombActor()){const p=game.bombActor();ballMode=true;if(selected!==p.id)showProfile(p.team,p.role,p.number);selected=p.id;}
  if(ballMode&&!(["throw-team-mate","kick-team-mate"].includes(game.action)?game.throwActor():game.ballActor(game.action))){ballMode=false;throwDestination=null;}
  if(blockMode&&(game.mover||game.pending))blockMode=false;
  const mover=game.players.find(p=>p.id===game.mover),inspected=game.moveContext?.player||game.players.find(p=>p.id===selected);
- const planner=planningPlayer(),chosen=previewRoute(planner),range=ballMode||chosen?.ballAction?new Map():remainingRange(planner,chosen);
+ const planner=planningPlayer(),chosen=previewRoute(planner),range=ballMode||chosen?.ballAction||chosen?.foulTarget?new Map():remainingRange(planner,chosen);
  const ballBoard=chosen?.ballAction?ballForecastFor(planner,chosen,chosen.ballAction):game,ballTargeting=ballMode||!!chosen?.ballAction;
  const blockAttacker=blockMode?game.players.find(p=>p.id===selected):null;
  const pushDecision=game.pending?.type==="pushChoice"?game.pending:null;
@@ -371,6 +409,9 @@ function render(){
   const blockForecast=blockTarget?blockDifficulty(blockAttacker||planner,p,chosen||(blockMode==="blitz"?blitzRoute(blockAttacker,p):null),!!chosen?.blitzTarget||blockMode==="blitz"):null;
   const checks=plan&&planner?planChecks(plan,planner):[],risky=checks.length>0;
   cell.type="button";cell.className="square"+((x+y)%2===0?" turf-light":"")+(x===0?" endzone endzone-left":x===25?" endzone endzone-right":"")+(x===12?" middle":"")+(y===3||y===10?" wide":"")+(p&&p.id===(game.moveContext?.player.id??selected)&&(!onTheBall||onTheBall.players.has(p.id))?" selected":"")+(reach&&reach.path.length||routeIndex?" legal":"")+(risky?" risk risk-"+Math.max(...checks.map(check=>Number(check.match(/([2-6])\+/)?.[1]||2))):"")+(plan?.jump?" jump":"")+(routeIndex?" route":"")+(destination?.x===x&&destination?.y===y?" destination":"")+(blockTarget?" block-target risk risk-"+blockForecast.risk:"");
+  if(p&&p.id===chosen?.foulTarget){
+   const armour=foulArmour(p),badge=document.createElement("span");badge.className="throw-range-label foul-armour-label";badge.textContent=armour;badge.setAttribute("aria-hidden","true");cell.append(badge);cell.className+=" foul-target destination";cell.dataset.foulArmour=armour;
+  }
   const ballTarget=ballTargeting&&(["throw-team-mate","kick-team-mate"].includes(ballBoard.action)?!!ballBoard.throwPreview(x,y):ballBoard.action==="handoff"?ballBoard.canHandoff(ballBoard.at(x,y)):!!ballBoard.passPreview(x,y));
   if(ballTarget)cell.className+=" legal";
   const interception=interceptions.get(p?.id),throwing=interception||throwingOverlay(x,y,ballBoard,ballTargeting);
@@ -380,6 +421,7 @@ function render(){
   const label=p?teams[p.team].name+" #"+p.number+" "+playerLabel(p)+" ("+p.status+(p.distracted?", distracted":"")+(p.used?", activated":"")+")":"empty";
   const ballHere=game.ball.carrier?p?.id===game.ball.carrier:game.ball.x===x&&game.ball.y===y;
   cell.setAttribute("aria-label","Square "+(x+1)+", "+(y+1)+", "+label+(ballHere?", ball":"")+(routeIndex?", route step "+routeIndex:""));cell.title=blockTarget?"Valid Block target · "+label:routeIndex?"Route step "+routeIndex+" of "+chosen.path.length+" · "+label:reach?.path.length?"Reachable in "+reach.spent+" movement · "+label:label;
+  if(p&&p.id===chosen?.foulTarget){const detail="Foul target · Armour "+foulArmour(p);cell.title+=" · "+detail;cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+detail);}
   if(blockForecast){cell.title+=" · "+blockForecast.detail;cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+blockForecast.detail);cell.dataset.blockDifficulty=String(blockForecast.risk);}
   if(plan){const detail=checks.length?checks.join(" → "):"no roll on this step";cell.title+=" · "+detail;cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+detail);}
   if(throwing){if(throwing.label){const badge=document.createElement("span");badge.className="throw-range-label";badge.textContent=throwing.label;badge.setAttribute("aria-hidden","true");cell.append(badge);}cell.title+=" · "+throwing.detail;cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+throwing.detail);}
@@ -415,6 +457,7 @@ function render(){
  movement.textContent=(game.blockAction?blockLabel(game.blockAction.count,game.blockAction.chooserTeam===game.blockAction.attacker.team):mover?"#"+mover.number+" · MA "+mover.spent+" / "+game.movementAllowance(mover)+" · Rush "+Math.max(0,mover.spent-game.profile(mover).ma)+" / "+game.rushLimit(mover):planner?"#"+planner.number+" · MA "+game.profile(planner).ma+" · Rush "+game.rushLimit(planner):"")+(planner||mover||game.blockAction?" · ":"")+"Re-rolls: "+game.rerollsAvailable(game.active)+(game.action==="blitz"?" · Blitz #"+game.players.find(p=>p.id===game.blitzTarget)?.number+(game.blitzBlocked?" · block completed":""):"");
  if(game.moveContext)movement.textContent="#"+game.moveContext.player.number+" · On the Ball · "+game.moveContext.player.spent+" / 3 squares";
  const choices=document.getElementById("choices");choices.replaceChildren();
+ if(chosen?.foulTarget){const target=game.players.find(p=>p.id===chosen.foulTarget),detail=document.createElement("p");detail.textContent="Foul #"+target.number+" · AV "+foulArmour(target);choices.append(detail);}
  if(chosen?.ballAction){
   const target=ballBoard.players.find(p=>p.id===chosen.ballTarget),overlay=throwingOverlay(target.x,target.y,ballBoard,true),detail=document.createElement("p");
   detail.textContent=(chosen.ballAction==="handoff"?"Hand-off":"Pass")+" #"+target.number+" · "+(chosen.ballAction==="handoff"?"Catch ":"")+(overlay?.label||"×");choices.append(detail);
@@ -423,7 +466,7 @@ function render(){
   const target=game.players.find(p=>p.id===(chosen.blockTarget||chosen.blitzTarget)),forecast=blockDifficulty(planner,target,chosen,!!chosen.blitzTarget),detail=document.createElement("p");
   detail.textContent=forecast.label;choices.append(detail);
  }
- if(chosen&&!ballMode){const remaining=document.createElement("p");remaining.textContent=chosen.reactionContext?"After preview · "+Math.max(0,3-chosen.spent)+" squares remaining":"After preview · MA "+Math.max(0,(chosen.reactionContext?3:game.profile(planner).ma)-chosen.spent-(chosen.blitzTarget?1:0))+" · Rush "+Math.max(0,game.rushLimit(planner)-Math.max(0,chosen.spent+(chosen.blitzTarget?1:0)-(chosen.reactionContext?3:game.profile(planner).ma)))+" remaining";if(!chosen.blockTarget&&(!chosen.ballAction||chosen.path.length))choices.append(remaining);const routeGame=game;choices.append(button(chosen.ballAction==="handoff"?"Confirm Hand-off":chosen.ballAction==="pass"?"Confirm Pass":chosen.blockTarget?"Confirm Block":chosen.blitzTarget?"Confirm Blitz":"Confirm Move",()=>{if(game===routeGame&&destination===chosen&&(!game.pending||onTheBallMove()))commitRoute();}));choices.append(button("Cancel preview",()=>{if(game===routeGame&&destination===chosen&&(!game.pending||onTheBallMove()))cancelMovementPreview();}));}
+ if(chosen&&!ballMode){const remaining=document.createElement("p");remaining.textContent=chosen.reactionContext?"After preview · "+Math.max(0,3-chosen.spent)+" squares remaining":"After preview · MA "+Math.max(0,(chosen.reactionContext?3:game.profile(planner).ma)-chosen.spent-(chosen.blitzTarget?1:0))+" · Rush "+Math.max(0,game.rushLimit(planner)-Math.max(0,chosen.spent+(chosen.blitzTarget?1:0)-(chosen.reactionContext?3:game.profile(planner).ma)))+" remaining";if(!chosen.blockTarget&&(!(chosen.ballAction||chosen.foulTarget)||chosen.path.length))choices.append(remaining);const routeGame=game;choices.append(button(chosen.foulTarget?"Confirm Foul":chosen.ballAction==="handoff"?"Confirm Hand-off":chosen.ballAction==="pass"?"Confirm Pass":chosen.blockTarget?"Confirm Block":chosen.blitzTarget?"Confirm Blitz":"Confirm Move",()=>{if(game===routeGame&&destination===chosen&&(!game.pending||onTheBallMove()))commitRoute();}));choices.append(button("Cancel preview",()=>{if(game===routeGame&&destination===chosen&&(!game.pending||onTheBallMove()))cancelMovementPreview();}));}
  if(ballMode&&["throw-team-mate","kick-team-mate"].includes(game.action)){
   const p=document.createElement("p"),preview=throwDestination&&game.throwPreview(throwDestination.x,throwDestination.y);p.textContent=preview?preview.name+" · "+(Number.isFinite(preview.target)?"Superb Throw "+Math.min(6,preview.target)+"+":"PA –: automatic fumble")+" · #"+preview.mate.number:"Throw team-mate · no target";choices.append(p);
  }else if(ballMode){
@@ -463,7 +506,7 @@ function render(){
    const row=document.createElement("p"),checks=planChecks(step.plan,planner);
    row.textContent=(i+1)+". "+(step.plan.jump?"Jump to ":"Move to ")+(step.x+1)+", "+(step.y+1)+" · "+step.plan.cost+" MA · "+(checks.length?checks.join(" → "):"no roll");choices.append(row);
   });
-  if(!chosen.path.length&&!chosen.blockTarget&&!chosen.blitzTarget&&!chosen.ballAction)choices.append(button("Clear destination",()=>{destination=null;render();}));
+  if(!chosen.path.length&&!chosen.blockTarget&&!chosen.blitzTarget&&!chosen.ballAction&&!chosen.foulTarget)choices.append(button("Clear destination",()=>{destination=null;render();}));
  }
  document.getElementById("pass").disabled=!game.canBallAction(inspected,"pass");
  document.getElementById("handoff").disabled=!game.canBallAction(inspected,"handoff");
