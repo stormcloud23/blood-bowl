@@ -126,3 +126,13 @@ test('duplicate or invalid shirt numbers and empty names leave saved details int
 test('active fixtures lock team names, coach names and player shirt details',()=>{
  const {s,ts}=setup(),t=ts[0];s.startFixture(...ts.map(t=>t.id));assert.throws(()=>s.updateDetails(t.id,'Changed','Coach'),/active fixture/);assert.throws(()=>s.updatePlayerDetails(t.id,t.players[0].id,'Changed',42),/active fixture/);
 });
+
+test('deleting and restoring a team retains history and round-trips through backups',()=>{
+ const {s,g,nominations,ts}=played();s.finishFixture(g,nominations);const history=JSON.stringify(s.data.matches),record=JSON.stringify(s.team(ts[0].id).record);s.deleteTeam(ts[0].id);assert.equal(s.team(ts[0].id).deleted,true);assert.equal(JSON.stringify(s.data.matches),history);assert.equal(JSON.stringify(s.team(ts[0].id).record),record);const reloaded=new LeagueStore(rosters,s.data);assert.equal(reloaded.team(ts[0].id).deleted,true);assert.throws(()=>reloaded.matchTeam(reloaded.team(ts[0].id)),/Restore/);assert.throws(()=>reloaded.hire(ts[0].id,0),/Restore/);reloaded.restoreTeam(ts[0].id);assert.ok(!reloaded.team(ts[0].id).deleted);assert.doesNotThrow(()=>new LeagueStore(rosters,reloaded.data));
+});
+test('active fixtures prevent deletion and deleted teams cannot start new fixtures',()=>{
+ const {s,ts}=setup();s.startFixture(...ts.map(t=>t.id));assert.throws(()=>s.deleteTeam(ts[0].id),/active/);assert.ok(!s.team(ts[0].id).deleted);s.data.active=null;s.deleteTeam(ts[0].id);assert.throws(()=>s.startFixture(...ts.map(t=>t.id)));assert.equal(s.data.active,null);
+});
+test('deleted-team flags are validated even on empty drafts',()=>{
+ const s=new LeagueStore(rosters),t=s.create(rosters[0].id,'Empty');t.deleted='true';assert.throws(()=>new LeagueStore(rosters,s.data),/deleted-team/);
+});

@@ -28,7 +28,8 @@ Human and Orc. Match save/resume and a replay export are not part of this mode.
 ## Play against one coach
 
 In Play, choose Computer · Human team or Computer · Orc team in the Opponent
-menu. Changing this choice starts a new exhibition. You control home; the
+menu inside Match setup, then New exhibition match. Changing the selection alone
+does not replace the ongoing game. You control home; the
 computer controls the away preset. Its roster selectors are locked until you
 return to hotseat or take over. Custom home teams remain available.
 
