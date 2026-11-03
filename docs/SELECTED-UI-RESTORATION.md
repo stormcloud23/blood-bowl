@@ -35,7 +35,9 @@ Confirmed deletion removes the team from saved-team selectors, exhibition custom
 choices and new fixture scheduling. Teams participating in an active league
 fixture must finish and record it first.
 
-Deletion is recoverable: **Deleted teams** offers a Restore button. The team
+Deletion is recoverable: **Backup & restore → Deleted teams**, at the bottom of
+Teams & leagues, offers a Restore button. Deleted members are omitted from main
+standings, and leagues containing only deleted members are hidden there. The team
 record, players, league membership and past results are retained so deleting a
 team cannot break league history or existing backups. Backups retain deleted
 teams and their deletion state. A running exhibition uses its existing snapshot

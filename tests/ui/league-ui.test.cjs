@@ -112,3 +112,13 @@ test('background match renders retain recruitment text and one player inspector'
 test('failed deletion save rolls back the team and keeps the review available',()=>{
  const f=uiFixture();input(f,'New team name').value='Keep';button(f,'Create rookie team').listeners.click();button(f,'Delete Keep').listeners.click();f.run('localStorage.setItem=()=>{throw Error("Storage full")};');button(f,'Confirm delete Keep').listeners.click();assert.ok(!f.run('leagueStore.data.teams[0].deleted'));assert.match(f.run('leagueMessage'),/Storage full/);assert.ok(button(f,'Confirm delete Keep'));
 });
+
+test('deleted-only leagues stay out of a new draft and recovery is nested in the final backup section',()=>{
+ const f=uiFixture();ready(f);f.run('for(const t of leagueStore.data.teams)leagueStore.deleteTeam(t.id);leagueSelected=leagueStore.create(demoLeagueTeams[0].id,"New Draft").id;leagueSave();renderLeague()');const panel=f.get('league-panel'),backup=panel.children.at(-1);assert.equal(backup.className,'backup-tools');assert.ok(descendants(backup).some(e=>e.textContent==='Deleted teams · 2'));const main=panel.children.filter(e=>e!==backup).flatMap(descendants);assert.ok(!main.some(e=>e.textContent==='Local League'||e.textContent==='League'));assert.ok(!main.some(e=>e.textContent.includes('Club 0')||e.textContent.includes('Club 1')));assert.ok(main.some(e=>e.textContent.includes('New Draft')));
+});
+test('mixed league standings omit deleted teams while keeping the league and live members',()=>{
+ const f=uiFixture();ready(f);f.run('leagueStore.deleteTeam(leagueStore.data.teams[0].id);leagueSelected=leagueStore.data.teams[1].id;leagueSave();renderLeague()');const panel=f.get('league-panel'),main=panel.children.filter(e=>e.className!=='backup-tools').flatMap(descendants);assert.ok(!main.some(e=>e.textContent.includes('Club 0')));assert.ok(main.some(e=>e.textContent==='Club 1'));assert.equal(panel.children.at(-1).className,'backup-tools');
+});
+test('backup tools remain last when no live teams exist or the selected roster is locked',()=>{
+ const f=uiFixture();assert.equal(f.get('league-panel').children.at(-1).className,'backup-tools');ready(f);button(f,'Play league fixture').listeners.click();assert.equal(f.get('league-panel').children.at(-1).className,'backup-tools');
+});
