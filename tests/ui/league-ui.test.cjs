@@ -83,8 +83,8 @@ test('starting a saved fixture clears old practice targeting state and profile',
  const f=uiFixture();ready(f);f.run('blockMode=true;ballMode=true;throwDestination={x:14,y:7};destination={playerId:"old-player"};document.getElementById("profile").innerHTML="Old practice player"');button(f,'Play league fixture').listeners.click();assert.equal(f.run('blockMode'),false);assert.equal(f.run('ballMode'),false);assert.equal(f.run('throwDestination'),null);assert.equal(f.run('destination'),null);assert.ok(!f.get('profile').innerHTML.includes('Old practice player'));
 });
 
-test('league match instructions describe actual permanent staff and inducement funding',()=>{
- const f=uiFixture();ready(f);button(f,'Play league fixture').listeners.click();assert.match(f.get('mode-notice').textContent,/League fixture/);f.run('game.advancePregame();game.advancePregame();render()');assert.ok(f.get('matchflow').children.some(e=>e.textContent.includes('Permanent staff are fixed')));assert.ok(!f.get('matchflow').children.some(e=>e.textContent.includes('will come with team management')));
+test('league match desk shows inducement phase without generic funding instructions',()=>{
+ const f=uiFixture();ready(f);button(f,'Play league fixture').listeners.click();assert.match(f.get('mode-notice').textContent,/League fixture/);f.run('game.advancePregame();game.advancePregame();render()');assert.ok(f.get('matchflow').children.some(e=>e.textContent==='Inducements'));assert.ok(!f.get('matchflow').children.some(e=>e.textContent.includes('Permanent staff are fixed')));assert.ok(!f.get('matchflow').children.some(e=>e.textContent.includes('will come with team management')));
 });
 
 test('completed fixture history shows saved scores and survives reload',()=>{

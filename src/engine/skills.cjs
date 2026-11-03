@@ -437,7 +437,7 @@ class SkillGame extends SkillBase {
  used(p,name){return p.skillUses?.[name]===this.skillTurn;}
  use(p,name){p.skillUses||={};p.skillUses[name]=this.skillTurn;this.note("#"+p.number+" uses "+name+".");}
  resetSkillTurn(){this.skillTurn++;this.bombUsed||=[false,false];this.bombUsed[this.active]=false;for(const p of this.players)if(p.team===this.active){p.bloodlust=false;p.bloodlustChecked=false;}this.shadowingCounts={};this.throwUsed||=[false,false];this.throwUsed[this.active]=false;this.kickUsed||=[false,false];this.kickUsed[this.active]=false;this.puntUsed||=[false,false];this.puntUsed[this.active]=false;this.throwMate=null;}
- rushLimit(p){return this.skill(p,"Sprint")?3:2;}
+ rushLimit(p){return this.moveContext&&this.moveContext.player.id===p?.id?0:this.skill(p,"Sprint")?3:2;}
  standCost(p){return this.has(p,"Jump Up")?0:super.standCost(p);}
  stand(p,after=null){if(this.has(p,"Jump Up")){p.status="standing";p.spent=0;this.note("Jump Up: stands for free.");if(after)after();return;}super.stand(p,after);}
  canSecure(p){return !!p&&!this.has(p,"Ball & Chain")&&!this.has(p,"Unsteady")&&!this.has(p,"No Ball")&&super.canSecure(p);}
@@ -556,6 +556,8 @@ class SkillGame extends SkillBase {
    plan={x,y,cost:2,jump:true,rushes:Math.max(0,spent+2-ma)-Math.max(0,spent-ma),dodge:false,target:parseInt(this.profile(p).ag)+Math.max(this.marking(p,fx,fy),this.marking(p,x,y)),pickup:!this.ball.carrier&&this.ball.x===x&&this.ball.y===y};
   }
   if(!plan)return null;
+  const reaction=this.moveContext;
+  if(reaction?.player.id===p.id&&(plan.rushes||spent+plan.cost>3||reaction.ownHalf!==null&&!this.ownHalf(reaction.ownHalf,x)))return null;
   const fromMarkers=this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&this.distance(q,{x:fx,y:fy})===1);
   if(plan.jump)plan.target=this.jumpTarget(p,fx,fy,x,y);
   if(plan.dodge){if(this.skill(p,"Two Heads"))plan.target--;if(this.has(p,"Titchy"))plan.target--;if(!this.has(p,"Stunty"))plan.target-=this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&this.distance(q,{x,y})===1&&this.has(q,"Titchy")).length;}

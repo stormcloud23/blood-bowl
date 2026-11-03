@@ -97,13 +97,13 @@ function tokenAt(f,x,y){return f.cell(x,y).children.find(e=>e.className.startsWi
 test('deviated kick landing stays visible throughout On the Ball selection and movement',()=>{
  const f=kickReactionFixture();assert.equal(f.run('game.pending.kind'),'On the Ball');assert.equal(f.run('game.kickLanding.x'),20);assert.equal(f.run('game.ball.x'),null);assert.equal(f.get('pitch').children.some(c=>c.className.includes('kick-target')),false);assert.match(f.get('pitch-hint').textContent,/On the Ball/);
  const landing=()=>f.cell(20,7).children.find(e=>e.className.includes('airborne-ball'));assert.ok(landing());assert.equal(landing().textContent,'◆');assert.match(f.cell(20,7)['aria-label'],/kick landing square.*airborne/);
- f.cell(16,4).click();assert.equal(f.run('game.pending.kind'),'On the Ball movement');assert.ok(landing());f.cell(17,4).click();assert.ok(landing());assert.equal(f.run('game.ball.x'),null);assert.equal(f.run('d.used'),true);
+ f.cell(16,4).click();assert.equal(f.run('game.pending.kind'),'On the Ball movement');assert.ok(landing());f.cell(17,4).click();f.cell(17,4).click();assert.ok(landing());assert.equal(f.run('game.ball.x'),null);assert.equal(f.run('d.used'),true);
  f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Stop moving').click();assert.equal(f.run('game.moveContext'),null);assert.equal(f.run('game.phase'),'play');assert.equal(f.get('pitch').children.some(c=>c.className.includes('kick-landing')),false);assert.ok(f.cell(f.run('game.ball.x'),f.run('game.ball.y')).children.some(e=>e.className==='ball'));
 });
 test('On the Ball uses fading instead of activation badges and never changes used flags',()=>{
  const f=kickReactionFixture();assert.ok(tokenAt(f,16,4).className.includes('reaction-available'));assert.equal(tokenAt(f,16,4).className.includes(' used'),false,'An already-used player can still react');assert.ok(tokenAt(f,18,4).className.includes('reaction-available'));assert.ok(tokenAt(f,8,7).className.includes('reaction-unavailable'));assert.ok(tokenAt(f,7,7).className.includes('reaction-unavailable'),'Wrong-team skill cannot react');assert.ok(tokenAt(f,20,4).className.includes('reaction-unavailable'),'Rooted player cannot react');
  assert.equal(f.cell(16,4).className.includes('tile-choice'),false);assert.equal(f.cell(16,4).children.some(e=>e.className==='push-marker'),false);assert.equal(f.run('d.used'),true);assert.equal(f.run('second.used'),false);
- f.cell(16,4).click();assert.ok(tokenAt(f,16,4).className.includes('reaction-available'));assert.ok(tokenAt(f,18,4).className.includes('reaction-unavailable'));assert.equal(f.cell(16,4).className.includes('tile-subject'),false);assert.ok(f.cell(17,4).className.includes('tile-choice'));assert.equal(f.cell(17,4).children.some(e=>e.className==='push-marker'),false);
+ f.cell(16,4).click();assert.ok(tokenAt(f,16,4).className.includes('reaction-available'));assert.ok(tokenAt(f,18,4).className.includes('reaction-unavailable'));assert.equal(f.cell(16,4).className.includes('tile-subject'),false);assert.ok(f.cell(17,4).className.includes('legal'));assert.equal(f.cell(17,4).children.some(e=>e.className==='push-marker'),false);
 });
 test('remaining On the Ball players stay bright after another reactor finishes',()=>{
  const f=tileFixture();f.run("Object.assign(d,{x:12,y:4,used:false});d.extraSkills=['On the Ball'];globalThis.second=game.players.filter(p=>p.team===1)[1];Object.assign(second,{x:16,y:4,status:'standing',extraSkills:['On the Ball']});b.x=15;game.ball={x:a.x,y:a.y,carrier:a.id};game.interceptionCandidates=()=>[];game.start(a.id,'pass');game.pass(15,7);render();");
@@ -128,12 +128,12 @@ test('Trickster exposes legal pitch targets, no coordinate buttons, and rejects 
  assert.ok(cell.className.includes('tile-choice'));assert.ok(f.cell(9,7).className.includes('tile-subject'));assert.equal(f.get('choices').querySelectorAll('button').some(b=>b.textContent.startsWith('Relocate to')),false);assert.ok(f.get('choices').querySelectorAll('button').some(b=>b.textContent==='Stay'));
  f.cell(0,0).click();assert.equal(f.run('game.pending'),q);cell.click();assert.equal(f.run('d.x'),pos.x);assert.equal(f.run('d.y'),pos.y);assert.equal(f.run('game.pending.type'),'blockSelect');const next=f.run('game.pending');cell.click();assert.equal(f.run('game.pending'),next);
 });
-test('On the Ball chooses its player and all three reactive steps on the pitch',()=>{
- const f=tileFixture();f.run("d.x=12;d.spent=2;d.used=true;d.extraSkills=['On the Ball'];b.x=15;game.ball={x:a.x,y:a.y,carrier:a.id};game.interceptionCandidates=()=>[];game.start(a.id,'pass');game.pass(15,7);render();");assert.ok(f.cell(12,7).className.includes('reaction-choice'));f.cell(12,7).click();assert.equal(f.run('game.pending.kind'),'On the Ball movement');assert.ok(f.cell(12,8).className.includes('tile-choice'));
- f.cell(12,8).click();assert.equal(f.run('d.spent'),1);f.cell(12,9).click();f.cell(12,10).click();assert.equal(f.run('game.moveContext'),null);assert.equal(f.run('d.y'),10);assert.equal(f.run('d.spent'),2);assert.equal(f.run('d.used'),true);assert.equal(f.run('game.ball.carrier'),f.run('b.id'));assert.equal(f.run('game.active'),0);
+test('On the Ball previews and confirms the full three-square route on the pitch',()=>{
+ const f=tileFixture();f.run("d.x=12;d.spent=2;d.used=true;d.extraSkills=['On the Ball'];b.x=15;game.ball={x:a.x,y:a.y,carrier:a.id};game.interceptionCandidates=()=>[];game.start(a.id,'pass');game.pass(15,7);render();");assert.ok(f.cell(12,7).className.includes('reaction-choice'));f.cell(12,7).click();assert.equal(f.run('game.pending.kind'),'On the Ball movement');assert.ok(f.cell(12,10).className.includes('legal'));assert.equal(f.cell(12,11).className.includes('legal'),false);
+ f.cell(12,10).click();assert.equal(f.run('d.spent'),0);assert.equal(f.run('d.y'),7);assert.equal(f.run('destination.path.length'),3);assert.ok(f.cell(12,10).className.includes('route'));f.cell(12,10).click();assert.equal(f.run('game.moveContext'),null);assert.equal(f.run('d.y'),10);assert.equal(f.run('d.spent'),2);assert.equal(f.run('d.used'),true);assert.equal(f.run('game.ball.carrier'),f.run('b.id'));assert.equal(f.run('game.active'),0);
 });
 test('kickoff On the Ball only highlights legal receiving-half steps',()=>{
- const f=tileFixture();f.run("game.phase='kickAim';game.receiving=1;d.x=13;d.extraSkills=['On the Ball'];game.onTheBall(null,()=>{}, {kickoff:true});render();");f.cell(13,7).click();assert.equal(f.run('game.pending.kind'),'On the Ball movement');assert.equal(f.cell(12,7).className.includes('tile-choice'),false);assert.ok(f.cell(14,7).className.includes('tile-choice'));const q=f.run('game.pending');f.cell(12,7).click();assert.equal(f.run('game.pending'),q);
+ const f=tileFixture();f.run("game.phase='kickAim';game.receiving=1;d.x=13;d.extraSkills=['On the Ball'];game.onTheBall(null,()=>{}, {kickoff:true});render();");f.cell(13,7).click();assert.equal(f.run('game.pending.kind'),'On the Ball movement');assert.equal(f.cell(12,7).className.includes('legal'),false);assert.ok(f.cell(14,7).className.includes('legal'));const q=f.run('game.pending');f.cell(12,7).click();assert.equal(f.run('game.pending'),q);
 });
 test('Sidestep and Grab highlight exactly the legal engine push destinations',()=>{
  for(const grab of [false,true]){
@@ -273,7 +273,7 @@ test('mercenary purchase controls hire a labeled reserve, then the dugout places
 });
 
 test('automatic prayers keep the pregame overview visible and expose the owning coach choice',()=>{
- const f=workspaceFixture('match');f.get('reset').focus();f.run("game.teams[0].ctv=900000;game.teams[1].ctv=950000;game.dice=()=>4;game.phase='leagueSteps';game.advancePregame();render();");assert.equal(f.run('game.phase'),'prayers');assert.equal(f.get('pregame-overview').hidden,false);assert.equal(f.get('pitch-board').hidden,true);assert.equal(f.document.activeElement,f.get('reset'));assert.equal(f.run('game.pending.team'),0);const button=f.get('choices').querySelectorAll('button')[0];button.click();assert.equal(f.run('game.phase'),'rolloff');assert.ok(dugoutNodes(f.get('matchflow')).some(e=>e.textContent==='Active prayers · last until full time'));
+ const f=workspaceFixture('match');f.get('reset').focus();f.run("game.teams[0].ctv=900000;game.teams[1].ctv=950000;game.dice=()=>4;game.phase='leagueSteps';game.advancePregame();render();");assert.equal(f.run('game.phase'),'prayers');assert.equal(f.get('pregame-overview').hidden,false);assert.equal(f.get('pitch-board').hidden,true);assert.equal(f.document.activeElement,f.get('reset'));assert.equal(f.run('game.pending.team'),0);const button=f.get('choices').querySelectorAll('button')[0];button.click();assert.equal(f.run('game.phase'),'rolloff');assert.ok(dugoutNodes(f.get('matchflow')).some(e=>e.textContent==='Active prayers'));
 });
 test('trapdoor squares are marked, accessible and included in committed-route check summaries',()=>{
  const f=workspaceFixture('match');f.run("game.applyPrayer(0,'Treacherous Trapdoor');game.phase='play';game.players.forEach(p=>Object.assign(p,{x:null,y:null,status:'reserve'}));Object.assign(game.players[0],{x:5,y:1,status:'standing'});selected=game.players[0].id;render();");const cell=f.cell(6,1);assert.ok(cell.className.includes('trapdoor'));assert.ok(cell['aria-label'].includes('trapdoor (2+ to cross)'));assert.equal(f.cell(7,1).className.includes('trapdoor'),false);assert.ok(f.run('planChecks({x:6,y:1,rushes:0},game.players[0]).includes("Trapdoor 2+")'));
@@ -318,7 +318,7 @@ test('active movement preview offers commit, with repeated clicks guarded',()=>{
  const f=workspaceFixture('pickup');f.run('selected=game.players[0].id;game.start(selected);render();choose(10,8)');assert.ok(f.run('destination'));const commit=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Confirm Move');assert.ok(commit);commit.click();assert.equal(f.run('destination'),null);const before=f.run('JSON.stringify(game.players)');commit.click();assert.equal(f.run('JSON.stringify(game.players)'),before);
 });
 test('closed action-panel callbacks cannot execute and switching tabs clears the panel',()=>{
- const f=workspaceFixture();const p=JSON.parse(f.run('JSON.stringify(game.players.find(p=>p.id===selected))'));f.cell(p.x,p.y).click();const move=f.action('Show full profile & skills');f.run('closePitchPopup()');move.click();assert.equal(f.run('game.mover'),null);f.cell(p.x,p.y).click();f.get('tab-teams').click();assert.equal(!f.get('pitch-popup').hidden,false);
+ const f=workspaceFixture();const p=JSON.parse(f.run('JSON.stringify(game.players.find(p=>p.id===selected))'));f.cell(p.x,p.y).click();const move=f.action('Player profile');f.run('closePitchPopup()');move.click();assert.equal(f.run('game.mover'),null);f.cell(p.x,p.y).click();f.get('tab-teams').click();assert.equal(!f.get('pitch-popup').hidden,false);
 });
 test('new presentation assets are embedded exactly in the standalone page',()=>{
  const html=fs.readFileSync(projectPath('index.html'),'utf8');for(const [tag,id,file] of [['script','workspace-ui','src/ui/workspace-ui.cjs'],['style','workspace-style','src/ui/workspace.css']])assert.equal(html.match(new RegExp('<'+tag+' id="'+id+'">\\n([\\s\\S]*?)\\n</'+tag+'>'))[1],(fs.readFileSync(projectPath(file),'utf8')+(id==='workspace-ui'?'\n'+fs.readFileSync(projectPath('src/features/computer/computer-ui.cjs'),'utf8'):'')).trimEnd());assert.ok(html.includes('Skills & traits · '));
@@ -335,17 +335,17 @@ test('pregame overview progresses to the real pitch when setup begins',()=>{
 test('league staff disclosures stay open after a purchase and preserve button focus',()=>{
  const f=workspaceFixture();f.run('leagueSelected=leagueStore.create(demoLeagueTeams[0].id,"Nobles").id;leagueSave();renderLeague()');const details=f.run('leaguePanel.querySelectorAll("details")'),staff=details.find(e=>e.querySelector('summary').textContent.startsWith('Staff & re-rolls'));staff.open=true;const buy=staff.querySelectorAll('button').find(e=>e.textContent==='+ Team re-rolls');buy.focus();buy.click();const updated=f.run('leaguePanel.querySelectorAll("details")').find(e=>e.querySelector('summary').textContent.startsWith('Staff & re-rolls'));assert.equal(updated.open,true);assert.equal(f.document.activeElement.textContent,'+ Team re-rolls');assert.equal(f.run('leagueStore.team(leagueSelected).staff.teamRerolls'),1);
 });
-test('all six actual engine Block faces receive symbols and result explanations',()=>{
- const f=workspaceFixture();f.run('globalThis.a=game.players.find(p=>p.id===selected);globalThis.target=game.players.find(p=>game.canBlock(a,p));game.dice=()=>3;game.block(a.id,target.id);game.blockAction.dice=[1,2,3,4,5,6];render()');const dice=f.get('choices').querySelectorAll('button').filter(e=>e.textContent.startsWith('Die '));assert.equal(dice.length,6);assert.ok(dice.every(e=>e.className.includes('block-die')&&e.dataset.glyph&&e.title&&e['aria-label']===e.textContent));assert.match(dice[0].title,/Attacker/);assert.match(dice[4].title,/Dodge/);
+test('all six actual engine Block faces receive symbols and concise face labels',()=>{
+ const f=workspaceFixture();f.run('globalThis.a=game.players.find(p=>p.id===selected);globalThis.target=game.players.find(p=>game.canBlock(a,p));game.dice=()=>3;game.block(a.id,target.id);game.blockAction.dice=[1,2,3,4,5,6];render()');const dice=f.get('choices').querySelectorAll('button').filter(e=>e.textContent.startsWith('Die '));assert.equal(dice.length,6);assert.ok(dice.every(e=>e.className.includes('block-die')&&e.dataset.glyph&&e.title&&e['aria-label']===e.textContent));assert.equal(dice[0].title,"Player Down");assert.equal(dice[4].title,"Stumble");
 });
 test('defending coach is identified for Stand Firm and Sidestep decisions',()=>{
- const f=workspaceFixture();f.run('globalThis.a=game.players.find(p=>p.id===selected);globalThis.d=game.players.find(p=>game.canBlock(a,p));game.dice=()=>3;game.block(a.id,d.id);game.selectBlockDie(0);render()');assert.equal(f.run('game.pending.kind'),'Stand Firm');assert.match(f.get('choices').children[0].textContent,/Imperial Nobility/);f.run('a.disabledSkills=["Grab"];d.extraSkills=["Sidestep"];game.pending.options.includes("Be pushed")&&game.decide("Be pushed");render()');assert.match(f.run('decisionCoachLabel(game.pending)'),/Imperial Nobility/);
+ const f=workspaceFixture();f.run('globalThis.a=game.players.find(p=>p.id===selected);globalThis.d=game.players.find(p=>game.canBlock(a,p));game.dice=()=>3;game.block(a.id,d.id);game.selectBlockDie(0);render()');assert.equal(f.run('game.pending.kind'),'Stand Firm');assert.match(f.get('coach').textContent,/Imperial Nobility/);f.run('a.disabledSkills=["Grab"];d.extraSkills=["Sidestep"];game.pending.options.includes("Be pushed")&&game.decide("Be pushed");render()');assert.match(f.run('decisionCoachLabel(game.pending)'),/Imperial Nobility/);
 });
 test('pitch magnification changes only presentation and preserves game state',()=>{
  const f=workspaceFixture();const before=f.run('JSON.stringify(game.players)');f.get('pitch-scale').value='2';f.get('pitch-scale').emit('change');assert.equal(f.get('pitch').style.minWidth,'1300px');assert.equal(f.run('JSON.stringify(game.players)'),before);f.get('pitch-scale').value='1';f.get('pitch-scale').emit('change');assert.equal(f.get('pitch').style.minWidth,'650px');
 });
 test('league pregame shows that purchases must finish before continuing',()=>{
- const f=workspaceFixture('match');f.run('game.league=true;teams[0].ctv=100000;teams[1].ctv=50000;teams[0].treasury=100000;teams[1].treasury=50000;game.phase="leagueSteps";game.leaguePurchaseOrder=[0,1];game.leaguePurchaseStep=0;render()');const next=f.get('matchflow').children.find(e=>e.textContent==='Complete inducement purchases first');assert.ok(next);assert.equal(next.disabled,true);f.run('game.leaguePurchaseStep=2;render()');assert.ok(f.get('matchflow').children.some(e=>e.textContent==='Continue league pre-game'&&!e.disabled));
+ const f=workspaceFixture('match');f.run('game.league=true;teams[0].ctv=100000;teams[1].ctv=50000;teams[0].treasury=100000;teams[1].treasury=50000;game.phase="leagueSteps";game.leaguePurchaseOrder=[0,1];game.leaguePurchaseStep=0;render()');const next=f.get('matchflow').children.find(e=>e.textContent==='Inducement purchases pending');assert.ok(next);assert.equal(next.disabled,true);f.run('game.leaguePurchaseStep=2;render()');assert.ok(f.get('matchflow').children.some(e=>e.textContent==='Continue league pre-game'&&!e.disabled));
 });
 test('kick aiming highlights the receiving half and directions swap at halftime',()=>{
  const f=workspaceFixture('match');f.run('game.phase="kickAim";game.receiving=0;game.half=1;render()');assert.equal(f.get('pitch').children.filter(e=>e.className.includes('kick-target')).length,195);assert.match(f.get('pitch-hint').textContent,/left half/);assert.match(f.cell(0,0)['aria-label'],/valid kick target/);assert.match(f.get('pitch-direction').textContent,/Imperial Nobility →/);f.run('game.half=2;render()');assert.match(f.get('pitch-hint').textContent,/right half/);assert.match(f.get('pitch-direction').textContent,/Imperial Nobility ←/);assert.ok(!f.cell(0,0).className.includes('kick-target'));
@@ -440,7 +440,7 @@ test('Maximum Carnage and Kaboom choices are wired in the actual bundled UI',()=
 });
 
 test('pitch actions are a coach-panel region with collapsed information and no floating coordinates',()=>{
- const f=workspaceFixture(),p=JSON.parse(f.run('JSON.stringify(game.players.find(p=>p.id===selected))'));f.cell(p.x,p.y).click();const panel=f.get('pitch-popup'),details=panel.children.find(e=>e.tagName==='DETAILS');assert.equal(panel.parentElement,f.get('coach-panel'));assert.equal(panel.style.left,undefined);assert.equal(panel.style.top,undefined);assert.ok(details);assert.ok(!details.open);assert.ok(dugoutNodes(details).some(e=>/MA \d/.test(e.textContent)));assert.ok(!f.popup().some(b=>b.textContent==='Declare Move'));assert.match(dugoutNodes(panel).map(e=>e.textContent).join(' '),/To move: choose/);const html=fs.readFileSync(projectPath('index.html'),'utf8');assert.match(html,/<aside id="coach-panel"[\s\S]*?<section id="pitch-popup" role="region"[^>]*hidden/);assert.doesNotMatch(html,/<[^>]*id="pitch-popup"[^>]*popover=/);
+ const f=workspaceFixture(),p=JSON.parse(f.run('JSON.stringify(game.players.find(p=>p.id===selected))'));f.cell(p.x,p.y).click();const panel=f.get('pitch-popup'),details=panel.children.find(e=>e.tagName==='DETAILS');assert.equal(panel.parentElement,f.get('coach-panel'));assert.equal(panel.style.left,undefined);assert.equal(panel.style.top,undefined);assert.ok(details);assert.ok(!details.open);assert.ok(dugoutNodes(details).some(e=>/MA \d/.test(e.textContent)));assert.ok(!f.popup().some(b=>b.textContent==='Declare Move'));assert.doesNotMatch(dugoutNodes(panel).map(e=>e.textContent).join(' '),/To move: choose|Previewing never activates/);const html=fs.readFileSync(projectPath('index.html'),'utf8');assert.match(html,/<aside id="coach-panel"[\s\S]*?<section id="pitch-popup" role="region"[^>]*hidden/);assert.doesNotMatch(html,/<[^>]*id="pitch-popup"[^>]*popover=/);
 });
 
 test('positional markers use roster keywords consistently, including hybrid roles and unknown specials',()=>{
@@ -455,7 +455,7 @@ test('both teams keep role shapes, shirt numbers, status classes, ball and selec
 
 test('repeating an unactivated destination confirms one Move without a separate declaration',()=>{const f=workspaceFixture('dodge');f.run('selected=game.players[0].id;game.dice=()=>6;render();choose(9,6)');assert.equal(f.run('game.mover'),null);assert.equal(f.run('game.players[0].used'),false);assert.ok(f.get('pitch-popup').hidden);f.run('choose(9,6)');assert.equal(f.run('game.players[0].x'),9);assert.equal(f.run('game.players[0].y'),6);assert.equal(f.run('game.players[0].spent'),1);assert.equal(f.run('destination'),null);});
 test('route confirmation honours activation-roll interruptions without moving or repeating dice',()=>{const f=workspaceFixture('dodge');f.run('selected=game.players[0].id;game.players[0].extraSkills=["Bone Head"];globalThis.rolls=0;game.dice=()=>{rolls++;return 1};render();choose(9,6)');const commit=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Confirm Move');commit.click();assert.equal(f.run('game.pending.kind'),'Bone Head');assert.equal(f.run('game.players[0].x'),10);assert.equal(f.run('game.players[0].spent'),0);assert.equal(f.run('destination'),null);commit.click();assert.equal(f.run('rolls'),1);});
-test('a commit button from an older preview cannot commit or erase its replacement route',()=>{const f=workspaceFixture('dodge');f.run('selected=game.players[0].id;render();choose(9,6)');const commit=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Confirm Move'),cancel=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Cancel movement preview');f.run('choose(8,6)');const before=f.run('JSON.stringify(destination)');commit.click();cancel.click();assert.equal(f.run('JSON.stringify(destination)'),before);assert.equal(f.run('game.mover'),null);});
+test('a commit button from an older preview cannot commit or erase its replacement route',()=>{const f=workspaceFixture('dodge');f.run('selected=game.players[0].id;render();choose(9,6)');const commit=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Confirm Move'),cancel=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Cancel preview');f.run('choose(8,6)');const before=f.run('JSON.stringify(destination)');commit.click();cancel.click();assert.equal(f.run('JSON.stringify(destination)'),before);assert.equal(f.run('game.mover'),null);});
 
 test('saved exhibition teams use developed profiles, ordered CTV budgets and isolated snapshots',()=>{
  const f=workspaceFixture('match');
@@ -526,7 +526,7 @@ test('Reference explains every catalogue ability and searches names, categories 
 test('Reference includes updated controls and complete quick-reference rule groups in the standalone bundle',()=>{
  const f=workspaceFixture('match'),html=fs.readFileSync(projectPath('index.html'),'utf8');
  const guide=dugoutNodes(f.get('playing-guide')).map(e=>e.textContent).join(' '),sheet=dugoutNodes(f.get('rules-cheat-sheet')).map(e=>e.textContent).join(' ');
- for(const text of ['Confirm Move','Testing','2+ through 6+','six eligible MVP','cannot currently be saved','snapshots'])assert.ok(guide.includes(text),text);
+ for(const text of ['Confirm Move','Testing','Legend','six eligible MVP','cannot currently be saved','snapshots'])assert.ok(guide.includes(text),text);
  for(const text of ['Match sequence','Common actions','Strength and dice','Block faces','Weather','Kick-off','Casualty','Lasting injury','turns 7–8','SPP','Crowds skip armour'])assert.ok(sheet.includes(text),text);
  assert.ok(html.includes(fs.readFileSync(projectPath('src/ui/reference.cjs'),'utf8').trimEnd()));
  assert.equal(f.get('rules-cheat-sheet').querySelectorAll('table').length,12);
@@ -615,4 +615,85 @@ test('blitz difficulty forecasts assists at contact and includes Horns without c
  const f=adjacentBlockFixture();f.run("enemy.x=12;prone.extraSkills=['Horns'];globalThis.helper=game.players.find(p=>p.team===0&&p!==prone);Object.assign(helper,{x:13,y:7,status:'standing',distracted:false});helper.profileOverride={...game.profile(prone),skills:['Guard']};render();");
  f.cell(12,7).click();assert.equal(f.cell(12,7).dataset.blockDifficulty,'3');assert.match(f.cell(12,7).dataset.hint,/ST 5 vs 3/);assert.equal(f.run('prone.x'),8);assert.equal(f.run('prone.hornsBonus||0'),0);assert.equal(f.run('rollCount'),0);
  f.cell(12,7).click();assert.equal(f.run('game.blockAction.aStrength'),5);assert.equal(f.run('game.blockAction.dStrength'),3);assert.equal(f.run('game.blockAction.count'),2);
+});
+
+test('Legend contains shapes and movement, block and throwing color keys',()=>{
+ const html=fs.readFileSync(projectPath('index.html'),'utf8'),legend=html.match(/<details id="position-key"[\s\S]*?<\/details>/)[0];
+ assert.match(legend,/<summary>Legend<\/summary>/);for(const id of ['position-key-items','pitch-legend','block-legend'])assert.ok(legend.includes('id="'+id+'"'));for(const label of ['3 die block','2 die block','1 die block','2 die uphill','3 die uphill'])assert.ok(legend.includes(label));assert.match(legend,/2\+/);assert.match(legend,/Passing &amp; throwing/);
+});
+for(const [a,d,label] of [[7,3,'3 die block'],[4,3,'2 die block'],[3,3,'1 die block'],[3,4,'2 die uphill'],[3,7,'3 die uphill']])test('coach desk uses concise '+label+' during preview and execution',()=>{
+ const f=adjacentBlockFixture();f.run('prone.profileOverride.st='+a+';enemy.profileOverride.st='+d+';render();');f.cell(9,7).click();
+ const text=dugoutNodes(f.get('choices')).map(e=>e.textContent).join('\n');assert.ok(f.get('choices').children.some(e=>e.textContent===label));assert.doesNotMatch(text,/Block colors|you choose|opponent chooses|click.*again|The player has not moved|Clear destination|After preview/i);
+ f.cell(9,7).click();assert.ok(f.get('movement').textContent.startsWith(label+' · '));
+});
+
+for(const [setup,expected] of [
+ ["game.phase='fans'",'Fans'],
+ ["game.phase='weather'",'Weather'],
+ ["game.phase='rolloff'",'Kick/receive roll-off'],
+ ["game.phase='setup';game.setupTeam=0;game.autoSetup()",'Formation legal'],
+ ["game.phase='kicker';game.kicking=0",'Kicker ·'],
+ ["game.phase='kickAim';game.receiving=1",'Kick target · not selected'],
+ ["game.phase='touchback';game.receiving=1",'Touchback ·'],
+ ["game.phase='eventMove';game.eventState={kind:'snap',team:0,used:[],limit:3,eligible:[]}",'0 / 3 players used'],
+ ["game.phase='dwarfenWisdom';game.wisdomState={team:0,placing:false,selected:[]}",'Dwarfen Wisdom ·'],
+ ["game.phase='endDrive'",'Drive ended'],
+ ["game.phase='betweenTurns'",'Between turns ·'],
+ ["game.phase='finished';game.finished=true",'Full time: draw']
+])test('desk phase facts: '+expected,()=>{
+ const f=workspaceFixture('match');f.run(setup+';render();');
+ const text=dugoutNodes(f.get('matchflow')).filter(e=>e.tagName==='P').map(e=>e.textContent).join(' ');
+ assert.ok(text.includes(expected),text);assert.doesNotMatch(text,/Click |Select a player|Choose an option|when ready|needs three|each Wide Zone|rolls? off\.|resolve before|until full time|turnovers also|random standing opponent|Effects last/i);
+});
+test('desk removes duplicate play instructions and keeps the Session log collapsed',()=>{
+ const f=workspaceFixture('match');f.run("game.phase='play';render();");assert.equal(f.get('matchflow').hidden,true);assert.doesNotMatch(f.get('coach').textContent,/to play/);
+ const html=fs.readFileSync(projectPath('index.html'),'utf8');assert.match(html,/<details><summary>Session log<\/summary><ol id="log"/);assert.match(html,/<h3>Pitch markers<\/h3>/);assert.match(html,/<h3>Block dice<\/h3>/);
+});
+test('concise custom decision title retains original engine options and callbacks',()=>{
+ const f=workspaceFixture('match');f.run("globalThis.picked=null;game.skillChoice('Star players — max two hires; pairs need two roster places; no MVP or permanent recruitment',1,['Target #1 (0-1)','Cancel'],choice=>{picked=choice;});render();");
+ assert.equal(f.get('choices').children[0].textContent,'Star players');assert.equal(f.get('coach').textContent,f.run('teams[1].name'));
+ const choice=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Target #1');assert.ok(choice);choice.click();assert.equal(f.run('picked'),'Target #1 (0-1)');assert.equal(f.run('game.pending'),null);
+});
+
+function onBallRangeFixture({marked=false,skills=[],ma=6,rolls=[],second=false}={}){
+ const f=tileFixture();f.run("Object.assign(d,{x:"+(marked?9:12)+",y:"+(marked?7:4)+",used:true,spent:4,extraSkills:"+JSON.stringify(['On the Ball',...skills])+"});d.profileOverride.ma="+ma+";b.x=15;game.ball={x:a.x,y:a.y,carrier:a.id};game.interceptionCandidates=()=>[];globalThis.rollCount=0;globalThis.rollQueue="+JSON.stringify(rolls)+";game.dice=()=>{rollCount++;return rollQueue.length?rollQueue.shift():6;};"+(second?"globalThis.other=game.players.filter(p=>p.team===1)[1];Object.assign(other,{x:20,y:4,status:'standing',extraSkills:['On the Ball']});":"")+"game.start(a.id,'pass');game.pass(15,7);render();");
+ const pos=JSON.parse(f.run('JSON.stringify({x:d.x,y:d.y})'));f.cell(pos.x,pos.y).click();return f;
+}
+test('On the Ball shows all three squares even for MA 1 and Sprint, without offering Rushes',()=>{
+ const f=onBallRangeFixture({ma:1,skills:['Sprint']});assert.ok(f.cell(15,4).className.includes('legal'));assert.equal(f.cell(16,4).className.includes('legal'),false);assert.equal(f.run('game.rushLimit(d)'),0);assert.equal(f.run('rollCount'),0);
+ assert.equal(f.run('[...rangeFor(d).values()].some(n=>n.spent>3||n.path.some(s=>s.plan.rushes))'),false);
+ f.cell(15,4).click();assert.equal(f.run('d.x'),12);assert.equal(f.run('d.spent'),0);assert.equal(f.run('rollCount'),0);f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Confirm Move').click();assert.equal(f.run('d.x'),15);assert.equal(f.run('d.spent'),4);assert.equal(f.run('d.used'),true);assert.equal(f.run('game.moveContext'),null);assert.equal(f.run('game.events.some(e=>e.startsWith("Rush #"))'),false);assert.equal(f.run('game.rushLimit(d)'),3);
+});
+for(const cancel of ['actor','button','Escape','Escape in Testing'])test('On the Ball preview cancellation via '+cancel+' restores the complete remaining range',()=>{
+ const f=onBallRangeFixture();const before=f.run('[...rangeFor(d).keys()].sort().join(";")');f.cell(14,4).click();assert.ok(f.run('destination'));assert.equal(f.cell(9,4).className.includes('legal'),false);
+ if(cancel==='actor')f.cell(12,4).click();else if(cancel==='button')f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Cancel preview').click();else {if(cancel==='Escape in Testing')f.run("workspaceView='testing'");f.key('Escape');}
+ assert.equal(f.run('destination'),null);assert.equal(f.run('[...rangeFor(d).keys()].sort().join(";")'),before);assert.ok(f.cell(9,4).className.includes('legal'));assert.equal(f.run('d.x'),12);assert.equal(f.run('d.spent'),0);assert.equal(f.run('d.used'),true);assert.equal(f.run('rollCount'),0);assert.equal(f.run('game.pending.kind'),'On the Ball movement');
+});
+test('On the Ball preserves waypoints, ignores an old confirm button and executes exactly the shown route',()=>{
+ const f=onBallRangeFixture();f.cell(13,4).click();const stale=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Confirm Move');f.cell(14,5).click();f.cell(15,4).click();const path=f.run('JSON.stringify(destination.path.map(s=>[s.x,s.y]))');stale.click();assert.equal(f.run('d.x'),12);assert.equal(f.run('rollCount'),0);
+ f.run('globalThis.steps=[];globalThis.originalStep=game.step.bind(game);game.step=(x,y)=>{steps.push([x,y]);return originalStep(x,y);};');f.cell(15,4).click();assert.equal(f.run('JSON.stringify(steps)'),path);assert.equal(f.run('game.ball.carrier'),f.run('b.id'));assert.equal(f.run('game.moveContext'),null);assert.equal(f.run('game.active'),0);
+});
+test('On the Ball uses ordinary Dodge colors and resumes its full route after a successful Dodge reroll',()=>{
+ const f=onBallRangeFixture({marked:true,skills:['Dodge'],rolls:[1,6,6,6]});assert.ok(f.cell(10,7).className.includes('risk-3'));assert.equal(f.cell(10,7).className.includes('tile-choice'),false);f.cell(12,7).click();assert.ok(f.run('destination.path[0].plan.dodge'));assert.equal(f.run('rollCount'),0);f.cell(12,7).click();assert.equal(f.run('game.pending.kind'),'Dodge');assert.equal(f.run('d.x'),10);
+ const retry=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Use Dodge');assert.ok(retry);retry.click();retry.click();assert.equal(f.run('d.x'),12);assert.equal(f.run('d.status'),'standing');assert.equal(f.run('d.spent'),4);assert.equal(f.run('game.moveContext'),null);assert.equal(f.run('reactionExecution'),null);assert.equal(f.run('game.ball.carrier'),f.run('b.id'));assert.equal(f.run('game.active'),0);
+});
+test('On the Ball route failure stops later steps and reactors, then resumes the declared pass',()=>{
+ const f=onBallRangeFixture({marked:true,skills:['Steady Footing'],rolls:[1,1,1,6,6],second:true});
+ f.cell(12,7).click();f.cell(12,7).click();assert.equal(f.run('game.pending.kind'),'Steady Footing');f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Fall normally').click();assert.equal(f.run('d.status'),'prone');assert.equal(f.run('d.x'),10);assert.equal(f.run('other.x'),20);assert.equal(f.run('reactionExecution'),null);assert.equal(f.run('game.moveContext'),null);assert.equal(f.run('game.ball.carrier'),f.run('b.id'));assert.equal(f.run('game.active'),0);assert.equal(f.run('game.pending'),null);
+});
+test('kickoff On the Ball full range stays in the receiving half and chooses only one reactor',()=>{
+ const f=kickReactionFixture();f.cell(16,4).click();assert.ok(f.cell(13,4).className.includes('legal'));assert.equal(f.cell(12,4).className.includes('legal'),false);assert.equal(f.run('[...rangeFor(d).values()].some(n=>n.path.some(s=>!game.ownHalf(1,s.x)||s.plan.rushes)||n.spent>3)'),false);f.cell(13,4).click();assert.equal(f.run('game.ball.x'),null);f.cell(13,4).click();assert.equal(f.run('d.x'),13);assert.equal(f.run('second.x'),18);assert.equal(f.run('game.moveContext'),null);assert.equal(f.run('game.phase'),'play');assert.equal(f.run('d.used'),false,'the receiving turn resets used flags after the reaction');
+});
+
+test('a confirmed On the Ball route stops at the next reactor choice and cannot move that reactor from a stale confirmation',()=>{
+ const f=onBallRangeFixture({second:true});f.cell(15,4).click();const old=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Confirm Move');old.click();assert.equal(f.run('game.pending.kind'),'On the Ball');assert.equal(f.run('rollCount'),0);assert.equal(f.run('other.x'),20);
+ f.cell(20,4).click();f.cell(23,4).click();old.click();assert.equal(f.run('other.x'),20);f.cell(23,4).click();assert.equal(f.run('other.x'),23);assert.equal(f.run('game.moveContext'),null);assert.equal(f.run('game.ball.carrier'),f.run('b.id'));
+});
+test('kickoff On the Ball fall ends the previewed route and continues to the receiving turn',()=>{
+ const f=kickReactionFixture();f.run("Object.assign(a,{x:17,y:6});globalThis.rolls=[1,1,1];game.dice=()=>rolls.length?rolls.shift():6;");f.cell(16,4).click();f.cell(17,5).click();f.cell(18,5).click();assert.equal(f.run('destination.path.length'),2);f.cell(18,5).click();assert.equal(f.run('d.status'),'prone');assert.equal(f.run('second.x'),18);assert.equal(f.run('second.y'),4);assert.equal(f.run('game.phase'),'play');assert.equal(f.run('game.moveContext'),null);assert.equal(f.run('reactionExecution'),null);
+});
+
+test('On the Ball remaining range shrinks after a partial confirmed route without spending a normal activation',()=>{
+ const f=onBallRangeFixture();f.cell(13,4).click();f.cell(13,4).click();assert.equal(f.run('d.x'),13);assert.equal(f.run('d.spent'),1);assert.equal(f.run('game.pending.kind'),'On the Ball movement');assert.ok(f.cell(15,4).className.includes('legal'));assert.equal(f.cell(16,4).className.includes('legal'),false);assert.match(f.get('movement').textContent,/On the Ball · 1 \/ 3 squares/);
+ f.cell(15,4).click();assert.ok(f.get('choices').children.some(e=>e.textContent==='After preview · 0 squares remaining'));f.cell(13,4).click();assert.equal(f.run('destination'),null);assert.ok(f.cell(11,4).className.includes('legal'));f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Stop moving').click();assert.equal(f.run('d.spent'),4);assert.equal(f.run('d.used'),true);assert.equal(f.run('game.ball.carrier'),f.run('b.id'));
 });
