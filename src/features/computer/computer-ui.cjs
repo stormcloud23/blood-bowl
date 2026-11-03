@@ -62,7 +62,7 @@ reset=function(){
   game.individualBlockChoices=true;game.observing=observing;
   computerSession={game,coach:coaches[1],coaches,observing,steps:[0,0],lastState:null,repeats:0};
  }
- for(const suffix of ["","-custom","-league","-alignment"]){const select=document.getElementById("exhibition-away"+suffix);select.disabled=enabled||(suffix==="-custom"&&!leagueStore.data.teams.some(t=>!t.draft));}
+ for(const suffix of ["","-custom","-league","-alignment"]){const select=document.getElementById("exhibition-away"+suffix);select.disabled=enabled||(suffix==="-custom"&&!leagueStore.data.teams.some(t=>!t.draft&&!t.deleted));}
  render();
 };
 const renderBeforeComputer=render;
@@ -76,11 +76,11 @@ choose=function(...args){
 };
 const commitRouteBeforeComputer=commitRoute;
 commitRoute=function(){if(!computerOwnsDecision())return commitRouteBeforeComputer();};
-document.getElementById("computer-opponent").addEventListener("change",()=>{document.getElementById("scenario").value="match";reset();});
+document.getElementById("computer-opponent").addEventListener("change",()=>{const mode=document.getElementById("computer-opponent").value,enabled=COMPUTER_ROSTERS.includes(mode);if(enabled){document.getElementById("exhibition-away").value=mode;document.getElementById("exhibition-away-custom").value="";exhibitionRosterChoices("away");}for(const suffix of ["","-custom","-league","-alignment"])document.getElementById("exhibition-away"+suffix).disabled=enabled||(suffix==="-custom"&&!leagueStore.data.teams.some(t=>!t.draft&&!t.deleted));document.getElementById("match-config-status").textContent="Changes ready. Start a new match to apply them.";});
 document.getElementById("computer-pause").addEventListener("click",()=>{cancelComputerTimer();computerPaused=!computerPaused;if(!computerPaused&&computerFault){computerFault="";computerSteps=0;computerSession.steps=[0,0];computerSession.repeats=0;computerSession.lastState=null;}render();});
 document.getElementById("computer-step").addEventListener("click",()=>{if(computerPaused&&!computerFault&&computerOwnsDecision()){cancelComputerTimer();advanceComputer();}});
 document.getElementById("computer-speed").addEventListener("change",()=>{cancelComputerTimer();refreshComputer();});
-document.getElementById("computer-takeover").addEventListener("click",()=>{cancelComputerTimer();if(!computerSession?.observing)document.getElementById("computer-opponent").value="";game.observing=false;computerSession=null;computerFault="";computerPaused=false;for(const suffix of ["","-league","-alignment"])document.getElementById("exhibition-away"+suffix).disabled=false;document.getElementById("exhibition-away-custom").disabled=!leagueStore.data.teams.some(t=>!t.draft);render();});
+document.getElementById("computer-takeover").addEventListener("click",()=>{cancelComputerTimer();if(!computerSession?.observing)document.getElementById("computer-opponent").value="";game.observing=false;computerSession=null;computerFault="";computerPaused=false;for(const suffix of ["","-league","-alignment"])document.getElementById("exhibition-away"+suffix).disabled=false;document.getElementById("exhibition-away-custom").disabled=!leagueStore.data.teams.some(t=>!t.draft&&!t.deleted);render();});
 document.getElementById("start-observation").addEventListener("click",()=>{document.getElementById("scenario").value="match-observe";document.getElementById("testing-scenario").value="match-observe";reset();switchWorkspace("testing");});
 // Capture prevents mouse and keyboard-generated clicks from changing the pitch
 // or a coach decision while the computer owns it, including while paused.

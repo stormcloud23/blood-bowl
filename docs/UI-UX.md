@@ -1,4 +1,11 @@
-# Match workspace — v0.0.42
+# Match workspace — v0.0.44
+
+## Selected restoration and team deletion — v0.0.44
+
+Restores the requested subset of the reverted UX changes. See the
+[selection map](SELECTED-UI-RESTORATION.md) for the exact scope and excluded changes.
+Custom teams can now be deleted after a named confirmation and restored from
+Deleted teams. Active league fixtures block deletion; historical results remain.
 
 ## Throwing target overlay
 

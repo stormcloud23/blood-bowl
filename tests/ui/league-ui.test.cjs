@@ -98,3 +98,17 @@ test('team and player detail edit controls persist names and shirt numbers acros
 test('duplicate-number edits report the error and preserve both saved players',()=>{
  const f=uiFixture();ready(f);input(f,'Edit player name').value='Unsaved rename';input(f,'Shirt number').value='2';button(f,'Save player details').listeners.click();assert.match(f.run('leagueMessage'),/unused positive shirt number/);assert.equal(f.run('leagueStore.data.teams[0].players[0].name'),'Name 0');assert.equal(f.run('leagueStore.data.teams[0].players[0].number'),1);
 });
+
+test('custom team deletion requires confirmation, survives reload and offers restore',()=>{
+ const f=uiFixture();input(f,'New team name').value='Delete me';button(f,'Create rookie team').listeners.click();const id=f.run('leagueSelected');button(f,'Delete Delete me').listeners.click();assert.equal(f.run('leagueStore.team(leagueSelected).deleted'),undefined);button(f,'Cancel deletion').listeners.click();assert.ok(!f.run('leagueStore.team(leagueSelected).deleted'));button(f,'Delete Delete me').listeners.click();button(f,'Confirm delete Delete me').listeners.click();assert.equal(f.run('leagueStore.data.teams[0].deleted'),true);assert.ok(!descendants(f.get('league-panel')).some(e=>e['aria-label']==='Saved team'));const reload=uiFixture('match',f.storage.get('blood-bowl-leagues-v1'));button(reload,'Restore Delete me').listeners.click();assert.equal(reload.run('leagueSelected'),id);assert.ok(!reload.run('leagueStore.team(leagueSelected).deleted'));
+});
+test('stale deletion confirmation cannot delete a different selected team',()=>{
+ const f=uiFixture();input(f,'New team name').value='One';button(f,'Create rookie team').listeners.click();button(f,'Delete One').listeners.click();const old=button(f,'Confirm delete One');f.run('leagueSelected=leagueStore.create(demoLeagueTeams[0].id,"Two").id;leagueSave();renderLeague()');old.listeners.click();assert.equal(f.run('leagueStore.data.teams.some(t=>t.deleted)'),false);
+});
+
+test('background match renders retain recruitment text and one player inspector',()=>{
+ const f=uiFixture();input(f,'New team name').value='Form';button(f,'Create rookie team').listeners.click();button(f,'Hire player').listeners.click();const field=input(f,'Player name');field.value='Still typing';f.run('game.note("Background action");render()');assert.equal(input(f,'Player name').value,'Still typing');assert.equal(input(f,'Player name'),field);assert.equal(descendants(f.get('league-panel')).filter(e=>e.className==='roster-player-details').length,1);
+});
+test('failed deletion save rolls back the team and keeps the review available',()=>{
+ const f=uiFixture();input(f,'New team name').value='Keep';button(f,'Create rookie team').listeners.click();button(f,'Delete Keep').listeners.click();f.run('localStorage.setItem=()=>{throw Error("Storage full")};');button(f,'Confirm delete Keep').listeners.click();assert.ok(!f.run('leagueStore.data.teams[0].deleted'));assert.match(f.run('leagueMessage'),/Storage full/);assert.ok(button(f,'Confirm delete Keep'));
+});
