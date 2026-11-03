@@ -324,7 +324,7 @@ test('new presentation assets are embedded exactly in the standalone page',()=>{
  const html=fs.readFileSync(projectPath('index.html'),'utf8');for(const [tag,id,file] of [['script','workspace-ui','src/ui/workspace-ui.cjs'],['style','workspace-style','src/ui/workspace.css']])assert.equal(html.match(new RegExp('<'+tag+' id="'+id+'">\\n([\\s\\S]*?)\\n</'+tag+'>'))[1],(fs.readFileSync(projectPath(file),'utf8')+(id==='workspace-ui'?'\n'+fs.readFileSync(projectPath('src/features/computer/computer-ui.cjs'),'utf8'):'')).trimEnd());assert.ok(html.includes('Skills & traits · '));
 });
 test('a Foul target is selectable directly from its occupied tile',()=>{
- const f=workspaceFixture('skills');f.run('globalThis.a=game.players[0];globalThis.d=game.players[11];d.x=11;d.y=7;d.status="prone";selected=a.id;game.start(a.id,"foul");render();game.dice=()=>2;choose(d.x,d.y)');assert.ok(f.action('Foul #1'));f.action('Foul #1').click();assert.ok(f.run('game.events.some(e=>e.includes("Foul"))'));
+ const f=workspaceFixture('skills');f.run('globalThis.a=game.players[0];globalThis.d=game.players[11];d.x=11;d.y=7;d.status="prone";selected=a.id;game.start(a.id,"foul");render();game.dice=()=>2;choose(d.x,d.y)');assert.equal(f.run('destination.foulTarget'),f.run('d.id'));f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Confirm Foul').click();assert.ok(f.run('game.events.some(e=>e.includes("Foul"))'));
 });
 test('throwing players can choose a team-mate from the pitch context menu',()=>{
  const f=workspaceFixture('throw-team-mate');f.run('game.dice=()=>6;game.start(selected,"throw-team-mate");render();globalThis.mate=game.throwCandidates()[0];choose(mate.x,mate.y)');const number=f.run('mate.number');f.action('Throw team-mate #'+number).click();assert.equal(f.run('game.throwMate===mate.id'),true);assert.equal(f.run('ballMode'),true);
@@ -808,4 +808,56 @@ test('a direct pass forecast includes endpoint marking and the chosen pass inter
 test('automatic pass preview preserves unavailable-catching and Hail Mary forecast conventions',()=>{
  const noCatch=ballShortcutFixture({targetSkills:['No Ball']});noCatch.cell(12,7).click();assert.ok(noCatch.cell(12,7).children.some(e=>e.textContent==='4+/×'));assert.ok(noCatch.cell(12,7).className.includes('risk-6'));assert.equal(noCatch.run('rollCount'),0);
  const hail=ballShortcutFixture({targetX:25,actorSkills:['Hail Mary Pass']});hail.cell(25,7).click();assert.equal(hail.cell(25,7).dataset.throwRange,'H');assert.ok(hail.cell(25,7).children.some(e=>String(e.textContent).endsWith('/?')));assert.equal(hail.run('rollCount'),0);
+});
+
+function foulShortcutFixture({status='prone',av='9+',targetX=12,actorSkills=[],rolls=[2,3]}={}){
+ const f=tileFixture();f.run("Object.assign(d,{x:"+targetX+",y:7,status:'"+status+"'});d.profileOverride.av='"+av+"';a.extraSkills="+JSON.stringify(actorSkills)+";globalThis.rollCount=0;globalThis.rollQueue="+JSON.stringify(rolls)+";game.dice=()=>{rollCount++;return rollQueue.length?rollQueue.shift():(rollCount%2?2:3);};render();");return f;
+}
+for(const status of ['prone','stunned'])for(const av of ['6+','8+'])test('foul preview highlights a '+status+' opponent with AV '+av+' without declaring an action',()=>{
+ const f=foulShortcutFixture({status,av});f.run('globalThis.before=JSON.stringify([game.players,game.ball,game.action,game.mover,game.foulUsed,game.events]);');f.cell(12,7).click();assert.equal(f.run('destination.foulTarget'),f.run('d.id'));assert.ok(f.run('destination.path.length')>0);assert.equal(f.run('game.distance(destination,d)'),1);assert.equal(f.cell(12,7).dataset.foulArmour,av);assert.ok(f.cell(12,7).children.some(e=>e.className.includes('foul-armour-label')&&e.textContent===av));assert.ok(f.cell(12,7).className.includes('foul-target'));assert.match(f.cell(12,7)['aria-label'],/Armour/);assert.equal(f.run('rollCount'),0);assert.equal(f.run('selected'),f.run('a.id'));assert.equal(f.run('JSON.stringify([game.players,game.ball,game.action,game.mover,game.foulUsed,game.events])===before'),true);
+});
+test('confirming a foul preview follows exactly its shown route before fouling once',()=>{
+ const f=foulShortcutFixture();f.cell(12,7).click();const path=f.run('JSON.stringify(destination.path.map(s=>[s.x,s.y]))');f.run('globalThis.steps=[];globalThis.originalStep=game.step.bind(game);game.step=(x,y)=>{steps.push([x,y]);return originalStep(x,y);};');const commit=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Confirm Foul');f.cell(12,7).click();commit.click();assert.equal(f.run('JSON.stringify(steps)'),path);assert.equal(f.run('game.distance(a,d)'),1);assert.equal(f.run('game.events.filter(e=>e.startsWith("Foul:")).length'),1);assert.equal(f.run('game.foulUsed[0]'),true);assert.equal(f.run('rollCount'),2);assert.equal(f.run('foulExecution'),null);
+});
+test('an already adjacent foul preview needs no movement or extra MA for the foul',()=>{
+ const f=foulShortcutFixture({targetX:9});f.cell(9,7).click();assert.equal(f.run('destination.path.length'),0);f.cell(9,7).click();assert.equal(f.run('a.x'),8);assert.equal(f.run('a.spent'),0);assert.equal(f.run('game.foulUsed[0]'),true);assert.equal(f.run('rollCount'),2);
+});
+test('foul approach can use the entire movement and Rush budget, without reserving Blitz movement',()=>{
+ const f=foulShortcutFixture({targetX:13,rolls:[6,6,2,3]});f.run('a.profileOverride.ma=2;render();');f.cell(13,7).click();assert.equal(f.run('destination.spent'),4);assert.equal(f.run('destination.path.length'),4);f.cell(13,7).click();assert.equal(f.run('a.spent'),4);assert.equal(f.run('game.events.filter(e=>e.startsWith("Rush #")).length'),2);assert.equal(f.run('game.events.filter(e=>e.startsWith("Foul:")).length'),1);
+});
+test('a foul preview preserves a planned route prefix and extends it to adjacency',()=>{
+ const f=foulShortcutFixture({targetX:13});f.cell(9,9).click();const prefix=f.run('JSON.stringify(destination.path.map(s=>[s.x,s.y]))'),length=f.run('destination.path.length');f.cell(13,7).click();assert.equal(f.run('JSON.stringify(destination.path.slice(0,'+length+').map(s=>[s.x,s.y]))'),prefix);assert.equal(f.run('game.distance(destination,d)'),1);assert.equal(f.run('rollCount'),0);
+});
+for(const cancel of ['actor','button','Escape','outside'])test('foul preview cancellation through '+cancel+' spends nothing',()=>{
+ const f=foulShortcutFixture();f.cell(12,7).click();if(cancel==='actor')f.cell(8,7).click();else if(cancel==='button')f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Cancel preview').click();else if(cancel==='Escape')f.key('Escape');else f.cell(25,14).click();assert.equal(f.run('destination'),null);assert.equal(f.run('a.used'),false);assert.equal(f.run('game.foulUsed[0]'),false);assert.equal(f.run('game.mover'),null);assert.equal(f.run('rollCount'),0);
+});
+test('retargeting a foul recomputes the approach and ignores stale confirmation buttons',()=>{
+ const f=foulShortcutFixture();f.run("globalThis.victim=game.players.filter(p=>p.team===1)[1];Object.assign(victim,{x:9,y:9,status:'stunned'});render();");f.cell(12,7).click();const old=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Confirm Foul');f.cell(9,9).click();assert.equal(f.run('destination.foulTarget'),f.run('victim.id'));assert.equal(f.run('destination.spent'),1);assert.equal(f.cell(12,7).className.includes('foul-target'),false);old.click();assert.equal(f.run('rollCount'),0);f.cell(9,9).click();assert.equal(f.run('game.foulUsed[0]'),true);assert.equal(f.run('game.events.filter(e=>e.startsWith("Foul:")).length'),1);
+});
+test('foul badge shows player AV rather than an assist-adjusted roll target',()=>{
+ const f=foulShortcutFixture({targetX:10,av:'8+'});f.run('Object.assign(b,{x:10,y:6});render();');f.cell(10,7).click();assert.equal(f.cell(10,7).dataset.foulArmour,'8+');f.cell(10,7).click();assert.equal(f.run('game.events.some(e=>e.includes("Foul: 1 offensive"))'),true);
+});
+for(const accept of [false,true])test('foul route waits for an activation check and '+(accept?'stops on failure':'resumes after a reroll'),()=>{
+ const f=foulShortcutFixture({actorSkills:['Bone Head'],rolls:[1,6,2,3]});f.run('game.rerolls=[1,0];render();');f.cell(12,7).click();f.cell(12,7).click();assert.equal(f.run('game.pending.kind'),'Bone Head');assert.equal(f.run('a.x'),8);if(accept){f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Accept failure').click();assert.equal(f.run('game.events.some(e=>e.startsWith("Foul:"))'),false);assert.equal(f.run('a.x'),8);}else{f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Use team re-roll').click();assert.equal(f.run('game.events.filter(e=>e.startsWith("Foul:")).length'),1);}assert.equal(f.run('foulExecution'),null);
+});
+test('a foul route resumes after a Dodge reroll but stops on a failed approach',()=>{
+ for(const success of [true,false]){
+  const f=foulShortcutFixture({actorSkills:success?['Dodge']:[],rolls:success?[1,6,2,3]:[1,1,1]});f.run("globalThis.marker=game.players.filter(p=>p.team===1)[1];Object.assign(marker,{x:8,y:6,status:'standing'});render();");f.cell(12,7).click();f.cell(12,7).click();if(success){assert.equal(f.run('game.pending.kind'),'Dodge');f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Use Dodge').click();assert.equal(f.run('game.events.filter(e=>e.startsWith("Foul:")).length'),1);}else{assert.equal(f.run('a.status'),'prone');assert.equal(f.run('game.events.some(e=>e.startsWith("Foul:"))'),false);assert.equal(f.run('game.active'),1);}assert.equal(f.run('foulExecution'),null);
+ }
+});
+test('foul previews enforce action limits, reachability, target eligibility and declared action type',()=>{
+ for(const setup of ['game.foulUsed[0]=true',"game.start(a.id,'move')","a.profileOverride.ma=1;d.x=20","d.team=a.team","d.status='standing'","game.phase='charge';game.eventState={kind:'charge',team:0,eligible:[a.id],used:[],limit:1}"]){const f=foulShortcutFixture();f.run(setup+';render();');const x=f.run('d.x');f.cell(x,7).click();assert.equal(f.run('destination?.foulTarget'),undefined);assert.equal(f.run('foulExecution'),null);assert.equal(f.run('rollCount'),0);}
+});
+
+test('a prone actor stands as part of the confirmed foul action, without preview activation',()=>{
+ const f=foulShortcutFixture();f.run("a.status='prone';render();");f.cell(12,7).click();assert.equal(f.run('a.status'),'prone');assert.equal(f.run('a.used'),false);assert.equal(f.run('destination.spent'),6);f.cell(12,7).click();assert.equal(f.run('a.status'),'standing');assert.equal(f.run('a.spent'),6);assert.equal(f.run('game.events.filter(e=>e.startsWith("Foul:")).length'),1);
+});
+test('Sneakiest of the Lot retains its foul availability exception',()=>{
+ const f=foulShortcutFixture({actorSkills:['Sneakiest of the Lot']});f.run('game.foulUsed[0]=true;render();');f.cell(12,7).click();assert.equal(f.run('destination.foulTarget'),f.run('d.id'));f.cell(12,7).click();assert.equal(f.run('game.events.filter(e=>e.startsWith("Foul:")).length'),1);
+});
+test('explicit Blitz targeting of a downed player remains a Blitz preview instead of a foul',()=>{
+ const f=foulShortcutFixture({targetX:9,actorSkills:['Chainsaw',"Kick 'em While They're Down!"]});f.get('blitz').click();f.cell(9,7).click();assert.equal(f.run('destination.blitzTarget'),f.run('d.id'));assert.equal(f.run('destination.foulTarget'),undefined);f.cell(9,7).click();assert.equal(f.run('game.blitzUsed[0]'),true);assert.equal(f.run('game.foulUsed[0]'),false);
+});
+test('foul execution waits for a deferred activation declaration before movement',()=>{
+ const f=foulShortcutFixture();f.run("globalThis.originalStart=game.start.bind(game);game.start=(id,kind)=>{game.skillChoice('Deferred activation',0,['Continue'],()=>{game.start=originalStart;originalStart(id,kind);});return true;};");f.cell(12,7).click();f.cell(12,7).click();assert.equal(f.run('game.mover'),null);assert.equal(f.run('a.used'),false);assert.equal(f.run('game.pending.kind'),'Deferred activation');f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Continue').click();assert.equal(f.run('game.events.filter(e=>e.startsWith("Foul:")).length'),1);assert.equal(f.run('foulExecution'),null);
 });

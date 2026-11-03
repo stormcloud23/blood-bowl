@@ -164,6 +164,7 @@ choose=function(x,y,pushDecision=game.pending){
  if(!game.pending&&!ballMode&&target===planner&&previewRoute(planner)){
   selected=planner.id;blockMode=false;destination=null;
  }
+ if(!wasTargeting&&!destination?.blitzTarget&&previewFoul(actor,target))return;
  if(!wasTargeting&&previewBallTransfer(actor,target))return;
  if(!game.pending&&!ballMode&&!blockMode&&!destination?.blitzTarget&&game.canBlock(actor,target)){previewBlock(actor,target);return;}
  if(!game.pending&&!ballMode&&target&&actor&&(!blockMode||blockMode==="blitz")&&game.canBlitz(actor,target)){previewBlitz(actor,target);return;}
