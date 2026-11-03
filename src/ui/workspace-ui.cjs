@@ -144,15 +144,22 @@ function showPitchPopup(cell,title,details,actions,help=""){
 }
 const chooseBeforeWorkspace=choose;
 choose=function(x,y,pushDecision=game.pending){
+ if(pushDecision!==game.pending)return;
  const hadPreview=!!(destination||throwDestination);
  closePitchPopup();hidePitchTooltip();pitchFocus=y*26+x;
  const target=game.at(x,y),actor=game.players.find(p=>p.id===selected),wasTargeting=!!(blockMode||ballMode||game.pending),phase=game.phase;
  if(kickTargetSelection()){chooseBeforeWorkspace(x,y,pushDecision);hidePitchTooltip();return;}
  if(target&&target===actor&&!wasTargeting&&!hadPreview&&(!game.match||["play","charge"].includes(phase))){
+  if(canStandInPlace(actor)){standInPlace(actor);return;}
   selected=null;render();return;
  }
  // Clicking the route's actor returns directly to their normal range forecast.
  const planner=planningPlayer();
+ if(!target&&actor&&!wasTargeting&&(!game.match||["play","charge"].includes(phase))){
+  const previous=actor===planner?previewRoute(planner):null,range=actor===planner?remainingRange(planner,previous):new Map();
+  const routeSquare=previous?.path.some(step=>step.x===x&&step.y===y);
+  if(!range.has(routeKey(x,y))&&!routeSquare){selected=null;destination=null;throwDestination=null;render();return;}
+ }
  if(!game.pending&&!ballMode&&target===planner&&previewRoute(planner)){
   selected=planner.id;blockMode=false;destination=null;
  }
