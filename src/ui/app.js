@@ -105,10 +105,10 @@ function choose(x,y,pushDecision=game.pending){
    const team=game.phase==="setup"?game.setupTeam:game.phase==="swarming"?game.swarmState.team:game.phase==="dwarfenWisdom"?game.wisdomState.team:game.eventState.team;
    if(p?.team===team){
     const swapped=game.phase==="setup"&&selected&&selected!==p.id&&game.placeSetup(selected,x,y);
-    if(!swapped)selected=p.id;
-    const chosen=game.players.find(q=>q.id===selected);showProfile(chosen.team,chosen.role,chosen.number);
+    if(swapped)selected=null;else selected=p.id;
+    const chosen=game.players.find(q=>q.id===selected);if(chosen)showProfile(chosen.team,chosen.role,chosen.number);
    }
-   else if(selected){if(game.phase==="setup")game.placeSetup(selected,x,y);else if(game.phase==="swarming")game.placeSwarm(selected,x,y);else if(game.phase==="dwarfenWisdom")game.placeWisdom(selected,x,y);else game.eventPlace(selected,x,y);}
+   else if(selected){if(game.phase==="setup"){if(game.placeSetup(selected,x,y))selected=null;}else if(game.phase==="swarming")game.placeSwarm(selected,x,y);else if(game.phase==="dwarfenWisdom")game.placeWisdom(selected,x,y);else game.eventPlace(selected,x,y);}
   }else if(game.phase==="kickAim"){
    if(destination?.x===x&&destination?.y===y){game.kick(x,y);destination=null;}else if(game.ownHalf(game.receiving,x))destination={x,y};
   }else if(game.phase==="touchback")game.placeTouchback(x,y);
@@ -216,7 +216,7 @@ function render(){
  const pushDecision=game.pending?.type==="pushChoice"?game.pending:null;
  const pitchDecision=game.pending,pitchTargets=new Map(pendingPitchChoices(pitchDecision).map(pos=>[routeKey(pos.x,pos.y),pos]));
  const onTheBall=onTheBallPresentation(pitchDecision),kickLanding=visibleKickLanding();
- const placementTargets=new Set((game.match?game.placementSquares(selected):[]).map(pos=>routeKey(pos.x,pos.y)));
+ const placementTargets=new Set((game.match&&game.phase!=="setup"?game.placementSquares(selected):[]).map(pos=>routeKey(pos.x,pos.y)));
  const interceptions=passingInterceptions();
  const routeIndices=new Map((chosen?.path||[]).map((step,i)=>[routeKey(step.x,step.y),i+1]));
  const routePlans=new Map((chosen?.path||[]).map(step=>[routeKey(step.x,step.y),step.plan]));
