@@ -2,6 +2,14 @@
 
 ## Throwing target overlay
 
+During ball-pass targeting, enemy players show their accurate-pass interception
+roll instead of a pass/catch pair. Red squares identify eligible interception
+threats: before choosing a target, potential threats on any legal passing lane;
+after previewing a target, only threats on that lane. Hover/focus gives both
+accurate- and inaccurate-pass interception rolls. Eligibility and modifiers use
+engine forecasts, including Cloud Burster, Very Long Legs, marking and weather.
+Hail Mary has no interception overlay. Bomb and team-mate throws are unchanged.
+
 While choosing a ball-pass or throw/kick team-mate destination, legal squares
 use the existing movement difficulty colors: blue
 2+, green 3+, yellow 4+, orange 5+, red 6+. A receiver's square uses the harder
