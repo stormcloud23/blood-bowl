@@ -287,8 +287,17 @@ test('workspace tabs preserve the exact game and support arrow-key selection',()
 test('clicking a player opens legal actions and a menu click declares only once',()=>{
  const f=workspaceFixture();const p=JSON.parse(f.run('JSON.stringify(game.players.find(p=>p.id===selected))'));f.cell(p.x,p.y).click();assert.equal(!f.get('pitch-popup').hidden,true);assert.match(f.get('pitch-popup').children[2].textContent,/Black Orcs/);assert.ok(!f.popup().some(b=>b.textContent==='Declare Pass'));f.run('game.dice=()=>6');f.cell(p.x,p.y+1).click();const move=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Confirm Move');assert.ok(move);move.click();const mover=f.run('game.mover');assert.ok(mover);move.click();assert.equal(f.run('game.mover'),mover);assert.equal(!f.get('pitch-popup').hidden,false);
 });
-test('an opponent tile offers Block and Blitz without changing the acting player',()=>{
- const f=workspaceFixture(),selected=f.run('selected');f.run('globalThis.target=game.players.find(p=>p.team!==game.active&&game.canBlock(game.players.find(p=>p.id===selected),p));game.dice=()=>3');const target=JSON.parse(f.run('JSON.stringify(target)'));f.cell(target.x,target.y).click();assert.equal(f.run('selected'),selected);const block=f.action('Block #'+target.number);assert.ok(f.popup().some(b=>b.textContent.startsWith('Declare Blitz')));block.click();assert.equal(f.run('game.pending.type'),'blockSelect');const old=f.run('game.pending');block.click();assert.equal(f.run('game.pending'),old);
+test('enemy click previews a blitz without activating; repeating follows the shown route and blocks',()=>{
+ const f=proneFixture();f.run("prone.status='standing';globalThis.enemy=game.players.find(p=>p.team===1);Object.assign(enemy,{x:12,y:7,status:'standing'});enemy.profileOverride={...game.profile(prone),skills:[]};selected=prone.id;game.ball={x:0,y:0,carrier:null};render();");
+ f.cell(12,7).click();assert.equal(f.run('game.mover'),null);assert.equal(f.run('game.blitzUsed[0]'),false);assert.equal(f.run('rollCount'),0);assert.equal(f.run('selected===prone.id'),true);assert.ok(f.cell(12,7).className.includes('block-target'));assert.ok(f.run('destination.path.length')>0);
+ const endpoint=f.run('JSON.stringify({x:destination.x,y:destination.y})');f.cell(12,7).click();assert.equal(f.run('JSON.stringify({x:prone.x,y:prone.y})'),endpoint);assert.equal(f.run('game.blitzUsed[0]'),true);assert.equal(f.run('game.blitzBlocked'),true);assert.equal(f.run('game.pending.type'),'blockSelect');assert.equal(f.run('destination'),null);
+});
+test('blitz preview cancels and retargets without spending the team blitz',()=>{
+ const f=proneFixture();f.run("prone.status='standing';globalThis.enemies=game.players.filter(p=>p.team===1).slice(0,2);enemies.forEach((p,i)=>Object.assign(p,{x:11,y:6+i*2,status:'standing'}));selected=prone.id;render();");
+ f.cell(11,6).click();f.cell(11,8).click();assert.equal(f.run('destination.blitzTarget===enemies[1].id'),true);f.key('Escape');assert.equal(f.run('destination'),null);assert.equal(f.run('game.blitzUsed[0]'),false);assert.equal(f.run('rollCount'),0);
+});
+test('adjacent blitz preview needs confirmation and reserves the block movement point',()=>{
+ const f=proneFixture();f.run("prone.status='standing';globalThis.enemy=game.players.find(p=>p.team===1);Object.assign(enemy,{x:9,y:7,status:'standing'});selected=prone.id;render();");f.get('blitz').click();f.cell(9,7).click();assert.equal(f.run('destination.path.length'),0);assert.equal(f.run('game.mover'),null);f.cell(9,7).click();assert.equal(f.run('prone.spent'),1);assert.equal(f.run('game.blitzBlocked'),true);
 });
 test('Escape closes a menu, returns focus and cancels previews without moving',()=>{
  const f=workspaceFixture();const p=JSON.parse(f.run('JSON.stringify(game.players.find(p=>p.id===selected))'));f.cell(p.x,p.y).click();f.key('Escape');assert.equal(!f.get('pitch-popup').hidden,false);assert.equal(f.document.activeElement,f.cell(p.x,p.y));f.run('choose(9,8)');assert.ok(f.run('destination'));f.key('Escape');assert.equal(f.run('destination'),null);assert.equal(f.run('game.mover'),null);
@@ -557,4 +566,53 @@ test('requested tooltip suppression applies to route previews, pass previews and
 
 test('selected restoration leaves empty dugout lanes available',()=>{
  const f=workspaceFixture('match');f.run('game.phase="kickChoice";game.chooseKicking(0);game.confirmSetup();render()');assert.equal(dugoutNodes(f.get('dugout')).filter(e=>e.tagName==='H4').length,12);
+});
+
+test('confirmed blitz resumes after a reroll decision and stops after failed activation',()=>{
+ for(const accept of [false,true]){
+  const f=proneFixture();f.run("prone.status='standing';prone.extraSkills=['Bone Head'];globalThis.enemy=game.players.find(p=>p.team===1);Object.assign(enemy,{x:11,y:7,status:'standing'});selected=prone.id;game.ball={x:0,y:0,carrier:null};game.dice=()=>{rollCount++;return rollCount===1?1:6;};render();");
+  f.cell(11,7).click();f.cell(11,7).click();assert.equal(f.run('game.pending.kind'),'Bone Head');assert.equal(f.run('prone.x'),8);
+  if(accept){f.run("game.decide('Accept');render();");assert.equal(f.run('game.mover'),null);assert.equal(f.run('blitzExecution'),null);assert.equal(f.run('game.blitzBlocked'),false);}
+  else {f.run("game.decide(game.pending.options.find(o=>o!=='Accept failure'));render();");assert.equal(f.run('game.blitzBlocked'),true);assert.equal(f.run('game.pending.type'),'blockSelect');}
+ }
+});
+
+for(const kind of ['move','blitz','active move'])test('clicking the acting player cancels '+kind+' preview and restores their full available range',()=>{
+ const f=proneFixture();f.run("prone.status='standing';globalThis.enemy=game.players.find(p=>p.team===1);Object.assign(enemy,{x:12,y:7,status:'standing'});enemy.profileOverride={...game.profile(prone),skills:[]};selected=prone.id;game.ball={x:0,y:0,carrier:null};"+(kind==='active move'?"game.start(prone.id,'move');game.step(9,7);":"")+"render();globalThis.beforeRange=[...rangeFor(prone).keys()].sort().join(';');globalThis.beforeState=JSON.stringify([prone.x,prone.y,prone.spent,prone.used,game.mover,game.action,game.blitzUsed]);");
+ const origin=JSON.parse(f.run('JSON.stringify({x:prone.x,y:prone.y})'));
+ if(kind==='blitz')f.cell(12,7).click();else f.cell(10,7).click();
+ assert.ok(f.run('destination'));assert.ok(f.get('pitch').children.some(c=>c.className.split(' ').includes('route')));
+ f.cell(origin.x,origin.y).click();
+ assert.equal(f.run('destination'),null);assert.equal(f.run('selected===prone.id'),true);assert.equal(f.run('JSON.stringify([prone.x,prone.y,prone.spent,prone.used,game.mover,game.action,game.blitzUsed])===beforeState'),true);assert.equal(f.run('rollCount'),0);
+ assert.equal(f.run("[...remainingRange(prone,previewRoute(prone)).keys()].sort().join(';')===beforeRange"),true);
+ assert.equal(f.get('pitch').children.some(c=>c.className.split(' ').includes('route')||c.className.split(' ').includes('block-target')),false);
+ for(const key of f.run('[...rangeFor(prone).keys()]')){const [x,y]=key.split(',').map(Number);if(x!==origin.x||y!==origin.y)assert.ok(f.cell(x,y).className.split(' ').includes('legal'),'range square '+key);}
+});
+
+function adjacentBlockFixture(){
+ const f=proneFixture();f.run("prone.status='standing';globalThis.enemy=game.players.find(p=>p.team===1);Object.assign(enemy,{x:9,y:7,status:'standing'});enemy.profileOverride={...game.profile(prone),skills:[]};selected=prone.id;render();");return f;
+}
+test('adjacent opponent defaults to a two-click regular block without spending Blitz',()=>{
+ const f=adjacentBlockFixture();f.cell(9,7).click();assert.equal(f.run('destination.blockTarget===enemy.id'),true);assert.ok(f.cell(9,7).className.includes('block-target'));assert.equal(f.run('selected===prone.id'),true);assert.equal(f.run('game.mover'),null);assert.equal(f.run('prone.used'),false);assert.equal(f.run('rollCount'),0);assert.equal(f.run('game.blitzUsed[0]'),false);
+ f.cell(9,7).click();assert.equal(f.run('game.pending.type'),'blockSelect');assert.equal(f.run('game.blitzUsed[0]'),false);assert.equal(f.run('game.action'),'block');assert.equal(f.run('destination'),null);
+});
+test('clicking the attacker cancels a block preview and restores movement',()=>{
+ const f=adjacentBlockFixture();f.cell(9,7).click();f.cell(8,7).click();assert.equal(f.run('destination'),null);assert.equal(f.run('prone.used'),false);assert.equal(f.run('rollCount'),0);assert.equal(f.cell(9,7).className.includes('block-target'),false);assert.ok(f.cell(7,7).className.includes('legal'));
+});
+test('Declare Blitz replaces an adjacent regular block preview and preserves Blitz movement',()=>{
+ const f=adjacentBlockFixture();f.cell(9,7).click();f.get('blitz').click();f.cell(9,7).click();assert.equal(f.run('destination.blitzTarget===enemy.id'),true);assert.equal(f.run('destination.blockTarget'),undefined);assert.equal(f.run('game.mover'),null);f.cell(9,7).click();assert.equal(f.run('game.action'),'blitz');assert.equal(f.run('game.blitzUsed[0]'),true);assert.equal(f.run('game.blitzBlocked'),true);assert.equal(f.run('game.mover===prone.id'),true);
+});
+test('regular block preview remains available after the team Blitz has been spent',()=>{
+ const f=adjacentBlockFixture();f.run('game.blitzUsed[0]=true;render();');f.cell(9,7).click();assert.equal(f.run('destination.blockTarget===enemy.id'),true);f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Confirm Block').click();assert.equal(f.run('game.pending.type'),'blockSelect');
+});
+
+for(const mode of ['block','blitz'])for(const [a,d,color,risk,count,ours] of [[7,3,'blue',2,3,true],[6,3,'green',3,2,true],[3,3,'yellow',4,1,true],[3,6,'orange',5,2,false],[3,7,'red',6,3,false]])test(mode+' preview uses '+color+' for ST '+a+' vs '+d,()=>{
+ const f=adjacentBlockFixture();f.run('prone.profileOverride.st='+a+';enemy.profileOverride.st='+d+';render();');if(mode==='blitz')f.get('blitz').click();f.cell(9,7).click();
+ const target=f.cell(9,7);assert.ok(target.className.includes('risk-'+risk));assert.equal(target.dataset.blockDifficulty,String(risk));assert.match(target['aria-label'],new RegExp(count+' block'));assert.match(target.dataset.hint,new RegExp(ours?'you choose':'opponent chooses'));assert.equal(f.run('rollCount'),0);assert.equal(f.run('game.blockAction'),null);
+ f.cell(9,7).click();assert.equal(f.run('game.blockAction.count'),count);assert.equal(f.run('game.blockAction.chooserTeam'),ours?0:1);
+});
+test('blitz difficulty forecasts assists at contact and includes Horns without changing the live board',()=>{
+ const f=adjacentBlockFixture();f.run("enemy.x=12;prone.extraSkills=['Horns'];globalThis.helper=game.players.find(p=>p.team===0&&p!==prone);Object.assign(helper,{x:13,y:7,status:'standing',distracted:false});helper.profileOverride={...game.profile(prone),skills:['Guard']};render();");
+ f.cell(12,7).click();assert.equal(f.cell(12,7).dataset.blockDifficulty,'3');assert.match(f.cell(12,7).dataset.hint,/ST 5 vs 3/);assert.equal(f.run('prone.x'),8);assert.equal(f.run('prone.hornsBonus||0'),0);assert.equal(f.run('rollCount'),0);
+ f.cell(12,7).click();assert.equal(f.run('game.blockAction.aStrength'),5);assert.equal(f.run('game.blockAction.dStrength'),3);assert.equal(f.run('game.blockAction.count'),2);
 });
