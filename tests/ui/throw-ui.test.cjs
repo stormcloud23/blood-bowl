@@ -467,3 +467,14 @@ test('throw and kick teammate overlays only offer Quick and Short ranges from th
 test('Hail Mary overlay never promises an accurate delivery or a catch at the aimed square',()=>{
  const {get,run}=passOverlayFixture();run('a.extraSkills=["Hail Mary Pass"];a.hailMary=true;render()');const cell=get('pitch').children[7*26+13];assert.equal(cell.dataset.throwRange,'H');assert.match(cell.title,/Always scatters/);assert.ok(!cell.title.includes('Catch 5+'));
 });
+test('enemy pass labels show interception rolls in red and narrow to the chosen lane',()=>{
+ const {get,run}=passOverlayFixture();run('game.interceptionCandidates=MatchGame.prototype.interceptionCandidates;Object.assign(d,{x:12,y:7,status:"standing"});d.profileOverride.ag="3+";render()');
+ let enemy=get('pitch').children[7*26+12];assert.match(enemy.className,/interception-risk/);assert.ok(enemy.children.some(e=>e.className==='throw-range-label'&&e.textContent==='6+'));assert.match(enemy.title,/Accurate pass: 6\+/);assert.ok(!enemy.title.includes('Catch 3+'));
+ run('throwDestination={x:13,y:7};render()');assert.match(get('pitch').children[7*26+12].className,/interception-risk/);
+ run('throwDestination={x:10,y:3};render()');enemy=get('pitch').children[7*26+12];assert.ok(!enemy.className.includes('interception-risk'));assert.ok(!enemy.children.some(e=>e.className==='throw-range-label'));
+});
+test('interception overlay respects skills, weather, eligibility and Hail Mary',()=>{
+ const {get,run}=passOverlayFixture();run('game.interceptionCandidates=MatchGame.prototype.interceptionCandidates;Object.assign(d,{x:12,y:7,status:"standing",extraSkills:["Very Long Legs","Extra Arms"]});d.profileOverride.ag="3+";b.x=14;throwDestination={x:14,y:7};render()');assert.ok(get('pitch').children[7*26+12].children.some(e=>e.textContent==='3+'));
+ run('game.weather="Pouring Rain";render()');assert.ok(get('pitch').children[7*26+12].children.some(e=>e.textContent==='4+'));
+ for(const change of ['d.status="prone"','d.status="standing";d.distracted=true','d.distracted=false;d.extraSkills=["No Ball"]','d.extraSkills=[];a.extraSkills=["Cloud Burster"]','d.extraSkills=["Very Long Legs"];a.extraSkills=["Hail Mary Pass"];a.hailMary=true']){run(change+';render()');assert.ok(!get('pitch').children[7*26+12].className.includes('interception-risk'));}
+});
