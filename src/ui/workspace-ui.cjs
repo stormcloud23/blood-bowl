@@ -144,18 +144,18 @@ function showPitchPopup(cell,title,details,actions,help=""){
 }
 const chooseBeforeWorkspace=choose;
 choose=function(x,y,pushDecision=game.pending){
- // Require a deliberate second click on the currently open player selection,
- // rather than activating a player merely preselected by a practice scenario.
- const repeatSelection=!popup.hidden&&popupAnchor===pitch.children[y*26+x];
+ const hadPreview=!!(destination||throwDestination);
  closePitchPopup();hidePitchTooltip();pitchFocus=y*26+x;
  const target=game.at(x,y),actor=game.players.find(p=>p.id===selected),wasTargeting=!!(blockMode||ballMode||game.pending),phase=game.phase;
  if(kickTargetSelection()){chooseBeforeWorkspace(x,y,pushDecision);hidePitchTooltip();return;}
+ if(target&&target===actor&&!wasTargeting&&!hadPreview&&(!game.match||["play","charge"].includes(phase))){
+  selected=null;render();return;
+ }
  // Clicking the route's actor returns directly to their normal range forecast.
  const planner=planningPlayer();
  if(!game.pending&&!ballMode&&target===planner&&previewRoute(planner)){
   selected=planner.id;blockMode=false;destination=null;
  }
- if(repeatSelection&&!wasTargeting&&!destination&&target===actor&&canStandInPlace(target)){standInPlace(target);return;}
  if(!game.pending&&!ballMode&&!blockMode&&!destination?.blitzTarget&&game.canBlock(actor,target)){previewBlock(actor,target);return;}
  if(!game.pending&&!ballMode&&target&&actor&&(!blockMode||blockMode==="blitz")&&game.canBlitz(actor,target)){previewBlitz(actor,target);return;}
  const targetActions=!wasTargeting&&target&&target.id!==actor?.id?targetContextActions(actor,target):[];
