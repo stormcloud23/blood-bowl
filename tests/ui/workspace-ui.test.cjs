@@ -748,3 +748,64 @@ test('touch interaction and dugout focus never open a player tooltip',()=>{
  const card=dugoutNodes(f.get('dugout')).find(e=>e.dataset.playerId);assert.ok(card);card.emit('focus');card.emit('pointerenter',{pointerType:'touch'});assert.equal(f.get('pitch-tooltip').popoverOpen,false);
  f.run("game.start(a.id,'move');render();");const activeCard=dugoutNodes(f.get('dugout')).find(e=>e.dataset.playerId);activeCard.emit('focus');activeCard.emit('pointerenter',{pointerType:'mouse'});assert.equal(f.get('pitch-tooltip').popoverOpen,false);
 });
+
+function ballShortcutFixture({targetX=12,targetY=7,actorSkills=[],targetSkills=[],rolls=[]}={}){
+ const f=tileFixture();f.run("Object.assign(b,{x:"+targetX+",y:"+targetY+",extraSkills:"+JSON.stringify(targetSkills)+"});a.extraSkills="+JSON.stringify(actorSkills)+";Object.assign(d,{x:20,y:12});game.ball={x:a.x,y:a.y,carrier:a.id};game.interceptionCandidates=()=>[];globalThis.rollCount=0;globalThis.rollQueue="+JSON.stringify(rolls)+";game.dice=()=>{rollCount++;return rollQueue.length?rollQueue.shift():6;};render();");return f;
+}
+test('selected ball carrier previews a pass on a teammate click without declaring or rolling, then passes on confirmation',()=>{
+ const f=ballShortcutFixture();f.run('globalThis.before=JSON.stringify([game.players,game.ball,game.action,game.mover,game.passUsed,game.handoffUsed,game.events]);');f.cell(12,7).click();assert.equal(f.run('destination.ballAction'),'pass');assert.equal(f.run('selected'),f.run('a.id'));assert.equal(f.run('destination.path.length'),0);assert.equal(f.run('rollCount'),0);assert.equal(f.run('JSON.stringify([game.players,game.ball,game.action,game.mover,game.passUsed,game.handoffUsed,game.events])===before'),true);assert.ok(f.cell(12,7).children.some(e=>e.className==='throw-range-label'&&e.textContent==='4+/3+'),JSON.stringify(f.cell(12,7).children.map(e=>e.textContent)));assert.ok(f.cell(12,7).className.includes('destination'));
+ const commit=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Confirm Pass');assert.ok(commit);commit.click();commit.click();assert.equal(f.run('game.ball.carrier'),f.run('b.id'));assert.equal(f.run('game.passUsed[0]'),true);assert.equal(f.run('game.handoffUsed[0]'),false);assert.equal(f.run('game.events.filter(e=>e.includes("attempts a Short Pass")).length'),1);assert.equal(f.run('rollCount'),2);
+});
+test('an adjacent teammate defaults to a pass when no movement route is planned',()=>{
+ const f=ballShortcutFixture({targetX:9});f.cell(9,7).click();assert.equal(f.run('destination.ballAction'),'pass');assert.ok(f.cell(9,7).children.some(e=>e.textContent==='3+/3+'),JSON.stringify(f.cell(9,7).children.map(e=>e.textContent)));f.cell(9,7).click();assert.equal(f.run('game.passUsed[0]'),true);assert.equal(f.run('game.handoffUsed[0]'),false);assert.equal(f.run('game.ball.carrier'),f.run('b.id'));
+});
+test('a route ending adjacent previews its path and hand-off catch roll, then moves before handing off',()=>{
+ const f=ballShortcutFixture({targetX:10});f.cell(9,7).click();const path=f.run('JSON.stringify(destination.path)');f.cell(10,7).click();assert.equal(f.run('destination.ballAction'),'handoff');assert.equal(f.run('JSON.stringify(destination.path)'),path);assert.equal(f.run('a.x'),8);assert.equal(f.run('rollCount'),0);assert.ok(f.cell(9,7).className.includes('route'));assert.equal(f.cell(10,7).dataset.throwRange,'handoff');assert.ok(f.cell(10,7).children.some(e=>e.textContent==='3+'));
+ f.run('globalThis.sequence=[];globalThis.stepBefore=game.step.bind(game);globalThis.handoffBefore=game.handoff.bind(game);game.step=(x,y)=>{sequence.push("move");return stepBefore(x,y);};game.handoff=id=>{sequence.push("handoff");return handoffBefore(id);};');f.cell(10,7).click();assert.equal(f.run('sequence.join(",")'),'move,handoff');assert.equal(f.run('a.x'),9);assert.equal(f.run('a.spent'),1);assert.equal(f.run('game.ball.carrier'),f.run('b.id'));assert.equal(f.run('game.handoffUsed[0]'),true);assert.equal(f.run('game.passUsed[0]'),false);assert.equal(f.run('rollCount'),1);
+});
+test('nonadjacent route-to-teammate click forecasts and performs the pass from the planned endpoint',()=>{
+ const f=ballShortcutFixture({targetX:13});f.cell(10,7).click();const route=f.run('JSON.stringify(destination.path)');f.cell(13,7).click();assert.equal(f.run('destination.ballAction'),'pass');assert.equal(f.run('JSON.stringify(destination.path)'),route);assert.ok(f.cell(13,7).children.some(e=>e.textContent==='3+/3+'),JSON.stringify(f.cell(13,7).children.map(e=>e.textContent)));assert.equal(f.run('a.x'),8);f.cell(13,7).click();assert.equal(f.run('a.x'),10);assert.equal(f.run('a.spent'),2);assert.equal(f.run('game.events.some(e=>e.includes("attempts a Quick Pass"))'),true);assert.equal(f.run('game.ball.carrier'),f.run('b.id'));
+});
+test("hand-off overlay uses catch modifiers without Diving Catch's accurate-pass bonus",()=>{
+ const f=ballShortcutFixture({targetX:10,targetSkills:['Extra Arms','Catch','Diving Catch'],rolls:[3,6]});f.run("game.weather='Pouring Rain';Object.assign(d,{x:11,y:6});render();");f.cell(9,7).click();f.cell(10,7).click();assert.ok(f.cell(10,7).children.some(e=>e.textContent==='4+'));assert.equal(f.run('rollCount'),0);f.cell(10,7).click();assert.equal(f.run('game.pending.kind'),'Catch');assert.equal(f.run('game.pending.target'),4);f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Use Catch').click();assert.equal(f.run('game.ball.carrier'),f.run('b.id'));assert.equal(f.run('rollCount'),2);
+});
+for(const cancel of ['actor','button','Escape','outside'])test('direct pass preview cancels through '+cancel+' without spending an action',()=>{
+ const f=ballShortcutFixture();f.cell(12,7).click();if(cancel==='actor')f.cell(8,7).click();else if(cancel==='button')f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Cancel preview').click();else if(cancel==='Escape')f.key('Escape');else f.cell(25,14).click();assert.equal(f.run('destination'),null);assert.equal(f.run('game.mover'),null);assert.equal(f.run('a.used'),false);assert.equal(f.run('game.passUsed[0]'),false);assert.equal(f.run('game.handoffUsed[0]'),false);assert.equal(f.run('rollCount'),0);
+});
+test('retargeting a direct pass invalidates old confirmations and preserves the carrier selection',()=>{
+ const f=ballShortcutFixture();f.run("globalThis.receiver=game.players[2];Object.assign(receiver,{x:11,y:4,status:'standing'});render();");f.cell(12,7).click();const old=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Confirm Pass');f.cell(11,4).click();assert.equal(f.run('selected'),f.run('a.id'));assert.equal(f.run('destination.ballTarget'),f.run('receiver.id'));old.click();assert.equal(f.run('a.used'),false);assert.equal(f.run('rollCount'),0);f.cell(11,4).click();assert.equal(f.run('game.ball.carrier'),f.run('receiver.id'));
+});
+for(const accept of [false,true])test('hand-off route waits for activation checks and '+(accept?'stops on failure':'resumes after a reroll'),()=>{
+ const f=ballShortcutFixture({targetX:10,actorSkills:['Bone Head'],rolls:[1,6,6]});f.run('game.rerolls=[1,0];render();');f.cell(9,7).click();f.cell(10,7).click();f.cell(10,7).click();assert.equal(f.run('game.pending.kind'),'Bone Head');assert.equal(f.run('a.x'),8);
+ if(accept){f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Accept failure').click();assert.equal(f.run('a.x'),8);assert.equal(f.run('game.ball.carrier'),f.run('a.id'));assert.equal(f.run('ballExecution'),null);}
+ else {f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Use team re-roll').click();assert.equal(f.run('a.x'),9);assert.equal(f.run('game.ball.carrier'),f.run('b.id'));assert.equal(f.run('ballExecution'),null);}
+});
+test('a hand-off route resumes after a successful Dodge reroll before making the catch',()=>{
+ const f=ballShortcutFixture({targetX:11,actorSkills:['Dodge'],rolls:[1,6,6]});f.run('Object.assign(d,{x:9,y:6});render();');f.cell(10,7).click();f.cell(11,7).click();assert.equal(f.run('destination.ballAction'),'handoff');f.cell(11,7).click();assert.equal(f.run('game.pending.kind'),'Dodge');assert.equal(f.run('game.events.some(e=>e.includes("hands off"))'),false);f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Use Dodge').click();assert.equal(f.run('a.x'),10);assert.equal(f.run('game.ball.carrier'),f.run('b.id'));assert.equal(f.run('game.events.filter(e=>e.includes("hands off")).length'),1);
+});
+test('a failed hand-off approach cannot perform the hand-off after a turnover',()=>{
+ const f=ballShortcutFixture({targetX:11,rolls:[1,1,1,6]});f.run('Object.assign(d,{x:9,y:6});render();');f.cell(10,7).click();f.cell(11,7).click();f.cell(11,7).click();assert.equal(f.run('a.status'),'prone');assert.equal(f.run('game.events.some(e=>e.includes("hands off"))'),false);assert.equal(f.run('ballExecution'),null);assert.equal(f.run('game.active'),1);
+});
+test('a direct pass preserves On the Ball reactions and resolves the pass exactly once afterwards',()=>{
+ const f=ballShortcutFixture();f.run("d.extraSkills=['On the Ball'];render();");f.cell(12,7).click();f.cell(12,7).click();assert.equal(f.run('game.pending.kind'),'On the Ball');assert.equal(f.run('ballExecution'),null);assert.equal(f.run('rollCount'),0);f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Finish reactions').click();assert.equal(f.run('game.ball.carrier'),f.run('b.id'));assert.equal(f.run('game.events.filter(e=>e.includes("attempts a Short Pass")).length'),1);
+});
+test('automatic ball shortcuts respect action limits and cannot convert an active Move into a pass',()=>{
+ for(const setup of ['game.passUsed[0]=true',"game.start(a.id,'move')",'game.ball.carrier=d.id']){
+  const f=ballShortcutFixture();f.run(setup+';render();');f.cell(12,7).click();assert.equal(f.run('destination?.ballAction'),undefined);assert.equal(f.run('ballExecution'),null);assert.equal(f.run('rollCount'),0);
+ }
+ const f=ballShortcutFixture({targetX:10});f.run('game.handoffUsed[0]=true;render();');f.cell(9,7).click();f.cell(10,7).click();assert.equal(f.run('destination?.ballAction'),undefined);assert.equal(f.run('game.passUsed[0]'),false);assert.equal(f.run('a.used'),false);
+});
+
+test('Diving Catch improves a direct pass catch overlay but does not improve a hand-off overlay',()=>{
+ const f=ballShortcutFixture({targetX:10,targetSkills:['Diving Catch']});f.cell(10,7).click();assert.ok(f.cell(10,7).children.some(e=>e.textContent==='3+/2+'));f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Cancel preview').click();f.cell(9,7).click();f.cell(10,7).click();assert.equal(f.run('destination.ballAction'),'handoff');assert.ok(f.cell(10,7).children.some(e=>e.textContent==='3+'));assert.equal(f.run('rollCount'),0);
+});
+test('a previously declared Pass retains its action when a planned endpoint is adjacent to the target',()=>{
+ const f=ballShortcutFixture({targetX:10});f.run("game.start(a.id,'pass');render();");f.cell(9,7).click();f.cell(10,7).click();assert.equal(f.run('destination.ballAction'),'pass');assert.equal(f.run('game.handoffUsed[0]'),false);f.cell(10,7).click();assert.equal(f.run('a.x'),9);assert.equal(f.run('game.ball.carrier'),f.run('b.id'));assert.equal(f.run('game.handoffUsed[0]'),false);
+});
+test('a direct pass forecast includes endpoint marking and the chosen pass interception lane',()=>{
+ const f=ballShortcutFixture({targetX:13});f.run('delete game.interceptionCandidates;Object.assign(d,{x:11,y:7});render();');f.cell(10,7).click();f.cell(13,7).click();assert.equal(f.run('destination.ballAction'),'pass');assert.ok(f.cell(13,7).children.some(e=>e.textContent==='4+/3+'));assert.equal(f.cell(11,7).dataset.throwRange,'interception');assert.ok(f.cell(11,7).children.some(e=>e.textContent==='6+'));assert.equal(f.run('a.x'),8);assert.equal(f.run('rollCount'),0);
+});
+test('automatic pass preview preserves unavailable-catching and Hail Mary forecast conventions',()=>{
+ const noCatch=ballShortcutFixture({targetSkills:['No Ball']});noCatch.cell(12,7).click();assert.ok(noCatch.cell(12,7).children.some(e=>e.textContent==='4+/×'));assert.ok(noCatch.cell(12,7).className.includes('risk-6'));assert.equal(noCatch.run('rollCount'),0);
+ const hail=ballShortcutFixture({targetX:25,actorSkills:['Hail Mary Pass']});hail.cell(25,7).click();assert.equal(hail.cell(25,7).dataset.throwRange,'H');assert.ok(hail.cell(25,7).children.some(e=>String(e.textContent).endsWith('/?')));assert.equal(hail.run('rollCount'),0);
+});
