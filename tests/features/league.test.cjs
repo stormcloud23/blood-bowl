@@ -127,12 +127,17 @@ test('active fixtures lock team names, coach names and player shirt details',()=
  const {s,ts}=setup(),t=ts[0];s.startFixture(...ts.map(t=>t.id));assert.throws(()=>s.updateDetails(t.id,'Changed','Coach'),/active fixture/);assert.throws(()=>s.updatePlayerDetails(t.id,t.players[0].id,'Changed',42),/active fixture/);
 });
 
-test('deleting and restoring a team retains history and round-trips through backups',()=>{
- const {s,g,nominations,ts}=played();s.finishFixture(g,nominations);const history=JSON.stringify(s.data.matches),record=JSON.stringify(s.team(ts[0].id).record);s.deleteTeam(ts[0].id);assert.equal(s.team(ts[0].id).deleted,true);assert.equal(JSON.stringify(s.data.matches),history);assert.equal(JSON.stringify(s.team(ts[0].id).record),record);const reloaded=new LeagueStore(rosters,s.data);assert.equal(reloaded.team(ts[0].id).deleted,true);assert.throws(()=>reloaded.matchTeam(reloaded.team(ts[0].id)),/Restore/);assert.throws(()=>reloaded.hire(ts[0].id,0),/Restore/);reloaded.restoreTeam(ts[0].id);assert.ok(!reloaded.team(ts[0].id).deleted);assert.doesNotThrow(()=>new LeagueStore(rosters,reloaded.data));
+test('permanent team deletion removes records and linked history while preserving other teams progress',()=>{
+ const {s,g,nominations,ts}=played();s.finishFixture(g,nominations);s.prepareNext(ts[1].id);const remaining=s.team(ts[1].id),record=JSON.stringify(remaining.record),gold=remaining.treasury;s.deleteTeam(ts[0].id);assert.throws(()=>s.team(ts[0].id),/Unknown/);assert.equal(s.data.matches.length,0);assert.equal(remaining.history.length,0);assert.equal(JSON.stringify(remaining.record),record);assert.equal(remaining.treasury,gold);assert.ok(!s.data.leagues[0].teamIds.includes(ts[0].id));assert.doesNotThrow(()=>new LeagueStore(rosters,s.data));
 });
-test('active fixtures prevent deletion and deleted teams cannot start new fixtures',()=>{
- const {s,ts}=setup();s.startFixture(...ts.map(t=>t.id));assert.throws(()=>s.deleteTeam(ts[0].id),/active/);assert.ok(!s.team(ts[0].id).deleted);s.data.active=null;s.deleteTeam(ts[0].id);assert.throws(()=>s.startFixture(...ts.map(t=>t.id)));assert.equal(s.data.active,null);
+
+test('active fixtures prevent permanent team and league deletion',()=>{
+ const {s,ts,l}=setup();s.startFixture(...ts.map(t=>t.id));const before=JSON.stringify(s.data);assert.throws(()=>s.deleteTeam(ts[0].id),/active/);assert.throws(()=>s.deleteLeague(l.id),/active/);assert.equal(JSON.stringify(s.data),before);
 });
+
 test('deleted-team flags are validated even on empty drafts',()=>{
  const s=new LeagueStore(rosters),t=s.create(rosters[0].id,'Empty');t.deleted='true';assert.throws(()=>new LeagueStore(rosters,s.data),/deleted-team/);
 });
+
+test('permanent league deletion releases teams and removes fixture references',()=>{const {s,g,nominations,ts,l}=played();s.finishFixture(g,nominations);for(const t of ts)s.prepareNext(t.id);const before=s.data.teams.map(t=>({id:t.id,gold:t.treasury,record:JSON.stringify(t.record)}));s.deleteLeague(l.id);assert.equal(s.data.leagues.length,0);assert.equal(s.data.matches.length,0);assert.equal(s.data.teams.length,2);for(const item of before){const t=s.team(item.id);assert.equal(t.history.length,0);assert.equal(t.treasury,item.gold);assert.equal(JSON.stringify(t.record),item.record);}assert.doesNotThrow(()=>new LeagueStore(rosters,s.data));});
+test('unfinished linked postgame blocks permanent deletion without partial changes',()=>{const {s,g,nominations,ts,l}=played();s.finishFixture(g,nominations);const before=JSON.stringify(s.data);assert.throws(()=>s.deleteTeam(ts[0].id),/post-game/);assert.throws(()=>s.deleteLeague(l.id),/post-game/);assert.equal(JSON.stringify(s.data),before);});
