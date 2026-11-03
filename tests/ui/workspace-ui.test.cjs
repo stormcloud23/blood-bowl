@@ -305,8 +305,8 @@ test('Escape closes a menu, returns focus and cancels previews without moving',(
 test('roving pitch navigation has one Tab stop and stays inside pitch boundaries',()=>{
  const f=workspaceFixture();assert.equal(f.get('pitch').children.filter(e=>e.tabIndex===0).length,1);f.get('pitch').emit('keydown',{target:f.cell(0,0),key:'ArrowLeft'});assert.equal(f.document.activeElement,f.cell(0,0));f.get('pitch').emit('keydown',{target:f.cell(0,0),key:'ArrowDown'});assert.equal(f.document.activeElement,f.cell(0,1));assert.equal(f.get('pitch').children.filter(e=>e.tabIndex===0).length,1);f.cell(0,1).focus();f.run('render()');assert.equal(f.document.activeElement,f.cell(0,1));
 });
-test('hover and focus information include skills, characteristics and ball state',()=>{
- const f=workspaceFixture('pass');const p=JSON.parse(f.run('JSON.stringify(game.players.find(p=>p.id===selected))'));f.get('pitch').emit('focusin',{target:f.cell(p.x,p.y)});assert.match(f.get('pitch-tooltip').textContent,/MA 6|MA 7/);assert.match(f.get('pitch-tooltip').textContent,/ball carrier/);assert.match(f.get('pitch-tooltip').textContent,/Pass/);assert.equal(f.cell(p.x,p.y)['aria-describedby'],'pitch-tooltip');f.get('pitch').emit('focusout');assert.equal(f.get('pitch-tooltip').popoverOpen,false);
+test('idle mouse hover includes player information without opening on focus',()=>{
+ const f=workspaceFixture('pass');const p=JSON.parse(f.run('JSON.stringify(game.players.find(p=>p.id===selected))'));f.get('pitch').emit('pointerover',{target:f.cell(p.x,p.y),pointerType:'mouse'});assert.match(f.get('pitch-tooltip').textContent,/MA 6|MA 7/);assert.match(f.get('pitch-tooltip').textContent,/ball carrier/);assert.match(f.get('pitch-tooltip').textContent,/Pass/);assert.equal(f.cell(p.x,p.y)['aria-describedby'],'pitch-tooltip');f.get('pitch').emit('focusout');assert.equal(f.get('pitch-tooltip').popoverOpen,false);
 });
 test('pending coach decisions cannot be bypassed by player menus or selection',()=>{
  const f=workspaceFixture();f.run('game.pending={type:"custom",kind:"Test choice",options:["Continue"],resolve:()=>{game.pending=null;}};render()');const selected=f.run('selected');f.run('choose(11,7)');assert.equal(f.run('selected'),selected);assert.equal(!f.get('pitch-popup').hidden,false);assert.equal(f.get('action-disclosure').hidden,true);assert.match(f.get('pitch-hint').textContent,/Decision required/);
@@ -733,4 +733,18 @@ test('outside-range deselection cannot bypass pending decisions or explicit targ
  for(const state of ['pending','block','ball']){
   const f=proneFixture();f.run("prone.status='standing';selected=prone.id;"+(state==='pending'?"game.skillChoice('Required choice',0,['Continue'],()=>{});":state==='block'?"blockMode='blitz';":"game.ball={x:8,y:7,carrier:prone.id};game.start(prone.id,'pass');ballMode=true;")+"render();");const before=f.run('selected');f.cell(25,14).click();assert.equal(f.run('selected'),before);assert.equal(f.run('rollCount'),0);
  }
+});
+
+test('clicking and restoring focus on pitch players never opens the information tooltip',()=>{
+ const f=tileFixture();f.run('selected=null;render();');f.get('pitch-tooltip').showPopover=()=>{throw Error('Click focus must not open an overlay');};
+ f.get('pitch').emit('focusin',{target:f.cell(8,7)});f.cell(8,7).click();f.get('pitch').emit('focusin',{target:f.cell(8,7)});assert.equal(f.run('selected'),f.run('a.id'));assert.match(f.get('profile').innerHTML,/Fixture/);assert.equal(f.get('pitch-tooltip').popoverOpen,false);
+ f.cell(8,8).click();f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Confirm Move').click();assert.equal(f.run('a.y'),8);assert.equal(f.run('a.spent'),1);f.get('pitch').emit('focusin',{target:f.cell(8,8)});f.get('pitch').emit('pointerover',{target:f.cell(8,8),pointerType:'mouse'});assert.equal(f.get('pitch-tooltip').popoverOpen,false);
+});
+test('a pointer press clears an idle hover tooltip and focus after the click does not reopen it',()=>{
+ const f=tileFixture();f.get('pitch').emit('pointerover',{target:f.cell(8,7),pointerType:'mouse'});assert.equal(f.get('pitch-tooltip').popoverOpen,true);f.get('pitch').emit('pointerdown',{target:f.cell(8,7)});assert.equal(f.get('pitch-tooltip').popoverOpen,false);f.cell(8,7).click();f.get('pitch').emit('focusin',{target:f.cell(8,7)});f.get('pitch').emit('pointerover',{target:f.cell(8,7),pointerType:'mouse'});assert.equal(f.get('pitch-tooltip').popoverOpen,false);f.get('pitch').emit('pointerleave');f.get('pitch').emit('pointerover',{target:f.cell(8,7),pointerType:'mouse'});assert.equal(f.get('pitch-tooltip').popoverOpen,true);
+});
+test('touch interaction and dugout focus never open a player tooltip',()=>{
+ const f=tileFixture();f.get('pitch-tooltip').showPopover=()=>{throw Error('Touch or focus must not open a player overlay');};f.get('pitch').emit('pointerover',{target:f.cell(8,7),pointerType:'touch'});f.get('pitch').emit('focusin',{target:f.cell(8,7)});
+ const card=dugoutNodes(f.get('dugout')).find(e=>e.dataset.playerId);assert.ok(card);card.emit('focus');card.emit('pointerenter',{pointerType:'touch'});assert.equal(f.get('pitch-tooltip').popoverOpen,false);
+ f.run("game.start(a.id,'move');render();");const activeCard=dugoutNodes(f.get('dugout')).find(e=>e.dataset.playerId);activeCard.emit('focus');activeCard.emit('pointerenter',{pointerType:'mouse'});assert.equal(f.get('pitch-tooltip').popoverOpen,false);
 });
