@@ -27,33 +27,35 @@ explanations, Testing launcher restructuring, sticky spectator toolbar, quantity
 recruitment, suggested-roster shortcut, changed backup/restore flow, or expanded
 roster search.
 
-## Delete custom teams
+## Permanently delete custom teams or leagues
 
-In Teams & leagues, select a saved team and expand **Delete custom team**.
-The first Delete button opens a named review with Cancel and Confirm controls.
-Confirmed deletion removes the team from saved-team selectors, exhibition custom
-choices and new fixture scheduling. Teams participating in an active league
-fixture must finish and record it first.
+Select a custom team and expand **Delete custom team**, or open
+**Backup & restore → Manage leagues** to delete an unwanted league. The first
+Delete button opens a named review stating **This action cannot be undone**.
+Cancel leaves storage unchanged; the separate Permanently delete button removes
+records through the transactional save path. There are no restore controls.
 
-Deletion is recoverable: **Deleted teams** offers a Restore button. The team
-record, players, league membership and past results are retained so deleting a
-team cannot break league history or existing backups. Backups retain deleted
-teams and their deletion state. A running exhibition uses its existing snapshot
-and is not replaced by deleting its source saved team.
+Deleting a team removes its roster, league membership and associated saved
+fixture records. Deleting a league removes the league and its fixtures but keeps
+its custom teams. Links to removed fixtures are cleaned from surviving team
+histories; surviving teams retain their earned player progress, finances and
+career totals. Active fixtures and affected unfinished post-game work block
+these operations to keep fixture snapshots and progression valid.
 
-Existing version-1 backups remain compatible; the optional `deleted` flag is
-validated. Deletion and restoration use the existing transactional save path,
-including stale-tab and failed-storage protection. Stale deletion confirmations
-cannot act on a different selected team.
+Legacy records hidden by the earlier recoverable-delete implementation are not
+silently erased. **Backup & restore → Previously deleted teams** provides the
+same irreversible confirmation to permanently clean them up; it offers no
+restoration. New deletions do not create hidden/archive records. Old backups
+remain readable. No new confirmation is needed to cancel a review.
 
 ## Verification
 
-- Full suite: 1,529 passed, four long simulations skipped (1,533 total).
-- Checks include deletion/restoration backup round trips, preserved results and
+- Full suite: 1,536 passed, four intentionally skipped, zero failures.
+- Checks include permanent deletion and legacy-backup compatibility, preserved results and
   finances, active-fixture blocking, failed-save rollback, stale confirmations,
   custom-selector cleanup without replacing a match, form preservation, staged
   configuration, tooltip suppression, and retaining unselected interaction flows.
-- In-app browser: confirmed deletion/recovery on the disposable localhost team,
+- In-app browser: earlier placement/deletion checks used the disposable localhost team,
   with eleven players and treasury unchanged after restoring it; no browser errors.
   Confirmed desktop setup and inline roster inspection, plus mobile tabs/cards
   at 390 CSS pixels with no page-width overflow. Viewport override was reset.
