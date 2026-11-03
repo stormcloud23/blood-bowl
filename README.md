@@ -87,8 +87,8 @@ For solo exhibitions, choose **Computer · Human team** or **Computer · Orc tea
 in Match setup, then **New exhibition match**. Selections apply when you start
 the match. You coach home; the computer coaches the away preset team.
 Choose its speed, pause/resume, or take over its team during the match. This basic
-opponent uses a ground game, blocks and Blitzes; it does not pass or buy optional
-inducements. League games remain hotseat. See [computer opponent](docs/COMPUTER.md).
+opponent uses positioning, blocks and Blitzes, plus conservative passing, hand-offs
+and selective fouls. It does not buy optional inducements. League games remain hotseat. See [computer opponent](docs/COMPUTER.md).
 
 Computer positioning rewards distinct tackle-zone coverage and all four cage
 corners around its carrier, with diminishing returns for extra nearby players.

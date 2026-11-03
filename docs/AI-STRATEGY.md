@@ -16,7 +16,7 @@ Candidate actions have a utility estimate and an ordering priority. Scoring
 opportunities come first. Escaping immediate carrier contact, clearing an
 opponent off our carrier, and direct attacks against an imminent opposing
 scorer or a necessary late ball recovery can override ordinary sequencing. Otherwise, useful actions estimated
-to require no uncertain checks are completed before optional risky ones.
+to require no uncertain checks are completed before optional risky ones. High-value ball transfers can rank alongside safe positioning, while optional fouls are scheduled last; their separate reliability and value gates are documented in the risk policy.
 Insignificant positional improvements are not enough to trigger an activation.
 
 Route estimates use the engine's forecast targets and D6 success rule, weather,
@@ -56,7 +56,8 @@ not introduce intentional eight-turn stalling from the older guides. Available
 touchdowns are still taken, and current crowd/stalling rules remain intact.
 
 This is shared coaching logic for Human/Orc computer exhibitions and observed matches.
-It does not unlock other opponent rosters, passing, handoffs, fouling, deliberate
+Conservative passing, hand-offs and fouling were added in v0.0.54; see
+[the risk policy](AI-RISK-POLICY.md). It does not unlock other opponent rosters or deliberate
 chain pushes or a complete coordinated cage-advancement planner. Existing
 field coverage and rear cage protection regressions remain in the test suite.
 
