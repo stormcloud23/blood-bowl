@@ -96,14 +96,14 @@ const playerActionIds=["start","block","blitz","handoff","pass","throw-mate","ki
 function decisionCoachLabel(q){
  if(!q)return "";
  const block=game.blockAction;
- if(q.kind==="Both Down")return "Both coaches — choose the applicable result";
+ if(q.kind==="Both Down")return "Both coaches";
  const team=Number.isInteger(q.team)?q.team:q.p?q.p.team:q.type==="blockSelect"?block?.chooserTeam:q.type==="pushChoice"?(game.skill(q.target,"Sidestep")&&!(block?.attacker&&game.skill(block.attacker,"Grab"))?q.target.team:block?.attacker.team):q.kind==="Stand Firm"?block?.target.team:game.players.find(p=>p.id===game.mover)?.team??game.active;
  const reactor=q.p||q.target||(q.kind==="Stand Firm"?block?.target:null);
- return Number.isInteger(team)?teams[team].name+" — decision required"+(reactor?" · #"+reactor.number+" "+playerLabel(reactor):""):"Coach decision required";
+ return Number.isInteger(team)?teams[team].name+(reactor?" · #"+reactor.number+" "+playerLabel(reactor):""):"Decision";
 }
 function refreshRecordedResult(){
  if(!game.league||game.phase!=="finished"||!leagueStore.data.matches.some(m=>m.id===game.leagueFixtureId))return;
- const flow=document.getElementById("matchflow");for(const p of flow.querySelectorAll("p"))if(p.textContent.startsWith("Full time:"))p.textContent=p.textContent.split(". ")[0]+". Result recorded; review team progression in Teams & leagues.";
+ const flow=document.getElementById("matchflow");for(const p of flow.querySelectorAll("p"))if(p.textContent.startsWith("Full time:"))p.textContent=p.textContent.replace(" · result unrecorded","")+" · result recorded";
  const link=flow.querySelector("button");if(link)link.textContent="View result in Teams & leagues";
 }
 function canStandInPlace(p){
@@ -168,7 +168,7 @@ choose=function(x,y,pushDecision=game.pending){
  chooseBeforeWorkspace(x,y,pushDecision);
  const cell=pitch.children[pitchFocus];
  if(!wasTargeting&&target&&(!game.match||["play","charge"].includes(phase))){
-  const actions=playerContextActions(target);actions.push({label:"Show full profile & skills",run:()=>{document.getElementById("player-details").open=true;}});showPitchPopup(cell,"#"+target.number+" · "+playerLabel(target),playerQuickInfo(target),actions,game.canStart(target)?(canStandInPlace(target)?"Click this player again, or choose Stand up in place, to begin a normal Move and stand without changing squares. Normal stand-up costs and checks apply; remaining movement is available. ":"")+"To move: choose a highlighted destination, then Confirm Move. Previewing never activates the player. For a Blitz, Pass or Foul, choose the action below first.":"");
+  const actions=playerContextActions(target);actions.push({label:"Player profile",run:()=>{document.getElementById("player-details").open=true;}});showPitchPopup(cell,"#"+target.number+" · "+playerLabel(target),playerQuickInfo(target),actions);
  }
 };
 pitch.addEventListener("keydown",event=>{
@@ -194,7 +194,7 @@ popup.addEventListener("keydown",event=>{
 document.addEventListener("keydown",event=>{
  if(event.key!=="Escape")return;hidePitchTooltip();
  if(!popup.hidden){closePitchPopup(true);return;}
- if(workspaceView==="play"&&!game.pending&&(blockMode||ballMode||destination)){blockMode=false;ballMode=false;destination=null;throwDestination=null;render();}
+ if(["play","testing"].includes(workspaceView)&&(!game.pending||onTheBallMove())&&(blockMode||ballMode||destination)){blockMode=false;ballMode=false;destination=null;throwDestination=null;render();}
 });
 addEventListener("resize",()=>{closePitchPopup();hidePitchTooltip();});
 document.addEventListener("scroll",hidePitchTooltip,true);
@@ -210,7 +210,7 @@ function refreshWorkspace(){
  overview.hidden=!pregame;document.getElementById("pitch-board").hidden=!!pregame;document.getElementById("mobile-pitch-help").hidden=!!pregame;document.getElementById("pitch-hint").hidden=!!pregame;
  document.getElementById("pitch-tools").hidden=!!pregame;document.getElementById("position-key").hidden=!!pregame;
  renderDugouts(pregame);
- document.getElementById("pitch-legend").hidden=!!pregame||!!game.pending||game.match&&!["play","charge"].includes(game.phase);
+ document.getElementById("pitch-legend").hidden=false;
  selection.hidden=!!pregame;document.getElementById("movement").hidden=!!pregame;document.getElementById("player-details").hidden=!!pregame;
  if(pregame){
   overview.replaceChildren();const heading=document.createElement("h2");heading.textContent="Prepare for kick-off";overview.append(heading);const intro=document.createElement("p");intro.textContent=game.observing?"Both computer coaches complete pre-game and setup automatically. Pause or step through actions using the computer controls.":"Both coaches share this browser. Complete the current step in the coach panel, then arrange your players on the pitch.";overview.append(intro);
@@ -230,19 +230,20 @@ function refreshWorkspace(){
  const skillPanel=document.getElementById("skillcontrols"),details=document.getElementById("player-details");if(skillPanel&&skillPanel.parentElement!==details)details.append(skillPanel);
  // Keep the decision column reachable on small screens without obscuring the pitch.
  const choices=document.getElementById("choices");choices.setAttribute("aria-label",game.pending?"Required coach decision":"Action choices");
- if(game.pending){const owner=document.createElement("p");owner.className="decision-owner";owner.textContent=decisionCoachLabel(game.pending);choices.prepend(owner);coach.textContent=decisionCoachLabel(game.pending);}
- const faces={"Player Down":["☠","Attacker knocked down."],"Both Down":["↔","Both players may fall; Block and Wrestle can affect this result."],"Push Back":["↪","Push the defender to a legal destination."],"Stumble":["✦","Defender falls unless an applicable ability such as Dodge prevents it."],"POW":["✹","Defender knocked down."]};
- for(const b of choices.querySelectorAll("button")){const face=Object.keys(faces).find(name=>b.textContent.startsWith("Die ")&&b.textContent.endsWith(" · "+name));if(face){b.className+=" block-die";b.dataset.glyph=faces[face][0];b.title=faces[face][1];b.setAttribute("aria-label",b.textContent);}else if(/^(Use |Re-roll |Cancel |Accept |Keep )/.test(b.textContent))b.className+=" secondary";}
+ if(game.pending)coach.textContent=decisionCoachLabel(game.pending);
+ const faces={"Player Down":"☠","Both Down":"↔","Push Back":"↪","Stumble":"✦","POW":"✹"};
+ for(const b of choices.querySelectorAll("button")){const face=Object.keys(faces).find(name=>b.textContent.startsWith("Die ")&&b.textContent.endsWith(" · "+name));if(face){b.className+=" block-die";b.dataset.glyph=faces[face];b.title=face;b.setAttribute("aria-label",b.textContent);}else if(/^(Use |Re-roll |Cancel |Accept |Keep )/.test(b.textContent))b.className+=" secondary";}
  const flow=document.getElementById("matchflow"),resources=Array.from(flow.children).filter(e=>/resource-summary|resource-control/.test(e.className));
  const score=document.getElementById("match-scoreboard");score.replaceChildren();if(game.match)score.append(...Array.from(flow.children).slice(0,2));
  const economics=Array.from(flow.children).filter(e=>e.className.includes("team-value-summary"));
  if(economics.length){const box=document.createElement("details"),title=document.createElement("summary");box.className="match-economics";title.textContent="Team values & breakdown";box.append(title,...economics);box.open=economicsOpen;box.addEventListener("toggle",()=>{economicsOpen=box.open;});score.append(box);}
- if(game.league&&game.phase==="leagueSteps"&&game.leaguePurchaseStep<game.leaguePurchaseOrder.length){const next=Array.from(flow.children).find(e=>e.className.split(" ").includes("next-step"));if(next){next.disabled=true;next.textContent="Complete inducement purchases first";}}
- if(resources.length){const details=document.createElement("details"),summary=document.createElement("summary");summary.textContent=game.league?"Inducement purchases — required before continuing":"Staff & inducements · optional";details.append(summary,...resources);details.open=staffDetailsOpen||!!game.league;details.addEventListener("toggle",()=>{staffDetailsOpen=details.open;});flow.append(details);}
+ if(game.league&&game.phase==="leagueSteps"&&game.leaguePurchaseStep<game.leaguePurchaseOrder.length){const next=Array.from(flow.children).find(e=>e.className.split(" ").includes("next-step"));if(next){next.disabled=true;next.textContent="Inducement purchases pending";}}
+ if(resources.length){const details=document.createElement("details"),summary=document.createElement("summary");summary.textContent=game.league?"Inducements":"Staff & inducements";details.append(summary,...resources);details.open=staffDetailsOpen||!!game.league;details.addEventListener("toggle",()=>{staffDetailsOpen=details.open;});flow.append(details);}
  const setupPlayers=Array.from(flow.children).filter(e=>e.className.includes("setup-player"));
- if(setupPlayers.length){const details=document.createElement("details"),summary=document.createElement("summary");summary.textContent="Select a player from the roster (or click on the pitch)";details.append(summary,...setupPlayers);flow.append(details);}
+ if(setupPlayers.length){const details=document.createElement("details"),summary=document.createElement("summary");summary.textContent="Available players";details.append(summary,...setupPlayers);flow.append(details);}
  if(game.match&&game.phase==="finished"&&game.leagueFixtureId)flow.append(button("Record result in Teams & leagues",()=>switchWorkspace("teams",true)));
  refreshRecordedResult();
+ flow.hidden=!game.match||flow.children.length===0;
 }
 const renderBeforeWorkspace=render;
 render=function(){
