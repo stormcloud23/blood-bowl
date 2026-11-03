@@ -1,4 +1,4 @@
-# Computer role and skill awareness — v0.0.55
+# Computer role and skill awareness — v0.0.56
 
 Role tags come from the current roster profile's comma-separated traits, rather than the player's name or team. Blitzer, Blocker, Thrower, Runner, Catcher and Big Guy tags provide bounded preferences. Disabled skills do not receive capability bonuses. Reliability, legal actions, scoring and the existing transfer/foul value gates remain part of every decision.
 
@@ -19,7 +19,7 @@ Movement penalties now reflect the survival improvement supplied by native Dodge
 
 ## Block forecasts
 
-Block odds are evaluated on a separate board with the actor at the proposed contact square. Horns adds its actual Blitz strength bonus, Juggernaut changes Blitz Both Down safety, and Tackle/Wrestle affect applicable knockdown outcomes. Wrestle's Both Down result is valued more highly when it can dislodge the opposing carrier. Actual actions and conditional tests remain engine-owned.
+Block odds are evaluated on a separate board with the actor at the proposed contact square. Horns adds its actual Blitz strength bonus, Juggernaut changes Blitz Both Down safety, and Tackle/Wrestle affect applicable knockdown outcomes. Wrestle's Both Down result is valued more highly when it can dislodge the opposing carrier. Die selection uses the same safety assessment: Juggernaut can retain a useful push or a better Block/Wrestle outcome, and a carrier’s own Wrestle fall is treated as unsafe. Actual actions and conditional tests remain engine-owned.
 
 This is a bounded extension to the existing heuristic, not complete planning for every named skill or future opponent response. Role preferences are small enough for strength, risk and tactical value to prevail.
 

@@ -81,3 +81,16 @@ test('an available Dodge reroll makes a useful runner escape worth attempting, w
  assert.equal(coach.chooseAction(g),null);p.extraSkills=['Dodge'];const escape=coach.chooseAction(g);assert.equal(escape.kind,'move');assert.ok(escape.route.path.some(s=>s.plan.dodge));assert.ok(escape.route.x>p.x);
  marker.extraSkills=['Tackle'];assert.equal(coach.chooseAction(g),null);
 });
+test('Juggernaut treats Both Down as a safe push without wasting a team reroll',()=>{
+ const {g,coach}=board(),p=field(g,0,0,8,7,{st:4,skills:['Juggernaut']}),d=field(g,1,0,9,7);g.rerolls=[1,0];g.dice=()=>2;
+ assert.ok(g.startBlitz(p.id,d.id));assert.ok(g.blitzBlock());assert.ok(coach.step(g));assert.equal(g.pending.kind,'Juggernaut');assert.equal(g.rerolls[0],1);
+ assert.ok(coach.step(g));assert.equal(g.pending.type,'pushChoice');assert.equal(p.status,'standing');assert.equal(g.rerolls[0],1);
+});
+test('Juggernaut preserves a better Block knockdown instead of converting it to a push',()=>{
+ const {g,coach}=board(),p=field(g,0,0,8,7,{st:4,skills:['Block','Juggernaut']}),d=field(g,1,0,9,7);g.dice=()=>2;
+ assert.ok(g.startBlitz(p.id,d.id));assert.ok(g.blitzBlock());for(let i=0;i<8&&d.status==='standing';i++)assert.ok(coach.step(g));assert.equal(d.status,'prone');assert.equal(p.status,'standing');
+});
+test('Wrestle is not treated as a safe Both Down result while carrying the ball',()=>{
+ const {g,coach}=board(),p=field(g,0,0,8,7,{st:4,skills:['Wrestle']}),d=field(g,1,0,9,7);g.ball={x:8,y:7,carrier:p.id};g.rerolls=[1,0];g.dice=()=>2;
+ assert.ok(g.block(p.id,d.id));g.dice=()=>6;assert.ok(coach.step(g));assert.equal(g.rerolls[0],0);assert.equal(g.ball.carrier,p.id);assert.equal(p.status,'standing');assert.equal(g.pending.type,'blockSelect');
+});
