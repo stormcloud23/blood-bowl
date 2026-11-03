@@ -1,4 +1,4 @@
-# Computer matches — v0.0.40
+# Computer matches — v0.0.54
 
 ## Watch both coaches
 
@@ -78,10 +78,11 @@ restraint, switching to pressure when behind late. The last team re-roll is
 conserved on peripheral failures. See [strategy sources, implementation and
 limits](AI-STRATEGY.md) for the three King_Ghidra articles and the adaptations.
 
-It can stand up, pick up the ball, advance and score, move supporters, block
-and Blitz. It chooses block dice, pushes, rerolls and skill prompts. It uses
-conservative offered choices for other prompts. It does not pass, hand off,
-foul, throw team-mates, recruit stars, configure staff, buy optional inducements
+It can stand up, pick up the ball, advance and score, move supporters, block,
+Blitz, and choose high-value passes, hand-offs and selective fouls. It chooses
+block dice, pushes, rerolls, interceptions and skill prompts. See
+[the risk policy](AI-RISK-POLICY.md) for the transfer and foul gates. It does not
+throw team-mates, recruit stars, configure staff, buy optional inducements
 or intentionally use Wizards. It does not perform deep search or promise
 competitive play. Wider opponent teams and combinations need separate testing.
 
