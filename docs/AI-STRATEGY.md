@@ -66,3 +66,5 @@ final-turn scoring, reliability comparisons, re-roll conservation, early central
 positioning, contact avoidance, both defensive directions and goal-side support.
 The seeded full-match tests remain separate from tactical tests; neither is a
 competitive win-rate benchmark or visual browser review.
+
+Role and skill preferences were extended in v0.0.55; see [role awareness](AI-ROLE-AWARENESS.md) for specialist assignments, contact/receiving positions and movement-risk valuation.
