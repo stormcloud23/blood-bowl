@@ -1,4 +1,4 @@
-# Computer matches — v0.0.54
+# Computer matches — v0.0.55
 
 ## Watch both coaches
 
@@ -79,7 +79,9 @@ conserved on peripheral failures. See [strategy sources, implementation and
 limits](AI-STRATEGY.md) for the three King_Ghidra articles and the adaptations.
 
 It can stand up, pick up the ball, advance and score, move supporters, block,
-Blitz, and choose high-value passes, hand-offs and selective fouls. It chooses
+Blitz, and choose high-value passes, hand-offs and selective fouls. Roster role tags
+and enabled skills influence specialist assignments and positioning; see
+[role awareness](AI-ROLE-AWARENESS.md). It chooses
 block dice, pushes, rerolls, interceptions and skill prompts. See
 [the risk policy](AI-RISK-POLICY.md) for the transfer and foul gates. It does not
 throw team-mates, recruit stars, configure staff, buy optional inducements
