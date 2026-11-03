@@ -2,9 +2,8 @@
 // Presentation only. Engine guards remain the authority for every offered action.
 const workspaceTabs=["play","teams","rosters","testing","reference"];
 const workspaceScroll={};
-let workspaceView="play",pitchFocus=0,popupAnchor=null,popupEpoch=0,hoverSquare=null,staffDetailsOpen=false,economicsOpen=false,popoverTransition=false;
-let setupSelectionContext=null,practiceReservesExpanded=false;
-document.getElementById("practice-reserves-toggle").addEventListener("click",()=>{practiceReservesExpanded=!practiceReservesExpanded;render();});
+let workspaceView="play",pitchFocus=0,popupAnchor=null,popupEpoch=0,hoverSquare=null,staffDetailsOpen=false,popoverTransition=false;
+let setupSelectionContext=null;
 const popup=document.getElementById("pitch-popup"),tooltip=document.getElementById("pitch-tooltip");
 function exhibitionRosterChoices(side){const roster=exhibitionTeam(exhibitionSelection(side),false);if(!roster)return;for(const [kind,options] of [["league",roster.leagues||[roster.league]],["alignment",roster.alignments||[]]]){const select=document.getElementById("exhibition-"+side+"-"+kind),previous=select.value;select.replaceChildren();for(const name of options){const option=document.createElement("option");option.value=name;option.textContent=name;select.append(option);}select.value=options.includes(previous)?previous:options[0]||"";select.hidden=!!roster.exhibitionSaved||options.length<2;document.getElementById("exhibition-"+side+"-"+kind+"-label").hidden=select.hidden;}}
 globalThis.refreshExhibitionRosters=()=>{for(const side of ["home","away"]){
@@ -22,17 +21,16 @@ globalThis.refreshExhibitionRosters=()=>{for(const side of ["home","away"]){
 refreshExhibitionRosters();
 for(const side of ["home","away"]){
  const id="exhibition-"+side;
- for(const suffix of ["","-custom"])document.getElementById(id+suffix).addEventListener("change",()=>{if(!suffix)document.getElementById(id+"-custom").value="";exhibitionRosterChoices(side);document.getElementById("match-config-status").textContent="Changes ready. Start a new match to apply them.";});
- for(const kind of ["league","alignment"])document.getElementById(id+"-"+kind).addEventListener("change",()=>{document.getElementById("match-config-status").textContent="Changes ready. Start a new match to apply them.";});
+ for(const suffix of ["","-custom"])document.getElementById(id+suffix).addEventListener("change",()=>{if(!suffix)document.getElementById(id+"-custom").value="";exhibitionRosterChoices(side);reset();});
+ for(const kind of ["league","alignment"])document.getElementById(id+"-"+kind).addEventListener("change",()=>reset());
 }
 function refreshSessionLocation(){
  const session=document.getElementById("game-session");if(document.getElementById("mode-notice").parentElement!==session)session.prepend(document.getElementById("mode-notice"));
  const testing=document.getElementById("scenario").value!=="match";
  const panel=document.getElementById(testing?"testing-view":"play-view");if(session.parentElement!==panel)panel.append(session);
 }
-document.getElementById("start-exhibition").addEventListener("click",()=>{document.getElementById("scenario").value="match";reset();document.getElementById("exhibition-rosters").open=false;document.getElementById("match-config-status").textContent="";switchWorkspace("play");});
-document.getElementById("start-testing").addEventListener("click",()=>{document.getElementById("scenario").value=document.getElementById("testing-scenario").value||"match-learning";reset();document.getElementById("testing-launcher").open=false;switchWorkspace("testing");});
-document.getElementById("testing-scenario").addEventListener("change",()=>{const observing=document.getElementById("testing-scenario").value==="match-observe";document.getElementById("observer-launcher").open=observing;document.getElementById("start-testing").hidden=observing;});
+document.getElementById("start-exhibition").addEventListener("click",()=>{document.getElementById("scenario").value="match";reset();switchWorkspace("play");});
+document.getElementById("start-testing").addEventListener("click",()=>{document.getElementById("scenario").value=document.getElementById("testing-scenario").value||"match-learning";reset();switchWorkspace("testing");});
 document.getElementById("open-leagues").addEventListener("click",()=>switchWorkspace("teams",true));
 function closePitchPopup(restore=false){
  popupEpoch++;popoverTransition=true;
@@ -45,7 +43,6 @@ function hidePitchTooltip(){
 function switchWorkspace(view,focus=false){
  if(!workspaceTabs.includes(view))return;
  workspaceScroll[workspaceView]=globalThis.scrollY||0;closePitchPopup();hidePitchTooltip();workspaceView=view;
- if(globalThis.history?.replaceState)history.replaceState(null,"","#"+view);
  for(const key of workspaceTabs){const tab=document.getElementById("tab-"+key),panel=document.getElementById(key==="rosters"?key:key+"-view");tab.setAttribute("aria-selected",String(key===view));tab.tabIndex=key===view?0:-1;panel.hidden=key!==view;}
  if(focus)document.getElementById("tab-"+view).focus({preventScroll:true});
  globalThis.scrollTo?.({top:workspaceScroll[view]||0,behavior:"instant"});
@@ -60,9 +57,10 @@ for(const view of workspaceTabs){
  });
 }
 globalThis.inspectRosterPosition=()=>{
- const profile=document.getElementById("roster-inspection");profile.replaceChildren();profile.hidden=false;const close=button("Close position details",()=>{profile.hidden=true;});profile.append(close);const content=document.createElement("div");content.innerHTML=document.getElementById("profile").innerHTML;profile.append(content);
+ const profile=document.getElementById("reference-profile");profile.innerHTML=document.getElementById("profile").innerHTML;profile.hidden=false;document.getElementById("reference-view").prepend(profile);
+ switchWorkspace("reference");document.getElementById("tab-reference").focus({preventScroll:true});profile.scrollIntoView({block:"start"});
 };
-function filterRosterBrowser(){const query=document.getElementById("roster-search").value.trim().toLocaleLowerCase(),cards=Array.from(document.getElementById("roster-list").querySelectorAll("article"));for(const card of cards)card.hidden=!(card.dataset.rosterSearch||card.dataset.rosterName).toLocaleLowerCase().includes(query);document.getElementById("roster-search-count").textContent=cards.filter(card=>!card.hidden).length+" / "+rosterCatalog.length+" rosters";}
+function filterRosterBrowser(){const query=document.getElementById("roster-search").value.trim().toLocaleLowerCase(),cards=Array.from(document.getElementById("roster-list").querySelectorAll("article"));for(const card of cards)card.hidden=!card.dataset.rosterName.toLocaleLowerCase().includes(query);document.getElementById("roster-search-count").textContent=cards.filter(card=>!card.hidden).length+" / "+rosterCatalog.length+" rosters";}
 document.getElementById("roster-search").addEventListener("input",filterRosterBrowser);filterRosterBrowser();
 function placePitchOverlay(element,anchor){
  const r=anchor.getBoundingClientRect(),box=element.getBoundingClientRect(),gap=8;
@@ -83,11 +81,11 @@ function dugoutReason(p){if(p.status==='carried')return 'Carried by Grak — tem
 function dugoutPlayers(team){const players=game.players.filter(p=>p.team===team);if(game.league){const saved=leagueStore.data.teams.find(t=>t.id===game.teams[team].leagueTeamId),ids=new Set(players.map(p=>p.leaguePlayerId));for(const record of saved?.players||[])if(!ids.has(record.id)&&(record.missNext||record.retired))players.push({id:'unavailable:'+record.id,number:record.number,team,role:record.role,status:'missing-next',fixtureUnavailable:true,profileOverride:record.profile,leagueRecord:record});}return players;}
 function showDugoutTooltip(p,card){if(popoverTransition||!popup.hidden)return;hidePitchTooltip();hoverSquare=card;card.setAttribute('aria-describedby','pitch-tooltip');tooltip.textContent=playerQuickInfo(p)+'\n'+dugoutReason(p);tooltip.showPopover();placePitchOverlay(tooltip,card);}
 function dugoutActions(p){if(game.pending||p.fixtureUnavailable||dugoutState(p)!=='reserve')return [];const setup=game.match&&game.phase==='setup'&&p.team===game.setupTeam&&game.available(p.team).includes(p),swarm=game.phase==='swarming'&&game.swarmState.eligible.includes(p.id)&&game.swarmState.placed.length<game.swarmState.limit;const defence=game.phase==='eventMove'&&game.eventState?.kind==='defence'&&game.eventState.eligible.includes(p.id);const wisdom=game.phase==='dwarfenWisdom'&&game.wisdomState?.placing&&game.wisdomState.selected.includes(p.id);if(!setup&&!swarm&&!defence&&!wisdom)return [];return [{label:wisdom?'Select for Dwarfen Wisdom':swarm?'Select for Swarming':defence?'Select for Solid Defence':'Select for setup',run:()=>{if(!dugoutActions(p).length)return;selected=p.id;showProfile(p.team,p.role,p.number);render();}}];}
-function renderDugouts(pregame){const board=document.getElementById('dugout');board.hidden=!!pregame;board.className='dugout-board'+(!game.match&&!practiceReservesExpanded?' practice-dugouts':'');const toggle=document.getElementById('practice-reserves-toggle');toggle.hidden=!!game.match;toggle.textContent=practiceReservesExpanded?'Hide practice reserves':'Show practice reserves';toggle.setAttribute('aria-expanded',String(practiceReservesExpanded));board.replaceChildren();if(pregame)return;const currentGame=game;for(const team of [0,1]){const players=dugoutPlayers(team),article=document.createElement('article');article.className='dugout-team '+(team?'dugout-blue':'dugout-gold');article.setAttribute('aria-label',teams[team].name+' dugout');const heading=document.createElement('h3');heading.textContent=teams[team].name;article.append(heading);const count=document.createElement('p');count.className='dugout-summary';count.textContent=players.filter(p=>dugoutState(p)==='pitch').length+' on pitch · '+players.filter(p=>dugoutState(p)!=='pitch').length+' off pitch';article.append(count);if(players.every(p=>dugoutState(p)==='pitch')){board.append(article);continue;}const lanes=document.createElement('div');lanes.className='dugout-lanes';article.append(lanes);for(const [state,label] of dugoutStates){if(!players.some(p=>dugoutState(p)===state))continue;const lane=document.createElement('section');lane.className='dugout-lane dugout-'+state;lane.dataset.state=state;const list=players.filter(p=>dugoutState(p)===state),title=document.createElement('h4');title.textContent=label+' · '+list.length;lane.append(title);const cards=document.createElement('div');cards.className='dugout-cards';lane.append(cards);if(!list.length){const empty=document.createElement('span');empty.className='dugout-empty';empty.textContent='—';cards.append(empty);}for(const p of list){const card=button('',()=>{if(game!==currentGame)return;showPitchPopup(card,'#'+p.number+' · '+playerLabel(p),playerQuickInfo(p)+'\n'+dugoutReason(p),dugoutActions(p));});card.className='dugout-card';card.dataset.playerId=p.id;card.setAttribute('aria-label','#'+p.number+' '+playerLabel(p)+' — '+label+' — '+dugoutReason(p));const number=document.createElement('span');number.className='dugout-number';number.textContent=p.number;const name=document.createElement('span');name.className='dugout-name';name.textContent=p.riotousRookie?'Riotous Rookie':p.leagueRecord?.name||game.profile(p).name;card.append(number,name);card.addEventListener('pointerenter',e=>{if(e.pointerType!=='touch')showDugoutTooltip(p,card);});card.addEventListener('pointerleave',hidePitchTooltip);card.addEventListener('focus',()=>showDugoutTooltip(p,card));card.addEventListener('blur',hidePitchTooltip);cards.append(card);}lanes.append(lane);}board.append(article);}}
+function renderDugouts(pregame){const board=document.getElementById('dugout');board.hidden=!!pregame;board.replaceChildren();if(pregame)return;const currentGame=game;for(const team of [0,1]){const players=dugoutPlayers(team),article=document.createElement('article');article.className='dugout-team '+(team?'dugout-blue':'dugout-gold');article.setAttribute('aria-label',teams[team].name+' dugout');const heading=document.createElement('h3');heading.textContent=teams[team].name;article.append(heading);const count=document.createElement('p');count.className='dugout-summary';count.textContent=players.filter(p=>dugoutState(p)==='pitch').length+' on pitch · '+players.filter(p=>dugoutState(p)!=='pitch').length+' off pitch';article.append(count);const lanes=document.createElement('div');lanes.className='dugout-lanes';article.append(lanes);for(const [state,label] of dugoutStates){const lane=document.createElement('section');lane.className='dugout-lane dugout-'+state;lane.dataset.state=state;const list=players.filter(p=>dugoutState(p)===state),title=document.createElement('h4');title.textContent=label+' · '+list.length;lane.append(title);const cards=document.createElement('div');cards.className='dugout-cards';lane.append(cards);if(!list.length){const empty=document.createElement('span');empty.className='dugout-empty';empty.textContent='—';cards.append(empty);}for(const p of list){const card=button('',()=>{if(game!==currentGame)return;showPitchPopup(card,'#'+p.number+' · '+playerLabel(p),playerQuickInfo(p)+'\n'+dugoutReason(p),dugoutActions(p));});card.className='dugout-card';card.dataset.playerId=p.id;card.setAttribute('aria-label','#'+p.number+' '+playerLabel(p)+' — '+label+' — '+dugoutReason(p));const number=document.createElement('span');number.className='dugout-number';number.textContent=p.number;const name=document.createElement('span');name.className='dugout-name';name.textContent=p.riotousRookie?'Riotous Rookie':p.leagueRecord?.name||game.profile(p).name;card.append(number,name);card.addEventListener('pointerenter',e=>{if(e.pointerType!=='touch')showDugoutTooltip(p,card);});card.addEventListener('pointerleave',hidePitchTooltip);card.addEventListener('focus',()=>showDugoutTooltip(p,card));card.addEventListener('blur',hidePitchTooltip);cards.append(card);}lanes.append(lane);}board.append(article);}}
 function kickTargetSelection(){return game.match&&game.phase==="kickAim"&&!game.kickLanding;}
 function showPitchTooltip(cell){
  if(kickTargetSelection()){hidePitchTooltip();return;}
- if(popoverTransition||!popup.hidden||destination||throwDestination||game.pending)return;
+ if(popoverTransition||!popup.hidden)return;
  const i=Array.from(pitch.children).indexOf(cell),p=game.at(i%26,Math.floor(i/26));
  const hint=cell.dataset.hint||cell.title,text=p?playerQuickInfo(p)+(cell.className.includes("push-option")||cell.className.includes("tile-choice")||cell.className.includes("reaction-choice")?"\n"+hint:""):hint;
  if(!text||text==="empty"){hidePitchTooltip();return;}
@@ -100,8 +98,7 @@ function decisionCoachLabel(q){
  const block=game.blockAction;
  if(q.kind==="Both Down")return "Both coaches — choose the applicable result";
  const team=Number.isInteger(q.team)?q.team:q.p?q.p.team:q.type==="blockSelect"?block?.chooserTeam:q.type==="pushChoice"?(game.skill(q.target,"Sidestep")&&!(block?.attacker&&game.skill(block.attacker,"Grab"))?q.target.team:block?.attacker.team):q.kind==="Stand Firm"?block?.target.team:game.players.find(p=>p.id===game.mover)?.team??game.active;
- const reactor=q.p||q.target||(q.kind==="Stand Firm"?block?.target:null);
- return Number.isInteger(team)?teams[team].name+" — decision required"+(reactor?" · #"+reactor.number+" "+playerLabel(reactor):""):"Coach decision required";
+ return Number.isInteger(team)?teams[team].name+" — decision required":"Coach decision required";
 }
 function refreshRecordedResult(){
  if(!game.league||game.phase!=="finished"||!leagueStore.data.matches.some(m=>m.id===game.leagueFixtureId))return;
@@ -119,7 +116,6 @@ function standInPlace(p){
 function playerContextActions(p){
  if(game.pending||game.finished||!p||p.id!==selected||game.mover&&game.mover!==p.id)return [];
  const actions=playerActionIds.filter(id=>id!=="start").map(id=>document.getElementById(id)).filter(b=>!b.disabled).map(b=>({label:b.textContent,run:()=>b.click()}));
- if(game.canStart(p)&&p.status==="standing")actions.unshift({label:"Move · choose destination",run:()=>{destination=null;render();}});
  if(canStandInPlace(p))actions.unshift({label:"Stand up in place",run:()=>standInPlace(p)});
  return actions;
 }
@@ -164,7 +160,7 @@ choose=function(x,y,pushDecision=game.pending){
  chooseBeforeWorkspace(x,y,pushDecision);
  const cell=pitch.children[pitchFocus];
  if(!wasTargeting&&target&&(!game.match||["play","charge"].includes(phase))){
-  const actions=playerContextActions(target);actions.push({label:"Show full profile & skills",run:()=>{document.getElementById("player-details").open=true;}});showPitchPopup(cell,"#"+target.number+" · "+playerLabel(target),playerQuickInfo(target),actions,game.canStart(target)?(canStandInPlace(target)?"Click this player again, or choose Stand up in place, to begin a normal Move and stand without changing squares. Normal stand-up costs and checks apply; remaining movement is available. ":"")+"Choose a destination to preview Move, or declare another action below.":"");
+  const actions=playerContextActions(target);actions.push({label:"Show full profile & skills",run:()=>{document.getElementById("player-details").open=true;}});showPitchPopup(cell,"#"+target.number+" · "+playerLabel(target),playerQuickInfo(target),actions,game.canStart(target)?(canStandInPlace(target)?"Click this player again, or choose Stand up in place, to begin a normal Move and stand without changing squares. Normal stand-up costs and checks apply; remaining movement is available. ":"")+"To move: choose a highlighted destination, then Confirm Move. Previewing never activates the player. For a Blitz, Pass or Foul, choose the action below first.":"");
  }
 };
 pitch.addEventListener("keydown",event=>{
@@ -200,7 +196,6 @@ document.getElementById("pitch-scale").addEventListener("change",event=>{
 });
 function refreshWorkspace(){
  refreshSessionLocation();
- document.getElementById("start-testing").hidden=document.getElementById("testing-scenario").value==="match-observe";
  closePitchPopup();hidePitchTooltip();
  document.getElementById("exhibition-rosters").hidden=!game.match||document.getElementById("scenario").value==="match-observe"||!!game.league&&!game.exhibition;
  const pregame=game.match&&["fans","weather","leagueSteps","prayers","rolloff","kickChoice"].includes(game.phase),overview=document.getElementById("pregame-overview");
@@ -227,26 +222,17 @@ function refreshWorkspace(){
  const skillPanel=document.getElementById("skillcontrols"),details=document.getElementById("player-details");if(skillPanel&&skillPanel.parentElement!==details)details.append(skillPanel);
  // Keep the decision column reachable on small screens without obscuring the pitch.
  const choices=document.getElementById("choices");choices.setAttribute("aria-label",game.pending?"Required coach decision":"Action choices");
- if(game.pending){const owner=document.createElement("p");owner.className="decision-owner";owner.textContent=decisionCoachLabel(game.pending);choices.prepend(owner);coach.textContent=decisionCoachLabel(game.pending);}
+ if(game.pending){const owner=document.createElement("p");owner.className="decision-owner";owner.textContent=decisionCoachLabel(game.pending);choices.prepend(owner);}
  const faces={"Player Down":["☠","Attacker knocked down."],"Both Down":["↔","Both players may fall; Block and Wrestle can affect this result."],"Push Back":["↪","Push the defender to a legal destination."],"Stumble":["✦","Defender falls unless an applicable ability such as Dodge prevents it."],"POW":["✹","Defender knocked down."]};
- for(const b of choices.querySelectorAll("button")){const face=Object.keys(faces).find(name=>b.textContent.startsWith("Die ")&&b.textContent.endsWith(" · "+name));if(face){b.className+=" block-die";b.dataset.glyph=faces[face][0];b.title=faces[face][1];const dieLabel=b.textContent;const outcome=document.createElement("small");outcome.className="die-outcome";outcome.textContent=faces[face][1];b.append(outcome);b.setAttribute("aria-label",dieLabel+" — "+faces[face][1]);}else if(/^(Use |Re-roll |Cancel |Accept |Keep )/.test(b.textContent))b.className+=" secondary";}
+ for(const b of choices.querySelectorAll("button")){const face=Object.keys(faces).find(name=>b.textContent.startsWith("Die ")&&b.textContent.endsWith(" · "+name));if(face){b.className+=" block-die";b.dataset.glyph=faces[face][0];b.title=faces[face][1];b.setAttribute("aria-label",b.textContent);}else if(/^(Use |Re-roll |Cancel |Accept |Keep )/.test(b.textContent))b.className+=" secondary";}
  const flow=document.getElementById("matchflow"),resources=Array.from(flow.children).filter(e=>/resource-summary|resource-control/.test(e.className));
  const score=document.getElementById("match-scoreboard");score.replaceChildren();if(game.match)score.append(...Array.from(flow.children).slice(0,2));
- const economics=Array.from(flow.children).filter(e=>e.className.includes("team-value-summary"));
- if(economics.length){const box=document.createElement("details"),title=document.createElement("summary");box.className="match-economics";title.textContent="Team values & breakdown";box.append(title,...economics);box.open=economicsOpen;box.addEventListener("toggle",()=>{economicsOpen=box.open;});score.append(box);}
  if(game.league&&game.phase==="leagueSteps"&&game.leaguePurchaseStep<game.leaguePurchaseOrder.length){const next=Array.from(flow.children).find(e=>e.className.split(" ").includes("next-step"));if(next){next.disabled=true;next.textContent="Complete inducement purchases first";}}
  if(resources.length){const details=document.createElement("details"),summary=document.createElement("summary");summary.textContent=game.league?"Inducement purchases — required before continuing":"Staff & inducements · optional";details.append(summary,...resources);details.open=staffDetailsOpen||!!game.league;details.addEventListener("toggle",()=>{staffDetailsOpen=details.open;});flow.append(details);}
  const setupPlayers=Array.from(flow.children).filter(e=>e.className.includes("setup-player"));
  if(setupPlayers.length){const details=document.createElement("details"),summary=document.createElement("summary");summary.textContent="Select a player from the roster (or click on the pitch)";details.append(summary,...setupPlayers);flow.append(details);}
  if(game.match&&game.phase==="finished"&&game.leagueFixtureId)flow.append(button("Record result in Teams & leagues",()=>switchWorkspace("teams",true)));
  refreshRecordedResult();
- const currentActions=document.getElementById("current-actions");currentActions.replaceChildren();
- if(game.match&&game.phase==="kickAim"&&!game.kickLanding&&destination&&!game.pending){const match=game,aim=destination;currentActions.append(button("Confirm kick",()=>{if(game===match&&destination===aim&&!game.pending)choose(aim.x,aim.y);}),button("Cancel aim",()=>{destination=null;render();}));}
- if(ballMode&&throwDestination&&!game.pending){const match=game,pos=throwDestination;currentActions.append(button("Confirm "+(["throw-team-mate","kick-team-mate"].includes(game.action)?"throw":game.action==="bomb"?"bomb":"pass"),()=>{if(game===match&&throwDestination===pos&&!game.pending)choose(pos.x,pos.y);}),button("Cancel target",()=>{throwDestination=null;render();}));}
- const transfer=document.getElementById("transfer");if(!transfer.disabled&&!game.pending){const currentGame=game;currentActions.append(button(ballMode?"Return to movement":"Choose "+(game.action==="handoff"?"hand-off receiver":"pass target"),()=>{if(game===currentGame&&!game.pending)transfer.click();}));}
- for(const b of currentActions.querySelectorAll("button"))if(/^(Cancel|Return)/.test(b.textContent))b.className+=" secondary";
- const last=document.getElementById("last-action");last.textContent=game.events.slice(0,2).reverse().join(" · ");last.hidden=game.events.length<2;
- const logDetails=document.getElementById("session-log");last.onclick=()=>{logDetails.open=!logDetails.open;};last.title="Click to open or close the session log";
 }
 const renderBeforeWorkspace=render;
 render=function(){
@@ -268,7 +254,7 @@ render=function(){
 };
 const startLeagueMatchBeforeWorkspace=startLeagueMatch;
 startLeagueMatch=function(fixture){switchWorkspace("play");startLeagueMatchBeforeWorkspace(fixture);};
-const leagueDisclosureKey=e=>e.dataset.playerId||e.querySelector("summary")?.textContent.split(" · ")[0]||"";
+const leagueDisclosureKey=e=>e.querySelector("summary")?.textContent.split(" · ")[0]||"";
 const renderLeagueBeforeWorkspace=renderLeague;
 renderLeague=function(){
  const details=Array.from(leaguePanel.querySelectorAll("details")),open=new Set(details.filter(e=>e.open).map(leagueDisclosureKey));
@@ -285,4 +271,4 @@ if(coverageTable){
  const rows=Array.from(coverageTable.querySelectorAll("tr")).slice(1);
  const filterSkills=()=>{const query=input.value.trim().toLocaleLowerCase();for(const row of rows)row.hidden=!row.textContent.toLocaleLowerCase().includes(query);const count=rows.filter(r=>!r.hidden).length;status.textContent=count+" of "+rows.length+" entries";};input.addEventListener("input",filterSkills);filterSkills();
 }
-const initialWorkspace=globalThis.location?.hash?.slice(1);switchWorkspace(workspaceTabs.includes(initialWorkspace)?initialWorkspace:"play");refreshWorkspace();
+switchWorkspace("play");refreshWorkspace();

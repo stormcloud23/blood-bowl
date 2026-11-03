@@ -83,7 +83,7 @@ test('pending decisions, another mover and Blitz targeting cannot be bypassed by
  }
 });
 test('human clicks cannot stand the computer coach player',()=>{
- const f=proneFixture();f.get('computer-opponent').value='human';f.get('computer-opponent').emit('change');f.get('start-exhibition').click();f.run("game.phase='play';game.active=1;globalThis.prone=game.players.find(p=>p.team===1);Object.assign(prone,{x:8,y:7,status:'prone',used:false});selected=null;render();");f.cell(8,7).click();f.cell(8,7).click();assert.equal(f.run('prone.status'),'prone');assert.equal(f.run('prone.used'),false);
+ const f=proneFixture();f.get('computer-opponent').value='human';f.get('computer-opponent').emit('change');f.run("game.phase='play';game.active=1;globalThis.prone=game.players.find(p=>p.team===1);Object.assign(prone,{x:8,y:7,status:'prone',used:false});selected=null;render();");f.cell(8,7).click();f.cell(8,7).click();assert.equal(f.run('prone.status'),'prone');assert.equal(f.run('prone.used'),false);
 });
 function tileFixture(){
  const f=workspaceFixture('match');f.run("game.phase='play';game.active=0;game.turns=[1,0];game.players.forEach(p=>Object.assign(p,{x:null,y:null,status:'reserve',extraSkills:[],profileOverride:{name:'Fixture',cost:50000,max:16,primary:'G',secondary:'A',ma:6,st:3,ag:'3+',pa:'3+',av:'9+',skills:[],traits:'Lineman, Human'}}));globalThis.a=game.players[0];globalThis.b=game.players[1];globalThis.d=game.players.find(p=>p.team===1);Object.assign(a,{x:8,y:7,status:'standing'});Object.assign(b,{x:7,y:7,status:'standing'});Object.assign(d,{x:9,y:7,status:'standing'});game.rerolls=[0,0];game.ball={x:20,y:14,carrier:null};game.dice=()=>6;selected=a.id;render();");return f;
@@ -159,7 +159,7 @@ test('setup, Quick Snap, Dwarfen Wisdom, Swarming and touchback expose legal pla
  const touch=tileFixture();touch.run("game.players.forEach(p=>Object.assign(p,{x:null,y:null,status:'reserve'}));game.phase='touchback';game.receiving=1;render();");assert.ok(touch.cell(15,7).className.includes('tile-choice'));assert.equal(touch.cell(2,7).className.includes('tile-choice'),false);touch.cell(15,7).click();assert.equal(touch.run('game.ball.x'),15);assert.equal(touch.run('game.phase'),'play');
 });
 test('exhibition setup values include the players and stay visible outside optional staff controls',()=>{
- const f=workspaceFixture('match');f.run("game.chooseKicking(0);render();");const values=f.get('match-scoreboard').querySelectorAll('p').filter(p=>p.className==='team-value-summary');assert.equal(values.length,2);assert.ok(values.every(p=>p.textContent.includes('Team value (TV)')&&p.textContent.includes('players')&&p.textContent.includes('Current team value (CTV)')));
+ const f=workspaceFixture('match');f.run("game.chooseKicking(0);render();");const values=f.get('matchflow').querySelectorAll('p').filter(p=>p.className==='team-value-summary');assert.equal(values.length,2);assert.ok(values.every(p=>p.textContent.includes('Team value (TV)')&&p.textContent.includes('players')&&p.textContent.includes('Current team value (CTV)')));
  const expected=f.run('money(game.teams[0].lineup.reduce((n,r)=>n+game.teams[0].positions[r].cost,0)+game.resourceCosts(0).staff)');assert.ok(values[0].textContent.includes(expected));
 });
 test('saved exhibition selection captures full TV including a missing developed player',()=>{
@@ -217,13 +217,13 @@ test('an observed match runs through the real bundled scheduler to the final whi
 });
 test('computer exhibition selector creates an away preset controller and leaves hotseat as default',()=>{
  const f=workspaceFixture('match');assert.equal(f.run('computerSession'),null);
- f.get('computer-opponent').value='orc';f.get('computer-opponent').emit('change');f.get('start-exhibition').click();
+ f.get('computer-opponent').value='orc';f.get('computer-opponent').emit('change');
  assert.equal(f.run('game.teams[1].id'),'orc');assert.equal(f.run('computerSession.coach.team'),1);assert.equal(f.run('game.individualBlockChoices'),true);assert.equal(f.get('exhibition-away').disabled,true);
  f.get('computer-takeover').click();assert.equal(f.run('computerSession'),null);assert.equal(f.get('exhibition-away').disabled,false);assert.equal(f.get('computer-controls').hidden,true);
 });
 test('computer timers pause, cancel on reset, and cannot mutate a replacement game',()=>{
  const callbacks=new Map();let id=0;const f=workspaceFixture('match',{setTimeout:fn=>{callbacks.set(++id,fn);return id;},clearTimeout:key=>callbacks.delete(key)});
- f.get('computer-opponent').value='human';f.get('computer-opponent').emit('change');f.get('start-exhibition').click();
+ f.get('computer-opponent').value='human';f.get('computer-opponent').emit('change');
  f.run("game.phase='setup';game.setupTeam=1;game.active=1;game.autoSetup(1);render();");
  assert.equal(callbacks.size,1);assert.equal(f.get('end').disabled,true);assert.ok(f.get('matchflow').querySelectorAll('button').every(b=>b.disabled));
  const selected=f.run('selected');f.run('choose(19,7)');assert.equal(f.run('selected'),selected);
@@ -234,19 +234,19 @@ test('computer timers pause, cancel on reset, and cannot mutate a replacement ga
 });
 test('computer resolves its defensive prompt and returns controls to the human',()=>{
  const callbacks=[];const f=workspaceFixture('match',{setTimeout:fn=>{callbacks.push(fn);return callbacks.length;},clearTimeout(){}});
- f.get('computer-opponent').value='orc';f.get('computer-opponent').emit('change');f.get('start-exhibition').click();
+ f.get('computer-opponent').value='orc';f.get('computer-opponent').emit('change');
  f.run("game.phase='play';game.active=0;game.skillChoice('Defensive reaction',1,['No reaction'],()=>{});render();");assert.equal(f.get('choices').querySelectorAll('button')[0].disabled,true);
  callbacks.shift()();assert.equal(f.run('game.pending'),null);assert.equal(f.run('game.active'),0);assert.equal(f.run('computerOwnsDecision()'),false);
 });
 test('same-name human teams retain separate staff controls and Testing stays manual',()=>{
- const f=workspaceFixture('match');f.get('exhibition-home').value='human';f.get('computer-opponent').value='human';f.get('computer-opponent').emit('change');f.get('start-exhibition').click();
+ const f=workspaceFixture('match');f.get('exhibition-home').value='human';f.get('computer-opponent').value='human';f.get('computer-opponent').emit('change');
  const buttons=f.get('matchflow').querySelectorAll('button');assert.equal(buttons.find(b=>b.dataset.coachTeam==='0').disabled,false);assert.equal(buttons.find(b=>b.dataset.coachTeam==='1').disabled,true);
  f.run("game.phase='play';game.active=0;selected=game.players.find(p=>p.team===1).id;render();");assert.ok(f.get('skillcontrols').querySelectorAll('button').every(b=>b.disabled));
  f.get('start-testing').click();assert.equal(f.run('computerSession'),null);assert.equal(f.get('computer-controls').hidden,true);
 });
 test('a repeated computer state pauses visibly and takeover preserves the match',()=>{
  const callbacks=[];const f=workspaceFixture('match',{setTimeout:fn=>{callbacks.push(fn);return callbacks.length;},clearTimeout(){}});
- f.get('computer-opponent').value='orc';f.get('computer-opponent').emit('change');f.get('start-exhibition').click();
+ f.get('computer-opponent').value='orc';f.get('computer-opponent').emit('change');
  f.run("game.phase='setup';game.setupTeam=1;game.active=1;computerSession.coach.step=()=>true;globalThis.sameMatch=game;render();");
  for(let n=0;n<9;n++)callbacks.shift()();
  assert.equal(f.run('computerPaused'),true);assert.match(f.get('computer-status').textContent,/repeated state/);assert.equal(callbacks.length,0);
@@ -327,7 +327,7 @@ test('league staff disclosures stay open after a purchase and preserve button fo
  const f=workspaceFixture();f.run('leagueSelected=leagueStore.create(demoLeagueTeams[0].id,"Nobles").id;leagueSave();renderLeague()');const details=f.run('leaguePanel.querySelectorAll("details")'),staff=details.find(e=>e.querySelector('summary').textContent.startsWith('Staff & re-rolls'));staff.open=true;const buy=staff.querySelectorAll('button').find(e=>e.textContent==='+ Team re-rolls');buy.focus();buy.click();const updated=f.run('leaguePanel.querySelectorAll("details")').find(e=>e.querySelector('summary').textContent.startsWith('Staff & re-rolls'));assert.equal(updated.open,true);assert.equal(f.document.activeElement.textContent,'+ Team re-rolls');assert.equal(f.run('leagueStore.team(leagueSelected).staff.teamRerolls'),1);
 });
 test('all six actual engine Block faces receive symbols and result explanations',()=>{
- const f=workspaceFixture();f.run('globalThis.a=game.players.find(p=>p.id===selected);globalThis.target=game.players.find(p=>game.canBlock(a,p));game.dice=()=>3;game.block(a.id,target.id);game.blockAction.dice=[1,2,3,4,5,6];render()');const dice=f.get('choices').querySelectorAll('button').filter(e=>e.textContent.startsWith('Die '));assert.equal(dice.length,6);assert.ok(dice.every(e=>e.className.includes('block-die')&&e.dataset.glyph&&e.title&&e['aria-label'].startsWith(e.textContent)&&e['aria-label'].includes(e.title)));assert.match(dice[0].title,/Attacker/);assert.match(dice[4].title,/Dodge/);
+ const f=workspaceFixture();f.run('globalThis.a=game.players.find(p=>p.id===selected);globalThis.target=game.players.find(p=>game.canBlock(a,p));game.dice=()=>3;game.block(a.id,target.id);game.blockAction.dice=[1,2,3,4,5,6];render()');const dice=f.get('choices').querySelectorAll('button').filter(e=>e.textContent.startsWith('Die '));assert.equal(dice.length,6);assert.ok(dice.every(e=>e.className.includes('block-die')&&e.dataset.glyph&&e.title&&e['aria-label']===e.textContent));assert.match(dice[0].title,/Attacker/);assert.match(dice[4].title,/Dodge/);
 });
 test('defending coach is identified for Stand Firm and Sidestep decisions',()=>{
  const f=workspaceFixture();f.run('globalThis.a=game.players.find(p=>p.id===selected);globalThis.d=game.players.find(p=>game.canBlock(a,p));game.dice=()=>3;game.block(a.id,d.id);game.selectBlockDie(0);render()');assert.equal(f.run('game.pending.kind'),'Stand Firm');assert.match(f.get('choices').children[0].textContent,/Imperial Nobility/);f.run('a.disabledSkills=["Grab"];d.extraSkills=["Sidestep"];game.pending.options.includes("Be pushed")&&game.decide("Be pushed");render()');assert.match(f.run('decisionCoachLabel(game.pending)'),/Imperial Nobility/);
@@ -349,10 +349,10 @@ test('the dock never uses native popovers and closing restores pitch focus witho
 });
 
 test('exhibition roster selectors create exactly two teams and practice reset restores original fixtures',()=>{
- const f=workspaceFixture('match');assert.equal(f.get('exhibition-home').children.length,30);f.get('exhibition-home').value='lizardmen';f.get('exhibition-away').value='dwarf';f.get('exhibition-home').emit('change');f.get('start-exhibition').click();assert.equal(f.run('teams.length'),2);assert.equal(f.run('game.teams[0].id'),'lizardmen');assert.equal(f.run('game.teams[1].id'),'dwarf');f.get('scenario').value='block';f.get('scenario').emit('change');assert.equal(f.run('teams[0].id'),'imperial-nobility');assert.equal(f.run('teams[1].id'),'black-orc');assert.equal(f.get('exhibition-rosters').hidden,true);
+ const f=workspaceFixture('match');assert.equal(f.get('exhibition-home').children.length,30);f.get('exhibition-home').value='lizardmen';f.get('exhibition-away').value='dwarf';f.get('exhibition-home').emit('change');assert.equal(f.run('teams.length'),2);assert.equal(f.run('game.teams[0].id'),'lizardmen');assert.equal(f.run('game.teams[1].id'),'dwarf');f.get('scenario').value='block';f.get('scenario').emit('change');assert.equal(f.run('teams[0].id'),'imperial-nobility');assert.equal(f.run('teams[1].id'),'black-orc');assert.equal(f.get('exhibition-rosters').hidden,true);
 });
 test('exhibition league/alignment choices affect only the selected side and expose legal options',()=>{
- const f=workspaceFixture('match');f.get('exhibition-home').value='chaos-chosen';f.get('exhibition-home').emit('change');f.get('start-exhibition').click();assert.equal(f.get('exhibition-home-alignment').children.length,6);f.get('exhibition-home-alignment').value='Nurgle';f.get('exhibition-home-alignment').emit('change');f.get('start-exhibition').click();assert.equal(f.run('game.hasTeamRule(0,"Favoured of Nurgle")'),true);assert.equal(f.run('game.hasTeamRule(1,"Favoured of Nurgle")'),false);f.get('exhibition-home').value='norse';f.get('exhibition-home').emit('change');f.get('start-exhibition').click();f.get('exhibition-home-league').value='Chaos Clash';f.get('exhibition-home-league').emit('change');f.get('start-exhibition').click();assert.equal(f.run('game.hasTeamRule(0,"Favoured of Khorne")'),true);
+ const f=workspaceFixture('match');f.get('exhibition-home').value='chaos-chosen';f.get('exhibition-home').emit('change');assert.equal(f.get('exhibition-home-alignment').children.length,6);f.get('exhibition-home-alignment').value='Nurgle';f.get('exhibition-home-alignment').emit('change');assert.equal(f.run('game.hasTeamRule(0,"Favoured of Nurgle")'),true);assert.equal(f.run('game.hasTeamRule(1,"Favoured of Nurgle")'),false);f.get('exhibition-home').value='norse';f.get('exhibition-home').emit('change');f.get('exhibition-home-league').value='Chaos Clash';f.get('exhibition-home-league').emit('change');assert.equal(f.run('game.hasTeamRule(0,"Favoured of Khorne")'),true);
 });
 test('the real Swarming panel selects reserve Linemen and guards stale finish controls across coaches',()=>{
  const f=workspaceFixture('match');f.run('teams.splice(0,2,...[0,1].map(()=>JSON.parse(JSON.stringify(rosterCatalog.find(r=>r.id==="snotling")))));game=new MatchGame(teams,{dice:()=>3});game.phase="kickChoice";game.chooseKicking(0);game.confirmSetup();game.confirmSetup();render()');const number=f.run('game.players.find(p=>p.id===game.swarmState.eligible[0]).number');f.get('matchflow').children.find(e=>e.textContent==='Swarming Lineman #'+number).click();f.run('choose(1,6)');assert.equal(f.run('game.swarmState.placed.length'),1);const finish=f.get('matchflow').children.find(e=>e.textContent==='Finish Swarming');finish.click();assert.equal(f.run('game.swarmState.team'),1);finish.click();assert.equal(f.run('game.swarmState.team'),1);f.get('matchflow').children.find(e=>e.textContent==='Finish Swarming').click();assert.equal(f.run('game.phase'),'kicker');
@@ -431,7 +431,7 @@ test('Maximum Carnage and Kaboom choices are wired in the actual bundled UI',()=
 });
 
 test('pitch actions are a coach-panel region with collapsed information and no floating coordinates',()=>{
- const f=workspaceFixture(),p=JSON.parse(f.run('JSON.stringify(game.players.find(p=>p.id===selected))'));f.cell(p.x,p.y).click();const panel=f.get('pitch-popup'),details=panel.children.find(e=>e.tagName==='DETAILS');assert.equal(panel.parentElement,f.get('coach-panel'));assert.equal(panel.style.left,undefined);assert.equal(panel.style.top,undefined);assert.ok(details);assert.ok(!details.open);assert.ok(dugoutNodes(details).some(e=>/MA \d/.test(e.textContent)));assert.ok(!f.popup().some(b=>b.textContent==='Declare Move'));assert.match(dugoutNodes(panel).map(e=>e.textContent).join(' '),/Choose a destination/);const html=fs.readFileSync(projectPath('index.html'),'utf8');assert.match(html,/<aside id="coach-panel"[\s\S]*?<section id="pitch-popup" role="region"[^>]*hidden/);assert.doesNotMatch(html,/<[^>]*id="pitch-popup"[^>]*popover=/);
+ const f=workspaceFixture(),p=JSON.parse(f.run('JSON.stringify(game.players.find(p=>p.id===selected))'));f.cell(p.x,p.y).click();const panel=f.get('pitch-popup'),details=panel.children.find(e=>e.tagName==='DETAILS');assert.equal(panel.parentElement,f.get('coach-panel'));assert.equal(panel.style.left,undefined);assert.equal(panel.style.top,undefined);assert.ok(details);assert.ok(!details.open);assert.ok(dugoutNodes(details).some(e=>/MA \d/.test(e.textContent)));assert.ok(!f.popup().some(b=>b.textContent==='Declare Move'));assert.match(dugoutNodes(panel).map(e=>e.textContent).join(' '),/To move: choose/);const html=fs.readFileSync(projectPath('index.html'),'utf8');assert.match(html,/<aside id="coach-panel"[\s\S]*?<section id="pitch-popup" role="region"[^>]*hidden/);assert.doesNotMatch(html,/<[^>]*id="pitch-popup"[^>]*popover=/);
 });
 
 test('positional markers use roster keywords consistently, including hybrid roles and unknown specials',()=>{
@@ -499,9 +499,9 @@ test('preset and custom selectors stay separate and selecting a preset clears th
  const f=workspaceFixture('match');assert.equal(f.get('exhibition-home-custom').disabled,true);
  f.run(`const club=leagueStore.create(demoLeagueTeams[0].id,'My custom team');for(let i=0;i<11;i++)leagueStore.hire(club.id,0,'Player '+i);leagueStore.submit(club.id);refreshExhibitionRosters();`);
  assert.equal(f.get('exhibition-home-custom').disabled,false);assert.ok(!f.get('exhibition-home').children.some(o=>o.value.startsWith('saved:')));
- f.get('exhibition-home-custom').value=f.run("'saved:'+leagueStore.data.teams[0].id");f.get('exhibition-home-custom').emit('change');f.get('start-exhibition').click();assert.equal(f.run('teams[0].name'),'My custom team');assert.equal(f.get('exhibition-home-league').hidden,true);
+ f.get('exhibition-home-custom').value=f.run("'saved:'+leagueStore.data.teams[0].id");f.get('exhibition-home-custom').emit('change');assert.equal(f.run('teams[0].name'),'My custom team');assert.equal(f.get('exhibition-home-league').hidden,true);
  f.run('refreshExhibitionRosters()');assert.ok(f.get('exhibition-home-custom').value.startsWith('saved:'));
- f.get('exhibition-home').value=f.run('demoLeagueTeams[1].id');f.get('exhibition-home').emit('change');f.get('start-exhibition').click();assert.equal(f.get('exhibition-home-custom').value,'');assert.equal(f.run('teams[0].id'),f.run('demoLeagueTeams[1].id'));
+ f.get('exhibition-home').value=f.run('demoLeagueTeams[1].id');f.get('exhibition-home').emit('change');assert.equal(f.get('exhibition-home-custom').value,'');assert.equal(f.run('teams[0].id'),f.run('demoLeagueTeams[1].id'));
 });
 
 
@@ -538,21 +538,4 @@ test('setup clicks swap selected team-mates, keep selection and reset it for eac
 test('a dugout reserve can swap onto a full setup pitch and bench the clicked team-mate',()=>{
  const f=workspaceFixture('match');f.run('game.players.push({...game.players[0],id:"setup-reserve",number:12,status:"reserve",x:null,y:null});game.phase="kickChoice";game.chooseKicking(0);render();globalThis.target=game.players[0];globalThis.spot={x:target.x,y:target.y};');
  const card=dugoutNodes(f.get('dugout')).find(e=>e.dataset.playerId==='setup-reserve');card.click();f.action('Select for setup').click();f.cell(f.run('target.x'),f.run('target.y')).click();assert.equal(f.run('selected'),'setup-reserve');assert.equal(f.run('target.status'),'reserve');assert.equal(f.run('game.at(spot.x,spot.y).id'),'setup-reserve');assert.equal(f.run('game.players.filter(p=>p.team===0&&game.onPitch(p)).length'),11);
-});
-
-test('editing match configuration preserves the current game until explicitly starting a replacement',()=>{
- const f=workspaceFixture('match');f.run('globalThis.previousMatch=game;game.fans=[4,2]');f.get('exhibition-home').value='human';f.get('exhibition-home').emit('change');f.get('computer-opponent').value='orc';f.get('computer-opponent').emit('change');assert.equal(f.run('game===previousMatch'),true);assert.equal(f.run('game.fans.join()'),'4,2');assert.equal(f.run('computerSession'),null);f.get('start-exhibition').click();assert.equal(f.run('game===previousMatch'),false);assert.equal(f.run('game.teams[0].id'),'human');assert.equal(f.run('game.teams[1].id'),'orc');assert.equal(f.get('exhibition-rosters').open,false);
-});
-test('declaring a pass enters targeting and stale target confirmation cannot execute a replacement preview',()=>{
- const f=workspaceFixture('pass');f.get('pass').click();assert.equal(f.run('ballMode'),true);f.run('choose(14,7)');const old=f.get('current-actions').querySelectorAll('button').find(b=>b.textContent==='Confirm pass');assert.ok(old);assert.match(f.get('choices').querySelectorAll('p')[0].textContent,/#2/);f.run('choose(13,6)');old.click();assert.equal(f.run('game.ballActionDone'),false);assert.equal(f.run('throwDestination.x'),13);assert.equal(f.run('game.ball.carrier'),'0-1');
-});
-test('normal full-pitch dugouts omit empty lanes and practice reserves have an explicit toggle',()=>{
- const f=workspaceFixture('match');f.run('game.phase="kickChoice";game.chooseKicking(0);game.confirmSetup();render()');assert.equal(f.get('dugout').querySelectorAll('h4').length,0);f.get('testing-scenario').value='pass';f.get('start-testing').click();assert.match(f.get('dugout').className,/practice-dugouts/);f.get('practice-reserves-toggle').click();assert.ok(!f.get('dugout').className.includes('practice-dugouts'));
-});
-test('roster inspection stays beside its source rather than navigating to Reference',()=>{
- const f=workspaceFixture();f.get('tab-rosters').click();f.run('showProfile(0,0,null,rosterCatalog[0]);inspectRosterPosition()');assert.equal(f.run('workspaceView'),'rosters');assert.equal(f.get('roster-inspection').hidden,false);assert.ok(f.get('roster-inspection').children.some(e=>e.innerHTML?.includes('Imperial Retainer')));f.get('roster-inspection').querySelector('button').click();assert.equal(f.get('roster-inspection').hidden,true);
-});
-
-test('kick previews offer explicit confirmation and reject an earlier aim callback',()=>{
- const f=workspaceFixture('match');f.run('game.phase="kickAim";game.receiving=1;render();choose(19,7)');const old=f.get('current-actions').querySelectorAll('button').find(b=>b.textContent==='Confirm kick');assert.ok(old);f.run('choose(18,6)');old.click();assert.equal(f.run('game.phase'),'kickAim');assert.equal(f.run('destination.x'),18);assert.equal(f.run('game.kickLanding==null'),true);
 });

@@ -4,8 +4,7 @@
 
 Open Testing and use Watch a computer match. Choose Human or Orc independently
 for home and away, then Start watching new match. Alternatively, choose Observe
-computer match in the Testing mode menu to reveal the observer team controls,
-then use Start watching new match. These are full
+computer match in the Testing mode menu and Start testing mode. These are full
 regulation matches, with normal weather and kickoff events. Both coaches handle
 pregame, setup, decisions, turns, drive recovery and halftime automatically.
 
@@ -29,8 +28,7 @@ Human and Orc. Match save/resume and a replay export are not part of this mode.
 ## Play against one coach
 
 In Play, choose Computer · Human team or Computer · Orc team in the Opponent
-menu inside Match setup, then New exhibition match. Changing the selection alone
-does not replace the ongoing game. You control home; the
+menu. Changing this choice starts a new exhibition. You control home; the
 computer controls the away preset. Its roster selectors are locked until you
 return to hotseat or take over. Custom home teams remain available.
 

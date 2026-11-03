@@ -346,7 +346,7 @@ test('waypoint preview spends hypothetical MA and cancellation restores the star
  run('choose(6,5)');
  assert.equal(run('previewRoute(planningPlayer()).spent'),4);
  assert.doesNotMatch(square(15,7).className,/\blegal\b/);
- assert.ok(get('choices').children.some(e=>e.textContent.includes('Remaining after preview: 2 MA + 2 Rush(es)')));
+ assert.ok(get('choices').children.some(e=>e.textContent.includes('2 normal MA and 2 Rush(es) remaining')));
  assert.equal(run('JSON.stringify({players:game.players,ball:game.ball,events:game.events,rerolls:game.rerolls})'),before);
  get('choices').children.find(e=>e.textContent==='Cancel movement preview').listeners.click();
  assert.equal(run('destination'),null);assert.match(square(15,7).className,/\blegal\b/);
@@ -357,7 +357,7 @@ test('preview extension preserves waypoints, rush costs and the exact committed 
  assert.equal(run('destination.spent'),6);
  assert.equal(run('destination.path.some(s=>s.x===6&&s.y===5)'),true);
  run('choose(5,7)');assert.equal(run('destination.spent'),7);
- assert.ok(get('choices').children.some(e=>e.textContent.includes('Remaining after preview: 0 MA + 1 Rush(es)')));
+ assert.ok(get('choices').children.some(e=>e.textContent.includes('0 normal MA and 1 Rush(es) remaining')));
  get('choices').children.find(e=>e.textContent==='Confirm Move').listeners.click();assert.equal(run('game.players[0].x'),5);assert.equal(run('game.players[0].y'),7);assert.equal(run('game.players[0].spent'),7);assert.equal(run('destination'),null);
  assert.equal(run('game.events.some(e=>e.includes("moved to 7, 6"))'),true);
 });
