@@ -83,8 +83,8 @@ class ComputerCoach {
   return {count,own,failure:own?bad**count:1-(1-bad)**count,knockdown:own?1-(1-knock)**count:knock**count};
  }
  blockValue(g,b,face){
-  const a=b.attacker,d=b.target;
-  const value=face==="POW"?8:face==="Stumble"?(!g.skill(d,"Dodge")||g.skill(a,"Tackle")?8:3):face==="Push Back"?3:face==="Both Down"?(g.skill(a,"Block")?(g.skill(d,"Block")?1:7):g.skill(a,"Wrestle")?(g.ball.carrier===d.id?8:2):-7):-10;
+  const a=b.attacker,d=b.target,both=g.skill(a,"Block")?(g.skill(d,"Block")?1:7):g.skill(a,"Wrestle")&&g.ball.carrier!==a.id?(g.ball.carrier===d.id?8:2):-7;
+  const value=face==="POW"?8:face==="Stumble"?(!g.skill(d,"Dodge")||g.skill(a,"Tackle")?8:3):face==="Push Back"?3:face==="Both Down"?(b.blitz&&g.skill(a,"Juggernaut")?Math.max(3,both):both):-10;
   return a.team===this.team?value:-value;
  }
  decide(g){
@@ -119,6 +119,7 @@ class ComputerCoach {
    candidates.sort((a,b)=>this.checkChance(g,g.forecastTarget(b.p,"Intercept",Number.parseInt(g.profile(b.p).ag)+3+g.marking(b.p)))-this.checkChance(g,g.forecastTarget(a.p,"Intercept",Number.parseInt(g.profile(a.p).ag)+3+g.marking(a.p))));
    if(candidates[0])choice=candidates[0].option;
   }
+  else if(q.kind==="Juggernaut")choice=this.blockValue(g,{...g.blockAction,blitz:false},"Both Down")>3?"Apply Both Down":"Treat as Push Back";
   else if(q.kind==="Dirty Player")choice=options.find(o=>o.startsWith("Add +1"))||choice;
   else if(q.kind==="Chainsaw foul")choice="Foul normally";
   else if(options.includes("Use Block"))choice="Use Block";
