@@ -1,4 +1,14 @@
-# Match workspace — v0.0.42
+# Match workspace — v0.0.43
+
+## Audit uplift — v0.0.43
+
+Match configuration is now staged and collapsed; edits apply only after New
+exhibition match. Current decisions lead the coach panel, with economics in a
+scoreboard disclosure. Pass/hand-off declarations enter targeting, previews offer
+explicit confirmation, and route details are collapsible. Team drafting supports
+quantity hires and suggested lineups; roster inspection and skill help stay in
+context. See the [implementation and validation map](UX-UPLIFT-IMPLEMENTATION.md)
+for all changes and further polish.
 
 ## Throwing target overlay
 

@@ -84,7 +84,8 @@ Kick aiming uses a square highlight and second-click confirmation without a
 popup over the target.
 
 For solo exhibitions, choose **Computer · Human team** or **Computer · Orc team**
-in the Opponent menu. You coach home; the computer coaches the away preset team.
+in Match setup, then **New exhibition match**. Selections are staged until you
+start the match. You coach home; the computer coaches the away preset team.
 Choose its speed, pause/resume, or take over its team during the match. This basic
 opponent uses a ground game, blocks and Blitzes; it does not pass or buy optional
 inducements. League games remain hotseat. See [computer opponent](docs/COMPUTER.md).

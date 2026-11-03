@@ -23,7 +23,7 @@ function advanceComputer(){
 }
 function refreshComputer(){
  const panel=document.getElementById("computer-controls"),status=document.getElementById("computer-status");
- panel.hidden=computerSession?.game!==game;
+ panel.hidden=computerSession?.game!==game;document.getElementById("game-session").className=panel.hidden?"":"has-computer";
  if(panel.hidden)return;
  document.getElementById("computer-pause").textContent=computerPaused?"Resume computer":"Pause computer";
  document.getElementById("computer-pause").disabled=game.phase==="finished";
@@ -33,10 +33,11 @@ function refreshComputer(){
  const owner=computerDecisionTeam(game),coach=computerCoach(owner)||computerSession.coach,side=owner===0?"Home":"Away";
  status.textContent=computerFault?"Computer paused: "+computerFault:game.phase==="finished"?"Computer match finished.":computerPaused?"Computer paused. Resume, step or take over to continue.":computerOwnsDecision()?"Computer thinking · "+side+" — "+teams[owner].name+" · "+coach.explanation:"Your decision · "+coach.explanation;
  const actions=document.getElementById("computer-actions");actions.hidden=!computerSession.observing;
- if(computerSession.observing)actions.textContent=computerSession.coaches.map((c,i)=>(i===0?"Home":"Away")+" — "+teams[i].name+": "+c.explanation).join(" | ");
+ if(computerSession.observing){selection.textContent="Observation · read-only player inspection";}
+ if(computerSession.observing)actions.textContent=computerSession.coaches.map((c,i)=>(i===0?"Home computer":"Away computer")+" ("+teams[i].name+")"+": "+c.explanation).join(" | ");
  // Keep the current decision visible, but reserve its actions for its coach.
  if(computerOwnsDecision()){
-  for(const id of ["matchflow","choices","action-controls","skillcontrols"])for(const b of document.getElementById(id).querySelectorAll("button"))b.disabled=true;
+  for(const id of ["matchflow","choices","current-actions","action-controls","skillcontrols"])for(const b of document.getElementById(id).querySelectorAll("button"))b.disabled=true;
   for(const id of ["finish","end"])document.getElementById(id).disabled=true;
  }
  // Staff for the computer remain at the preset defaults in this first version.
@@ -76,16 +77,16 @@ choose=function(...args){
 };
 const commitRouteBeforeComputer=commitRoute;
 commitRoute=function(){if(!computerOwnsDecision())return commitRouteBeforeComputer();};
-document.getElementById("computer-opponent").addEventListener("change",()=>{document.getElementById("scenario").value="match";reset();});
+document.getElementById("computer-opponent").addEventListener("change",()=>{const mode=document.getElementById("computer-opponent").value,enabled=COMPUTER_ROSTERS.includes(mode);if(enabled){document.getElementById("exhibition-away").value=mode;document.getElementById("exhibition-away-custom").value="";exhibitionRosterChoices("away");}for(const suffix of ["","-custom","-league","-alignment"])document.getElementById("exhibition-away"+suffix).disabled=enabled||(suffix==="-custom"&&!leagueStore.data.teams.some(t=>!t.draft));document.getElementById("match-config-status").textContent="Changes ready. Start a new match to apply them.";});
 document.getElementById("computer-pause").addEventListener("click",()=>{cancelComputerTimer();computerPaused=!computerPaused;if(!computerPaused&&computerFault){computerFault="";computerSteps=0;computerSession.steps=[0,0];computerSession.repeats=0;computerSession.lastState=null;}render();});
 document.getElementById("computer-step").addEventListener("click",()=>{if(computerPaused&&!computerFault&&computerOwnsDecision()){cancelComputerTimer();advanceComputer();}});
 document.getElementById("computer-speed").addEventListener("change",()=>{cancelComputerTimer();refreshComputer();});
 document.getElementById("computer-takeover").addEventListener("click",()=>{cancelComputerTimer();if(!computerSession?.observing)document.getElementById("computer-opponent").value="";game.observing=false;computerSession=null;computerFault="";computerPaused=false;for(const suffix of ["","-league","-alignment"])document.getElementById("exhibition-away"+suffix).disabled=false;document.getElementById("exhibition-away-custom").disabled=!leagueStore.data.teams.some(t=>!t.draft);render();});
-document.getElementById("start-observation").addEventListener("click",()=>{document.getElementById("scenario").value="match-observe";document.getElementById("testing-scenario").value="match-observe";reset();switchWorkspace("testing");});
+document.getElementById("start-observation").addEventListener("click",()=>{document.getElementById("scenario").value="match-observe";document.getElementById("testing-scenario").value="match-observe";reset();document.getElementById("testing-launcher").open=false;switchWorkspace("testing");});
 // Capture prevents mouse and keyboard-generated clicks from changing the pitch
 // or a coach decision while the computer owns it, including while paused.
 document.getElementById("game-session").addEventListener("click",event=>{
- if(computerOwnsDecision()&&event.target.closest("button, .square, .dugout-card")&&!event.target.closest("#computer-controls")&&event.target.id!=="reset"&&!(inspectingComputerMatch()&&event.target.closest(".square"))){
+ if(computerOwnsDecision()&&event.target.closest("button, .square, .dugout-card")&&!event.target.closest("#computer-controls")&&event.target.id!=="reset"&&event.target.id!=="last-action"&&!(inspectingComputerMatch()&&event.target.closest(".square"))){
   event.preventDefault();event.stopImmediatePropagation();
  }
 },true);
