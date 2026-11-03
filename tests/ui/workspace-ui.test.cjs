@@ -42,10 +42,10 @@ function proneFixture(team=0){
  f.run(`game.phase='play';game.active=${team};game.turns=[1,1];game.players.forEach(p=>Object.assign(p,{x:null,y:null,status:'reserve'}));globalThis.prone=game.players.find(p=>p.team===${team});Object.assign(prone,{x:8,y:7,status:'prone',used:false});prone.profileOverride={...game.profile(prone),ma:6,skills:[],traits:'Lineman, Human'};selected=null;globalThis.rollCount=0;game.dice=()=>{rollCount++;return 6;};render();`);
  return f;
 }
-for(const team of [0,1])test('a prone player deselects on a second click and can stand through its explicit action: coach '+team,()=>{
+for(const team of [0,1])test('a prone player is selected first and stands in place on the second click: coach '+team,()=>{
  const f=proneFixture(team);f.run('globalThis.limitedBefore=JSON.stringify([game.blitzUsed,game.passUsed,game.handoffUsed,game.foulUsed,game.secureUsed,game.throwUsed]);');
  f.cell(8,7).click();assert.equal(f.run('selected'),f.run('prone.id'));assert.equal(f.run('prone.status'),'prone');assert.equal(f.run('prone.used'),false);assert.equal(f.run('game.mover'),null);assert.equal(f.run('rollCount'),0);assert.ok(f.popup().some(b=>b.textContent==='Stand up in place'));
- f.cell(8,7).click();assert.equal(f.run('selected'),null);assert.equal(f.run('prone.status'),'prone');f.cell(8,7).click();f.action('Stand up in place').click();assert.equal(f.run('prone.status'),'standing');assert.equal(f.run('prone.x'),8);assert.equal(f.run('prone.y'),7);assert.equal(f.run('prone.spent'),3);assert.equal(f.run('prone.used'),true);assert.equal(f.run('game.action'),'move');assert.equal(f.run('game.mover'),f.run('prone.id'));assert.equal(f.run('rollCount'),0);
+ f.cell(8,7).click();assert.equal(f.run('prone.status'),'standing');assert.equal(f.run('prone.x'),8);assert.equal(f.run('prone.y'),7);assert.equal(f.run('prone.spent'),3);assert.equal(f.run('prone.used'),true);assert.equal(f.run('game.action'),'move');assert.equal(f.run('game.mover'),f.run('prone.id'));assert.equal(f.run('rollCount'),0);
  assert.equal(f.run('JSON.stringify([game.blitzUsed,game.passUsed,game.handoffUsed,game.foulUsed,game.secureUsed,game.throwUsed])===limitedBefore'),true);
  // Deselecting the active player cannot charge stand-up again; movement can continue.
  f.cell(8,7).click();assert.equal(f.run('prone.spent'),3);f.cell(9,7).click();f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Confirm Move').click();assert.equal(f.run('prone.x'),9);assert.equal(f.run('prone.spent'),4);assert.equal(f.run('game.active'),team);
@@ -54,11 +54,11 @@ test('the stand-in-place menu action uses the same Move and ignores a stale repe
  const f=proneFixture();f.cell(8,7).click();const stand=f.action('Stand up in place');stand.click();stand.click();
  assert.equal(f.run('prone.status'),'standing');assert.equal(f.run('prone.spent'),3);assert.equal(f.run('game.action'),'move');assert.equal(f.run('game.events.filter(e=>e.includes("declares Move")).length'),1);
 });
-test('clicking a preselected practice player toggles selection without standing',()=>{
- const f=proneFixture();f.run('selected=prone.id;render();');f.cell(8,7).click();assert.equal(f.run('selected'),null);assert.equal(f.run('prone.status'),'prone');assert.equal(f.run('prone.used'),false);f.cell(8,7).click();assert.equal(f.run('selected'),f.run('prone.id'));assert.equal(f.run('prone.status'),'prone');
+test('a selected prone practice player stands when clicked',()=>{
+ const f=proneFixture();f.run('selected=prone.id;render();');f.cell(8,7).click();assert.equal(f.run('selected'),f.run('prone.id'));assert.equal(f.run('prone.status'),'standing');assert.equal(f.run('prone.spent'),3);assert.equal(f.run('prone.used'),true);
 });
 test('returning from a movement preview reselects the prone player without committing it',()=>{
- const f=proneFixture();f.cell(8,7).click();f.cell(9,7).click();assert.ok(f.run('destination'));f.cell(8,7).click();assert.equal(f.run('destination'),null);assert.equal(f.run('prone.status'),'prone');assert.equal(f.run('prone.used'),false);f.cell(8,7).click();assert.equal(f.run('selected'),null);f.cell(8,7).click();f.action('Stand up in place').click();assert.equal(f.run('prone.status'),'standing');assert.equal(f.run('prone.x'),8);
+ const f=proneFixture();f.cell(8,7).click();f.cell(9,7).click();assert.ok(f.run('destination'));f.cell(8,7).click();assert.equal(f.run('destination'),null);assert.equal(f.run('prone.status'),'prone');assert.equal(f.run('prone.used'),false);f.cell(8,7).click();assert.equal(f.run('prone.status'),'standing');assert.equal(f.run('prone.x'),8);
 });
 test('stand in place respects Jump Up and low-MA stand-up rolls',()=>{
  const jump=proneFixture();jump.run("prone.extraSkills=['Jump Up'];render();");jump.cell(8,7).click();jump.action('Stand up in place').click();assert.equal(jump.run('prone.spent'),0);assert.equal(jump.run('rollCount'),0);assert.equal(jump.run('prone.status'),'standing');
@@ -710,4 +710,27 @@ for(const kind of ['movement','block','blitz'])test('actor click cancels '+kind+
 });
 test('deselecting an active mover preserves its activation, spent movement and ability to inspect enemies',()=>{
  const f=proneFixture();f.run("prone.status='standing';selected=prone.id;game.start(prone.id,'move');game.step(9,7);globalThis.enemy=game.players.find(p=>p.team===1);Object.assign(enemy,{x:10,y:7,status:'standing'});render();globalThis.before=JSON.stringify([game.players,game.mover,game.action,game.active]);");f.cell(9,7).click();assert.equal(f.run('selected'),null);assert.equal(f.run('game.mover'),f.run('prone.id'));assert.equal(f.run('prone.spent'),1);f.cell(10,7).click();assert.equal(f.run('selected'),f.run('enemy.id'));assert.equal(f.run('destination'),null);assert.equal(f.run('JSON.stringify([game.players,game.mover,game.action,game.active])===before'),true);
+});
+
+for(const status of ['standing','prone','stunned'])for(const team of [0,1])test('empty square outside range deselects a '+status+' player without acting: coach '+team,()=>{
+ const f=proneFixture(team);f.run("prone.status='"+status+"';prone.profileOverride.ma=2;render();globalThis.before=JSON.stringify([game.players,game.ball,game.active,game.mover,game.action,game.blitzUsed,game.passUsed]);");f.cell(8,7).click();assert.equal(f.run('selected'),f.run('prone.id'));f.cell(25,14).click();assert.equal(f.run('selected'),null);assert.equal(f.run('destination'),null);assert.equal(f.get('pitch-popup').hidden,true);assert.equal(f.run('rollCount'),0);assert.equal(f.run('JSON.stringify([game.players,game.ball,game.active,game.mover,game.action,game.blitzUsed,game.passUsed])===before'),true);
+});
+for(const kind of ['movement','block','blitz'])test('outside-range empty click clears '+kind+' preview and selection together',()=>{
+ const f=proneFixture();f.run("prone.status='standing';globalThis.enemy=game.players.find(p=>p.team===1);Object.assign(enemy,{x:"+(kind==='block'?9:12)+",y:7,status:'standing'});selected=prone.id;render();");if(kind==='movement')f.cell(10,7).click();else f.cell(kind==='block'?9:12,7).click();assert.ok(f.run('destination'));f.cell(25,14).click();assert.equal(f.run('destination'),null);assert.equal(f.run('selected'),null);assert.equal(f.run('game.mover'),null);assert.equal(f.run('rollCount'),0);assert.equal(f.run('game.blitzUsed[0]'),false);
+});
+for(const status of ['standing','prone'])test('reachable empty square still previews movement for a '+status+' player',()=>{
+ const f=proneFixture();f.run("prone.status='"+status+"';render();");f.cell(8,7).click();f.cell(9,7).click();assert.equal(f.run('selected'),f.run('prone.id'));assert.equal(f.run('destination.x'),9);assert.equal(f.run('prone.status'),status);assert.equal(f.run('prone.used'),false);assert.equal(f.run('rollCount'),0);
+});
+test('outside-range deselection retains an active mover and already spent MA',()=>{
+ const f=proneFixture();f.run("prone.status='standing';selected=prone.id;game.start(prone.id,'move');game.step(9,7);render();");f.cell(25,14).click();assert.equal(f.run('selected'),null);assert.equal(f.run('game.mover'),f.run('prone.id'));assert.equal(f.run('prone.spent'),1);assert.equal(f.run('game.action'),'move');assert.equal(f.run('game.active'),0);
+});
+test('outside-range clicks deselect used, rooted and opposing inspected players without activating them',()=>{
+ for(const change of ['prone.used=true','prone.rooted=true','game.active=1']){
+  const f=proneFixture();f.run("prone.status='standing';"+change+";render();");f.cell(8,7).click();f.cell(25,14).click();assert.equal(f.run('selected'),null);assert.equal(f.run('game.mover'),null);assert.equal(f.run('rollCount'),0);
+ }
+});
+test('outside-range deselection cannot bypass pending decisions or explicit targeting',()=>{
+ for(const state of ['pending','block','ball']){
+  const f=proneFixture();f.run("prone.status='standing';selected=prone.id;"+(state==='pending'?"game.skillChoice('Required choice',0,['Continue'],()=>{});":state==='block'?"blockMode='blitz';":"game.ball={x:8,y:7,carrier:prone.id};game.start(prone.id,'pass');ballMode=true;")+"render();");const before=f.run('selected');f.cell(25,14).click();assert.equal(f.run('selected'),before);assert.equal(f.run('rollCount'),0);
+ }
 });
