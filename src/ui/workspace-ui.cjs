@@ -150,7 +150,14 @@ choose=function(x,y,pushDecision=game.pending){
  closePitchPopup();hidePitchTooltip();pitchFocus=y*26+x;
  const target=game.at(x,y),actor=game.players.find(p=>p.id===selected),wasTargeting=!!(blockMode||ballMode||game.pending),phase=game.phase;
  if(kickTargetSelection()){chooseBeforeWorkspace(x,y,pushDecision);hidePitchTooltip();return;}
+ // Clicking the route's actor returns directly to their normal range forecast.
+ const planner=planningPlayer();
+ if(!game.pending&&!ballMode&&target===planner&&previewRoute(planner)){
+  selected=planner.id;blockMode=false;destination=null;
+ }
  if(repeatSelection&&!wasTargeting&&!destination&&target===actor&&canStandInPlace(target)){standInPlace(target);return;}
+ if(!game.pending&&!ballMode&&!blockMode&&!destination?.blitzTarget&&game.canBlock(actor,target)){previewBlock(actor,target);return;}
+ if(!game.pending&&!ballMode&&target&&actor&&(!blockMode||blockMode==="blitz")&&game.canBlitz(actor,target)){previewBlitz(actor,target);return;}
  const targetActions=!wasTargeting&&target&&target.id!==actor?.id?targetContextActions(actor,target):[];
  if(!wasTargeting&&target&&game.match&&phase==="kicker"&&game.eligibleKickers().includes(target)){
   showPitchPopup(pitch.children[pitchFocus],"Kicker #"+target.number,playerQuickInfo(target),[{label:"Nominate kicker #"+target.number,run:()=>matchRun(()=>game.nominateKicker(target.id))}]);return;
@@ -216,7 +223,7 @@ function refreshWorkspace(){
  document.getElementById("end").hidden=document.getElementById("end").disabled;
  document.getElementById("action-disclosure").hidden=game.match&&!["play","charge"].includes(game.phase)||!!game.pending;
  const hint=document.getElementById("pitch-hint");
- hint.textContent=pendingPitchChoices().length?"Click a highlighted pitch target to resolve "+game.pending.kind+".":game.pending?"Decision required — resolve the coach’s desk before continuing.":blockMode?"Click a red highlighted opponent to declare the action. Escape cancels targeting.":ballMode?"Click a highlighted target to preview; click it again to commit. Escape returns to movement.":destination?"Click another highlighted square to extend the route, then Confirm Move or repeat the destination to commit. Escape clears the preview.":game.match&&game.phase==="setup"?"Select a player, then click an empty square to move or a team-mate to swap. Select reserves from Dugouts or the roster.":"Click a player for legal actions. Hover or focus a square for stats and step checks.";
+ hint.textContent=pendingPitchChoices().length?"Click a highlighted pitch target to resolve "+game.pending.kind+".":game.pending?"Decision required — resolve the coach’s desk before continuing.":blockMode?"Click a highlighted opponent to declare the action. Escape cancels targeting.":ballMode?"Click a highlighted target to preview; click it again to commit. Escape returns to movement.":destination?.blockTarget?"Block preview: click the highlighted target again to block, or your player to cancel. Choose Declare Blitz to block and move.":destination?.blitzTarget?"Blitz preview: click the highlighted target again to move and block. Escape clears the preview.":destination?"Click another highlighted square to extend the route, then Confirm Move or repeat the destination to commit. Escape clears the preview.":game.match&&game.phase==="setup"?"Select a player, then click an empty square to move or a team-mate to swap. Select reserves from Dugouts or the roster.":"Click a player for legal actions. Hover or focus a square for stats and step checks.";
  if(kickTargetSelection())hint.textContent="Aim in the highlighted "+(game.ownHalf(game.receiving,0)?"left":"right")+" half ("+teams[game.receiving].name+"). Click once to preview; click the same square again to kick.";
  if(game.match&&game.phase==="swarming")hint.textContent="Swarming: select a reserve Lineman in the coach panel, then place them in an empty square in their own half.";
  const direction=document.getElementById("pitch-direction"),attacksRight=i=>game.match?game.right(i):i===0;direction.textContent=teams.map((team,i)=>team.name+" "+(attacksRight(i)?"→":"←")).join(" · ");direction.setAttribute("aria-label",teams.map((team,i)=>team.name+" attacks "+(attacksRight(i)?"right":"left")).join("; "));
