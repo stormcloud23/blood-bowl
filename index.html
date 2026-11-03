@@ -195,12 +195,12 @@ main>aside #matchflow .control{max-width:100%}
 </style>
 </head>
 <body>
-<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>Match day</h1></div><span class="badge">v0.0.51 · Match flow</span></header>
+<header><div><div class="eyebrow">Blood Bowl / browser project</div><h1>Match day</h1></div><span class="badge">v0.0.52 · Match flow</span></header>
 <nav class="workspace-tabs" role="tablist" aria-label="Game workspace"><button id="tab-play" role="tab" aria-controls="play-view" aria-selected="true">Play</button><button id="tab-teams" role="tab" aria-controls="teams-view" aria-selected="false" tabindex="-1">Teams & leagues</button><button id="tab-rosters" role="tab" aria-controls="rosters" aria-selected="false" tabindex="-1">Rosters</button><button id="tab-testing" role="tab" aria-controls="testing-view" aria-selected="false" tabindex="-1">Testing</button><button id="tab-reference" role="tab" aria-controls="reference-view" aria-selected="false" tabindex="-1">Reference</button></nav>
 <section id="play-view" role="tabpanel" aria-labelledby="tab-play"><div class="notice" id="mode-notice"><strong>Movement and ball action practice</strong><br><span class="muted">Preview movement and its checks, resolve Block dice, pushes, and follow-ups, or secure a loose ball. Perfect Conditions. This remains a practice drive, not a complete match.</span></div>
 <div id="game-session"><select id="scenario" hidden aria-label="Active game mode"><option value="match">Exhibition match</option><option value="match-observe">Observe computer match</option><option value="match-learning">Learning match — simplified kickoff</option><option value="skills">Skills laboratory</option><option value="teams">Both teams</option><option value="dodge">Dodge practice</option><option value="jump">Jump & stand up</option><option value="pickup">Ball pickup</option><option value="throw-team-mate">Throw Team-mate practice</option><option value="traits">Ogre & Troll traits</option><option value="handoff">Hand-off practice</option><option value="pass">Pass & interception practice</option><option value="blitz">Blitz practice</option><option value="block">Block practice</option><option value="secure">Secure the Ball practice</option></select><details id="exhibition-rosters" class="panel"><summary>Match setup · teams & opponent</summary><div class="mode-toolbar"><label for="computer-opponent">Opponent </label><select id="computer-opponent"><option value="">Human · hotseat</option><option value="human">Computer · Human team</option><option value="orc">Computer · Orc team</option></select><button id="start-exhibition" class="control">New exhibition match</button><button id="open-leagues" class="control secondary">League games</button><span class="muted">Changes apply only when you start a new match. Starting replaces the current game.</span></div><p id="match-config-status" class="muted" role="status"></p><div class="exhibition-grid"><div class="exhibition-side" role="group" aria-label="Home exhibition team"><label for="exhibition-home">Home preset team </label><select id="exhibition-home"></select><label for="exhibition-home-custom">Home custom team</label><select id="exhibition-home-custom"></select><span id="exhibition-home-custom-note" class="muted"></span><label id="exhibition-home-league-label" for="exhibition-home-league">Home roster league </label><select id="exhibition-home-league"></select><label id="exhibition-home-alignment-label" for="exhibition-home-alignment">Home alignment </label><select id="exhibition-home-alignment"></select></div><div class="exhibition-side" role="group" aria-label="Away exhibition team"><label for="exhibition-away">Away preset team </label><select id="exhibition-away"></select><label for="exhibition-away-custom">Away custom team</label><select id="exhibition-away-custom"></select><span id="exhibition-away-custom-note" class="muted"></span><label id="exhibition-away-league-label" for="exhibition-away-league">Away roster league </label><select id="exhibition-away-league"></select><label id="exhibition-away-alignment-label" for="exhibition-away-alignment">Away alignment </label><select id="exhibition-away-alignment"></select></div></div></details><div id="computer-controls" class="panel" hidden><p id="computer-status" role="status" aria-live="polite"></p><label for="computer-speed">Computer speed </label><select id="computer-speed"><option value="350">Normal</option><option value="80">Fast</option><option value="800">Slow</option></select><button id="computer-pause" class="control secondary">Pause computer</button><button id="computer-step" class="control secondary" title="Advance one computer action; automatic dice and effects may resolve together." disabled>Step one action</button><button id="computer-takeover" class="control secondary">Take over computer team</button><p id="computer-actions" class="muted" hidden></p><p id="computer-scope" class="muted">Basic ground-game opponent. Controls the away preset team; no passing or optional inducement purchases.</p></div><div id="match-scoreboard" aria-live="polite"></div><main><section><div id="pregame-overview" class="panel" hidden></div><div id="pitch-tools"><span id="pitch-direction"></span><a href="#dugout" class="dugout-link">Dugouts</a><label for="pitch-scale">Pitch size </label><select id="pitch-scale"><option value="1">Fit</option><option value="1.5">Large</option><option value="2">Extra large</option></select></div><p id="mobile-pitch-help" class="mobile-pitch-help">Swipe the pitch sideways to see the whole field. Selected actions appear in the coach panel above it.</p><div id="pitch-board" class="pitch-wrap"><div id="pitch" class="pitch" role="group" aria-label="Development pitch"></div></div><details id="position-key" class="position-key"><summary>Legend</summary><h3>Player shapes</h3><div id="position-key-items"></div><h3>Movement</h3><div id="pitch-legend" class="pitch-legend" aria-label="Movement highlight key"><span>No roll on this step</span><span style="--key-color:#3699ef">2+</span><span style="--key-color:#38c568">3+</span><span style="--key-color:#f5df32">4+</span><span style="--key-color:#ff922b">5+</span><span style="--key-color:#f04444">6+</span><span style="--key-color:#cc96ed">Jump</span></div><p class="muted">Squares show arrival checks. Purple borders mark jumps; numbers show the planned route.</p><h3>Blocking</h3><div id="block-legend" class="pitch-legend" aria-label="Block difficulty key"><span style="--key-color:#3699ef">3 die block</span><span style="--key-color:#38c568">2 die block</span><span style="--key-color:#f5df32">1 die block</span><span style="--key-color:#ff922b">2 die uphill</span><span style="--key-color:#f04444">3 die uphill</span></div><p class="muted">Block: you choose the result. Uphill: your opponent chooses. </p><h3>Pitch markers</h3><p class="muted">White outline: selected player or destination. Numbered squares: planned route. Gold squares: push destinations. Red outline: push target. Bright players: eligible reaction targets; faded players: unavailable. Dashed token: prone. Red token border: stunned. Purple token border: distracted. Brown/black squares: trapdoors.</p><h3>Block dice</h3><p class="muted">☠ Player Down · ↔ Both Down · ↪ Push Back · ✦ Stumble · ✹ POW</p><h3>Passing &amp; throwing</h3><p class="muted">Colors use the same 2+ to 6+ scale as movement; × means automatic failure. Pass labels show pass/catch rolls; the color shows the harder roll. Red enemy squares show interception rolls for an accurate pass. Throw Team-mate colors show Superb Throw difficulty.</p></details><p id="pitch-hint" class="muted">Click a player for actions. Hover or focus a square for details.</p><p id="throwing-key" class="muted" hidden></p><details id="action-disclosure"><summary>Player actions</summary><div id="action-controls"><button class="control" id="start">Declare Move</button><button class="control secondary" id="handoff">Declare Hand-off</button><button class="control secondary" id="pass">Declare Pass</button><button class="control secondary" id="throw-mate">Declare Throw Team-mate</button><button class="control secondary" id="kick-mate">Declare Kick Team-mate</button><button class="control secondary" id="transfer">Choose ball target</button><button class="control secondary" id="blitz">Declare Blitz</button><button class="control secondary" id="block">Block</button><button class="control secondary" id="special">Foul / special action</button><button class="control secondary" id="secure">Secure the Ball</button></div></details><div class="turn-controls"><button class="control secondary" id="finish">End Move</button><button class="control secondary" id="end">End team turn</button></div><section id="dugout" class="dugout-board" aria-label="Team dugouts"></section><div class="match-reset"><button class="control secondary" id="reset">New game / reset</button></div></section>
 <aside id="coach-panel" class="panel"><div class="eyebrow">Coach’s desk</div><h2 id="coach"></h2><section id="pitch-popup" role="region" aria-label="Selected pitch actions" hidden></section><div id="matchflow" class="notice" aria-live="polite"></div><p id="selection" role="status" aria-live="polite"></p><div id="movement" aria-live="polite"></div><div id="choices"></div><details id="player-details"><summary>Player profile & optional skills</summary><div id="profile"></div></details><details><summary>Session log</summary><ol id="log"></ol></details></aside></main></div></section><section id="testing-view" role="tabpanel" aria-labelledby="tab-testing" hidden><h2>Testing & practice</h2><div class="mode-toolbar"><label for="testing-scenario">Testing mode</label><select id="testing-scenario"><option value="match-learning">Learning match — simplified kickoff</option><option value="match-observe">Observe computer match</option><option value="skills">Skills laboratory</option><option value="teams">Both teams</option><option value="dodge">Dodge practice</option><option value="jump">Jump & stand up</option><option value="pickup">Ball pickup</option><option value="throw-team-mate">Throw Team-mate practice</option><option value="traits">Ogre & Troll traits</option><option value="handoff">Hand-off practice</option><option value="pass">Pass & interception practice</option><option value="blitz">Blitz practice</option><option value="block">Block practice</option><option value="secure">Secure the Ball practice</option></select><button id="start-testing" class="control">Start testing mode</button><span class="muted">Starting a mode replaces the current game. Switching tabs preserves it.</span></div><section class="panel" aria-labelledby="observer-heading"><h3 id="observer-heading">Watch a computer match</h3><p>Watch two computer coaches play a full match. Choose teams for the next match, then start watching. Pause to inspect players or step one action at a time.</p><div class="mode-toolbar"><label for="observer-home">Home computer </label><select id="observer-home"><option value="human">Human</option><option value="orc">Orc</option></select><label for="observer-away">Away computer </label><select id="observer-away"><option value="orc">Orc</option><option value="human">Human</option></select><button id="start-observation" class="control">Start watching new match</button></div></section></section><section id="teams-view" role="tabpanel" aria-labelledby="tab-teams" hidden></section><section id="rosters" role="tabpanel" aria-labelledby="tab-rosters" hidden><div class="roster-browser"><label for="roster-search">Find a roster </label><input id="roster-search" type="search" placeholder="Team name"><span id="roster-search-count" role="status"></span></div><section id="roster-inspection" class="panel" aria-label="Position details" hidden></section><details class="roster-guide"><summary>Roster guide · categories & match options</summary><p>Advancement: A Agility · D Devious · G General · M Mutation · P Passing · S Strength. Build saved teams in Teams & leagues. Staff and star players are configured during pregame. Demo lineups can be used directly in Play.</p></details><div id="roster-list"></div></section><section id="reference-view" role="tabpanel" aria-labelledby="tab-reference" hidden><article id="playing-guide" class="panel playing-guide"></article><div id="reference-profile" class="panel" hidden><h2>Position details</h2><p>Select a position in Rosters to inspect it here.</p></div></section><div id="pitch-tooltip" popover="manual" role="tooltip"></div>
-<footer>FFB-derived corrections: <a href="docs/FFB-AUDIT.md">comparison and scope</a> · <a href="THIRD_PARTY_NOTICES.md">MIT attribution</a> · Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.51 with feedback.</footer>
+<footer>FFB-derived corrections: <a href="docs/FFB-AUDIT.md">comparison and scope</a> · <a href="THIRD_PARTY_NOTICES.md">MIT attribution</a> · Rules target: <a href="https://bloodbowlbase.ru/bb2025/">Blood Bowl 2025</a> · <a href="https://github.com/stormcloud23/blood-bowl/issues">Report an issue</a> · Include version v0.0.52 with feedback.</footer>
 <script id="team-data" type="application/json">[
   {
     "id": "imperial-nobility",
@@ -7923,7 +7923,7 @@ function renderRulesReference(){
  ["Move and plan routes", "Select a player and click a highlighted destination to preview a route. Further highlighted clicks add waypoints. Confirm Move or repeat the destination to activate the player and follow the route. Previewing and cancelling spend no movement and roll no dice. A route for an unactivated player declares a normal Move automatically.", "Click a selected standing player with no preview to deselect them. Clicking an empty square outside the selected player’s movement range also deselects them, including prone or stunned players. Clicking a player during their route preview clears the preview first. To stand without moving, select a prone player, then click them again or choose Stand up in place. This begins a normal Move with normal stand-up costs and checks; remaining movement is available, and limited actions such as Blitz and Pass are preserved. Declare Blitz, Pass, Hand-off, Foul or another special action before moving if that is your intention. Activate in place is also available under Player actions. Routes stop for required decisions; resolve the decision and replan when necessary. On the Ball: select the reacting player to see their full remaining range, up to three squares without Rushes. Preview a destination or add waypoints, then Confirm Move or click the destination again. Clicking the reactor or Cancel preview clears the route. At kick-off the range stays in the receiving half. Other skill moves, such as Trickster, highlight legal pitch targets. Stop, Stay and Decline remain at the coach’s desk. End Move finishes an activation; End team turn hands play to the other coach."],
  ["Read the pitch", "The Legend below the pitch explains movement and block colors. The route preview lists every required roll.", "Role shapes are consistent for both teams, in the Legend below the pitch. Shirt numbers identify players. Mouse hover shows details while idle. Click or touch a player for actions and use the coach’s desk player profile for characteristics and skills. Pitch size enlarges the board; narrow screens can scroll it sideways. Dugouts show reserves, knockouts, injuries and send-offs."],
  ["Block, Blitz and foul", "Select a player, then click an adjacent opponent to preview a regular block or a distant opponent to preview a blitz route. Click that opponent again to commit. Declare Blitz explicitly when an adjacent block should allow later movement. Click the acting player or Cancel preview to clear a preview. A Blitz block costs one movement point. Choose a block die result, select a gold push square (including occupied chain-push squares) or a named crowd/Stand Firm option, then choose whether to follow up. Some skills give these choices to the opposing coach.", "Declare Foul before moving, then choose an adjacent prone or stunned opponent. Assists modify the Armour roll. Doubles can lead to a send-off; resolve Argue the Call, Bribes and other offered decisions before continuing. A special attack uses its own checks and may replace a block."],
- ["Pass, hand off and throw players", "Declare the ball action, move if permitted, then choose a highlighted target. The first click previews; the second commits. Hand-off targets an adjacent team-mate and needs a catch, not a pass test. Passing uses range, accuracy, possible interception and a catch or loose-ball resolution.", "For Throw Team-mate or Kick Team-mate, declare the action, select an eligible passenger, then preview and confirm a target square. The game resolves eating attempts, scatter, collisions and landing. Carrying the ball makes a failed landing particularly dangerous."],
+ ["Pass, hand off and throw players", "With your ball carrier selected, click a teammate to preview a pass, then click them again or Confirm Pass. With a movement route planned, the transfer is previewed from its endpoint: a Hand-off if adjacent, otherwise a Pass. The route stays visible, and confirmation follows it before releasing the ball. Click the carrier or Cancel preview to return to movement planning. Explicit Pass and Hand-off declarations remain available for other targets and action choices. Hand-off targets an adjacent team-mate and needs a catch, not a pass test. Passing uses range, accuracy, possible interception and a catch or loose-ball resolution.", "For Throw Team-mate or Kick Team-mate, declare the action, select an eligible passenger, then preview and confirm a target square. The game resolves eating attempts, scatter, collisions and landing. Carrying the ball makes a failed landing particularly dangerous."],
  ["Decisions and re-rolls", "Required choices appear in the coach panel and identify the coach who owns them. Resolve them before continuing movement or another action. Optional skill switches live in Player profile & optional skills; turn them off before the relevant roll if desired. Re-roll opportunities appear at the permitted moment. A die cannot be re-rolled twice; multiple team re-rolls may be used on different tests in one BB2025 turn.", "Use arrow keys to move focus around pitch squares and Enter to select. Escape closes actions or cancels targeting. Left/Right, Home and End navigate the workspace tabs. Actions remain in the coach panel above the pitch on narrow screens."],
  ["Finish a game and keep your teams", "After a league fixture, open Teams & leagues, nominate six eligible MVP candidates per team and record the completed result. Resolve advancements, hiring and other post-game choices before preparing the next fixture. This local open ladder uses 3 points for a win, 1 for a draw and 0 for a loss.", "Teams and leagues are stored in this browser. Export JSON backups before clearing browser data or moving computers. A live match cannot currently be saved and resumed after reloading. An active fixture record does not save the live pitch. Exhibitions support hotseat or a basic Human/Orc computer opponent from the Opponent menu. You coach home; speed, pause and takeover controls are available. League games remain hotseat; online multiplayer is unavailable. Regulation matches have two halves of eight turns per team; concessions, extra time and penalties are outside the current game."],
  ];
@@ -8018,7 +8018,7 @@ function positionMarker(profile){
  return POSITION_MARKERS[role];
 }
 function markerGraphic(marker){const graphic=document.createElement("span");graphic.className="token-shape";graphic.setAttribute("aria-hidden","true");graphic.innerHTML='<svg viewBox="0 0 40 40" focusable="false" aria-hidden="true">'+marker.svg+'</svg>';return graphic;}
-let blitzExecution=null,reactionExecution=null;
+let blitzExecution=null,reactionExecution=null,ballExecution=null;
 let game,selected=null,destination=null,blockMode=false,ballMode=false,throwDestination=null;
 function reset(){if(globalThis.resetLeagueTeams)globalThis.resetLeagueTeams();const scenario=document.getElementById("scenario").value;game=scenario.startsWith("match")?new MatchGame(teams,{learning:scenario==="match-learning"}):new SkillGame(teams,{scenario});selected=game.practicePlayer;destination=null;blockMode=false;ballMode=false;throwDestination=null;render();const p=game.players.find(p=>p.id===selected);showProfile(p?.team??0,p?.role??0,p?.number??null);}
 function escapeTeamText(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;", "'":"&#39;"}[c]));}
@@ -8054,6 +8054,44 @@ function previewRoute(p){
  if(!p||!destination||destination.reactionContext&&destination.reactionContext!==game.moveContext)return null;const s=plannedStart(p);
  if(destination.playerId===p.id&&destination.startX===s.x&&destination.startY===s.y&&destination.startSpent===s.spent)return destination;
  return null;
+}
+function canPlanBallAction(player,kind){
+ if(!player||game.pending||game.finished||player.team!==game.active||game.ball.carrier!==player.id||game.moveContext||game.dumpContext||game.bombContext)return false;
+ return game.mover?game.mover===player.id&&game.action===kind&&!game.ballActionDone:game.canBallAction(player,kind);
+}
+function ballForecastFor(player,route,kind){
+ const view=Object.assign(Object.create(Object.getPrototypeOf(game)),game,{players:game.players.map(p=>({...p})),pending:null,mover:player.id,action:kind,ballActionDone:false,passContext:null});
+ const actor=view.players.find(p=>p.id===player.id);
+ Object.assign(actor,{x:route.x,y:route.y,spent:route.spent,status:"standing",distracted:game.mover===player.id?player.distracted:false});
+ view.ball={x:actor.x,y:actor.y,carrier:actor.id};return view;
+}
+function previewBallTransfer(player,target){
+ if(!player||!target||target.id===player.id||target.team!==player.team||!game.onPitch(target)||game.ball.carrier!==player.id)return false;
+ const start=plannedStart(player),previous=previewRoute(player);
+ const route=previous&&!previous.blockTarget&&!previous.blitzTarget&&!previous.reactionContext?previous:{x:player.x,y:player.y,spent:start.spent,path:[]};
+ const kind=game.mover&&["pass","handoff"].includes(game.action)?game.action:route.path.length&&game.distance(route,target)===1?"handoff":"pass";
+ if(!canPlanBallAction(player,kind))return false;
+ const view=ballForecastFor(player,route,kind),receiver=view.players.find(p=>p.id===target.id);
+ if(kind==="handoff"?!view.canHandoff(receiver):!view.passPreview(target.x,target.y))return false;
+ if(previous?.ballAction===kind&&previous.ballTarget===target.id&&previous.targetX===target.x&&previous.targetY===target.y){commitRoute();return true;}
+ destination={...route,ballAction:kind,ballTarget:target.id,targetX:target.x,targetY:target.y,playerId:player.id,startX:start.x,startY:start.y,startSpent:start.spent};
+ blockMode=false;ballMode=false;throwDestination=null;render();return true;
+}
+function continueBallRoute(){
+ const run=ballExecution;if(!run)return;
+ const player=game.players.find(p=>p.id===run.playerId),target=game.players.find(p=>p.id===run.targetId);
+ if(run.game!==game||game.finished||game.mover!==run.playerId||game.action!==run.kind||game.ballActionDone||game.ball.carrier!==run.playerId||!target||target.x!==run.targetX||target.y!==run.targetY){ballExecution=null;return;}
+ if(game.pending)return;
+ if(player.status!=="standing"||player.distracted||player.x!==run.x||player.y!==run.y){ballExecution=null;return;}
+ while(run.index<run.path.length){
+  const next=run.path[run.index++];run.x=next.x;run.y=next.y;
+  if(!game.step(next.x,next.y)){ballExecution=null;return;}
+  if(game.pending)return;
+  if(game.mover!==run.playerId||game.finished||game.ball.carrier!==run.playerId||player.status!=="standing"||player.x!==run.x||player.y!==run.y){ballExecution=null;return;}
+ }
+ ballExecution=null;
+ if(run.kind==="handoff"){if(game.canHandoff(target))game.handoff(target.id);}
+ else if(game.passPreview(target.x,target.y))game.pass(target.x,target.y);
 }
 function previewBlock(player,target){
  if(!game.canBlock(player,target))return;
@@ -8240,6 +8278,11 @@ function planChecks(plan,mover){
 function commitRoute(){
  const player=planningPlayer();if(!player||!destination||game.pending&&!onTheBallMove())return;
  const route=previewRoute(player);if(!route)return;
+ if(route.ballAction){
+  const target=game.players.find(p=>p.id===route.ballTarget);if(!canPlanBallAction(player,route.ballAction)||!target||target.x!==route.targetX||target.y!==route.targetY)return;
+  if(!game.mover&&!game.start(player.id,route.ballAction))return;
+  ballExecution={game,kind:route.ballAction,playerId:player.id,targetId:target.id,targetX:target.x,targetY:target.y,path:route.path,index:0,x:player.x,y:player.y};destination=null;throwDestination=null;ballMode=false;continueBallRoute();render();return;
+ }
  if(route.reactionContext){
   if(!onTheBallMove()||route.reactionContext!==game.moveContext)return;
   reactionExecution={game,context:game.moveContext,path:route.path,index:0,x:player.x,y:player.y};destination=null;continueReactionRoute();render();return;
@@ -8257,25 +8300,30 @@ function commitRoute(){
  destination=null;render();
 }
 // Display engine forecasts only: targeting never rolls dice or changes the game.
-function throwingOverlay(x,y){
- if(!ballMode||game.pending)return null;
- const teammate=["throw-team-mate","kick-team-mate"].includes(game.action);
- if(!teammate&&game.action!=="pass")return null;
- const preview=teammate?game.throwPreview(x,y):game.passPreview(x,y);if(!preview)return null;
+function throwingOverlay(x,y,board=game,enabled=ballMode){
+ if(!enabled||board.pending)return null;
+ if(board.action==="handoff"){
+  const target=board.at(x,y);if(!board.canHandoff(target))return null;
+  const unable=board.has(target,"No Ball")||board.has(target,"Ball & Chain"),catching=unable?null:Math.max(2,Math.min(6,board.forecastTarget(target,"Catch",Number.parseInt(board.profile(target).ag)+board.marking(target))));
+  return {range:"handoff",risk:catching??6,label:catching===null?"×":catching+"+",detail:"Hand-off · Catch "+(catching===null?"unavailable":catching+"+")};
+ }
+ const teammate=["throw-team-mate","kick-team-mate"].includes(board.action);
+ if(!teammate&&board.action!=="pass")return null;
+ const preview=teammate?board.throwPreview(x,y):board.passPreview(x,y);if(!preview)return null;
  const roll=n=>Number.isFinite(n)?Math.max(2,Math.min(6,n)):null;
  let accuracy=roll(preview.target),hardest=accuracy,impossible=accuracy===null,catching=null;
- const actor=teammate?game.throwActor():game.ballActor("pass"),target=game.at(x,y);
+ const actor=teammate?board.throwActor():board.ballActor("pass"),target=board.at(x,y);
  const range=preview.hail?"H":preview.partner?"P":["Q","S","L","B"][preview.band];
  const details=[preview.name];
  if(preview.hail){
-  accuracy=roll(2+preview.target-Number.parseInt(game.profile(actor).pa));hardest=accuracy;
+  accuracy=roll(2+preview.target-Number.parseInt(board.profile(actor).pa));hardest=accuracy;
   details.push(accuracy===null?"PA –: automatic fumble":"Avoid fumble "+accuracy+"+", "Always scatters; catch depends on the landing square");
  }else {
   details.push(accuracy===null?"PA –: automatic fumble":(teammate?"Superb Throw ":"Accurate pass ")+accuracy+"+");
   if(teammate)details.push("Scatters before landing; landing roll is not included in this color");
   else if(target&&target.team===actor.team){
-   const unable=target.status!=="standing"||target.distracted||game.has(target,"No Ball");
-   catching=unable?null:roll(game.forecastTarget(target,"Catch",game.landingTarget(target,{kind:"pass",accurate:true,accurateToPlayer:true})));
+   const unable=target.status!=="standing"||target.distracted||board.has(target,"No Ball");
+   catching=unable?null:roll(board.forecastTarget(target,"Catch",board.landingTarget(target,{kind:"pass",accurate:true,accurateToPlayer:true})));
    if(catching===null){impossible=true;details.push("Cannot catch in current state");}
    else {hardest=Math.max(hardest||2,catching);details.push("Catch "+catching+"+ (accurate delivery)");}
    if(target.team!==actor.team)details.push("Opposing player");
@@ -8283,34 +8331,35 @@ function throwingOverlay(x,y){
  }
  return {range,band:preview.band,risk:impossible?6:hardest,label:target&&(teammate||target.team===actor.team)?(accuracy===null?"×":accuracy+"+")+(teammate?"":"/"+(preview.hail?"?":catching===null?"×":catching+"+")):null,detail:details.join(" · ")};
 }
-function passingInterceptions(){
- const threats=new Map(),actor=ballMode&&game.action==="pass"&&!game.pending&&game.ballActor("pass");
- if(!actor||!Number.isFinite(Number.parseInt(game.profile(actor).pa)))return threats;
- const destinations=throwDestination?[throwDestination]:Array.from({length:390},(_,i)=>({x:i%26,y:Math.floor(i/26)}));
+function passingInterceptions(board=game,enabled=ballMode,target=throwDestination){
+ const threats=new Map(),actor=enabled&&board.action==="pass"&&!board.pending&&board.ballActor("pass");
+ if(!actor||!Number.isFinite(Number.parseInt(board.profile(actor).pa)))return threats;
+ const destinations=target?[target]:Array.from({length:390},(_,i)=>({x:i%26,y:Math.floor(i/26)}));
  for(const pos of destinations){
-  const preview=game.passPreview(pos.x,pos.y);if(!preview||preview.hail)continue;
-  for(const p of game.interceptionCandidates(actor,pos)){
-   if(game.has(p,"Ball & Chain"))continue;
-   const needed=bonus=>Math.max(2,Math.min(6,game.forecastTarget(p,"Intercept",Number.parseInt(game.profile(p).ag)+bonus+game.marking(p))));
+  const preview=board.passPreview(pos.x,pos.y);if(!preview||preview.hail)continue;
+  for(const p of board.interceptionCandidates(actor,pos)){
+   if(board.has(p,"Ball & Chain"))continue;
+   const needed=bonus=>Math.max(2,Math.min(6,board.forecastTarget(p,"Intercept",Number.parseInt(board.profile(p).ag)+bonus+board.marking(p))));
    threats.set(p.id,{label:needed(3)+"+",risk:6,range:"interception",detail:"Interception risk · Accurate pass: "+needed(3)+"+ · Inaccurate pass: "+needed(2)+"+"});
   }
  }
  return threats;
 }
 function render(){
- continueBlitz();continueReactionRoute();
+ continueBlitz();continueBallRoute();continueReactionRoute();
  if(destination?.reactionContext&&destination.reactionContext!==game.moveContext)destination=null;
  if(game.bombActor()){const p=game.bombActor();ballMode=true;if(selected!==p.id)showProfile(p.team,p.role,p.number);selected=p.id;}
  if(ballMode&&!(["throw-team-mate","kick-team-mate"].includes(game.action)?game.throwActor():game.ballActor(game.action))){ballMode=false;throwDestination=null;}
  if(blockMode&&(game.mover||game.pending))blockMode=false;
  const mover=game.players.find(p=>p.id===game.mover),inspected=game.moveContext?.player||game.players.find(p=>p.id===selected);
- const planner=planningPlayer(),chosen=previewRoute(planner),range=ballMode?new Map():remainingRange(planner,chosen);
+ const planner=planningPlayer(),chosen=previewRoute(planner),range=ballMode||chosen?.ballAction?new Map():remainingRange(planner,chosen);
+ const ballBoard=chosen?.ballAction?ballForecastFor(planner,chosen,chosen.ballAction):game,ballTargeting=ballMode||!!chosen?.ballAction;
  const blockAttacker=blockMode?game.players.find(p=>p.id===selected):null;
  const pushDecision=game.pending?.type==="pushChoice"?game.pending:null;
  const pitchDecision=game.pending,pitchTargets=new Map((onTheBallMove()?[]:pendingPitchChoices(pitchDecision)).map(pos=>[routeKey(pos.x,pos.y),pos]));
  const onTheBall=onTheBallPresentation(pitchDecision),kickLanding=visibleKickLanding();
  const placementTargets=new Set((game.match&&game.phase!=="setup"?game.placementSquares(selected):[]).map(pos=>routeKey(pos.x,pos.y)));
- const interceptions=passingInterceptions();
+ const interceptions=passingInterceptions(ballBoard,ballTargeting,chosen?.ballAction?{x:chosen.targetX,y:chosen.targetY}:throwDestination);
  const routeIndices=new Map((chosen?.path||[]).map((step,i)=>[routeKey(step.x,step.y),i+1]));
  const routePlans=new Map((chosen?.path||[]).map(step=>[routeKey(step.x,step.y),step.plan]));
  pitch.replaceChildren();
@@ -8319,12 +8368,12 @@ function render(){
   const blockForecast=blockTarget?blockDifficulty(blockAttacker||planner,p,chosen||(blockMode==="blitz"?blitzRoute(blockAttacker,p):null),!!chosen?.blitzTarget||blockMode==="blitz"):null;
   const checks=plan&&planner?planChecks(plan,planner):[],risky=checks.length>0;
   cell.type="button";cell.className="square"+((x+y)%2===0?" turf-light":"")+(x===0?" endzone endzone-left":x===25?" endzone endzone-right":"")+(x===12?" middle":"")+(y===3||y===10?" wide":"")+(p&&p.id===(game.moveContext?.player.id??selected)&&(!onTheBall||onTheBall.players.has(p.id))?" selected":"")+(reach&&reach.path.length||routeIndex?" legal":"")+(risky?" risk risk-"+Math.max(...checks.map(check=>Number(check.match(/([2-6])\+/)?.[1]||2))):"")+(plan?.jump?" jump":"")+(routeIndex?" route":"")+(destination?.x===x&&destination?.y===y?" destination":"")+(blockTarget?" block-target risk risk-"+blockForecast.risk:"");
-  const ballTarget=ballMode&&(["throw-team-mate","kick-team-mate"].includes(game.action)?!!game.throwPreview(x,y):game.action==="handoff"?game.canHandoff(p):!!game.passPreview(x,y));
+  const ballTarget=ballTargeting&&(["throw-team-mate","kick-team-mate"].includes(ballBoard.action)?!!ballBoard.throwPreview(x,y):ballBoard.action==="handoff"?ballBoard.canHandoff(ballBoard.at(x,y)):!!ballBoard.passPreview(x,y));
   if(ballTarget)cell.className+=" legal";
-  const interception=interceptions.get(p?.id),throwing=interception||throwingOverlay(x,y);
+  const interception=interceptions.get(p?.id),throwing=interception||throwingOverlay(x,y,ballBoard,ballTargeting);
   if(throwing){cell.className+=" throw-range risk risk-"+throwing.risk+(interception?" interception-risk":"");cell.dataset.throwRange=throwing.range;cell.dataset.throwDifficulty=String(throwing.risk);}
   if(game.match&&game.pending?.spell&&game.spellTargets(game.pending.spell,x,y).length){cell.className+=" kick-target";cell.setAttribute("data-spell-target",game.pending.spell);}
-  if(throwDestination?.x===x&&throwDestination?.y===y)cell.className+=" destination";
+  if(throwDestination?.x===x&&throwDestination?.y===y||p&&p.id===chosen?.ballTarget)cell.className+=" destination";
   const label=p?teams[p.team].name+" #"+p.number+" "+playerLabel(p)+" ("+p.status+(p.distracted?", distracted":"")+(p.used?", activated":"")+")":"empty";
   const ballHere=game.ball.carrier?p?.id===game.ball.carrier:game.ball.x===x&&game.ball.y===y;
   cell.setAttribute("aria-label","Square "+(x+1)+", "+(y+1)+", "+label+(ballHere?", ball":"")+(routeIndex?", route step "+routeIndex:""));cell.title=blockTarget?"Valid Block target · "+label:routeIndex?"Route step "+routeIndex+" of "+chosen.path.length+" · "+label:reach?.path.length?"Reachable in "+reach.spent+" movement · "+label:label;
@@ -8363,11 +8412,15 @@ function render(){
  movement.textContent=(game.blockAction?blockLabel(game.blockAction.count,game.blockAction.chooserTeam===game.blockAction.attacker.team):mover?"#"+mover.number+" · MA "+mover.spent+" / "+game.movementAllowance(mover)+" · Rush "+Math.max(0,mover.spent-game.profile(mover).ma)+" / "+game.rushLimit(mover):planner?"#"+planner.number+" · MA "+game.profile(planner).ma+" · Rush "+game.rushLimit(planner):"")+(planner||mover||game.blockAction?" · ":"")+"Re-rolls: "+game.rerollsAvailable(game.active)+(game.action==="blitz"?" · Blitz #"+game.players.find(p=>p.id===game.blitzTarget)?.number+(game.blitzBlocked?" · block completed":""):"");
  if(game.moveContext)movement.textContent="#"+game.moveContext.player.number+" · On the Ball · "+game.moveContext.player.spent+" / 3 squares";
  const choices=document.getElementById("choices");choices.replaceChildren();
+ if(chosen?.ballAction){
+  const target=ballBoard.players.find(p=>p.id===chosen.ballTarget),overlay=throwingOverlay(target.x,target.y,ballBoard,true),detail=document.createElement("p");
+  detail.textContent=(chosen.ballAction==="handoff"?"Hand-off":"Pass")+" #"+target.number+" · "+(chosen.ballAction==="handoff"?"Catch ":"")+(overlay?.label||"×");choices.append(detail);
+ }
  if(chosen?.blockTarget||chosen?.blitzTarget){
   const target=game.players.find(p=>p.id===(chosen.blockTarget||chosen.blitzTarget)),forecast=blockDifficulty(planner,target,chosen,!!chosen.blitzTarget),detail=document.createElement("p");
   detail.textContent=forecast.label;choices.append(detail);
  }
- if(chosen&&!ballMode){const remaining=document.createElement("p");remaining.textContent=chosen.reactionContext?"After preview · "+Math.max(0,3-chosen.spent)+" squares remaining":"After preview · MA "+Math.max(0,(chosen.reactionContext?3:game.profile(planner).ma)-chosen.spent-(chosen.blitzTarget?1:0))+" · Rush "+Math.max(0,game.rushLimit(planner)-Math.max(0,chosen.spent+(chosen.blitzTarget?1:0)-(chosen.reactionContext?3:game.profile(planner).ma)))+" remaining";if(!chosen.blockTarget)choices.append(remaining);const routeGame=game;choices.append(button(chosen.blockTarget?"Confirm Block":chosen.blitzTarget?"Confirm Blitz":"Confirm Move",()=>{if(game===routeGame&&destination===chosen&&(!game.pending||onTheBallMove()))commitRoute();}));choices.append(button("Cancel preview",()=>{if(game===routeGame&&destination===chosen&&(!game.pending||onTheBallMove()))cancelMovementPreview();}));}
+ if(chosen&&!ballMode){const remaining=document.createElement("p");remaining.textContent=chosen.reactionContext?"After preview · "+Math.max(0,3-chosen.spent)+" squares remaining":"After preview · MA "+Math.max(0,(chosen.reactionContext?3:game.profile(planner).ma)-chosen.spent-(chosen.blitzTarget?1:0))+" · Rush "+Math.max(0,game.rushLimit(planner)-Math.max(0,chosen.spent+(chosen.blitzTarget?1:0)-(chosen.reactionContext?3:game.profile(planner).ma)))+" remaining";if(!chosen.blockTarget&&(!chosen.ballAction||chosen.path.length))choices.append(remaining);const routeGame=game;choices.append(button(chosen.ballAction==="handoff"?"Confirm Hand-off":chosen.ballAction==="pass"?"Confirm Pass":chosen.blockTarget?"Confirm Block":chosen.blitzTarget?"Confirm Blitz":"Confirm Move",()=>{if(game===routeGame&&destination===chosen&&(!game.pending||onTheBallMove()))commitRoute();}));choices.append(button("Cancel preview",()=>{if(game===routeGame&&destination===chosen&&(!game.pending||onTheBallMove()))cancelMovementPreview();}));}
  if(ballMode&&["throw-team-mate","kick-team-mate"].includes(game.action)){
   const p=document.createElement("p"),preview=throwDestination&&game.throwPreview(throwDestination.x,throwDestination.y);p.textContent=preview?preview.name+" · "+(Number.isFinite(preview.target)?"Superb Throw "+Math.min(6,preview.target)+"+":"PA –: automatic fumble")+" · #"+preview.mate.number:"Throw team-mate · no target";choices.append(p);
  }else if(ballMode){
@@ -8407,7 +8460,7 @@ function render(){
    const row=document.createElement("p"),checks=planChecks(step.plan,planner);
    row.textContent=(i+1)+". "+(step.plan.jump?"Jump to ":"Move to ")+(step.x+1)+", "+(step.y+1)+" · "+step.plan.cost+" MA · "+(checks.length?checks.join(" → "):"no roll");choices.append(row);
   });
-  if(!chosen.path.length&&!chosen.blockTarget&&!chosen.blitzTarget)choices.append(button("Clear destination",()=>{destination=null;render();}));
+  if(!chosen.path.length&&!chosen.blockTarget&&!chosen.blitzTarget&&!chosen.ballAction)choices.append(button("Clear destination",()=>{destination=null;render();}));
  }
  document.getElementById("pass").disabled=!game.canBallAction(inspected,"pass");
  document.getElementById("handoff").disabled=!game.canBallAction(inspected,"handoff");
@@ -8826,6 +8879,7 @@ choose=function(x,y,pushDecision=game.pending){
  if(!game.pending&&!ballMode&&target===planner&&previewRoute(planner)){
   selected=planner.id;blockMode=false;destination=null;
  }
+ if(!wasTargeting&&previewBallTransfer(actor,target))return;
  if(!game.pending&&!ballMode&&!blockMode&&!destination?.blitzTarget&&game.canBlock(actor,target)){previewBlock(actor,target);return;}
  if(!game.pending&&!ballMode&&target&&actor&&(!blockMode||blockMode==="blitz")&&game.canBlitz(actor,target)){previewBlitz(actor,target);return;}
  const targetActions=!wasTargeting&&target&&target.id!==actor?.id?targetContextActions(actor,target):[];
