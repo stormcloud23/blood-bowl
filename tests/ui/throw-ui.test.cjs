@@ -23,7 +23,7 @@ test('Black Orc Bribe choices expose their discounted cost and six-Bribe limit i
  const {get,run}=uiFixture('match');get('matchflow').children.find(e=>e.textContent==='Configure staff and inducements — '+run('teams[1].name')).listeners.click();get('choices').children.find(e=>e.textContent==='Bribes: 0').listeners.click();const six=get('choices').children.find(e=>e.textContent==='6 — 300,000 gp');assert.ok(six);six.listeners.click();six.listeners.click();get('choices').children.find(e=>e.textContent==='Done').listeners.click();assert.equal(run('game.bribes[1]'),6);assert.equal(run('game.resourceCosts(1).inducements'),300000);
 });
 test('Wandering Apothecaries combine with the existing team-apothecary UI toggle',()=>{
- const {get,run}=uiFixture('match');get('matchflow').children.find(e=>e.textContent==='Configure staff and inducements — '+run('teams[0].name')).listeners.click();get('choices').children.find(e=>e.textContent==='Wandering Apothecaries: 0').listeners.click();get('choices').children.find(e=>e.textContent==='2 — 200,000 gp').listeners.click();get('choices').children.find(e=>e.textContent==='Done').listeners.click();get('matchflow').children.find(e=>e.textContent==='Add apothecary — '+run('teams[0].name')).listeners.click();assert.equal(run('game.apothecaries[0]'),3);get('matchflow').children.find(e=>e.textContent==='Remove apothecary — '+run('teams[0].name')).listeners.click();assert.equal(run('game.apothecaries[0]'),2);
+ const {get,run}=uiFixture('match');get('matchflow').children.find(e=>e.textContent==='Configure staff and inducements — '+run('teams[0].name')).listeners.click();get('choices').children.find(e=>e.textContent==='Wandering Apothecaries: 0').listeners.click();get('choices').children.find(e=>e.textContent==='2 — 200,000 gp').listeners.click();get('choices').children.find(e=>e.textContent==='Team apothecary: 0').listeners.click();get('choices').children.find(e=>e.textContent==='1 — 50,000 gp').listeners.click();assert.equal(run('game.apothecaries[0]'),3);get('choices').children.find(e=>e.textContent==='Team apothecary: 1').listeners.click();get('choices').children.find(e=>e.textContent==='0 — 0 gp').listeners.click();assert.equal(run('game.apothecaries[0]'),2);
 });
 test('resource UI changes lock after determining fans and stale value buttons cannot reopen them',()=>{
  const {get,run}=uiFixture('match');run('game.dice=()=>1');get('matchflow').children.find(e=>e.textContent==='Configure staff and inducements — '+run('teams[0].name')).listeners.click();get('choices').children.find(e=>e.textContent==="Blitzer's Best Kegs: 0").listeners.click();const old=get('choices').children.find(e=>e.textContent==='1 — 50,000 gp');old.listeners.click();get('choices').children.find(e=>e.textContent==='Done').listeners.click();get('matchflow').children.find(e=>e.textContent==='Determine fans').listeners.click();old.listeners.click();assert.equal(run('game.phase'),'weather');assert.equal(run('game.resourceChoices[0].kegs'),1);assert.equal(run('game.pending'),null);assert.ok(!get('matchflow').children.some(e=>e.textContent.startsWith('Configure staff')));
@@ -165,8 +165,8 @@ test('Multiple Block Pro button opens a die choice and returns to the correct po
 
 test('exhibition pregame buttons add and remove one apothecary per team',()=>{
  const {get,run}=uiFixture('match');
- const add=get('matchflow').children.find(e=>e.textContent==='Add apothecary — '+run('teams[0].name'));assert.ok(add);add.listeners.click();assert.equal(run('game.apothecaries[0]'),1);
- const remove=get('matchflow').children.find(e=>e.textContent==='Remove apothecary — '+run('teams[0].name'));assert.ok(remove);remove.listeners.click();assert.equal(run('game.apothecaries[0]'),0);
+ assert.ok(!get('matchflow').children.some(e=>/apothecaries:|^(Add|Remove) apothecary/.test(e.textContent)));get('matchflow').children.find(e=>e.textContent==='Configure staff and inducements — '+run('teams[0].name')).listeners.click();get('choices').children.find(e=>e.textContent==='Team apothecary: 0').listeners.click();get('choices').children.find(e=>e.textContent==='1 — 50,000 gp').listeners.click();assert.equal(run('game.apothecaries[0]'),1);
+ get('choices').children.find(e=>e.textContent==='Team apothecary: 1').listeners.click();get('choices').children.find(e=>e.textContent==='0 — 0 gp').listeners.click();assert.equal(run('game.apothecaries[0]'),0);
 });
 test('apothecary UI preserves the defending coach and resumes the suspended action once',()=>{
  const {get,run}=uiFixture('dodge');run('game.apothecaries=[0,1];game.players[11].role=1;globalThis.rolls=[16,1,9,1];game.dice=()=>rolls.shift();globalThis.medicalCalls=0;game.injuryResult(game.players[11],10,()=>medicalCalls++);render()');
@@ -439,15 +439,15 @@ test('Squigmobile actual purchase requires the opposing coach consent before hir
 function passOverlayFixture(){
  const f=outlierUi([],'match');f.run('a.profileOverride.pa="2+";b.profileOverride.ag="5+";Object.assign(b,{x:13,y:7});d.status="reserve";d.x=null;d.y=null;game.ball={x:a.x,y:a.y,carrier:a.id};game.start(a.id,"pass");game.dice=()=>{throw Error("Overlay must not roll dice")};ballMode=true;render()');return f;
 }
-test('pass overlay colors a receiver by the harder catch roll and previews without dice',()=>{
- const {get,run}=passOverlayFixture(),cell=get('pitch').children[7*26+13];assert.match(cell.className,/risk-5/);assert.equal(cell.dataset.throwRange,'Q');assert.match(cell.title,/Accurate pass 2\+.*Catch 5\+/);assert.ok(cell.children.some(e=>e.textContent==='2+/5+'));assert.equal(run('rolls.length'),0);assert.equal(get('throwing-key').hidden,true);
+test('pass overlay colors a receiver by the pass roll and previews without dice',()=>{
+ const {get,run}=passOverlayFixture(),cell=get('pitch').children[7*26+13];assert.match(cell.className,/risk-2/);assert.equal(cell.dataset.throwRange,'Q');assert.match(cell.title,/Accurate pass 2\+.*Catch 5\+/);assert.ok(cell.children.some(e=>e.textContent==='2+/5+'));assert.equal(run('rolls.length'),0);assert.equal(get('throwing-key').hidden,true);
  const empty=get('pitch').children[7*26+12];assert.match(empty.className,/throw-range/);assert.ok(!empty.children.some(e=>e.className==='throw-range-label'));assert.match(empty.title,/Quick Pass/);
  cell.listeners.click();assert.equal(run('throwDestination.x'),13);assert.equal(run('game.ball.carrier'),run('a.id'));assert.match(get('pitch').children[7*26+13].className,/destination/);
  run('ballMode=false;throwDestination=null;render()');assert.ok(get('pitch').children.every(e=>!e.className.includes('throw-range')));assert.equal(get('throwing-key').hidden,true);
 });
 test('pass overlay applies catch skills, rain and markers without using reroll odds as roll difficulty',()=>{
- const {get,run}=passOverlayFixture();run('b.profileOverride.ag="3+";b.extraSkills=["Extra Arms","Catch"];game.weather="Pouring Rain";Object.assign(d,{x:14,y:7,status:"standing"});render()');assert.match(get('pitch').children[7*26+13].title,/Catch 4\+/);assert.match(get('pitch').children[7*26+13].className,/risk-4/);
- run('b.extraSkills.push("Nerves of Steel");render()');assert.match(get('pitch').children[7*26+13].className,/risk-3/);assert.ok(get('pitch').children[7*26+13].children.some(e=>e.textContent==='2+/3+'));
+ const {get,run}=passOverlayFixture();run('b.profileOverride.ag="3+";b.extraSkills=["Extra Arms","Catch"];game.weather="Pouring Rain";Object.assign(d,{x:14,y:7,status:"standing"});render()');assert.match(get('pitch').children[7*26+13].title,/Catch 4\+/);assert.match(get('pitch').children[7*26+13].className,/risk-2/);
+ run('b.extraSkills.push("Nerves of Steel");render()');assert.match(get('pitch').children[7*26+13].className,/risk-2/);assert.ok(get('pitch').children[7*26+13].children.some(e=>e.textContent==='2+/3+'));
 });
 test('pass overlay uses accurate pass skills and current weather in every range',()=>{
  const {get,run}=passOverlayFixture();run('b.status="reserve";b.x=null;b.y=null;a.extraSkills=["Accurate","Cannoneer"];game.weather="Very Sunny";render()');
@@ -456,7 +456,7 @@ test('pass overlay uses accurate pass skills and current weather in every range'
 });
 test('pass overlay displays automatic fumble and unable catchers without NaN',()=>{
  const {get,run}=passOverlayFixture();run('a.profileOverride.pa="-";render()');let cell=get('pitch').children[7*26+13];assert.match(cell.title,/automatic fumble/);assert.match(cell.className,/risk-6/);assert.ok(cell.children.some(e=>e.textContent==='×/5+'));assert.ok(!cell.title.includes('NaN'));
- run('a.profileOverride.pa="2+";b.status="prone";render()');cell=get('pitch').children[7*26+13];assert.match(cell.title,/Cannot catch/);assert.match(cell.className,/risk-6/);
+ run('a.profileOverride.pa="2+";b.status="prone";render()');cell=get('pitch').children[7*26+13];assert.match(cell.title,/Cannot catch/);assert.match(cell.className,/risk-2/);
 });
 test('throw and kick teammate overlays only offer Quick and Short ranges from the thrower',()=>{
  for(const action of ['throw-team-mate','kick-team-mate']){

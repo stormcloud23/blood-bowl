@@ -140,3 +140,7 @@ main>aside #matchflow .control{max-width:100%}
 #roster-list caption{display:block;width:100%;text-align:left;padding:8px 0}
 }
 .team-deletion{margin:12px 0;border:1px solid #805451;border-radius:6px;padding:0 12px}.team-deletion>summary{color:#ffc4bd}.team-deletion p{font-size:12px}#league-panel .team-deletion .control{margin-bottom:10px}
+
+.roster-tier{margin-top:24px}.roster-tier>h2{margin-bottom:12px}.roster-tier article{margin-bottom:8px}.roster-details>summary{cursor:pointer;font-size:18px;font-weight:700}.roster-details>summary:focus-visible{outline:2px solid #e9bb69;outline-offset:5px}.roster-content{padding-top:12px}
+
+.square.kick-deviation{background:linear-gradient(#f5df3299,#f5df3299) var(--turf)}

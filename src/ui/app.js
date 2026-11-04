@@ -226,6 +226,16 @@ function onTheBallPresentation(q=game.pending){
  if(game.moveContext&&(q?.kind==="On the Ball movement"||!targets.length))return {selecting:false,players:new Set([game.moveContext.player.id])};
  return null;
 }
+function kickDeviationPreview(){
+ if(!game.match||game.phase!=="kickAim"||game.kickLanding||game.pending||!destination)return null;
+ const kicker=game.players.find(p=>p.id===game.kicker),hasKick=game.skill(kicker,"Kick");
+ const max=hasKick&&(!game.kickChoiceMade||game.kickDistanceHalved)?3:6,squares=new Map();
+ for(const [dx,dy] of [[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]])for(let distance=1;distance<=max;distance++){
+  const x=destination.x+dx*distance,y=destination.y+dy*distance;
+  if(game.inside(x,y))squares.set(routeKey(x,y),true);
+ }
+ return {squares};
+}
 function visibleKickLanding(){
  const pos=game.kickLanding;
  return game.match&&!game.kickTouchback&&["kickAim","kickEvent","eventMove","charge"].includes(game.phase)&&pos&&game.inside(pos.x,pos.y)?pos:null;
@@ -263,7 +273,7 @@ function choose(x,y,pushDecision=game.pending){
    }
    else if(selected){if(game.phase==="setup"){if(game.placeSetup(selected,x,y))selected=null;}else if(game.phase==="swarming")game.placeSwarm(selected,x,y);else if(game.phase==="dwarfenWisdom")game.placeWisdom(selected,x,y);else game.eventPlace(selected,x,y);}
   }else if(game.phase==="kickAim"){
-   if(destination?.x===x&&destination?.y===y){game.kick(x,y);destination=null;}else if(game.ownHalf(game.receiving,x))destination={x,y};
+   if(destination?.x===x&&destination?.y===y){if(game.skill(game.players.find(p=>p.id===game.kicker),"Kick")&&!game.kickChoiceMade){game.kickChoiceMade=true;game.kickDistanceHalved=true;}game.kick(x,y);destination=null;}else if(game.ownHalf(game.receiving,x))destination={x,y};
   }else if(game.phase==="touchback")game.placeTouchback(x,y);
   render();return;
  }
@@ -352,12 +362,12 @@ function throwingOverlay(x,y,board=game,enabled=ballMode){
  if(!teammate&&board.action!=="pass")return null;
  const preview=teammate?board.throwPreview(x,y):board.passPreview(x,y);if(!preview)return null;
  const roll=n=>Number.isFinite(n)?Math.max(2,Math.min(6,n)):null;
- let accuracy=roll(preview.target),hardest=accuracy,impossible=accuracy===null,catching=null;
+ let accuracy=roll(preview.target),catching=null;
  const actor=teammate?board.throwActor():board.ballActor("pass"),target=board.at(x,y);
  const range=preview.hail?"H":preview.partner?"P":["Q","S","L","B"][preview.band];
  const details=[preview.name];
  if(preview.hail){
-  accuracy=roll(2+preview.target-Number.parseInt(board.profile(actor).pa));hardest=accuracy;
+  accuracy=roll(2+preview.target-Number.parseInt(board.profile(actor).pa));
   details.push(accuracy===null?"PA –: automatic fumble":"Avoid fumble "+accuracy+"+", "Always scatters; catch depends on the landing square");
  }else {
   details.push(accuracy===null?"PA –: automatic fumble":(teammate?"Superb Throw ":"Accurate pass ")+accuracy+"+");
@@ -365,12 +375,12 @@ function throwingOverlay(x,y,board=game,enabled=ballMode){
   else if(target&&target.team===actor.team){
    const unable=target.status!=="standing"||target.distracted||board.has(target,"No Ball");
    catching=unable?null:roll(board.forecastTarget(target,"Catch",board.landingTarget(target,{kind:"pass",accurate:true,accurateToPlayer:true})));
-   if(catching===null){impossible=true;details.push("Cannot catch in current state");}
-   else {hardest=Math.max(hardest||2,catching);details.push("Catch "+catching+"+ (accurate delivery)");}
+   if(catching===null){details.push("Cannot catch in current state");}
+   else {details.push("Catch "+catching+"+ (accurate delivery)");}
    if(target.team!==actor.team)details.push("Opposing player");
   }else details.push(target?"Opposing target; enemy labels show interception risk for passes over them":"Empty target; Diving Catch or bounce may follow");
  }
- return {range,band:preview.band,risk:impossible?6:hardest,label:target&&(teammate||target.team===actor.team)?(accuracy===null?"×":accuracy+"+")+(teammate?"":"/"+(preview.hail?"?":catching===null?"×":catching+"+")):null,detail:details.join(" · ")};
+ return {range,band:preview.band,risk:accuracy??6,label:target&&(teammate||target.team===actor.team)?(accuracy===null?"×":accuracy+"+")+(teammate?"":"/"+(preview.hail?"?":catching===null?"×":catching+"+")):null,detail:details.join(" · ")};
 }
 function passingInterceptions(board=game,enabled=ballMode,target=throwDestination){
  const threats=new Map(),actor=enabled&&board.action==="pass"&&!board.pending&&board.ballActor("pass");
@@ -398,7 +408,7 @@ function render(){
  const blockAttacker=blockMode?game.players.find(p=>p.id===selected):null;
  const pushDecision=game.pending?.type==="pushChoice"?game.pending:null;
  const pitchDecision=game.pending,pitchTargets=new Map((onTheBallMove()?[]:pendingPitchChoices(pitchDecision)).map(pos=>[routeKey(pos.x,pos.y),pos]));
- const onTheBall=onTheBallPresentation(pitchDecision),kickLanding=visibleKickLanding();
+ const onTheBall=onTheBallPresentation(pitchDecision),kickLanding=visibleKickLanding(),kickPreview=kickDeviationPreview();
  const placementTargets=new Set((game.match&&game.phase!=="setup"?game.placementSquares(selected):[]).map(pos=>routeKey(pos.x,pos.y)));
  const interceptions=passingInterceptions(ballBoard,ballTargeting,chosen?.ballAction?{x:chosen.targetX,y:chosen.targetY}:throwDestination);
  const routeIndices=new Map((chosen?.path||[]).map((step,i)=>[routeKey(step.x,step.y),i+1]));
@@ -425,6 +435,11 @@ function render(){
   if(blockForecast){cell.title+=" · "+blockForecast.detail;cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+blockForecast.detail);cell.dataset.blockDifficulty=String(blockForecast.risk);}
   if(plan){const detail=checks.length?checks.join(" → "):"no roll on this step";cell.title+=" · "+detail;cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+detail);}
   if(throwing){if(throwing.label){const badge=document.createElement("span");badge.className="throw-range-label";badge.textContent=throwing.label;badge.setAttribute("aria-hidden","true");cell.append(badge);}cell.title+=" · "+throwing.detail;cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+throwing.detail);}
+  const deviation=kickPreview?.squares.get(routeKey(x,y));
+  if(deviation){
+   cell.className+=" kick-deviation";
+   cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", possible kick deviation");
+  }
   if(y===7&&(x===6||x===19)){const spot=document.createElement("span");spot.className="sweet-spot";spot.setAttribute("aria-hidden","true");cell.append(spot);cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", kick sweet spot");}
   if(game.match&&((x===6&&y===1)||(x===19&&y===13))){cell.className+=" trapdoor";if(game.onTrapdoor({x,y})){cell.className+=" trapdoor-active";cell.title+=" · Trapdoor: falls through on 1";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", trapdoor (2+ to cross)");const marker=document.createElement("span");marker.className="trapdoor-marker";marker.textContent="⊠";marker.setAttribute("aria-hidden","true");cell.append(marker);}else {cell.title+=" · Closed trapdoor";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", closed trapdoor");}}
   if(p){const marker=positionMarker(game.profile(p)),available=onTheBall?.players.has(p.id),token=document.createElement("span");token.className="token role-"+marker.shape+(p.team?" blue":"")+(p.used&&p.id!==game.mover&&!available?" used":"")+" "+p.status+(p.distracted?" distracted":"")+(onTheBall?(available?" reaction-available":" reaction-unavailable"):"");token.dataset.role=marker.label;token.append(markerGraphic(marker));const number=document.createElement("span");number.className="token-number";number.textContent=p.number;token.append(number);cell.append(token);cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+marker.label+" marker ("+marker.shape+")"+(onTheBall?(available?", On the Ball reactor":", not available for On the Ball"):""));}
@@ -597,7 +612,6 @@ function renderMatch(){
     const costs=game.resourceCosts(team),r=game.resourceChoices[team];
     say(teams[team].name+" · Re-rolls "+r.teamRerolls+" · Coaches "+r.assistants+" · Cheerleaders "+r.cheerleaders+" · Fans "+r.dedicatedFans+" · Staff "+money(costs.staff)+" · Fan upgrades "+money(costs.fans)+" · Inducements "+money(costs.inducements),"resource-summary");
     if(!game.league||game.leaguePurchaseOrder[game.leaguePurchaseStep]===team){if(game.league)say(teams[team].name+" · Budget "+money(game.leagueBudget(team)),"resource-summary");add("Configure staff and inducements — "+teams[team].name,()=>game.configureResources(team),"resource-control",team);}
-    if(!game.league&&teams[team].staff?.apothecary){say(teams[team].name+" apothecaries: "+game.apothecaries[team],"resource-summary");add((r.apothecary?"Remove":"Add")+" apothecary — "+teams[team].name,()=>game.setApothecary(team,!r.apothecary),"resource-control",team);}
     if(!game.league&&game.hasTeamRule(team,"Team Captain")){const captain=game.players.find(p=>p.team===team&&p.captain);say(teams[team].name+": "+(captain?"Team Captain #"+captain.number:"no Team Captain chosen"),"resource-summary");add("Choose Team Captain — "+teams[team].name,()=>game.configureCaptain(team),"resource-control",team);}
    }
   }
@@ -617,7 +631,14 @@ function renderMatch(){
   const s=game.swarmState;say(teams[s.team].name+" Swarming: "+s.placed.length+" / "+s.limit+" Linemen placed");for(const id of s.eligible){const p=game.players.find(p=>p.id===id);add("Swarming Lineman #"+p.number,()=>{if(game.swarmState!==s)return;selected=id;showProfile(p.team,p.role,p.number);});}add("Finish Swarming",()=>{if(game.swarmState===s)game.finishSwarming();});
  }else if(game.phase==="kicker"){
   say("Kicker · "+teams[game.kicking].name);for(const p of game.eligibleKickers())add("Kicker #"+p.number+" · "+playerLabel(p),()=>game.nominateKicker(p.id));
- }else if(game.phase==="kickAim")say(game.kickLanding?"Kick airborne":"Kick target · "+(destination?(destination.x+1)+", "+(destination.y+1):"not selected"));
+ }else if(game.phase==="kickAim"){
+  say(game.kickLanding?"Kick airborne":"Kick target · "+(destination?(destination.x+1)+", "+(destination.y+1):"not selected"));
+  if(!game.kickLanding&&game.skill(game.players.find(p=>p.id===game.kicker),"Kick")){
+   const reduced=!game.kickChoiceMade||game.kickDistanceHalved;
+   say("Kick skill · "+(reduced?"D3 deviation":"D6 deviation"));
+   panel.append(button(reduced?"Use D6 deviation":"Use D3 deviation",()=>{if(game.phase!=="kickAim"||game.kickLanding||game.pending)return;game.kickChoiceMade=true;game.kickDistanceHalved=!reduced;render();}));
+  }
+ }
  else if(game.phase==="eventMove"||game.phase==="charge"){
   const e=game.eventState;say(e.kind+": "+teams[e.team].name+" · "+e.used.length+" / "+e.limit+" players used");
   for(const id of e.eligible){const p=game.players.find(q=>q.id===id);if(!e.used.includes(id)||e.kind==="defence")add("Event player #"+p.number,()=>{selected=id;showProfile(p.team,p.role,p.number);});}
@@ -637,10 +658,11 @@ function renderMatch(){
 }
 function rosterRuleSummary(t){const rules=[...t.special];if(t.alignments?.length)rules.push("Favoured alignment: "+t.alignments.join(" / "));for(const [league,names] of Object.entries(t.leagueRules||{}))rules.push(league+": "+names.join(", "));for(const group of t.groupLimits||[])rules.push(group.label+": combined maximum "+group.max);return rules.length?rules.join(" · "):"No team special rules listed";}
 function renderRosters(){
- document.getElementById("roster-list").innerHTML=rosterCatalog.map((t,team)=>{
+ document.getElementById("roster-list").innerHTML=[1,2,3,4].map(tier=>'<section class="roster-tier" aria-labelledby="roster-tier-'+tier+'"><h2 id="roster-tier-'+tier+'">Tier '+tier+'</h2>'+rosterCatalog.map((t,team)=>{
+ if(Number(t.tier)!==tier)return "";
  const total=t.lineup.reduce((n,r)=>n+t.positions[r].cost,0);
- return '<article class="panel" data-roster-name="'+escapeTeamText(t.name)+'"><div class="roster-heading"><h2>'+t.name+'</h2><span class="badge">Tier '+t.tier+'</span></div><p class="team-summary">'+(t.leagues||[t.league]).join(" / ")+' · '+rosterRuleSummary(t)+'</p><div class="table-scroll"><table><caption>Available positions · click a position to inspect</caption><thead><tr>'+["Position","Limit","MA","ST","AG","PA","AV","Skills & traits","Primary","Secondary","Cost"].map(h=>'<th scope="col">'+h+'</th>').join("")+'</tr></thead><tbody>'+t.positions.map((p,r)=>'<tr><td><button class="role-button" data-team="'+team+'" data-role="'+r+'">'+p.name+'</button><br><small>'+p.traits+'</small></td><td>0–'+p.max+'</td>'+["ma","st","ag","pa","av"].map(k=>'<td>'+p[k]+'</td>').join("")+'<td class="skills">'+p.skills.join(", ")+'</td><td>'+p.primary+'</td><td>'+p.secondary+'</td><td>'+money(p.cost)+'</td></tr>').join("")+'</tbody></table></div><p class="team-summary"><strong>Demo lineup:</strong> '+t.positions.map((p,r)=>({p,count:t.lineup.filter(v=>v===r).length})).filter(v=>v.count).map(v=>v.count+" × "+v.p.name).join(" · ")+'<br>11 players: '+money(total)+'. With 2 re-rolls: '+money(total+2*t.reroll)+'. These are demonstration selections, not a roster builder.</p><p class="muted">Re-roll: '+money(t.reroll)+' · Apothecary: '+(t.staff.apothecary?money(t.staff.apothecary):'unavailable')+' · Assistant coach: '+money(t.staff.assistantCoach)+' · Cheerleader: '+money(t.staff.cheerleader)+'</p><a class="muted" href="'+t.source+'">Source of truth · reviewed '+t.reviewed+'</a></article>';
- }).join("");
+ return '<article class="panel" data-roster-name="'+escapeTeamText(t.name)+'"><details class="roster-details"><summary>'+escapeTeamText(t.name)+'</summary><div class="roster-content"><p class="team-summary">'+(t.leagues||[t.league]).join(" / ")+' · '+rosterRuleSummary(t)+'</p><div class="table-scroll"><table><caption>Available positions · click a position to inspect</caption><thead><tr>'+["Position","Limit","MA","ST","AG","PA","AV","Skills & traits","Primary","Secondary","Cost"].map(h=>'<th scope="col">'+h+'</th>').join("")+'</tr></thead><tbody>'+t.positions.map((p,r)=>'<tr><td><button class="role-button" data-team="'+team+'" data-role="'+r+'">'+p.name+'</button><br><small>'+p.traits+'</small></td><td>0–'+p.max+'</td>'+["ma","st","ag","pa","av"].map(k=>'<td>'+p[k]+'</td>').join("")+'<td class="skills">'+p.skills.join(", ")+'</td><td>'+p.primary+'</td><td>'+p.secondary+'</td><td>'+money(p.cost)+'</td></tr>').join("")+'</tbody></table></div><p class="team-summary"><strong>Demo lineup:</strong> '+t.positions.map((p,r)=>({p,count:t.lineup.filter(v=>v===r).length})).filter(v=>v.count).map(v=>v.count+" × "+v.p.name).join(" · ")+'<br>11 players: '+money(total)+'. With 2 re-rolls: '+money(total+2*t.reroll)+'. These are demonstration selections, not a roster builder.</p><p class="muted">Re-roll: '+money(t.reroll)+' · Apothecary: '+(t.staff.apothecary?money(t.staff.apothecary):'unavailable')+' · Assistant coach: '+money(t.staff.assistantCoach)+' · Cheerleader: '+money(t.staff.cheerleader)+'</p><a class="muted" href="'+t.source+'">Source of truth · reviewed '+t.reviewed+'</a></div></details></article>';
+ }).join("")+'</section>').join("");
  document.querySelectorAll(".role-button").forEach(button=>button.addEventListener("click",()=>{showProfile(0,Number(button.dataset.role),null,rosterCatalog[Number(button.dataset.team)]);if(globalThis.inspectRosterPosition)globalThis.inspectRosterPosition();else document.getElementById("profile").scrollIntoView({behavior:"smooth",block:"center"});}));
 }
 
