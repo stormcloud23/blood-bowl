@@ -168,12 +168,12 @@ test('saved exhibition selection captures full TV including a missing developed 
 function observerFixture(home='human',away='orc'){
  const queue=new Map();let next=0;
  const f=workspaceFixture('match',{setTimeout:(fn,delay)=>{queue.set(++next,{fn,delay});return next;},clearTimeout:id=>queue.delete(id)});
- f.get('observer-home').value=home;f.get('observer-away').value=away;f.get('start-observation').click();
+ f.get('observer-home').value=home;f.get('observer-away').value=away;f.get('testing-scenario').value='match-observe';f.get('start-testing').click();
  return {...f,queue,tick(){const entry=queue.entries().next().value;assert.ok(entry,'Expected a scheduled computer action');queue.delete(entry[0]);entry[1].fn();}};
 }
 for(const home of ['human','orc'])for(const away of ['human','orc'])test('Testing starts independent computer coaches: '+home+' / '+away,()=>{
  const f=observerFixture(home,away);assert.equal(f.run('game.teams[0].id'),home);assert.equal(f.run('game.teams[1].id'),away);assert.equal(f.run('game.learning'),false);assert.equal(f.run('game.observing'),true);assert.equal(f.run('computerSession.coaches[0].team'),0);assert.equal(f.run('computerSession.coaches[1].team'),1);assert.equal(f.run('computerSession.coaches[0]===computerSession.coaches[1]'),false);
- assert.equal(f.run('workspaceView'),'testing');assert.equal(f.get('game-session').parentElement,f.get('testing-view'));assert.equal(f.get('exhibition-rosters').hidden,true);assert.equal(f.queue.size,1);assert.equal(f.get('computer-takeover').textContent,'Take over both teams');
+ assert.equal(f.run('workspaceView'),'testing');assert.equal(f.get('game-session').parentElement,f.get('testing-view'));assert.equal(f.get('exhibition-rosters').hidden,false);assert.equal(f.queue.size,1);assert.equal(f.get('computer-takeover').textContent,'Take over both teams');
  const staff=f.get('matchflow').querySelectorAll('button').filter(b=>b.dataset.coachTeam!==undefined);assert.ok(staff.some(b=>b.dataset.coachTeam==='0'));assert.ok(staff.some(b=>b.dataset.coachTeam==='1'));assert.ok(staff.every(b=>b.disabled));
  f.tick();assert.equal(f.run('game.phase'),'weather');assert.equal(f.run('computerSession.steps[0]'),1);assert.equal(f.run('computerSession.steps[1]'),0);assert.equal(f.queue.size,1);
 });
@@ -189,7 +189,7 @@ test('paused observation allows read-only player inspection even during a pendin
  f.cell(12,7).click();assert.equal(f.run('selected'),f.run('away.id'));assert.ok(f.get('skillcontrols').querySelectorAll('button').every(b=>b.disabled));assert.ok(f.get('choices').querySelectorAll('button').every(b=>b.disabled));assert.equal(f.queue.size,0);
 });
 test('restarting an observation cancels the old action without creating duplicate timers',()=>{
- const f=observerFixture(),old=[...f.queue.values()][0].fn;f.run('globalThis.oldMatch=game');f.get('observer-home').value='orc';f.get('observer-away').value='human';assert.equal(f.run('game.teams[0].id'),'human');f.get('start-observation').click();assert.equal(f.run('game===oldMatch'),false);assert.equal(f.run('game.teams[0].id'),'orc');assert.equal(f.run('game.teams[1].id'),'human');assert.equal(f.queue.size,1);
+ const f=observerFixture(),old=[...f.queue.values()][0].fn;f.run('globalThis.oldMatch=game');f.get('observer-home').value='orc';f.get('observer-away').value='human';assert.equal(f.run('game.teams[0].id'),'human');f.get('testing-scenario').value='match-observe';f.get('start-testing').click();assert.equal(f.run('game===oldMatch'),false);assert.equal(f.run('game.teams[0].id'),'orc');assert.equal(f.run('game.teams[1].id'),'human');assert.equal(f.queue.size,1);
  const timer=f.run('computerTimer');old();assert.equal(f.queue.size,1);assert.equal(f.run('computerTimer'),timer);assert.equal(f.run('game.phase'),'fans');f.tick();assert.equal(f.run('game.phase'),'weather');
 });
 test('observed movement does not compute unused human route previews',()=>{
@@ -201,7 +201,7 @@ test('paused inspection does not redirect an ongoing computer activation',()=>{
  f.run("game.phase='play';game.active=0;game.turns=[1,1];game.players.forEach(p=>Object.assign(p,{x:null,y:null,status:'reserve'}));globalThis.actor=game.players.find(p=>p.team===0);globalThis.other=game.players.find(p=>p.team===1);Object.assign(actor,{x:5,y:7,status:'standing',used:false});actor.profileOverride={...game.profile(actor),ma:6,skills:[]};Object.assign(other,{x:20,y:12,status:'standing'});game.ball={x:5,y:7,carrier:actor.id};render();");
  f.get('computer-step').click();assert.equal(f.run('game.mover'),f.run('actor.id'));f.cell(20,12).click();assert.equal(f.run('selected'),f.run('other.id'));f.get('computer-step').click();assert.equal(f.run('game.mover'),f.run('actor.id'));assert.equal(f.run('actor.spent'),1);assert.equal(f.run('other.x'),20);assert.equal(f.run('other.y'),12);assert.equal(f.queue.size,0);
 });
-test('observation leaves exhibition choices and saved teams untouched and supports both launch controls',()=>{
+test('observation leaves exhibition choices and saved teams untouched and uses the testing launch control',()=>{
  const f=observerFixture();f.get('exhibition-home').value='wood-elf';f.get('exhibition-away').value='dwarf';f.get('computer-opponent').value='orc';f.run('globalThis.savedData=JSON.stringify(leagueStore.data)');f.get('testing-scenario').value='match-observe';f.get('start-testing').click();
  assert.equal(f.run('computerSession.observing'),true);assert.equal(f.get('exhibition-home').value,'wood-elf');assert.equal(f.get('exhibition-away').value,'dwarf');assert.equal(f.get('computer-opponent').value,'orc');assert.equal(f.run('JSON.stringify(leagueStore.data)===savedData'),true);
  f.run('globalThis.observed=game');f.get('computer-takeover').click();assert.equal(f.run('game===observed'),true);assert.equal(f.run('computerSession'),null);assert.equal(f.run('game.observing'),false);assert.equal(f.queue.size,0);assert.equal(f.get('computer-opponent').value,'orc');
@@ -305,8 +305,10 @@ test('Escape closes a menu, returns focus and cancels previews without moving',(
 test('roving pitch navigation has one Tab stop and stays inside pitch boundaries',()=>{
  const f=workspaceFixture();assert.equal(f.get('pitch').children.filter(e=>e.tabIndex===0).length,1);f.get('pitch').emit('keydown',{target:f.cell(0,0),key:'ArrowLeft'});assert.equal(f.document.activeElement,f.cell(0,0));f.get('pitch').emit('keydown',{target:f.cell(0,0),key:'ArrowDown'});assert.equal(f.document.activeElement,f.cell(0,1));assert.equal(f.get('pitch').children.filter(e=>e.tabIndex===0).length,1);f.cell(0,1).focus();f.run('render()');assert.equal(f.document.activeElement,f.cell(0,1));
 });
-test('idle mouse hover includes player information without opening on focus',()=>{
- const f=workspaceFixture('pass');const p=JSON.parse(f.run('JSON.stringify(game.players.find(p=>p.id===selected))'));f.get('pitch').emit('pointerover',{target:f.cell(p.x,p.y),pointerType:'mouse'});assert.match(f.get('pitch-tooltip').textContent,/MA 6|MA 7/);assert.match(f.get('pitch-tooltip').textContent,/ball carrier/);assert.match(f.get('pitch-tooltip').textContent,/Pass/);assert.equal(f.cell(p.x,p.y)['aria-describedby'],'pitch-tooltip');f.get('pitch').emit('focusout');assert.equal(f.get('pitch-tooltip').popoverOpen,false);
+test('pitch hover never opens a player popup before selection',()=>{
+ const f=workspaceFixture('pass');const p=JSON.parse(f.run('JSON.stringify(game.players.find(p=>p.id===selected))'));
+ f.run('selected=null;render();');f.get('pitch-tooltip').showPopover=()=>{throw Error('Pitch hover must not open a popup');};
+ for(const cell of [f.cell(p.x,p.y),f.cell(0,0)]){f.get('pitch').emit('pointerover',{target:cell,pointerType:'mouse'});f.get('pitch').emit('focusin',{target:cell});assert.equal(f.get('pitch-tooltip').popoverOpen,false);assert.equal(cell['aria-describedby'],undefined);}
 });
 test('pending coach decisions cannot be bypassed by player menus or selection',()=>{
  const f=workspaceFixture();f.run('game.pending={type:"custom",kind:"Test choice",options:["Continue"],resolve:()=>{game.pending=null;}};render()');const selected=f.run('selected');f.run('choose(11,7)');assert.equal(f.run('selected'),selected);assert.equal(!f.get('pitch-popup').hidden,false);assert.equal(f.get('action-disclosure').hidden,true);assert.match(f.get('pitch-hint').textContent,/Decision required/);
@@ -358,7 +360,7 @@ test('the dock never uses native popovers and closing restores pitch focus witho
 });
 
 test('exhibition roster selectors create exactly two teams and practice reset restores original fixtures',()=>{
- const f=workspaceFixture('match');assert.equal(f.get('exhibition-home').children.length,30);f.get('exhibition-home').value='lizardmen';f.get('exhibition-away').value='dwarf';f.get('exhibition-home').emit('change');f.get('start-exhibition').click();assert.equal(f.run('teams.length'),2);assert.equal(f.run('game.teams[0].id'),'lizardmen');assert.equal(f.run('game.teams[1].id'),'dwarf');f.get('scenario').value='block';f.get('scenario').emit('change');assert.equal(f.run('teams[0].id'),'imperial-nobility');assert.equal(f.run('teams[1].id'),'black-orc');assert.equal(f.get('exhibition-rosters').hidden,true);
+ const f=workspaceFixture('match');assert.equal(f.get('exhibition-home').children.length,30);f.get('exhibition-home').value='lizardmen';f.get('exhibition-away').value='dwarf';f.get('exhibition-home').emit('change');f.get('start-exhibition').click();assert.equal(f.run('teams.length'),2);assert.equal(f.run('game.teams[0].id'),'lizardmen');assert.equal(f.run('game.teams[1].id'),'dwarf');f.get('scenario').value='block';f.get('scenario').emit('change');assert.equal(f.run('teams[0].id'),'imperial-nobility');assert.equal(f.run('teams[1].id'),'black-orc');assert.equal(f.get('exhibition-rosters').hidden,false);
 });
 test('exhibition league/alignment choices affect only the selected side and expose legal options',()=>{
  const f=workspaceFixture('match');f.get('exhibition-home').value='chaos-chosen';f.get('exhibition-home').emit('change');f.get('start-exhibition').click();assert.equal(f.get('exhibition-home-alignment').children.length,6);f.get('exhibition-home-alignment').value='Nurgle';f.get('exhibition-home-alignment').emit('change');f.get('start-exhibition').click();assert.equal(f.run('game.hasTeamRule(0,"Favoured of Nurgle")'),true);assert.equal(f.run('game.hasTeamRule(1,"Favoured of Nurgle")'),false);f.get('exhibition-home').value='norse';f.get('exhibition-home').emit('change');f.get('start-exhibition').click();f.get('exhibition-home-league').value='Chaos Clash';f.get('exhibition-home-league').emit('change');f.get('start-exhibition').click();assert.equal(f.run('game.hasTeamRule(0,"Favoured of Khorne")'),true);
@@ -740,8 +742,8 @@ test('clicking and restoring focus on pitch players never opens the information 
  f.get('pitch').emit('focusin',{target:f.cell(8,7)});f.cell(8,7).click();f.get('pitch').emit('focusin',{target:f.cell(8,7)});assert.equal(f.run('selected'),f.run('a.id'));assert.match(f.get('profile').innerHTML,/Fixture/);assert.equal(f.get('pitch-tooltip').popoverOpen,false);
  f.cell(8,8).click();f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Confirm Move').click();assert.equal(f.run('a.y'),8);assert.equal(f.run('a.spent'),1);f.get('pitch').emit('focusin',{target:f.cell(8,8)});f.get('pitch').emit('pointerover',{target:f.cell(8,8),pointerType:'mouse'});assert.equal(f.get('pitch-tooltip').popoverOpen,false);
 });
-test('a pointer press clears an idle hover tooltip and focus after the click does not reopen it',()=>{
- const f=tileFixture();f.get('pitch').emit('pointerover',{target:f.cell(8,7),pointerType:'mouse'});assert.equal(f.get('pitch-tooltip').popoverOpen,true);f.get('pitch').emit('pointerdown',{target:f.cell(8,7)});assert.equal(f.get('pitch-tooltip').popoverOpen,false);f.cell(8,7).click();f.get('pitch').emit('focusin',{target:f.cell(8,7)});f.get('pitch').emit('pointerover',{target:f.cell(8,7),pointerType:'mouse'});assert.equal(f.get('pitch-tooltip').popoverOpen,false);f.get('pitch').emit('pointerleave');f.get('pitch').emit('pointerover',{target:f.cell(8,7),pointerType:'mouse'});assert.equal(f.get('pitch-tooltip').popoverOpen,true);
+test('pitch hover stays closed before and after clicking and leaving the pitch',()=>{
+ const f=tileFixture();f.get('pitch').emit('pointerover',{target:f.cell(8,7),pointerType:'mouse'});assert.equal(f.get('pitch-tooltip').popoverOpen,false);f.get('pitch').emit('pointerdown',{target:f.cell(8,7)});assert.equal(f.get('pitch-tooltip').popoverOpen,false);f.cell(8,7).click();f.get('pitch').emit('focusin',{target:f.cell(8,7)});f.get('pitch').emit('pointerover',{target:f.cell(8,7),pointerType:'mouse'});assert.equal(f.get('pitch-tooltip').popoverOpen,false);f.get('pitch').emit('pointerleave');f.get('pitch').emit('pointerover',{target:f.cell(8,7),pointerType:'mouse'});assert.equal(f.get('pitch-tooltip').popoverOpen,false);
 });
 test('touch interaction and dugout focus never open a player tooltip',()=>{
  const f=tileFixture();f.get('pitch-tooltip').showPopover=()=>{throw Error('Touch or focus must not open a player overlay');};f.get('pitch').emit('pointerover',{target:f.cell(8,7),pointerType:'touch'});f.get('pitch').emit('focusin',{target:f.cell(8,7)});
@@ -806,7 +808,7 @@ test('a direct pass forecast includes endpoint marking and the chosen pass inter
  const f=ballShortcutFixture({targetX:13});f.run('delete game.interceptionCandidates;Object.assign(d,{x:11,y:7});render();');f.cell(10,7).click();f.cell(13,7).click();assert.equal(f.run('destination.ballAction'),'pass');assert.ok(f.cell(13,7).children.some(e=>e.textContent==='4+/3+'));assert.equal(f.cell(11,7).dataset.throwRange,'interception');assert.ok(f.cell(11,7).children.some(e=>e.textContent==='6+'));assert.equal(f.run('a.x'),8);assert.equal(f.run('rollCount'),0);
 });
 test('automatic pass preview preserves unavailable-catching and Hail Mary forecast conventions',()=>{
- const noCatch=ballShortcutFixture({targetSkills:['No Ball']});noCatch.cell(12,7).click();assert.ok(noCatch.cell(12,7).children.some(e=>e.textContent==='4+/×'));assert.ok(noCatch.cell(12,7).className.includes('risk-6'));assert.equal(noCatch.run('rollCount'),0);
+ const noCatch=ballShortcutFixture({targetSkills:['No Ball']});noCatch.cell(12,7).click();assert.ok(noCatch.cell(12,7).children.some(e=>e.textContent==='4+/×'));assert.ok(noCatch.cell(12,7).className.includes('risk-4'));assert.equal(noCatch.run('rollCount'),0);
  const hail=ballShortcutFixture({targetX:25,actorSkills:['Hail Mary Pass']});hail.cell(25,7).click();assert.equal(hail.cell(25,7).dataset.throwRange,'H');assert.ok(hail.cell(25,7).children.some(e=>String(e.textContent).endsWith('/?')));assert.equal(hail.run('rollCount'),0);
 });
 
@@ -867,4 +869,70 @@ for(const kind of ['pass','handoff','foul'])test('computer step controller execu
  f.run("game.phase='play';game.active=1;game.turns=[1,1];game.players.forEach(p=>Object.assign(p,{x:null,y:null,status:'reserve',used:false}));globalThis.actor=game.players.find(p=>p.team===1);globalThis.receiver=game.players.find(p=>p.team===1&&p!==actor);actor.profileOverride={name:'AI carrier',cost:40000,ma:6,st:3,ag:'3+',pa:'"+(kind==='pass'?'2+':'6+')+"',av:'9+',skills:"+(kind==='pass'?"['Pass']":"[]")+",traits:'Lineman'};receiver.profileOverride={name:'AI receiver',cost:75000,ma:8,st:2,ag:'3+',pa:'4+',av:'8+',skills:['Catch','Dodge'],traits:'Catcher'};Object.assign(actor,{x:"+(kind==='foul'?10:12)+",y:7,status:'standing'});Object.assign(receiver,{x:5,y:7,status:'standing'});game.ball="+(kind==='foul'?"{x:null,y:null,carrier:null}":"{x:actor.x,y:actor.y,carrier:actor.id}")+";game.handoffUsed[1]="+(kind==='pass')+";"+(kind==='foul'?"receiver.status='reserve';receiver.x=null;receiver.y=null;globalThis.victim=game.players.find(p=>p.team===0);Object.assign(victim,{x:11,y:7,status:'prone',profileOverride:{name:'Valuable victim',cost:130000,ma:8,st:3,ag:'2+',pa:'3+',av:'8+',skills:['Block','Dodge'],traits:'Blitzer'}});":"")+"globalThis.rollCounter=0;game.dice=()=>"+(kind==='foul'?"(++rollCounter%2?2:3)":"6")+";computerPaused=true;render();");
  for(let i=0;i<40&&!(kind==='foul'?f.run('game.events.some(e=>e.startsWith("Foul:"))'):f.run('game.scores[1]>0'));i++)f.get('computer-step').click();
  assert.equal(f.run('computerFault'),'');if(kind==='foul')assert.ok(f.run('game.events.some(e=>e.startsWith("Foul:"))'));else assert.equal(f.run('game.scores[1]'),1);assert.doesNotMatch(f.get('computer-scope').textContent,/no passing/);
+});
+
+ test('Play keeps visible match setup after starting testing modes and can start an exhibition',()=>{
+ const f=workspaceFixture('match');
+ for(const mode of ['dodge','skills','match-learning']){
+  f.get('tab-testing').click();f.get('testing-scenario').value=mode;f.get('start-testing').click();
+  f.run('globalThis.testingGame=game');f.get('tab-play').click();
+  assert.equal(f.get('play-view').hidden,false);
+  assert.equal(f.get('exhibition-rosters').parentElement,f.get('play-view'));
+  assert.equal(f.get('exhibition-rosters').hidden,false);assert.equal(f.get('exhibition-rosters').open,true);
+  assert.equal(f.run('game===testingGame'),true);
+  f.get('start-exhibition').click();
+  assert.equal(f.run('workspaceView'),'play');assert.equal(f.get('game-session').parentElement,f.get('play-view'));
+  assert.equal(f.run('game.match'),true);assert.equal(f.run('game.learning'),false);
+ }
+ });
+
+test('computer match options only appear for the selected testing mode',()=>{
+ const f=workspaceFixture('match');assert.equal(f.get('observer-options').hidden,true);
+ f.run('globalThis.beforeChoosing=game');
+ for(const mode of ['match-observe','dodge','match-learning','match-observe']){
+  f.get('testing-scenario').value=mode;f.get('testing-scenario').emit('change');
+  assert.equal(f.get('observer-options').hidden,mode!=='match-observe');assert.equal(f.run('game===beforeChoosing'),true);
+ }
+ const html=fs.readFileSync(projectPath('index.html'),'utf8');assert.ok(!html.includes('id="start-observation"'));assert.ok(html.includes('Watch a computer match</option>'));
+});
+
+test('kick deviation preview highlights six squares in eight directions without labels and clears on confirmation',()=>{
+ const f=tileFixture();f.run("game.phase='kickAim';game.kicking=0;game.receiving=1;game.kicker=a.id;game.learning=true;game.kickLanding=null;game.ball={x:null,y:null,carrier:null};selected=null;destination=null;game.dice=()=>1;render();");
+ assert.equal(f.run('kickDeviationPreview()'),null);f.cell(19,7).click();
+ assert.equal(f.run('kickDeviationPreview().squares.size'),48);
+ for(const [dx,dy] of [[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]])for(let n=1;n<=6;n++){
+  const cell=f.cell(19+dx*n,7+dy*n);assert.ok(cell.className.includes('kick-deviation'));assert.equal(cell.children.some(e=>e.className==='kick-deviation-label'),false);
+ }
+ assert.equal(f.cell(19,7).className.includes('kick-deviation'),false);assert.doesNotMatch(f.get('pitch-hint').textContent,/outcomes|Touchback risk/);
+ f.cell(13,0).click();assert.ok(f.cell(12,0).className.includes('kick-deviation'));assert.equal(f.cell(12,0).className.includes('kick-deviation-risk'),false);
+ f.cell(13,0).click();assert.equal(f.run('kickDeviationPreview()'),null);assert.equal(f.get('pitch').children.some(c=>c.className.includes('kick-deviation')),false);
+});
+
+test('Kick skill preview switches between D3 and D6 and confirmation uses the selected distance',()=>{
+ for(const reduced of [true,false]){
+ const f=tileFixture();f.run("game.phase='kickAim';game.kicking=0;game.receiving=1;game.kicker=a.id;a.extraSkills=['Kick'];game.learning=true;game.kickLanding=null;game.ball={x:null,y:null,carrier:null};selected=null;destination=null;game.dice=s=>s===8?5:6;render();");
+ f.cell(19,7).click();assert.equal(f.run('kickDeviationPreview().squares.size'),24);assert.ok(f.cell(22,7).className.includes('kick-deviation'));assert.equal(f.cell(23,7).className.includes('kick-deviation'),false);
+ f.get('matchflow').querySelectorAll('button').find(b=>b.textContent==='Use D6 deviation').click();assert.equal(f.run('kickDeviationPreview().squares.size'),48);
+ if(reduced){f.get('matchflow').querySelectorAll('button').find(b=>b.textContent==='Use D3 deviation').click();assert.equal(f.run('kickDeviationPreview().squares.size'),24);}
+ f.cell(19,7).click();assert.equal(f.run('game.kickLanding.x'),reduced?22:25);assert.equal(f.run('game.kickLanding.y'),7);assert.equal(f.run('kickDeviationPreview()'),null);
+ }
+});
+
+test('passing range colors ignore catch difficulty and inability to catch while retaining catch labels',()=>{
+ const f=workspaceFixture('pass');
+ f.run("globalThis.overlayTarget={team:0,status:'standing',distracted:false};globalThis.overlayBoard={action:'pass',pending:null,passPreview:()=>({target:2,name:'Quick pass',band:0}),ballActor:()=>({team:0}),at:()=>overlayTarget,has:()=>false,forecastTarget:()=>5,landingTarget:()=>5};");
+ assert.equal(f.run('throwingOverlay(10,7,overlayBoard,true).risk'),2);assert.equal(f.run('throwingOverlay(10,7,overlayBoard,true).label'),'2+/5+');
+ f.run("overlayTarget.status='prone';");assert.equal(f.run('throwingOverlay(10,7,overlayBoard,true).risk'),2);assert.equal(f.run('throwingOverlay(10,7,overlayBoard,true).label'),'2+/×');
+ f.run('overlayBoard.at=()=>null');assert.equal(f.run('throwingOverlay(10,7,overlayBoard,true).risk'),2);
+ f.run("overlayBoard.passPreview=()=>({target:5,name:'Long bomb',band:3});overlayBoard.at=()=>overlayTarget;overlayTarget.status='standing';overlayBoard.forecastTarget=()=>2;");
+ assert.equal(f.run('throwingOverlay(10,7,overlayBoard,true).risk'),5);assert.equal(f.run('throwingOverlay(10,7,overlayBoard,true).label'),'5+/2+');
+});
+
+test('pregame checklist reveals attendance and weather only after each result is determined',()=>{
+ const f=workspaceFixture('match'),steps=()=>f.get('pregame-overview').children.find(e=>e.className==='pregame-steps').children;
+ assert.equal(steps()[0].textContent,'Fans in attendance');assert.equal(steps()[1].textContent,'Weather');
+ f.run('globalThis.rolls=[2,6,5,6];game.dice=()=>rolls.shift();game.advancePregame();render();');
+ assert.equal(steps()[0].textContent,f.run('"Fans in attendance — "+teams[0].name+" "+game.fans[0]+", "+teams[1].name+" "+game.fans[1]'));assert.equal(steps()[0].className,'complete');assert.equal(steps()[1].textContent,'Weather');
+ f.run('game.advancePregame();render();');assert.equal(steps()[1].textContent,'Weather — Pouring Rain');assert.equal(steps()[1].className,'complete');
+ f.run('reset();');assert.equal(steps()[0].textContent,'Fans in attendance');assert.equal(steps()[1].textContent,'Weather');
 });

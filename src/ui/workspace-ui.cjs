@@ -26,10 +26,15 @@ for(const side of ["home","away"]){
 }
 function refreshSessionLocation(){
  const session=document.getElementById("game-session");if(document.getElementById("mode-notice").parentElement!==session)session.prepend(document.getElementById("mode-notice"));
+ const play=document.getElementById("play-view"),setup=document.getElementById("exhibition-rosters");
+ if(setup.parentElement!==play)play.prepend(setup);
  const testing=document.getElementById("scenario").value!=="match";
+ if(testing)setup.open=true;
  const panel=document.getElementById(testing?"testing-view":"play-view");if(session.parentElement!==panel)panel.append(session);
 }
 document.getElementById("start-exhibition").addEventListener("click",()=>{document.getElementById("scenario").value="match";reset();document.getElementById("exhibition-rosters").open=false;document.getElementById("match-config-status").textContent="";switchWorkspace("play");});
+function refreshTestingOptions(){document.getElementById("observer-options").hidden=document.getElementById("testing-scenario").value!=="match-observe";}
+document.getElementById("testing-scenario").addEventListener("change",refreshTestingOptions);refreshTestingOptions();
 document.getElementById("start-testing").addEventListener("click",()=>{document.getElementById("scenario").value=document.getElementById("testing-scenario").value||"match-learning";reset();switchWorkspace("testing");});
 document.getElementById("open-leagues").addEventListener("click",()=>switchWorkspace("teams",true));
 function closePitchPopup(restore=false){
@@ -60,7 +65,7 @@ for(const view of workspaceTabs){
 globalThis.inspectRosterPosition=()=>{
  const profile=document.getElementById("roster-inspection");profile.replaceChildren();profile.hidden=false;const close=button("Close position details",()=>{profile.hidden=true;});profile.append(close);const content=document.createElement("div");content.innerHTML=document.getElementById("profile").innerHTML;profile.append(content);
 };
-function filterRosterBrowser(){const query=document.getElementById("roster-search").value.trim().toLocaleLowerCase(),cards=Array.from(document.getElementById("roster-list").querySelectorAll("article"));for(const card of cards)card.hidden=!card.dataset.rosterName.toLocaleLowerCase().includes(query);document.getElementById("roster-search-count").textContent=cards.filter(card=>!card.hidden).length+" / "+rosterCatalog.length+" rosters";}
+function filterRosterBrowser(){const query=document.getElementById("roster-search").value.trim().toLocaleLowerCase(),cards=Array.from(document.getElementById("roster-list").querySelectorAll("article"));for(const card of cards)card.hidden=!card.dataset.rosterName.toLocaleLowerCase().includes(query);for(const group of document.getElementById("roster-list").querySelectorAll(".roster-tier"))group.hidden=!Array.from(group.querySelectorAll("article")).some(card=>!card.hidden);document.getElementById("roster-search-count").textContent=cards.filter(card=>!card.hidden).length+" / "+rosterCatalog.length+" rosters";}
 document.getElementById("roster-search").addEventListener("input",filterRosterBrowser);filterRosterBrowser();
 function placePitchOverlay(element,anchor){
  const r=anchor.getBoundingClientRect(),box=element.getBoundingClientRect(),gap=8;
@@ -83,15 +88,6 @@ function showDugoutTooltip(p,card){if(popoverTransition||!popup.hidden||destinat
 function dugoutActions(p){if(game.pending||p.fixtureUnavailable||dugoutState(p)!=='reserve')return [];const setup=game.match&&game.phase==='setup'&&p.team===game.setupTeam&&game.available(p.team).includes(p),swarm=game.phase==='swarming'&&game.swarmState.eligible.includes(p.id)&&game.swarmState.placed.length<game.swarmState.limit;const defence=game.phase==='eventMove'&&game.eventState?.kind==='defence'&&game.eventState.eligible.includes(p.id);const wisdom=game.phase==='dwarfenWisdom'&&game.wisdomState?.placing&&game.wisdomState.selected.includes(p.id);if(!setup&&!swarm&&!defence&&!wisdom)return [];return [{label:wisdom?'Select for Dwarfen Wisdom':swarm?'Select for Swarming':defence?'Select for Solid Defence':'Select for setup',run:()=>{if(!dugoutActions(p).length)return;selected=p.id;showProfile(p.team,p.role,p.number);render();}}];}
 function renderDugouts(pregame){const board=document.getElementById('dugout');board.hidden=!!pregame;board.replaceChildren();if(pregame)return;const currentGame=game;for(const team of [0,1]){const players=dugoutPlayers(team),article=document.createElement('article');article.className='dugout-team '+(team?'dugout-blue':'dugout-gold');article.setAttribute('aria-label',teams[team].name+' dugout');const heading=document.createElement('h3');heading.textContent=teams[team].name;article.append(heading);const count=document.createElement('p');count.className='dugout-summary';count.textContent=players.filter(p=>dugoutState(p)==='pitch').length+' on pitch · '+players.filter(p=>dugoutState(p)!=='pitch').length+' off pitch';article.append(count);const lanes=document.createElement('div');lanes.className='dugout-lanes';article.append(lanes);for(const [state,label] of dugoutStates){const lane=document.createElement('section');lane.className='dugout-lane dugout-'+state;lane.dataset.state=state;const list=players.filter(p=>dugoutState(p)===state),title=document.createElement('h4');title.textContent=label+' · '+list.length;lane.append(title);const cards=document.createElement('div');cards.className='dugout-cards';lane.append(cards);if(!list.length){const empty=document.createElement('span');empty.className='dugout-empty';empty.textContent='—';cards.append(empty);}for(const p of list){const card=button('',()=>{if(game!==currentGame)return;showPitchPopup(card,'#'+p.number+' · '+playerLabel(p),playerQuickInfo(p)+'\n'+dugoutReason(p),dugoutActions(p));});card.className='dugout-card';card.dataset.playerId=p.id;card.setAttribute('aria-label','#'+p.number+' '+playerLabel(p)+' — '+label+' — '+dugoutReason(p));const number=document.createElement('span');number.className='dugout-number';number.textContent=p.number;const name=document.createElement('span');name.className='dugout-name';name.textContent=p.riotousRookie?'Riotous Rookie':p.leagueRecord?.name||game.profile(p).name;card.append(number,name);card.addEventListener('pointerenter',e=>{if(e.pointerType!=='touch')showDugoutTooltip(p,card);});card.addEventListener('pointerleave',hidePitchTooltip);card.addEventListener('blur',hidePitchTooltip);cards.append(card);}lanes.append(lane);}board.append(article);}}
 function kickTargetSelection(){return game.match&&game.phase==="kickAim"&&!game.kickLanding;}
-function showPitchTooltip(cell){
- if(kickTargetSelection()){hidePitchTooltip();return;}
- if(suppressPitchHover||popoverTransition||!popup.hidden||destination||throwDestination||game.pending||game.mover)return;
- const i=Array.from(pitch.children).indexOf(cell),p=game.at(i%26,Math.floor(i/26));
- const hint=cell.dataset.hint||cell.title,text=p?playerQuickInfo(p)+(cell.className.includes("push-option")||cell.className.includes("tile-choice")||cell.className.includes("reaction-choice")?"\n"+hint:""):hint;
- if(!text||text==="empty"){hidePitchTooltip();return;}
- hidePitchTooltip();hoverSquare=cell;cell.setAttribute("aria-describedby","pitch-tooltip");tooltip.textContent=text;
- tooltip.showPopover();placePitchOverlay(tooltip,cell);
-}
 const playerActionIds=["start","block","blitz","handoff","pass","throw-mate","kick-mate","secure","special","transfer","finish"];
 function decisionCoachLabel(q){
  if(!q)return "";
@@ -192,7 +188,6 @@ pitch.addEventListener("keydown",event=>{
  if(event.key==="Home")next=y*26;if(event.key==="End")next=y*26+25;
  if(next!==null){event.preventDefault();pitch.children[index].tabIndex=-1;pitchFocus=next;pitch.children[next].tabIndex=0;pitch.children[next].focus({preventScroll:true});}
 });
-pitch.addEventListener("pointerover",e=>{if(e.pointerType==="touch")return;const cell=e.target.closest(".square");if(cell&&cell!==hoverSquare)showPitchTooltip(cell);});
 // Player information is hover-only; click and restored focus must never cover the pitch.
 pitch.addEventListener("pointerdown",()=>{suppressPitchHover=true;hidePitchTooltip();});
 pitch.addEventListener("pointerleave",()=>{suppressPitchHover=false;hidePitchTooltip();});
@@ -216,7 +211,7 @@ document.getElementById("pitch-scale").addEventListener("change",event=>{
 function refreshWorkspace(){
  refreshSessionLocation();
  closePitchPopup();hidePitchTooltip();
- document.getElementById("exhibition-rosters").hidden=!game.match||document.getElementById("scenario").value==="match-observe"||!!game.league&&!game.exhibition;
+ document.getElementById("exhibition-rosters").hidden=!!game.league&&!game.exhibition;
  const pregame=game.match&&["fans","weather","leagueSteps","prayers","rolloff","kickChoice"].includes(game.phase),overview=document.getElementById("pregame-overview");
  overview.hidden=!pregame;document.getElementById("pitch-board").hidden=!!pregame;document.getElementById("mobile-pitch-help").hidden=!!pregame;document.getElementById("pitch-hint").hidden=!!pregame;
  document.getElementById("pitch-tools").hidden=!!pregame;document.getElementById("position-key").hidden=!!pregame;
@@ -226,7 +221,7 @@ function refreshWorkspace(){
  if(pregame){
   overview.replaceChildren();const heading=document.createElement("h2");heading.textContent="Prepare for kick-off";overview.append(heading);const intro=document.createElement("p");intro.textContent=game.observing?"Both computer coaches complete pre-game and setup automatically. Pause or step through actions using the computer controls.":"Both coaches share this browser. Complete the current step in the coach panel, then arrange your players on the pitch.";overview.append(intro);
   const steps=document.createElement("ol");steps.className="pregame-steps";overview.append(steps);const phaseIndex={fans:0,weather:1,leagueSteps:2,prayers:2,rolloff:3,kickChoice:3}[game.phase];
-  ["Fans in attendance","Weather",game.league?"Inducement purchases":"Pre-game checks","Kick or receive","Set up your team"].forEach((name,i)=>{const li=document.createElement("li");li.textContent=name;li.className=i<phaseIndex?"complete":i===phaseIndex?"current":"";if(i===phaseIndex)li.setAttribute("aria-current","step");steps.append(li);});
+  ["Fans in attendance","Weather",game.league?"Inducement purchases":"Pre-game checks","Kick or receive","Set up your team"].forEach((name,i)=>{const li=document.createElement("li");li.textContent=name+(i===0&&phaseIndex>0?" — "+teams.map((team,t)=>team.name+" "+game.fans[t]).join(", "):i===1&&phaseIndex>1?" — "+game.weather:"");li.className=i<phaseIndex?"complete":i===phaseIndex?"current":"";if(i===phaseIndex)li.setAttribute("aria-current","step");steps.append(li);});
  }
  Array.from(pitch.children).forEach((cell,i)=>{cell.tabIndex=i===pitchFocus?0:-1;cell.dataset.hint=cell.title;cell.removeAttribute("title");});
  for(const id of playerActionIds){const b=document.getElementById(id);if(id!=="finish")b.hidden=b.disabled;}
@@ -236,6 +231,7 @@ function refreshWorkspace(){
  const hint=document.getElementById("pitch-hint");
  hint.textContent=pendingPitchChoices().length?"Click a highlighted pitch target to resolve "+game.pending.kind+".":game.pending?"Decision required — resolve the coach’s desk before continuing.":blockMode?"Click a highlighted opponent to declare the action. Escape cancels targeting.":ballMode?"Click a highlighted target to preview; click it again to commit. Escape returns to movement.":destination?.blockTarget?"Block preview: click the highlighted target again to block, or your player to cancel. Choose Declare Blitz to block and move.":destination?.blitzTarget?"Blitz preview: click the highlighted target again to move and block. Escape clears the preview.":destination?"Click another highlighted square to extend the route, then Confirm Move or repeat the destination to commit. Escape clears the preview.":game.match&&game.phase==="setup"?"Select a player, then click an empty square to move or a team-mate to swap. Select reserves from Dugouts or the roster.":"Click a player for legal actions. Player details are in the coach’s desk profile.";
  if(kickTargetSelection())hint.textContent="Aim in the highlighted "+(game.ownHalf(game.receiving,0)?"left":"right")+" half ("+teams[game.receiving].name+"). Click once to preview; click the same square again to kick.";
+
  if(game.match&&game.phase==="swarming")hint.textContent="Swarming: select a reserve Lineman in the coach panel, then place them in an empty square in their own half.";
  const direction=document.getElementById("pitch-direction"),attacksRight=i=>game.match?game.right(i):i===0;direction.textContent=teams.map((team,i)=>team.name+" "+(attacksRight(i)?"→":"←")).join(" · ");direction.setAttribute("aria-label",teams.map((team,i)=>team.name+" attacks "+(attacksRight(i)?"right":"left")).join("; "));
  const skillPanel=document.getElementById("skillcontrols"),details=document.getElementById("player-details");if(skillPanel&&skillPanel.parentElement!==details)details.append(skillPanel);
