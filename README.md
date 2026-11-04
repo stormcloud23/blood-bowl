@@ -88,7 +88,7 @@ in Match setup, then **New exhibition match**. Selections apply when you start
 the match. You coach home; the computer coaches the away preset team.
 Choose its speed, pause/resume, or take over its team during the match. This basic
 opponent uses positioning, blocks and Blitzes, plus conservative passing, hand-offs
-and selective fouls. It does not buy optional inducements. League games remain hotseat. See [computer opponent](docs/COMPUTER.md).
+and selective fouls. It does not buy optional inducements. League fixtures offer human coaches or computer control of Home, Away, or both teams. All rosters use their current stats and skills, with basic support beyond Humans and Orcs. MVP selection and advancement remain manual. See [computer opponent](docs/COMPUTER.md).
 
 Computer positioning rewards distinct tackle-zone coverage and all four cage
 corners around its carrier, with diminishing returns for extra nearby players.

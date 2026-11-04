@@ -118,3 +118,9 @@ for(const [seed,ids] of [[33,['human','orc']],[71,['orc','human']],[927,['human'
  assert.equal(g.phase,'finished','Action bound reached at '+steps);assert.equal(g.half,2);assert.deepEqual(g.turns,[8,8]);
  assert.ok(actions.every(n=>n<=1600),'Exceeded browser controller action limit: '+actions.join('/'));
 });
+
+for(const roster of rosters)test('basic computer pregame and legal setup: '+roster.id,()=>{
+ const g=fixture(42,[roster.id,'human']),coaches=[new ComputerCoach(0),new ComputerCoach(1)];
+ for(let n=0;n<100&&g.phase!=='play';n++)assert.ok(coaches[computerDecisionTeam(g)].step(g),'stalled at '+g.phase);
+ assert.equal(g.phase,'play');assert.ok(coaches[computerDecisionTeam(g)].step(g));
+});

@@ -127,3 +127,11 @@ support, maintaining width through complete turns, disabled tackle zones and
 protecting a cage corner instead of taking an unnecessary Blitz.
 These checks are distinct from visual browser review or comprehensive tactical
 and roster-combination testing.
+
+## League fixtures
+
+In Teams & leagues, choose Fixture control before Play league fixture: two human coaches, Computer controls Home, Away, or both teams. The choice is saved with the active fixture and can be changed when restarting from pre-game.
+
+The same coach evaluates current player profiles, including league advances, injuries and journeymen. Every league roster is available; rosters beyond Humans and Orcs have basic support and may lack specialized tactics. Optional inducements are not purchased automatically. Pause, step and take over remain available; an unsupported decision pauses for takeover.
+
+Computer control ends at full time. The user selects MVP candidates, records the result and makes every post-game roster and skill advancement decision for both teams.
