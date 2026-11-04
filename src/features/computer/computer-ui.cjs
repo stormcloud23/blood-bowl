@@ -1,5 +1,13 @@
 "use strict";
 let computerSession=null,computerTimer=null,computerTimerEpoch=0,computerPaused=false,computerFault="",computerSteps=0;
+// Use developed league profiles and staff without substituting preset rosters.
+function startLeagueComputer(control){
+ cancelComputerTimer();computerSession=null;computerPaused=false;computerFault="";computerSteps=0;
+ const coaches=[0,1].map(i=>control==="both"||control===(i===0?"home":"away")?new ComputerCoach(i):null);
+ if(!coaches.some(Boolean))return;
+ game.individualBlockChoices=true;game.observing=control==="both";
+ computerSession={game,coach:coaches.find(Boolean),coaches,observing:game.observing,steps:[0,0],lastState:null,repeats:0};
+}
 function computerCoach(team){return computerSession?.game===game?computerSession.coaches[team]||null:null;}
 function computerOwnsDecision(){return game.phase!=="finished"&&!!computerCoach(computerDecisionTeam(game));}
 function inspectingComputerMatch(){return computerSession?.game===game&&computerSession.observing&&computerPaused;}
@@ -29,7 +37,7 @@ function refreshComputer(){
  document.getElementById("computer-pause").disabled=game.phase==="finished";
  document.getElementById("computer-step").disabled=!computerPaused||!computerOwnsDecision()||!!computerFault;
  document.getElementById("computer-takeover").textContent=computerSession.observing?"Take over both teams":"Take over computer team";
- document.getElementById("computer-scope").textContent=computerSession.observing?"Both teams use the current computer coach. Pause to inspect players, or step through one action at a time.":"Conservative passing, hand-offs and fouls. Away team; preset staff.";
+ document.getElementById("computer-scope").textContent=computerSession.observing?"Both teams use the current computer coach. Pause to inspect players, or step through one action at a time.":game.leagueFixtureId?"Uses current league players and staff. Basic support for other rosters; specialized tactics may be limited.":"Conservative passing, hand-offs and fouls. Away team; preset staff.";
  const owner=computerDecisionTeam(game),coach=computerCoach(owner)||computerSession.coach,side=owner===0?"Home":"Away";
  status.textContent=computerFault?"Computer paused: "+computerFault:game.phase==="finished"?"Computer match finished.":computerPaused?"Computer paused. Resume, step or take over to continue.":computerOwnsDecision()?"Computer thinking · "+side+" — "+teams[owner].name+" · "+coach.explanation:"Your decision · "+coach.explanation;
  const actions=document.getElementById("computer-actions");actions.hidden=!computerSession.observing;

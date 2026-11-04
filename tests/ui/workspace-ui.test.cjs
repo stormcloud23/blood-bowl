@@ -936,3 +936,24 @@ test('pregame checklist reveals attendance and weather only after each result is
  f.run('game.advancePregame();render();');assert.equal(steps()[1].textContent,'Weather — Pouring Rain');assert.equal(steps()[1].className,'complete');
  f.run('reset();');assert.equal(steps()[0].textContent,'Fans in attendance');assert.equal(steps()[1].textContent,'Weather');
 });
+
+for(const control of ['manual','home','away','both'])test('league fixture control: '+control,()=>{
+ const f=workspaceFixture('match');
+ f.run(`globalThis.clubs=['dwarf','skaven'].map((id,i)=>{const t=leagueStore.create(id,'Club '+i);for(let n=0;n<11;n++)leagueStore.hire(t.id,0);leagueStore.submit(t.id);return t;});globalThis.l=leagueStore.createLeague('AI League');clubs.forEach(t=>leagueStore.enterLeague(l.id,t.id));renderLeague();`);
+ const descend=e=>[e,...e.children.flatMap(descend)];const select=descend(f.get('league-panel')).find(e=>e['aria-label']==='Fixture control');
+ assert.ok(select);select.value=control;
+ f.get('league-panel').querySelectorAll('button').find(b=>b.textContent==='Play league fixture').click();
+ assert.equal(f.run('leagueStore.data.active.computerControl'),control);
+ assert.deepEqual(Array.from(f.run('[!!computerCoach(0),!!computerCoach(1)]')),[control==='home'||control==='both',control==='away'||control==='both']);
+ assert.equal(f.run('game.teams[0].id'),'dwarf');assert.equal(f.run('game.teams[1].id'),'skaven');
+ const saved=f.run('JSON.stringify(leagueStore.data)');f.run('new LeagueStore(demoLeagueTeams,JSON.parse('+JSON.stringify(saved)+'))');
+ if(control!=='manual'){
+  const before=f.run('JSON.stringify(leagueStore.data)');
+  f.run('game.players.forEach(p=>p.fieldedDrive=1);game.phase="finished";render();advanceComputer();');
+  assert.equal(f.run('computerOwnsDecision()'),false);
+  assert.equal(f.run('JSON.stringify(leagueStore.data)'),before);
+  assert.equal(f.get('computer-step').disabled,true);
+  assert.ok(f.get('league-panel').querySelectorAll('button').find(b=>b.textContent==='Roll MVPs and save match result'));
+  f.get('computer-takeover').click();assert.equal(f.run('computerSession'),null);
+ }
+});
