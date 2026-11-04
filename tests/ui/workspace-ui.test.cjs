@@ -957,3 +957,19 @@ for(const control of ['manual','home','away','both'])test('league fixture contro
   f.get('computer-takeover').click();assert.equal(f.run('computerSession'),null);
  }
 });
+
+test('concede button requires review, supports cancellation, rejects a stale turn and finishes for the active coach',()=>{
+ const f=proneFixture();assert.equal(f.get('concede').disabled,false);assert.equal(f.get('concede').hidden,false);f.get('concede').click();assert.equal(f.get('concession-review').hidden,false);assert.match(f.get('concession-description').textContent,/no MVP or winnings/);
+ f.get('cancel-concession').click();assert.equal(f.run('game.phase'),'play');assert.equal(f.get('concession-review').hidden,true);
+ f.get('concede').click();f.run('game.turns[0]++');f.get('confirm-concession').click();assert.equal(f.run('game.phase'),'play');
+ f.get('concede').click();f.get('confirm-concession').click();assert.equal(f.run('game.phase'),'finished');assert.equal(f.run('game.concession.team'),0);assert.deepEqual(Array.from(f.run('game.scores')),[0,2]);assert.equal(f.get('concede').disabled,true);
+});
+test('concede control is unavailable after activation and while a computer owns the team',()=>{
+ const f=proneFixture();f.run('game.start(prone.id);render()');assert.equal(f.get('concede').disabled,true);
+ const observed=observerFixture();observed.run('game.phase="play";game.active=0;game.turnActionStarted=false;render()');assert.equal(observed.get('concede').disabled,true);observed.get('concede').click();assert.equal(observed.run('game.concession'),undefined);
+});
+test('league AI timer controller handles purchases without a fault or repeated-state pause',()=>{
+ const f=observerFixture();f.run(`globalThis.clubs=['human','orc'].map((id,i)=>{const t=leagueStore.create(id,'League '+i);for(let n=0;n<11;n++)leagueStore.hire(t.id,0);leagueStore.submit(t.id);return t;});globalThis.l=leagueStore.createLeague('Inducements');clubs.forEach(t=>leagueStore.enterLeague(l.id,t.id));globalThis.fixture=leagueStore.startFixture(clubs[0].id,clubs[1].id);fixture.computerControl='both';startLeagueMatch(fixture);game.phase='leagueSteps';game.teams[0].ctv=1000000;game.teams[1].ctv=1500000;game.leaguePurchaseOrder=[1,0];render();`);
+ for(let n=0;n<40&&f.run('game.leaguePurchaseStep')<2;n++)f.tick();
+ assert.equal(f.run('game.leaguePurchaseStep'),2);assert.equal(f.run('computerFault'),'');assert.equal(f.run('computerPaused'),false);assert.ok(f.run('game.resourceCosts(0).inducements')>0);
+});

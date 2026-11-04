@@ -208,7 +208,30 @@ document.getElementById("pitch-scale").addEventListener("change",event=>{
  const scale=Number(event.target.value);if(![1,1.5,2].includes(scale))return;
  closePitchPopup();hidePitchTooltip();pitch.style.minWidth=(650*scale)+"px";
 });
+let concessionReview=null;
+function concessionReviewKey(){return JSON.stringify([game.phase,game.active,game.setupTeam,game.half,game.drive,game.turns,game.turnActionStarted]);}
+function refreshConcession(){
+ const b=document.getElementById("concede"),team=game.concessionTeam?.(),computer=typeof computerCoach==="function"&&computerCoach(team);
+ b.hidden=!game.match||workspaceView!=="play";b.disabled=!game.canConcede?.()||!!computer;
+ b.title="Concede at the start of your turn, or during setup if fewer than three players are available.";
+ const review=document.getElementById("concession-review");
+ if(concessionReview&&(concessionReview.game!==game||concessionReview.key!==concessionReviewKey()||b.disabled))concessionReview=null;
+ review.hidden=!concessionReview;
+}
+document.getElementById("concede").addEventListener("click",()=>{
+ if(!game.canConcede()||typeof computerCoach==="function"&&computerCoach(game.concessionTeam()))return;
+ concessionReview={game,key:concessionReviewKey(),team:game.concessionTeam()};
+ const text=game.phase==="setup"?"This concession has no penalties because fewer than three players can set up. Normal post-game rewards apply.":"The conceding team receives no MVP or winnings, loses all SPP earned this match, and loses D3 Dedicated Fans (minimum 1). The opponent receives two MVP awards and all attendance winnings. Player-retention rolls are omitted.";
+ document.getElementById("concession-description").textContent=game.teams[concessionReview.team].name+" will concede. The opponent wins "+Math.max(2,game.scores[1-concessionReview.team])+"–0. "+text+" Injuries remain. Post-game decisions stay with you.";
+ refreshConcession();
+});
+document.getElementById("cancel-concession").addEventListener("click",()=>{concessionReview=null;refreshConcession();});
+document.getElementById("confirm-concession").addEventListener("click",()=>{
+ const review=concessionReview;concessionReview=null;
+ if(review?.game===game&&review.key===concessionReviewKey()&&game.concede(review.team)){selected=null;destination=null;render();}else refreshConcession();
+});
 function refreshWorkspace(){
+ refreshConcession();
  refreshSessionLocation();
  closePitchPopup();hidePitchTooltip();
  document.getElementById("exhibition-rosters").hidden=!!game.league&&!game.exhibition;

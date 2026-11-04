@@ -815,24 +815,41 @@ class MatchGame extends MatchBase {
  }
  resetTeam(team){this.carryDeclined=null;for(const p of this.players)if(p.team===team)p.carryInitialPartner=null;this.resetSkillTurn();this.syncLeader();this.foulUsed[team]=false;this.secureUsed[team]=false;this.blitzUsed[team]=false;this.passUsed[team]=false;this.handoffUsed[team]=false;for(const p of this.players){p.dodgeUsed=false;p.proUsed=false;if(p.team===team)Object.assign(p,{used:false,spent:0,furyGodExtra:false,stallingChecked:false,stunnedAtStart:p.status==="stunned"});}}
  startReceivingTurn(){this.phase="play";this.eventState=null;this.finished=false;this.pending=null;this.beginTurn(this.receiving);}
+ concessionTeam(){return this.phase==="setup"?this.setupTeam:this.active;}
+ canConcede(team=this.concessionTeam()){
+  if(!this.match||this.finished||this.phase==="finished"||this.pending||this.mover||this.blockAction||team!==this.concessionTeam())return false;
+  if(this.phase==="setup")return this.available(team).length<3;
+  return this.phase==="play"&&!this.turnActionStarted;
+ }
+ concede(team=this.concessionTeam()){
+  if(!this.canConcede(team))return false;
+  const winner=1-team,withoutPenalty=this.phase==="setup",previousScores=[...this.scores];
+  this.scores[team]=0;this.scores[winner]=Math.max(2,this.scores[winner]);
+  this.concession={team,winner,withoutPenalty,previousScores,awardedTouchdowns:Math.max(0,this.scores[winner]-previousScores[winner])};
+  this.phase="finished";this.finished=true;this.pending=null;this.mover=null;this.action=null;this.blockAction=null;this.observing=false;
+  this.note(this.teams[team].name+" concedes"+(withoutPenalty?" without penalty":"")+". Final score: "+this.scores.join("–")+". Player-retention rolls are omitted.");
+  return true;
+ }
  beginTurn(team){
   if(this.skip[team]){this.skip[team]=false;this.turns[team]++;this.note(this.teams[team].name+" skips a turn celebrating an opposition-turn Touchdown.");}
   if(this.turns[team]>=8){if(this.turns[1-team]>=8){this.endDrive(null);return;}team=1-team;}
-  this.active=team;this.turns[team]++;this.resetTeam(team);for(const p of this.players)if(p.team===team&&p.hexSkip){p.hexSkip=false;p.hexBlockedTurn=this.skillTurn;p.used=true;}this.note(this.teams[team].name+" — half "+this.half+", turn "+this.turns[team]+".");
+  this.active=team;this.turnActionStarted=false;this.turns[team]++;this.resetTeam(team);for(const p of this.players)if(p.team===team&&p.hexSkip){p.hexSkip=false;p.hexBlockedTurn=this.skillTurn;p.used=true;}this.note(this.teams[team].name+" — half "+this.half+", turn "+this.turns[team]+".");
   if(this.weatherMages[team]>0){this.weatherWindowTeam=team;this.skillChoice("Weather Mage — "+this.teams[team].name,team,["Use Weather Mage","Keep weather"],choice=>{if(choice==="Use Weather Mage")this.useWeatherMage(team);this.weatherWindowTeam=null;});}
  }
  canStart(p){if(p?.hexBlockedTurn===this.skillTurn||p?.hexSkip)return false;if(!super.canStart(p))return false;if(this.phase==="play")return true;const e=this.eventState;return this.phase==="charge"&&e?.eligible.includes(p.id)&&!e.used.includes(p.id)&&e.used.length<e.limit;}
  start(id,action="move"){
   if(this.phase==="charge"&&!["move","blitz","throw-team-mate"].includes(action))return false;const valid=this.players.find(p=>p.id===id);if(!this.canStart(valid))return false;
-  if(this.offerCarryStart(valid,()=>this.start(id,action)))return true;
+  if(action==="secure"&&!this.canSecure(valid)||["pass","handoff"].includes(action)&&!this.canBallAction(valid,action))return false;
+  if(this.offerCarryStart(valid,()=>this.start(id,action))){if(this.phase==="play")this.turnActionStarted=true;return true;}
   const name=action.startsWith("special:")?action.slice(8):null;if(["The Flashing Blade","Furious Outburst","Kick 'em While They're Down!"].includes(name)&&!this.remainingStarActions(valid).includes(name))return false;if(this.remainingStarActions(valid).includes(name)){if(name.startsWith("Kick")){valid.kickEmDeclared=true;action="special:Chainsaw";}else{valid.remainingDeclaration=name;action="move";}}else{valid.kickEmDeclared=false;}
   this.stallCandidate=this.phase==="play"&&this.canScoreWithoutDice(valid)?id:null;
+  if(this.phase==="play")this.turnActionStarted=true;
   const result=super.start(id,action);if(result&&this.phase==="charge")this.eventState.used.push(id);return result;
  }
  canSecure(p){return this.phase==="play"&&super.canSecure(p);}
  canKickTeamMate(p){return this.phase==="play"&&super.canKickTeamMate(p);}
  canBallAction(p,kind){return this.phase==="play"&&super.canBallAction(p,kind);}
- block(a,d){if(this.phase!=="play")return false;const p=this.players.find(p=>p.id===a);if(this.canBlock(p,d)&&this.offerCarryStart(p,()=>this.block(a,d)))return true;this.stallCandidate=p&&this.canScoreWithoutDice(p)?a:null;const target=this.players.find(p=>p.id===d);if(this.canBlock(p,target)&&this.distance(p,target)===2){p.vinesAction=true;}else if(p)p.vinesAction=false;const result=super.block(a,d);if(result&&p.vinesAction)p.vinesHalf=this.half;return result;}
+ block(a,d){if(this.phase!=="play")return false;if(this.canBlock(this.players.find(p=>p.id===a),this.players.find(p=>p.id===d)))this.turnActionStarted=true;const p=this.players.find(p=>p.id===a);if(this.canBlock(p,d)&&this.offerCarryStart(p,()=>this.block(a,d)))return true;this.stallCandidate=p&&this.canScoreWithoutDice(p)?a:null;const target=this.players.find(p=>p.id===d);if(this.canBlock(p,target)&&this.distance(p,target)===2){p.vinesAction=true;}else if(p)p.vinesAction=false;const result=super.block(a,d);if(result&&p.vinesAction)p.vinesHalf=this.half;return result;}
  options(p,kind){const result=[...super.options(p,kind),...this.actionRerollSources(p,kind)];return this.phase==="play"?result:result.filter(s=>s!=="Team");}
  test(p,kind,target,yes,no){if(["Intercept","Bomb interception"].includes(kind)&&this.has(p,"Yoink!")&&!p.yoinkUsed){this.skillChoice("Yoink!",p.team,["Use Yoink!","Keep Yoink!"],option=>{if(option==="Use Yoink!"){p.yoinkUsed=true;this.resolveSkillTest(p,kind,2,yes,no);}else this.normalMatchTest(p,kind,target,yes,no);});return;}this.normalMatchTest(p,kind,target,yes,no);}
  normalMatchTest(p,kind,target,yes,no){if((this.weather==="Blizzard"||this.hasPrayer(1-p.team,"Moles under the Pitch"))&&kind==="Rush")target+=(this.weather==="Blizzard"?1:0)+(this.hasPrayer(1-p.team,"Moles under the Pitch")?1:0);if(this.weather==="Pouring Rain"&&["Pick up","Catch","Intercept","Bomb interception"].includes(kind))target++;super.test(p,kind,target,yes,n=>{if(kind==="Bone Head"&&this.carried?.carrier===p)this.undoCarry();no(n);});}

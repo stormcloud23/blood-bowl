@@ -88,7 +88,7 @@ in Match setup, then **New exhibition match**. Selections apply when you start
 the match. You coach home; the computer coaches the away preset team.
 Choose its speed, pause/resume, or take over its team during the match. This basic
 opponent uses positioning, blocks and Blitzes, plus conservative passing, hand-offs
-and selective fouls. It does not buy optional inducements. League fixtures offer human coaches or computer control of Home, Away, or both teams. All rosters use their current stats and skills, with basic support beyond Humans and Orcs. MVP selection and advancement remain manual. See [computer opponent](docs/COMPUTER.md).
+and selective fouls. For league fixtures, it buys basic inducements using free petty cash, preserves Treasury, and confirms the purchase step automatically. League fixtures offer human coaches or computer control of Home, Away, or both teams. All rosters use their current stats and skills, with basic support beyond Humans and Orcs. MVP selection and advancement remain manual. See [computer opponent](docs/COMPUTER.md).
 
 Computer positioning rewards distinct tackle-zone coverage and all four cage
 corners around its carrier, with diminishing returns for extra nearby players.
@@ -136,3 +136,5 @@ roster data and its tests remain versioned.
 profiles and rules wording; [FFB](https://github.com/christerk/ffb) supplies the
 executable BB2025 comparison baseline. See [third-party notices](THIRD_PARTY_NOTICES.md)
 for attribution and licensing.
+
+Teams & leagues separates team creation/development from league creation, membership, standings and fixtures. Play includes **Concede game** beside New game / reset, with a review before ending the match. Concessions apply the BB2025 score, MVP, winnings, SPP and Dedicated Fans rules, including concessions without penalty when fewer than three players can set up. Player-retention rolls are omitted. All post-game choices remain manual.

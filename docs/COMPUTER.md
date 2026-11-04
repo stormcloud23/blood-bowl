@@ -84,7 +84,7 @@ and enabled skills influence specialist assignments and positioning; see
 [role awareness](AI-ROLE-AWARENESS.md). It chooses
 block dice, pushes, rerolls, interceptions and skill prompts. See
 [the risk policy](AI-RISK-POLICY.md) for the transfer and foul gates. It does not
-throw team-mates, recruit stars, configure staff, buy optional inducements
+throw team-mates, recruit stars, configure staff, purchase advanced inducements such as stars or Wizards
 or intentionally use Wizards. It does not perform deep search or promise
 competitive play. Wider opponent teams and combinations need separate testing.
 
@@ -132,6 +132,6 @@ and roster-combination testing.
 
 In Teams & leagues, choose Fixture control before Play league fixture: two human coaches, Computer controls Home, Away, or both teams. The choice is saved with the active fixture and can be changed when restarting from pre-game.
 
-The same coach evaluates current player profiles, including league advances, injuries and journeymen. Every league roster is available; rosters beyond Humans and Orcs have basic support and may lack specialized tactics. Optional inducements are not purchased automatically. Pause, step and take over remain available; an unsupported decision pauses for takeover.
+The same coach evaluates current player profiles, including league advances, injuries and journeymen. Every league roster is available; rosters beyond Humans and Orcs have basic support and may lack specialized tactics. During league pre-game, the coach handles purchases in CTV order. It prioritizes discounted Master Chefs, re-rolls, Secret Weapon bribes, kegs and medical support, then inexpensive support staff. It spends only free underdog funds, preserves Treasury, and confirms purchases even when no affordable options remain. Stars, mercenaries and Wizards are left to manual play. Pause, step and take over remain available; an unsupported decision pauses for takeover.
 
 Computer control ends at full time. The user selects MVP candidates, records the result and makes every post-game roster and skill advancement decision for both teams.
