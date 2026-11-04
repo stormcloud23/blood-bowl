@@ -1,5 +1,6 @@
 "use strict";
-let computerSession=null,computerTimer=null,computerTimerEpoch=0,computerPaused=false,computerFault="",computerSteps=0;
+var computerSession=null;
+let computerTimer=null,computerTimerEpoch=0,computerPaused=false,computerFault="",computerSteps=0;
 // Use developed league profiles and staff without substituting preset rosters.
 function startLeagueComputer(control){
  cancelComputerTimer();computerSession=null;computerPaused=false;computerFault="";computerSteps=0;
@@ -14,7 +15,7 @@ function inspectingComputerMatch(){return computerSession?.game===game&&computer
 function cancelComputerTimer(){computerTimerEpoch++;if(computerTimer!==null){clearTimeout(computerTimer);computerTimer=null;}}
 function computerProgressKey(){
  const q=game.pending;
- return JSON.stringify([game.phase,game.half,game.drive,game.active,game.turns,game.scores,game.mover,game.action,game.ball,game.rerolls,
+ return JSON.stringify([game.phase,game.half,game.drive,game.active,game.turns,game.scores,game.mover,game.action,game.ball,game.rerolls,game.leaguePurchaseStep,game.resourceChoices,
   q&&[q.type,q.kind,q.team,q.roll,q.options],game.players.map(p=>[p.id,p.x,p.y,p.status,p.used,p.spent,p.distracted])]);
 }
 function advanceComputer(){

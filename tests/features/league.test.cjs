@@ -141,3 +141,49 @@ test('deleted-team flags are validated even on empty drafts',()=>{
 
 test('permanent league deletion releases teams and removes fixture references',()=>{const {s,g,nominations,ts,l}=played();s.finishFixture(g,nominations);for(const t of ts)s.prepareNext(t.id);const before=s.data.teams.map(t=>({id:t.id,gold:t.treasury,record:JSON.stringify(t.record)}));s.deleteLeague(l.id);assert.equal(s.data.leagues.length,0);assert.equal(s.data.matches.length,0);assert.equal(s.data.teams.length,2);for(const item of before){const t=s.team(item.id);assert.equal(t.history.length,0);assert.equal(t.treasury,item.gold);assert.equal(JSON.stringify(t.record),item.record);}assert.doesNotThrow(()=>new LeagueStore(rosters,s.data));});
 test('unfinished linked postgame blocks permanent deletion without partial changes',()=>{const {s,g,nominations,ts,l}=played();s.finishFixture(g,nominations);const before=JSON.stringify(s.data);assert.throws(()=>s.deleteTeam(ts[0].id),/post-game/);assert.throws(()=>s.deleteLeague(l.id),/post-game/);assert.equal(JSON.stringify(s.data),before);});
+
+function conceding(beforeStart=()=>{}){
+ const f=played(beforeStart);f.g.phase='play';f.g.finished=false;f.g.active=0;f.g.turnActionStarted=false;return f;
+}
+test('concession is restricted to the active coach at the start of a turn',()=>{
+ const {g}=conceding();assert.equal(g.canConcede(1),false);g.pending={};assert.equal(g.canConcede(),false);g.pending=null;
+ const p=g.players[0];Object.assign(p,{x:8,y:7,status:'standing'});assert.ok(g.start(p.id));assert.equal(g.canConcede(),false);g.finish();assert.equal(g.canConcede(),false);
+ g.beginTurn(1);assert.equal(g.canConcede(),true);assert.equal(g.concede(0),false);assert.ok(g.concede(1));assert.deepEqual(g.scores,[2,0]);assert.equal(g.concede(0),false);
+});
+test('a direct block closes the concession window even after its activation finishes',()=>{
+ const {g}=conceding(),a=g.players[0],d=g.players.find(p=>p.team===1);Object.assign(a,{x:8,y:7,status:'standing'});Object.assign(d,{x:9,y:7,status:'standing'});
+ assert.ok(g.block(a.id,d.id));assert.equal(g.turnActionStarted,true);
+});
+test('penalized concession applies winnings, fans, two MVPs, current-match SPP loss and allocated touchdown SPP atomically',()=>{
+ const {s,g,nominations}=conceding(({ts})=>{ts[0].staff.dedicatedFans=5;ts[0].players[0].spp=7;});s.dice=sides=>sides;
+ const gold=s.data.teams.map(t=>t.treasury);g.recordStat(g.players[0],'touchdown');g.recordStat(g.players[0],'casualty');g.scores=[1,0];assert.ok(g.concede());
+ const winner=g.players.find(p=>p.team===1);const before=JSON.stringify(s.data);assert.throws(()=>s.finishFixture(g,[[],nominations[1]]),/Assign/);assert.equal(JSON.stringify(s.data),before);
+ const record=s.finishFixture(g,[[],nominations[1]],{touchdownPlayers:[winner.id,winner.id]});
+ assert.deepEqual(record.scores,[0,2]);assert.equal(record.teams[0].winnings,0);assert.equal(record.teams[1].winnings,90000);assert.equal(record.teams[1].mvps.length,2);
+ const [loser,won]=s.data.teams;assert.equal(loser.players[0].spp,7);assert.equal(loser.staff.dedicatedFans,2);assert.equal(loser.treasury,gold[0]);assert.equal(won.treasury,gold[1]+90000);
+ assert.equal(won.players[0].spp,2*g.teamSppAwards(1).touchdown);assert.equal(won.players[5].spp,8);assert.equal(loser.players.length,11);assert.equal(record.concession.withoutPenalty,false);
+ assert.doesNotThrow(()=>new LeagueStore(rosters,s.data));assert.throws(()=>s.finishFixture(g,[[],nominations[1]],{touchdownPlayers:[winner.id,winner.id]}));
+});
+test('concession preserves a higher opposing score, clamps fans and retains advanced players without retention dice',()=>{
+ const {s,g,nominations}=conceding(({s,ts})=>{const p=ts[0].players[0];p.spp=100;for(const skill of ['Block','Tackle','Pro'])s.advance(ts[0].id,p.id,skill);p.spp=5;});
+ const rolls=[];s.dice=sides=>{rolls.push(sides);return sides;};g.scores=[4,3];assert.ok(g.concede());assert.deepEqual(g.scores,[0,3]);assert.equal(g.concession.awardedTouchdowns,0);
+ s.finishFixture(g,[[],nominations[1]]);assert.equal(s.data.teams[0].players[0].advances.length,3);assert.equal(s.data.teams[0].players.length,11);assert.equal(s.data.teams[0].staff.dedicatedFans,1);
+ assert.deepEqual(rolls,[3,6,6,6]);
+});
+test('setup concession without penalty requires fewer than three available players and retains normal rewards and injuries',()=>{
+ const {s,g,nominations}=conceding();g.phase='setup';g.setupTeam=0;assert.equal(g.canConcede(),false);
+ g.players.filter(p=>p.team===0).slice(2).forEach(p=>p.status='casualty');assert.ok(g.canConcede());g.recordStat(g.players[0],'touchdown');
+ g.injuryRecords.push({playerId:g.players[1].id,status:'casualty',selected:{result:'Serious injury',missNext:true}});assert.ok(g.concede());assert.ok(g.concession.withoutPenalty);
+ const winner=g.players.find(p=>p.team===1);const record=s.finishFixture(g,nominations,{touchdownPlayers:[winner.id,winner.id]});
+ assert.equal(record.teams[0].winnings,45000);assert.equal(record.teams[1].winnings,65000);assert.equal(record.teams[0].mvps.length,1);assert.equal(record.teams[1].mvps.length,1);
+ assert.equal(s.data.teams[0].players[0].spp,3);assert.equal(s.data.teams[0].players[1].missNext,true);
+});
+test('computer coaches complete actual league purchases in CTV order, buy within free funds and reach kickoff',()=>{
+ const {ComputerCoach,computerDecisionTeam}=require('../../src/features/computer/computer.cjs');const {s,ts}=setup();const a=s.startFixture(...ts.map(t=>t.id)),g=new MatchGame(a.teams,{dice:(()=>{let state=42;return sides=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return 1+Math.floor(state/4294967296*sides);};})()});const coaches=[new ComputerCoach(0),new ComputerCoach(1)];
+ g.teams[0].ctv=1000000;g.teams[1].ctv=1250000;g.leaguePurchaseOrder=[1,0];
+ for(let n=0;n<100&&g.phase!=='play';n++){assert.ok(coaches[computerDecisionTeam(g)].step(g),'stalled at '+g.phase);}
+ assert.equal(g.phase,'play');assert.equal(g.leaguePurchaseStep,2);assert.ok(g.resourceCosts(0).inducements>0);assert.ok(g.resourceCosts(0).inducements<=250000);assert.equal(g.leagueTreasurySpend(0),0);assert.equal(g.leagueTreasurySpend(1),0);
+});
+test('computer coaches confirm equal-value and unaffordable inducement steps without stalling',()=>{
+ const {ComputerCoach,computerDecisionTeam}=require('../../src/features/computer/computer.cjs');for(const difference of [0,10000]){const {s,ts}=setup(),a=s.startFixture(...ts.map(t=>t.id)),g=new MatchGame(a.teams);g.phase='leagueSteps';g.teams[0].ctv=1000000;g.teams[1].ctv=1000000+difference;g.leaguePurchaseOrder=[1,0];const coaches=[new ComputerCoach(0),new ComputerCoach(1)];for(let n=0;n<2;n++)assert.ok(coaches[computerDecisionTeam(g)].step(g));assert.equal(g.leaguePurchaseStep,2);assert.equal(g.resourceCosts(0).inducements,0);}
+});

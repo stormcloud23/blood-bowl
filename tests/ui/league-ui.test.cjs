@@ -126,3 +126,26 @@ test('backup tools remain last when no live teams exist or the selected roster i
 
 test('league deletion requires a named irreversible confirmation and keeps custom teams',()=>{const f=uiFixture();ready(f);button(f,'Delete League').listeners.click();assert.ok(descendants(f.get('league-panel')).some(e=>e.textContent.includes('cannot be undone')));assert.equal(f.run('leagueStore.data.leagues.length'),1);button(f,'Permanently delete League').listeners.click();assert.equal(f.run('leagueStore.data.leagues.length'),0);assert.equal(f.run('leagueStore.data.teams.length'),2);});
 test('legacy hidden team records can be permanently cleaned without restoration',()=>{const f=uiFixture();input(f,'New team name').value='Old';button(f,'Create rookie team').listeners.click();f.run('leagueStore.data.teams[0].deleted=true;leagueSelected=null;leagueSave();renderLeague()');button(f,'Delete Old').listeners.click();button(f,'Permanently delete Old').listeners.click();assert.equal(f.run('leagueStore.data.teams.length'),0);});
+
+test('team creation and development are separate from league management and fixture controls',()=>{
+ const f=uiFixture();ready(f);const team=descendants(f.get('league-panel')).find(e=>e.id==='team-management-block'),league=descendants(f.get('league-panel')).find(e=>e.id==='league-management-block');
+ assert.notEqual(team,league);const teamText=descendants(team).map(e=>e.textContent),leagueText=descendants(league).map(e=>e.textContent);
+ assert.ok(teamText.includes('Create a team'));assert.ok(teamText.includes('Hire player'));assert.ok(!teamText.includes('Create league'));assert.ok(!teamText.includes('Play league fixture'));
+ assert.ok(leagueText.includes('Create league'));assert.ok(leagueText.includes('Play league fixture'));assert.ok(!leagueText.includes('Hire player'));
+});
+test('concession postgame leaves MVP and awarded touchdown choices to the user and preserves choices across rerenders',()=>{
+ const f=uiFixture();ready(f);button(f,'Play league fixture').listeners.click();f.run('game.players.forEach(p=>p.fieldedDrive=1);game.phase="play";game.active=0;game.finished=false;game.concede();render()');
+ const nominees=descendants(f.get('league-panel')).filter(e=>e.type==='checkbox');assert.equal(nominees.length,11);assert.equal(button(f,'Roll MVPs and save match result').disabled,true);
+ const winner=f.run('game.players.find(p=>p.team===1).id');for(const n of [1,2]){const field=input(f,'Awarded touchdown '+n+' SPP');field.value=winner;field.listeners.change();}
+ for(const field of nominees.slice(0,6)){field.checked=true;field.listeners.change();}assert.equal(button(f,'Roll MVPs and save match result').disabled,false);
+ f.run('renderLeague()');assert.equal(input(f,'Awarded touchdown 1 SPP').value,winner);assert.equal(descendants(f.get('league-panel')).filter(e=>e.type==='checkbox'&&e.checked).length,6);
+ assert.equal(f.run('leagueStore.data.matches.length'),0);f.run('leagueStore.dice=sides=>sides');button(f,'Roll MVPs and save match result').listeners.click();assert.equal(f.run('leagueStore.data.matches.length'),1);assert.equal(f.run('leagueStore.data.matches[0].teams[1].mvps.length'),2);
+});
+
+test('league entry lives in the league management block and persists the selected submitted team',()=>{
+ const f=uiFixture();f.run('globalThis.club=leagueStore.create("human","Independent");for(let n=0;n<11;n++)leagueStore.hire(club.id,0);leagueStore.submit(club.id);globalThis.competition=leagueStore.createLeague("New League");leagueSave();renderLeague()');
+ const league=descendants(f.get('league-panel')).find(e=>e.id==='league-management-block'),team=descendants(f.get('league-panel')).find(e=>e.id==='team-management-block');
+ assert.ok(descendants(league).some(e=>e.textContent==='Enter submitted team'));assert.ok(!descendants(team).some(e=>e.textContent==='Enter submitted team'));
+ button(f,'Enter submitted team').listeners.click();assert.equal(f.run('leagueStore.data.leagues[0].teamIds[0]'),f.run('club.id'));
+ const reload=uiFixture('match',f.storage.get('blood-bowl-leagues-v1'));assert.equal(reload.run('leagueStore.data.leagues[0].teamIds.length'),1);
+});

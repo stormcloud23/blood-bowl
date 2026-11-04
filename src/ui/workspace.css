@@ -144,3 +144,7 @@ main>aside #matchflow .control{max-width:100%}
 .roster-tier{margin-top:24px}.roster-tier>h2{margin-bottom:12px}.roster-tier article{margin-bottom:8px}.roster-details>summary{cursor:pointer;font-size:18px;font-weight:700}.roster-details>summary:focus-visible{outline:2px solid #e9bb69;outline-offset:5px}.roster-content{padding-top:12px}
 
 .square.kick-deviation{background:linear-gradient(#f5df3299,#f5df3299) var(--turf)}
+
+.league-workspace-block{border:1px solid #526970;border-radius:10px;padding:18px;margin:20px 0;background:#14252a}.league-workspace-block>h2{margin-top:0}.match-reset{display:flex;flex-wrap:wrap;gap:10px}.concession-review{border:1px solid #bc786b;padding:14px;margin:12px 0;border-radius:8px}
+
+.league-creation{display:block}.league-workspace-block>.league-creation{margin-bottom:20px}.league-workspace-block label{max-width:100%}#concede{min-height:44px}

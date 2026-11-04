@@ -13,6 +13,7 @@ function computerDecisionTeam(g){
   if(q.kind==="Stand Firm")return b?.target.team;
   return g.players.find(p=>p.id===g.mover)?.team??b?.attacker.team??g.active;
  }
+ if(g.league&&g.phase==="leagueSteps"&&g.leaguePurchaseStep<g.leaguePurchaseOrder.length)return g.leaguePurchaseOrder[g.leaguePurchaseStep];
  if(g.bombActor?.())return g.bombActor().team;
  if(g.phase==="kickChoice")return g.rolloffWinner;
  if(g.phase==="setup")return g.setupTeam;
@@ -398,6 +399,21 @@ class ComputerCoach {
   }
   return best;
  }
+ buyInducements(g){
+  // Spend only the underdog's free allowance; never commit league treasury.
+  const team=this.team,diff=g.teams[1-team].ctv-g.teams[team].ctv;
+  const allowance=diff>0?diff+g.resourceCosts(1-team).inducements:0;
+  const buy=key=>{
+   const spec=g.resourceSpec(team,key),value=g.resourceChoices[team][key]+1;
+   return value<=spec.max&&g.resourceCosts(team).inducements+spec.cost<=allowance&&g.setResource(team,key,value);
+  };
+  const choices=[...(g.resourceSpec(team,"masterChef").cost===100000?["masterChef"]:[]),
+   ...(g.resourceChoices[team].teamRerolls<3?["extraTraining"]:[]),
+   ...(g.players.some(p=>p.team===team&&g.has(p,"Secret Weapon"))?["bribes"]:[]),
+   "kegs","wanderingApothecaries","mortuaryAssistants","plagueDoctors","extraTraining","mascots","kegs","tempCoaches","tempCheerleaders"];
+  for(const key of choices)if(buy(key))return this.act(g,"Buy "+g.resourceSpec(team,key).label,()=>true);
+  return this.act(g,"Confirm inducements and preserve treasury",()=>g.lockLeagueInducements(team));
+ }
  step(g){
   if(g.phase==="finished"||computerDecisionTeam(g)!==this.team)return false;
   if(g.pending)return this.decide(g);
@@ -412,6 +428,7 @@ class ComputerCoach {
    }
    return best?this.act(g,"Rethrow the caught bomb",()=>g.throwBomb(best.x,best.y)):false;
   }
+  if(g.league&&g.phase==="leagueSteps"&&g.leaguePurchaseStep<g.leaguePurchaseOrder.length)return this.buyInducements(g);
   if(["fans","weather","leagueSteps","rolloff"].includes(g.phase))return this.act(g,"Continue pre-game",()=>g.advancePregame());
   if(g.phase==="kickChoice")return this.act(g,"Choose to receive",()=>g.chooseKicking(1-this.team));
   if(g.phase==="setup")return this.act(g,"Confirm a legal formation",()=>{if(g.setupErrors().length)g.autoSetup();return g.confirmSetup();});
