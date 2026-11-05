@@ -296,7 +296,7 @@ test('blitz preview cancels and retargets without spending the team blitz',()=>{
  const f=proneFixture();f.run("prone.status='standing';globalThis.enemies=game.players.filter(p=>p.team===1).slice(0,2);enemies.forEach((p,i)=>Object.assign(p,{x:11,y:6+i*2,status:'standing'}));selected=prone.id;render();");
  f.cell(11,6).click();f.cell(11,8).click();assert.equal(f.run('destination.blitzTarget===enemies[1].id'),true);f.key('Escape');assert.equal(f.run('destination'),null);assert.equal(f.run('game.blitzUsed[0]'),false);assert.equal(f.run('rollCount'),0);
 });
-test('a declared Blitz lets the coach take a custom route and block once adjacent',()=>{
+for(const commit of ['target click','Blitz Block button'])test('a declared Blitz follows a custom route and blocks via '+commit,()=>{
  const f=adjacentBlockFixture();
  f.run('enemy.x=12;game.ball={x:0,y:0,carrier:null};render();');
  const choice=label=>f.get('choices').querySelectorAll('button').find(b=>b.textContent===label);
@@ -310,11 +310,16 @@ test('a declared Blitz lets the coach take a custom route and block once adjacen
  f.cell(8,6).click();
  f.cell(11,6).click();
  assert.equal(f.run('destination.path[0].x===8&&destination.path[0].y===6'),true);
- choice('Confirm Move').click();
- assert.equal(f.run('prone.x===11&&prone.y===6&&prone.spent===4'),true);
- assert.equal(f.run('game.blitzBlocked'),false);
- assert.equal(f.run('rollCount'),0);
- choice('Blitz Block (1 MA)').click();
+ if(commit==='target click'){
+  assert.match(f.cell(12,7).dataset.hint,/follow the planned route and Blitz/);
+  f.cell(12,7).click();
+ }else{
+  choice('Confirm Move').click();
+  assert.equal(f.run('game.blitzBlocked'),false);
+  assert.equal(f.run('rollCount'),0);
+  choice('Blitz Block (1 MA)').click();
+ }
+ assert.equal(f.run('prone.x===11&&prone.y===6'),true);
  assert.equal(f.run('prone.spent'),5);
  assert.equal(f.run('game.pending.type'),'blockSelect');
 });
