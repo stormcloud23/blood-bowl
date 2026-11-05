@@ -289,8 +289,12 @@ function choose(x,y,pushDecision=game.pending){
  }
  if(blockMode){
   const attacker=game.players.find(p=>p.id===selected);
-  if(blockMode==="blitz"&&p&&game.canBlitz(attacker,p)){previewBlitz(attacker,p);return;}
-  if(blockMode!=="blitz"&&p&&game.canBlock(attacker,p)){game.block(attacker.id,p.id);blockMode=false;destination=null;render();}
+  if(blockMode==="blitz"){
+   if(p&&game.canBlitz(attacker,p)){matchRun(()=>game.startBlitz(attacker.id,p.id));}
+   else selection.textContent="Choose a highlighted Blitz target.";
+   return;
+  }
+  if(p&&game.canBlock(attacker,p)){game.block(attacker.id,p.id);blockMode=false;destination=null;render();}
   else selection.textContent="Choose a highlighted Standing opponent next to the selected player.";
   return;
  }
@@ -415,8 +419,9 @@ function render(){
  const routePlans=new Map((chosen?.path||[]).map(step=>[routeKey(step.x,step.y),step.plan]));
  pitch.replaceChildren();
  for(let y=0;y<15;y++)for(let x=0;x<26;x++){
-  const p=game.at(x,y),reach=range.get(routeKey(x,y)),plan=routePlans.get(routeKey(x,y))||reach?.path.at(-1)?.plan,cell=document.createElement("button"),routeIndex=routeIndices.get(routeKey(x,y)),blockTarget=!!(p&&(p.id===chosen?.blitzTarget||p.id===chosen?.blockTarget))||!!(blockAttacker&&p&&(blockMode==="blitz"?game.canBlitz(blockAttacker,p):game.canBlock(blockAttacker,p)));
-  const blockForecast=blockTarget?blockDifficulty(blockAttacker||planner,p,chosen||(blockMode==="blitz"?blitzRoute(blockAttacker,p):null),!!chosen?.blitzTarget||blockMode==="blitz"):null;
+  const p=game.at(x,y),reach=range.get(routeKey(x,y)),plan=routePlans.get(routeKey(x,y))||reach?.path.at(-1)?.plan,cell=document.createElement("button"),routeIndex=routeIndices.get(routeKey(x,y)),blockTarget=!!(p&&(p.id===chosen?.blitzTarget||p.id===chosen?.blockTarget))||!!(blockAttacker&&p&&blockMode===true&&game.canBlock(blockAttacker,p));
+  const blitzTarget=p&&(blockMode==="blitz"?game.canBlitz(blockAttacker,p):game.action==="blitz"&&!game.blitzBlocked&&p.id===game.blitzTarget);
+  const blockForecast=blockTarget?blockDifficulty(blockAttacker||planner,p,chosen,!!chosen?.blitzTarget):null;
   const checks=plan&&planner?planChecks(plan,planner):[],risky=checks.length>0;
   cell.type="button";cell.className="square"+((x+y)%2===0?" turf-light":"")+(x===0?" endzone endzone-left":x===25?" endzone endzone-right":"")+(x===12?" middle":"")+(y===3||y===10?" wide":"")+(p&&p.id===(game.moveContext?.player.id??selected)&&(!onTheBall||onTheBall.players.has(p.id))?" selected":"")+(reach&&reach.path.length||routeIndex?" legal":"")+(risky?" risk risk-"+Math.max(...checks.map(check=>Number(check.match(/([2-6])\+/)?.[1]||2))):"")+(plan?.jump?" jump":"")+(routeIndex?" route":"")+(destination?.x===x&&destination?.y===y?" destination":"")+(blockTarget?" block-target risk risk-"+blockForecast.risk:"");
   if(p&&p.id===chosen?.foulTarget){
@@ -431,6 +436,7 @@ function render(){
   const label=p?teams[p.team].name+" #"+p.number+" "+playerLabel(p)+" ("+p.status+(p.distracted?", distracted":"")+(p.used?", activated":"")+")":"empty";
   const ballHere=game.ball.carrier?p?.id===game.ball.carrier:game.ball.x===x&&game.ball.y===y;
   cell.setAttribute("aria-label","Square "+(x+1)+", "+(y+1)+", "+label+(ballHere?", ball":"")+(routeIndex?", route step "+routeIndex:""));cell.title=blockTarget?"Valid Block target · "+label:routeIndex?"Route step "+routeIndex+" of "+chosen.path.length+" · "+label:reach?.path.length?"Reachable in "+reach.spent+" movement · "+label:label;
+  if(blitzTarget){cell.className+=" block-target";cell.title="Blitz target · "+label;cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", Blitz target");}
   if(p&&p.id===chosen?.foulTarget){const detail="Foul target · Armour "+foulArmour(p);cell.title+=" · "+detail;cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+detail);}
   if(blockForecast){cell.title+=" · "+blockForecast.detail;cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+blockForecast.detail);cell.dataset.blockDifficulty=String(blockForecast.risk);}
   if(plan){const detail=checks.length?checks.join(" → "):"no roll on this step";cell.title+=" · "+detail;cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+detail);}
@@ -473,6 +479,7 @@ function render(){
  if(game.moveContext)movement.textContent="#"+game.moveContext.player.number+" · On the Ball · "+game.moveContext.player.spent+" / 3 squares";
  const choices=document.getElementById("choices");choices.replaceChildren();
  if(blockMode)choices.append(button(blockMode==="blitz"?"Cancel Blitz targeting":"Cancel Block targeting",()=>{blockMode=false;render();}));
+ if(game.canBlitzBlock())choices.append(button("Blitz Block (1 MA)",()=>document.getElementById("block").click()));
  if(chosen?.foulTarget){const target=game.players.find(p=>p.id===chosen.foulTarget),detail=document.createElement("p");detail.textContent="Foul #"+target.number+" · AV "+foulArmour(target);choices.append(detail);}
  if(chosen?.ballAction){
   const target=ballBoard.players.find(p=>p.id===chosen.ballTarget),overlay=throwingOverlay(target.x,target.y,ballBoard,true),detail=document.createElement("p");
