@@ -472,6 +472,7 @@ function render(){
  movement.textContent=(game.blockAction?blockLabel(game.blockAction.count,game.blockAction.chooserTeam===game.blockAction.attacker.team):mover?"#"+mover.number+" · MA "+mover.spent+" / "+game.movementAllowance(mover)+" · Rush "+Math.max(0,mover.spent-game.profile(mover).ma)+" / "+game.rushLimit(mover):planner?"#"+planner.number+" · MA "+game.profile(planner).ma+" · Rush "+game.rushLimit(planner):"")+(planner||mover||game.blockAction?" · ":"")+"Re-rolls: "+game.rerollsAvailable(game.active)+(game.action==="blitz"?" · Blitz #"+game.players.find(p=>p.id===game.blitzTarget)?.number+(game.blitzBlocked?" · block completed":""):"");
  if(game.moveContext)movement.textContent="#"+game.moveContext.player.number+" · On the Ball · "+game.moveContext.player.spent+" / 3 squares";
  const choices=document.getElementById("choices");choices.replaceChildren();
+ if(blockMode)choices.append(button(blockMode==="blitz"?"Cancel Blitz targeting":"Cancel Block targeting",()=>{blockMode=false;render();}));
  if(chosen?.foulTarget){const target=game.players.find(p=>p.id===chosen.foulTarget),detail=document.createElement("p");detail.textContent="Foul #"+target.number+" · AV "+foulArmour(target);choices.append(detail);}
  if(chosen?.ballAction){
   const target=ballBoard.players.find(p=>p.id===chosen.ballTarget),overlay=throwingOverlay(target.x,target.y,ballBoard,true),detail=document.createElement("p");
@@ -680,7 +681,7 @@ document.getElementById("block").addEventListener("click",()=>{if(game.action===
 document.getElementById("blitz").addEventListener("click",()=>{blockMode=blockMode==="blitz"?false:"blitz";destination=null;render();});
 document.getElementById("secure").addEventListener("click",()=>{game.start(selected,"secure");destination=null;render();});
 document.getElementById("finish").addEventListener("click",()=>{game.finish();destination=null;render();});
-document.getElementById("end").addEventListener("click",()=>{game.endTurn();destination=null;selected=null;render();});
+document.getElementById("end").addEventListener("click",()=>matchRun(()=>{game.endTurn();selected=null;}));
 document.getElementById("reset").addEventListener("click",()=>reset());
 document.getElementById("scenario").addEventListener("change",()=>reset());
 renderRosters();renderRulesReference();renderSkillCoverage();reset();

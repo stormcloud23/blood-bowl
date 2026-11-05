@@ -594,6 +594,30 @@ for(const kind of ['move','blitz','active move'])test('clicking the acting playe
 function adjacentBlockFixture(){
  const f=proneFixture();f.run("prone.status='standing';globalThis.enemy=game.players.find(p=>p.team===1);Object.assign(enemy,{x:9,y:7,status:'standing'});enemy.profileOverride={...game.profile(prone),skills:[]};selected=prone.id;render();");return f;
 }
+for(const mode of ['block','blitz'])test('ending a turn while targeting '+mode+' lets both coaches act',()=>{
+ const f=adjacentBlockFixture();
+ f.get(mode).click();
+ assert.ok(f.run('blockMode'));
+ f.get('end').click();
+ assert.equal(f.run('game.active'),1);
+ for(const [x,player] of [[9,'enemy'],[8,'prone']]){
+  f.cell(x,7).click();
+  assert.equal(f.run('selected'),f.run(player+'.id'));
+  f.get('start').click();
+  assert.equal(f.run('game.mover'),f.run(player+'.id'));
+  f.get('end').click();
+ }
+});
+for(const [id,name] of [['block','Block'],['blitz','Blitz']])test('coach desk can cancel '+name+' targeting before committing',()=>{
+ const f=adjacentBlockFixture();
+ f.get(id).click();
+ f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Cancel '+name+' targeting').click();
+ assert.equal(f.run('blockMode'),false);
+ assert.equal(f.run('selected'),f.run('prone.id'));
+ assert.equal(f.run('prone.used'),false);
+ assert.equal(f.run('rollCount'),0);
+ assert.ok(f.cell(7,7).className.includes('legal'));
+});
 test('adjacent opponent defaults to a two-click regular block without spending Blitz',()=>{
  const f=adjacentBlockFixture();f.cell(9,7).click();assert.equal(f.run('destination.blockTarget===enemy.id'),true);assert.ok(f.cell(9,7).className.includes('block-target'));assert.equal(f.run('selected===prone.id'),true);assert.equal(f.run('game.mover'),null);assert.equal(f.run('prone.used'),false);assert.equal(f.run('rollCount'),0);assert.equal(f.run('game.blitzUsed[0]'),false);
  f.cell(9,7).click();assert.equal(f.run('game.pending.type'),'blockSelect');assert.equal(f.run('game.blitzUsed[0]'),false);assert.equal(f.run('game.action'),'block');assert.equal(f.run('destination'),null);
