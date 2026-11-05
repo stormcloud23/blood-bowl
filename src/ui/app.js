@@ -157,6 +157,13 @@ function previewBlitz(player,target){
  const start=plannedStart(player),route=blitzRoute(player,target);if(!route)return;
  destination={...route,blitzTarget:target.id,playerId:player.id,startX:start.x,startY:start.y,startSpent:start.spent};blockMode=false;render();
 }
+function canCommitBlitzRoute(player,route,target){
+ return !!(game.action==="blitz"&&!game.pending&&!game.blitzBlocked&&player&&player.id===game.mover&&route?.path.length&&target&&target.id===game.blitzTarget&&game.onPitch(target)&&game.blitzTargetLegal(player,target)&&game.distance(route,target)===1&&route.spent<game.profile(player).ma+game.rushLimit(player));
+}
+function executeBlitzRoute(player,route){
+ blitzExecution={game,playerId:player.id,path:route.path,index:0,x:player.x,y:player.y};
+ destination=null;continueBlitz();render();
+}
 function continueBlitz(){
  const run=blitzExecution;if(!run)return;
  if(run.game!==game||game.finished||game.mover!==run.playerId||game.action!=="blitz"||game.blitzBlocked){blitzExecution=null;return;}
@@ -345,7 +352,7 @@ function commitRoute(){
  if(route.blockTarget){destination=null;game.block(player.id,route.blockTarget);render();return;}
  if(route.blitzTarget){
   if(!game.startBlitz(player.id,route.blitzTarget))return;
-  blitzExecution={game,playerId:player.id,path:route.path,index:0,x:player.x,y:player.y};destination=null;continueBlitz();render();return;
+  executeBlitzRoute(player,route);return;
  }
  if(!game.mover){if(!game.start(player.id,"move"))return;if(game.pending||game.mover!==player.id||game.finished){destination=null;render();return;}}
  for(const next of route.path){
@@ -436,7 +443,7 @@ function render(){
   const label=p?teams[p.team].name+" #"+p.number+" "+playerLabel(p)+" ("+p.status+(p.distracted?", distracted":"")+(p.used?", activated":"")+")":"empty";
   const ballHere=game.ball.carrier?p?.id===game.ball.carrier:game.ball.x===x&&game.ball.y===y;
   cell.setAttribute("aria-label","Square "+(x+1)+", "+(y+1)+", "+label+(ballHere?", ball":"")+(routeIndex?", route step "+routeIndex:""));cell.title=blockTarget?"Valid Block target · "+label:routeIndex?"Route step "+routeIndex+" of "+chosen.path.length+" · "+label:reach?.path.length?"Reachable in "+reach.spent+" movement · "+label:label;
-  if(blitzTarget){cell.className+=" block-target";cell.title="Blitz target · "+label;cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", Blitz target");}
+  if(blitzTarget){const detail=canCommitBlitzRoute(planner,chosen,p)?"Click to follow the planned route and Blitz":"Blitz target";cell.className+=" block-target";cell.title=detail+" · "+label;cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+detail);}
   if(p&&p.id===chosen?.foulTarget){const detail="Foul target · Armour "+foulArmour(p);cell.title+=" · "+detail;cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+detail);}
   if(blockForecast){cell.title+=" · "+blockForecast.detail;cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+blockForecast.detail);cell.dataset.blockDifficulty=String(blockForecast.risk);}
   if(plan){const detail=checks.length?checks.join(" → "):"no roll on this step";cell.title+=" · "+detail;cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+detail);}

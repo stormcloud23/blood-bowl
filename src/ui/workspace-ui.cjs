@@ -152,6 +152,10 @@ choose=function(x,y,pushDecision=game.pending){
  }
  // Clicking the route's actor returns directly to their normal range forecast.
  const planner=planningPlayer();
+ if(!wasTargeting&&target){
+  const route=previewRoute(planner);
+  if(canCommitBlitzRoute(planner,route,target)){executeBlitzRoute(planner,route);return;}
+ }
  if(!target&&actor&&!wasTargeting&&(!game.match||["play","charge"].includes(phase))){
   const previous=actor===planner?previewRoute(planner):null,range=actor===planner?remainingRange(planner,previous):new Map();
   const routeSquare=previous?.path.some(step=>step.x===x&&step.y===y);
@@ -254,6 +258,10 @@ function refreshWorkspace(){
  const hint=document.getElementById("pitch-hint");
  hint.textContent=pendingPitchChoices().length?"Click a highlighted pitch target to resolve "+game.pending.kind+".":game.pending?"Decision required — resolve the coach’s desk before continuing.":blockMode==="blitz"?"Choose a highlighted Blitz target, then plan your own movement. Escape cancels targeting.":blockMode?"Click a highlighted opponent to declare the action. Escape cancels targeting.":ballMode?"Click a highlighted target to preview; click it again to commit. Escape returns to movement.":destination?.blockTarget?"Block preview: click the highlighted target again to block, or your player to cancel. Choose Declare Blitz to block and move.":destination?.blitzTarget?"Blitz preview: click the highlighted target again to move and block. Escape clears the preview.":destination?"Click another highlighted square to extend the route, then Confirm Move or repeat the destination to commit. Escape clears the preview.":game.action==="blitz"&&!game.blitzBlocked?"Move toward the declared target, then choose Blitz Block (1 MA) when adjacent.":game.match&&game.phase==="setup"?"Select a player, then click an empty square to move or a team-mate to swap. Select reserves from Dugouts or the roster.":"Click a player for legal actions. Player details are in the coach’s desk profile.";
  if(kickTargetSelection())hint.textContent="Aim in the highlighted "+(game.ownHalf(game.receiving,0)?"left":"right")+" half ("+teams[game.receiving].name+"). Click once to preview; click the same square again to kick.";
+ if(game.action==="blitz"&&destination){
+  const player=planningPlayer(),target=game.players.find(p=>p.id===game.blitzTarget);
+  if(canCommitBlitzRoute(player,previewRoute(player),target))hint.textContent="Click the declared Blitz target to follow your planned route and block.";
+ }
 
  if(game.match&&game.phase==="swarming")hint.textContent="Swarming: select a reserve Lineman in the coach panel, then place them in an empty square in their own half.";
  const direction=document.getElementById("pitch-direction"),attacksRight=i=>game.match?game.right(i):i===0;direction.textContent=teams.map((team,i)=>team.name+" "+(attacksRight(i)?"→":"←")).join(" · ");direction.setAttribute("aria-label",teams.map((team,i)=>team.name+" attacks "+(attacksRight(i)?"right":"left")).join("; "));
