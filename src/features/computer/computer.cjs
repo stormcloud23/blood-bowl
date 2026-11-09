@@ -27,7 +27,8 @@ class ComputerCoach {
  strategy(g){
   const carrier=g.players.find(p=>p.id===g.ball.carrier),turn=g.turns[this.team]||1,lead=g.scores[this.team]-g.scores[1-this.team];
   const mustSteal=g.half===2&&lead<0&&turn>=5;
-  return {carrier,turn,lead,mustSteal,holdLine:!!carrier&&carrier.team!==this.team&&!mustSteal,urgentScore:g.half===2&&lead<0&&turn>=5};
+  const urgentScore=lead<=0&&turn>=5||g.half===2&&lead<0&&turn>=3;
+  return {carrier,turn,lead,mustSteal,holdLine:!!carrier&&carrier.team!==this.team&&!mustSteal,urgentScore};
  }
  importantAction(g,p,target=null){
   const carrier=g.players.find(q=>q.id===g.ball.carrier);
@@ -49,14 +50,19 @@ class ComputerCoach {
   if(action==="block"&&p.status==="prone")chance*=this.checkChance(g,Math.max(2,Number.parseInt(g.profile(p).ag)-1));
   return chance;
  }
- routeChance(g,p,route,context){
+ routeChance(g,p,route,context,{teamReroll=false}={}){
   // Probability mass tracks whether once-per-activation Dodge/Sure Feet is
-  // still available. Team re-rolls are deliberately not assumed by planning.
-  const initial=(g.skill(p,"Dodge")&&!p.dodgeUsed?1:0)|(g.skill(p,"Sure Feet")&&!g.used(p,"Sure Feet")?2:0);
-  let states=[0,0,0,0];states[initial]=1;let pickedUp=false;
-  const check=(target,bit=0,free=false)=>{
-   const pass=this.checkChance(g,target),next=[0,0,0,0];
-   states.forEach((mass,mask)=>{next[mask]+=mass*pass;if(free)next[mask]+=mass*(1-pass)*pass;else if(mask&bit)next[mask^bit]+=mass*(1-pass)*pass;});states=next;
+  // still available. A scoring forecast can also budget one team re-roll.
+  const initial=(g.skill(p,"Dodge")&&!p.dodgeUsed?1:0)|(g.skill(p,"Sure Feet")&&!g.used(p,"Sure Feet")?2:0)|(teamReroll?4:0);
+  let states=Array(teamReroll?8:4).fill(0);states[initial]=1;let pickedUp=false;
+  const check=(target,bit=0,free=false,allowTeam=true)=>{
+   const pass=this.checkChance(g,target),next=Array(states.length).fill(0);
+   states.forEach((mass,mask)=>{
+    next[mask]+=mass*pass;
+    const source=mask&bit?bit:allowTeam?mask&4:0;
+    if(free)next[mask]+=mass*(1-pass)*pass;
+    else if(source)next[mask^source]+=mass*(1-pass)*pass;
+   });states=next;
   };
   for(const step of route.path){
    const plan=step.plan||g.planFrom(p,step.x,step.y,step.fromX??p.x,step.fromY??p.y,0);if(!plan)return 0;
@@ -69,7 +75,7 @@ class ComputerCoach {
     states=states.map(m=>m*(1-held));
    }
    for(let i=0;i<plan.rushes;i++)check(g.forecastTarget(p,"Rush",2),2);
-   if(g.onTrapdoor?.({x:step.x,y:step.y}))check(2);
+   if(g.onTrapdoor?.({x:step.x,y:step.y}))check(2,0,false,false);
    if(plan.pickup&&!pickedUp){check(g.forecastTarget(p,"Pick up",Number.parseInt(g.profile(p).ag)+g.markingAt(p,step.x,step.y)),0,g.skill(p,"Sure Hands"));pickedUp=true;}
   }
   return states.reduce((a,b)=>a+b,0);
@@ -81,7 +87,9 @@ class ComputerCoach {
   const count=a===d?1:Math.max(a,d)>2*Math.min(a,d)?3:2,own=a>=d;
   const wrestle=view.skill(actor,"Wrestle")&&g.ball.carrier!==p.id,safeBoth=view.skill(actor,"Block")||wrestle||blitz&&view.skill(actor,"Juggernaut");
   const bad=safeBoth?1/6:2/6,knock=(1+Number(!view.skill(victim,"Dodge")||view.skill(actor,"Tackle"))+Number(view.skill(actor,"Block")&&!view.skill(victim,"Block")||wrestle))/6;
-  return {count,own,failure:own?bad**count:1-(1-bad)**count,knockdown:own?1-(1-knock)**count:knock**count};
+  const knockdown=own?1-(1-knock)**count:knock**count;
+  const mutualFall=own&&!safeBoth&&!view.skill(victim,"Block")?(2/6)**count-(1/6)**count:0;
+  return {count,own,failure:own?bad**count:1-(1-bad)**count,knockdown,sack:knockdown+mutualFall};
  }
  blockValue(g,b,face){
   const a=b.attacker,d=b.target,both=g.skill(a,"Block")?(g.skill(d,"Block")?1:7):g.skill(a,"Wrestle")&&g.ball.carrier!==a.id?(g.ball.carrier===d.id?8:2):-7;
@@ -102,8 +110,21 @@ class ComputerCoach {
   }
   if(q.type==="pushChoice"){
    const own=q.target.team===this.team;
-   const score=pos=>pos.standFirm?(own?100:-100):!g.inside(pos.x,pos.y)?(own?-100:100):(own?1:-1)*(g.right(this.team)?pos.x:25-pos.x)-g.markingAt(q.target,pos.x,pos.y)*(own?3:-1);
-   const pos=[...q.options].sort((a,b)=>score(b)-score(a))[0];
+   const carrier=g.players.find(p=>p.id===g.ball.carrier&&p.team===this.team&&!p.used);
+   const lane=carrier&&!own&&g.distance(carrier,q.target)<=g.movementAllowance(carrier)+2?this.projectedRunner(g,carrier,carrier):null;
+   const score=pos=>{
+    if(pos.standFirm)return own?100:-100;
+    if(!g.inside(pos.x,pos.y))return own?-100:100;
+    let value=(own?1:-1)*(g.right(this.team)?pos.x:25-pos.x)-g.markingAt(q.target,pos.x,pos.y)*(own?3:-1);
+    if(lane&&!g.at(pos.x,pos.y)){
+     const target=lane.view.players.find(p=>p.id===q.target.id);
+     Object.assign(target,{x:pos.x,y:pos.y});
+     const outlook=this.forwardOutlook(lane.view,lane.runner);
+     value+=outlook.progress*3+outlook.scoring*36;
+    }
+    return value;
+   };
+   const pos=q.options.map(pos=>({pos,score:score(pos)})).sort((a,b)=>b.score-a.score)[0].pos;
    return this.act(g,own?"Choose a safe push destination":"Push the opponent back",()=>{q.resolve(pos);return true;});
   }
   if(q.type!=="custom"){
@@ -174,18 +195,27 @@ class ComputerCoach {
  // budget. No jumping or speculative match cloning is needed for this policy.
  routes(g,p){
   const spent=g.mover===p.id?p.spent:p.status==="prone"?g.standCost(p):0;
-  const origin={x:p.x,y:p.y,spent,risk:0,path:[]},queue=[origin],states=new Map(),best=new Map();
-  states.set(p.x+","+p.y+","+spent,0);best.set(p.x+","+p.y,origin);
+  const goal=g.right(p.team)?25:0;
+  const forecastRecovery=!g.ball.carrier&&g.inside(g.ball.x,g.ball.y)&&Math.abs(goal-g.ball.x)<=g.movementAllowance(p)+g.rushLimit(p);
+  const scoringContext=g.ball.carrier===p.id&&Math.abs(goal-p.x)<=g.movementAllowance(p)+g.rushLimit(p)?this.positionContext(g,p):null;
+  const origin={x:p.x,y:p.y,spent,risk:0,path:[],pickedUp:false},queue=[origin],states=new Map(),best=new Map();
+  const originKey=p.x+","+p.y+",false";
+  states.set(originKey+","+spent,0);best.set(originKey,origin);
   for(let i=0;i<queue.length;i++){
    const n=queue[i];if(n.spent>=g.movementAllowance(p)+g.rushLimit(p))continue;
    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){
     if(!dx&&!dy)continue;
     const plan=g.planFrom(p,n.x+dx,n.y+dy,n.x,n.y,n.spent);if(!plan)continue;
-    const risk=n.risk+plan.rushes*1.4+(plan.dodge?Math.max(1,plan.target-1)*1.5:0)+(plan.pickup?Math.max(1,Number.parseInt(g.profile(p).ag)-1):0);
-    const next={x:plan.x,y:plan.y,spent:n.spent+plan.cost,risk,path:n.path.concat({x:plan.x,y:plan.y,fromX:n.x,fromY:n.y,plan})},key=next.x+","+next.y,state=key+","+next.spent;
-    if(states.has(state)&&states.get(state)<=risk)continue;
-    states.set(state,risk);queue.push(next);
-    const old=best.get(key);if(!old||risk*4+next.spent<old.risk*4+old.spent)best.set(key,next);
+    const pickedUp=n.pickedUp||plan.pickup;
+    const risk=n.risk+plan.rushes*1.4+(plan.dodge?Math.max(1,plan.target-1)*1.5:0)+(plan.pickup&&(!forecastRecovery||!n.pickedUp)?Math.max(1,Number.parseInt(g.profile(p).ag)-1):0);
+    const next={x:plan.x,y:plan.y,spent:n.spent+plan.cost,risk,path:n.path.concat({x:plan.x,y:plan.y,fromX:n.x,fromY:n.y,plan}),pickedUp,recoveryRun:pickedUp&&forecastRecovery},key=next.x+","+next.y+","+next.recoveryRun,state=key+","+next.spent;
+    // Near the end zone, compare paths by their actual chance of getting there.
+    if(scoringContext)next.failure=risk===0&&!next.path.some(step=>g.onTrapdoor?.(step))?0:1-this.routeChance(g,p,next,scoringContext);
+    const cost=scoringContext?next.failure:risk;
+    if(states.has(state)&&states.get(state)<=cost)continue;
+    states.set(state,cost);queue.push(next);
+    const old=best.get(key);
+    if(!old||(scoringContext?cost<(old.failure??0)||cost===(old.failure??0)&&next.spent<old.spent:risk*4+next.spent<old.risk*4+old.spent))best.set(key,next);
    }
   }
   return [...best.values()];
@@ -207,15 +237,24 @@ class ComputerCoach {
   return value;
  }
  protectionValue(g,carrier,guards,context,{potential=false}={}){
+  const blitzers=context.blitzers??=context.enemies.map(e=>({player:e,reach:!e.rooted&&g.marking(e)===0?g.movementAllowance(e)+1:1}));
+  const threats=blitzers.filter(e=>g.distance(e.player,carrier)<=Math.min(e.reach,4)).map(e=>e.player);
+  const screened=new Set();
   const occupied=new Set(guards.map(q=>q.x+","+q.y));let value=0,corners=0;
   const missing=[];
   for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){
    if(!dx&&!dy)continue;const square={x:carrier.x+dx,y:carrier.y+dy};if(!g.inside(square.x,square.y))continue;
    const count=guards.filter(q=>g.distance(q,square)===1).length;
    value+=count?1.5+(count>1?.5:0):0;
-   if(dx&&dy){if(occupied.has(square.x+","+square.y)){value+=context.enemies.some(e=>g.distance(e,square)===1)?1:4;corners++;}else missing.push(square);}
+   if(dx&&dy){if(occupied.has(square.x+","+square.y)){
+    const inContact=context.enemies.some(e=>g.distance(e,square)===1);
+    value+=inContact?1:4;
+    if(!inContact)for(const e of threats)if(g.distance(e,square)<g.distance(e,carrier))screened.add(e);
+    corners++;
+   }else missing.push(square);}
   }
   if(corners===4)value+=4;
+  value+=Math.min(2,screened.size);
   // A carrier may advance ahead of unused escorts, but used/prone/distracted
   // players cannot promise future corners. Match distinct escorts to corners
   // so one fast player cannot be counted as an entire future cage.
@@ -226,22 +265,131 @@ class ComputerCoach {
   }
   return value;
  }
+ // Bounded straight-ahead forecast. Every step is legal on the projected
+ // board, but a route requiring a lateral detour may be missed.
+ forwardOutlook(g,p){
+  if(p.rooted||g.isChomped(p))return {progress:0,scoring:0};
+  const dir=g.right(p.team)?1:-1,goal=dir===1?25:0,context=this.positionContext(g,p);
+  const budget=g.movementAllowance(p)+g.rushLimit(p);
+  const activation=this.activationChance(g,p,"move");
+  const spent=p.status==="prone"?g.standCost(p):0;
+  let frontier=[{x:p.x,y:p.y,spent,path:[],chance:activation}],progress=0,scoring=p.x===goal?1:0;
+  for(let step=1;step<=budget&&frontier.length&&!scoring;step++){
+   const next=new Map();
+   for(const n of frontier)for(let dy=-1;dy<=1;dy++){
+    const plan=g.planFrom(p,n.x+dir,n.y+dy,n.x,n.y,n.spent);
+    if(!plan)continue;
+    const path=n.path.concat({x:plan.x,y:plan.y,fromX:n.x,fromY:n.y,plan});
+    const chance=activation*this.routeChance(g,p,{path},context);
+    if(chance>(next.get(plan.y)?.chance||0))next.set(plan.y,{x:plan.x,y:plan.y,spent:n.spent+plan.cost,path,chance});
+   }
+   frontier=[...next.values()];
+   for(const n of frontier){
+    if(!g.markingAt(p,n.x,n.y))progress=Math.max(progress,step*n.chance);
+    if(n.x===goal)scoring=Math.max(scoring,n.chance);
+   }
+  }
+  return {progress,scoring};
+ }
+ projectedRunner(g,p,n){
+  const view=this.forecast(g,p,n,"move"),runner=view.players.find(q=>q.id===p.id);
+  view.mover=null;
+  return {view,runner};
+ }
+ // Estimate the best immediate sack from a roll-free approach, including detours.
+ blitzExposure(g,carrier){
+  let exposure=0;
+  for(const enemy of g.players){
+   if(enemy.team===carrier.team||!g.onPitch(enemy)||enemy.status!=="standing"||enemy.distracted)continue;
+   const distance=g.distance(enemy,carrier),reach=g.movementAllowance(enemy);
+   if(distance>reach||distance>1&&enemy.rooted)continue;
+   const frontier=[{x:enemy.x,y:enemy.y,spent:0}],seen=new Set();
+   for(const n of frontier){
+    if(g.distance(n,carrier)===1){
+     const odds=this.blockOdds(g,enemy,carrier,n,true);
+     exposure=Math.max(exposure,this.activationChance(g,enemy,"blitz")*odds.sack);
+     continue;
+    }
+    if(n.spent+1>=reach)continue;
+    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){
+     const x=n.x+dx,y=n.y+dy,key=x+","+y;
+     if(seen.has(key)||g.distance({x,y},carrier)>reach-n.spent-1)continue;
+     const plan=g.planFrom(enemy,x,y,n.x,n.y,n.spent);
+     if(!plan||plan.dodge||plan.rushes||g.onTrapdoor?.({x,y}))continue;
+     seen.add(key);frontier.push({x,y,spent:n.spent+plan.cost});
+    }
+   }
+  }
+  return exposure;
+ }
+ laneReward(g,carrier,target,actor,origin,odds,baseline){
+  if(!baseline||actor===carrier||g.distance(carrier,target)>g.movementAllowance(carrier)+2||Math.abs(carrier.y-target.y)>3)return 0;
+  const {view,runner}=this.projectedRunner(g,carrier,carrier);
+  runner.status=carrier.status;
+  const attacker=view.players.find(p=>p.id===actor.id),defender=view.players.find(p=>p.id===target.id);
+  Object.assign(attacker,{x:origin.x,y:origin.y,status:"standing",distracted:false});
+  const improvement=after=>Math.max(0,
+   (baseline.progress<2.5?Math.max(0,after.progress-baseline.progress)*3:0)
+   +(after.scoring-baseline.scoring)*36);
+  defender.status="prone";
+  const knockdown=odds.knockdown*improvement(this.forwardOutlook(view,runner));
+  if(view.skill(defender,"Stand Firm")||view.skill(defender,"Sidestep"))return knockdown;
+  defender.status="standing";
+  const pushes=view.pushSquares(attacker,defender).filter(pos=>view.inside(pos.x,pos.y)&&!view.at(pos.x,pos.y));
+  const away=pushes.sort((a,b)=>Math.abs(b.y-carrier.y)-Math.abs(a.y-carrier.y))[0];
+  if(!away)return knockdown;
+  Object.assign(defender,away);
+  const pushChance=1-(2/3)**odds.count;
+  return Math.max(knockdown,pushChance*improvement(this.forwardOutlook(view,runner)));
+ }
+ receiverReward(g,carrier,p,n,goal,runChance){
+  if(g.has(p,"No Ball")||g.has(p,"Ball & Chain")||g.markingAt(p,n.x,n.y)>0||Math.abs(goal-n.x)>g.movementAllowance(p)+g.rushLimit(p))return 0;
+  const kind=g.distance(carrier,n)===1?"handoff":"pass";
+  if(g.distance(carrier,n)>7)return 0;
+  const view=this.forecast(g,carrier,{x:carrier.x,y:carrier.y,spent:0},kind);
+  const thrower=view.players.find(q=>q.id===carrier.id),receiver=view.players.find(q=>q.id===p.id);
+  Object.assign(receiver,{x:n.x,y:n.y,status:"standing",distracted:false});
+  const transfer=this.activationChance(view,thrower,kind)*this.transferChance(view,thrower,receiver,kind);
+  if(transfer<.65)return 0;
+  view.ball={x:n.x,y:n.y,carrier:receiver.id};view.mover=null;
+  const threat=transfer*this.forwardOutlook(view,receiver).scoring;
+  return 12*Math.max(0,threat-runChance);
+ }
  positionValue(g,p,n,context=this.positionContext(g,p)){
   const dir=g.right(p.team)?1:-1,{carrier}=context,own=carrier?.team===p.team,marks=g.markingAt(p,n.x,n.y);
   let value=-marks*3-this.routeRisk(g,p,n,context)*5-n.path.length*.12+(carrier===p?0:this.coverageValue(g,n,context.coverage));
   if(carrier===p){
-   value+=(n.x-p.x)*dir*((context.strategy.urgentScore?5:3)+((context.roles||this.roles(g,p)).runner?.25:0));
+   const advance=(n.x-p.x)*dir;
+   value+=advance*((context.strategy.urgentScore?5:3)+((context.roles||this.roles(g,p)).runner?.25:0));
    if(n.x===(dir===1?25:0))value+=200-n.risk*2;
-   value+=this.protectionValue(g,n,context.allies,context,{potential:true})*.45;
+   let protection=this.protectionValue(g,n,context.allies,context,{potential:true});
+   if(advance>0&&marks===0&&n.risk===0&&(context.chance?.(n)??this.routeChance(g,p,n,context))===1){
+    // Allow unmarked, roll-free progress out of an established cage.
+    const current=context.currentProtection??=this.protectionValue(g,p,context.allies,context,{potential:true});
+    protection=Math.max(protection,current-3);
+   }
+   value+=protection*.45;
    value-=Math.max(0,3-Math.min(n.y,14-n.y))*(context.strategy.turn<=4?2:.6);
    value-=marks*10;
   }else if(!carrier&&g.inside(g.ball.x,g.ball.y)&&!g.has(p,"No Ball")){
    value+=(Math.min(6,g.distance(p,g.ball))-Math.min(6,g.distance(n,g.ball)))*2;
-   if(n.path.some(s=>s.x===g.ball.x&&s.y===g.ball.y))value+=30+this.carrierValue(g,p);
+   if(n.pickedUp){
+    const advance=(n.x-g.ball.x)*dir;
+    value+=30+this.carrierValue(g,p)+(n.recoveryRun?Math.max(0,advance)*3:0);
+   }
   }else if(carrier){
    if(own){
     const guards=context.allies.filter(q=>q!==carrier).concat(n);
     value+=this.protectionValue(g,carrier,guards,context)*1.4;
+    // Give escorts credit for completing corners around a reachable forward square.
+    const forwardCages=context.forwardCages||[];
+    let escortValue=0;
+    if(marks===0)for(const square of forwardCages){
+     if(Math.abs(n.x-square.x)!==1||Math.abs(n.y-square.y)!==1||square.path.some(step=>step.x===n.x&&step.y===n.y))continue;
+     const corners=context.allies.filter(q=>q!==carrier&&Math.abs(q.x-square.x)===1&&Math.abs(q.y-square.y)===1&&g.marking(q)===0).length;
+     escortValue=Math.max(escortValue,corners===3?14:2+corners*2);
+    }
+    value+=escortValue;
     value+=Math.max(-4,Math.min(4,(n.x-carrier.x)*dir))*.35;
     value-=marks*2;
    }else{
@@ -277,11 +425,32 @@ class ComputerCoach {
   const target=kind==="handoff"?Number.parseInt(g.profile(p).ag)+g.marking(p):g.landingTarget(p,{kind:"pass",accurate:true,accurateToPlayer:true});
   const chance=this.checkChance(g,g.forecastTarget(p,"Catch",target));return g.skill(p,"Catch")?chance+(1-chance)*chance:chance;
  }
+ transferChance(view,actor,catcher,kind,{teamReroll=false}={}){
+  const catching=this.catchChance(view,catcher,kind);
+  const canReroll=p=>teamReroll&&view.canTeamReroll(p)&&!view.parameter(p,"Loner");
+  const catchRetry=!view.skill(catcher,"Catch")&&canReroll(catcher)?(1-catching)*catching:0;
+  let success=catching+catchRetry;
+  if(kind==="pass"){
+   const preview=view.passPreview(catcher.x,catcher.y);
+   if(!preview||preview.hail||!Number.isFinite(preview.target))return 0;
+   const accuracy=this.checkChance(view,preview.target),retry=(1-accuracy)*accuracy;
+   const nativePass=view.skill(actor,"Pass");
+   success*=nativePass?accuracy+retry:accuracy;
+   if(!nativePass&&canReroll(actor))success+=retry*catching;
+   const threats=view.interceptionCandidates(actor,catcher),intercept=Math.max(0,...threats.map(q=>this.checkChance(view,view.forecastTarget(q,"Intercept",Number.parseInt(view.profile(q).ag)+3+view.marking(q)))));success*=1-intercept;
+   const reactive=view.players.some(q=>q.team!==actor.team&&view.onPitch(q)&&view.skill(q,"On the Ball")&&!q.rooted&&!view.isChomped(q)&&Array.from({length:49},(_,i)=>({x:q.x+i%7-3,y:q.y+Math.floor(i/7)-3})).some(pos=>view.inside(pos.x,pos.y)&&view.interceptionSquare(actor,catcher,pos)));
+   if(reactive)success*=.85;
+  }
+  const animosity=view.parameter(actor,"Animosity"),word=animosity?.slice(animosity.indexOf("(")+1,-1).toLowerCase();
+  return word&&(word==="all"||view.keywords(catcher).includes(word))?success*5/6:success;
+ }
  transferCandidates(g,p,data,analyze){
   if(g.ball.carrier!==p.id||g.has(p,"Hail Mary Pass")&&p.hailMary)return [];
   const {routes,chance,context}=data,goal=g.right(p.team)?25:0,dir=g.right(p.team)?1:-1,result=[];
-  const runChance=n=>this.activationChance(g,p,"move")*chance(n);
-  const runScore=Math.max(0,...routes.filter(n=>n.x===goal).map(runChance));if(runScore>=.98)return result;
+  const moving=this.activationChance(g,p,"move"),runChance=n=>moving*chance(n);
+  const canSpend=moving===1&&g.canTeamReroll(p)&&!g.parameter(p,"Loner");
+  const runScore=Math.max(0,...routes.filter(n=>n.x===goal).map(n=>canSpend?this.routeChance(g,p,n,context,{teamReroll:true}):runChance(n)));
+  if(runScore>=.98)return result;
   const safeAdvance=Math.max(...routes.filter(n=>runChance(n)>=.9&&g.markingAt(p,n.x,n.y)===0).map(n=>n.x*dir),p.x*dir);
   const safeEscape=Math.max(0,...routes.filter(n=>g.markingAt(p,n.x,n.y)===0).map(runChance));
   const late=(g.turns[p.team]||1)>=8&&g.scores[p.team]<=g.scores[1-p.team];
@@ -295,22 +464,20 @@ class ComputerCoach {
      .sort((a,b)=>kind==="handoff"?a.risk-b.risk||a.spent-b.spent:(a.risk*4+a.spent*.35+g.distance(a,receiver)*.5+g.markingAt(p,a.x,a.y)*3)-(b.risk*4+b.spent*.35+g.distance(b,receiver)*.5+g.markingAt(p,b.x,b.y)*3)).slice(0,kind==="handoff"?6:12);
     for(const n of positions){
      const view=this.forecast(g,p,n,kind),actor=view.players.find(q=>q.id===p.id),catcher=view.players.find(q=>q.id===receiver.id);
-     const preview=kind==="pass"?view.passPreview(receiver.x,receiver.y):null;if(kind==="pass"&&(!preview||preview.hail||!Number.isFinite(preview.target)))continue;
-     let success=this.activationChance(g,p,kind)*chance(n)*this.catchChance(view,catcher,kind);
-     if(kind==="pass"){
-      const accuracy=this.checkChance(view,preview.target);success*=view.skill(actor,"Pass")?accuracy+(1-accuracy)*accuracy:accuracy;
-      const threats=view.interceptionCandidates(actor,catcher),intercept=Math.max(0,...threats.map(q=>this.checkChance(view,view.forecastTarget(q,"Intercept",Number.parseInt(view.profile(q).ag)+3+view.marking(q)))));success*=1-intercept;
-      const reactive=view.players.some(q=>q.team!==p.team&&view.onPitch(q)&&view.skill(q,"On the Ball")&&!q.rooted&&!view.isChomped(q)&&Array.from({length:49},(_,i)=>({x:q.x+i%7-3,y:q.y+Math.floor(i/7)-3})).some(pos=>view.inside(pos.x,pos.y)&&view.interceptionSquare(actor,catcher,pos)));
-      if(reactive)success*=.85;
-     }
-     const animosity=view.parameter(actor,"Animosity"),word=animosity?.slice(animosity.indexOf("(")+1,-1).toLowerCase();if(word&&(word==="all"||view.keywords(catcher).includes(word)))success*=5/6;
-     if(success<(late?(kind==="pass"?.5:.6):(kind==="pass"?.78:.8)))continue;
+     const approach=this.activationChance(g,p,kind)*chance(n);
+     const success=approach*this.transferChance(view,actor,catcher,kind);
+     const finalTransfer=late&&approach===1?this.transferChance(view,actor,catcher,kind,{teamReroll:true}):success;
+     if(finalTransfer<(late?.3:(kind==="pass"?.78:.8)))continue;
      const openRoutes=receiverRoutes.filter(r=>!r.path.some(step=>step.x===n.x&&step.y===n.y));
      const scoringChance=Math.max(0,...openRoutes.filter(r=>r.x===goal).map(receivingChance));
-     if(scoringChance&&success*scoringChance>= (late?.45:.65)&&success*scoringChance>runScore+.08){result.push({kind,p,target:receiver,route:n,score:190+this.actionFit(g,p,kind,receiver),success:success*scoringChance,scoring:true,transfer:true,goal:"a scoring receiver"});continue;}
+     const scoringSuccess=finalTransfer*scoringChance;
+     if(scoringSuccess>=(late?.3:.65)&&scoringSuccess>runScore+.08){result.push({kind,p,target:receiver,route:n,score:190+this.actionFit(g,p,kind,receiver),success:scoringSuccess,scoring:true,transfer:true,goal:"a scoring receiver"});continue;}
      const advances=openRoutes.filter(r=>receivingChance(r)>=.9&&g.markingAt(receiver,r.x,r.y)===0),advance=advances.sort((a,b)=>b.x*dir-a.x*dir)[0];
      const gain=advance?advance.x*dir-safeAdvance:0,escape=g.marking(p)>0&&safeEscape<.85&&view.marking(catcher)===0&&context.allies.filter(q=>q!==receiver&&view.distance(q,catcher)<=1).length>=2;
+     const fasterRunner=kind==="handoff"&&advance&&g.movementAllowance(receiver)>=g.movementAllowance(p)+2&&
+      gain>=2&&view.marking(catcher)===0&&g.distance(receiver,g.ball)<=g.movementAllowance(p)+1;
      if(success>=.86&&(gain>=5||escape))result.push({kind,p,target:receiver,route:n,score:(escape?48:30+gain*3)+this.actionFit(g,p,kind,receiver),success:success*(escape?1:receivingChance(advance)),transfer:true,urgent:escape,goal:escape?"a protected receiver":"a major advance"});
+     else if(fasterRunner&&success>=.8)result.push({kind,p,target:receiver,route:n,score:30+gain*3,success:success*receivingChance(advance),transfer:true,goal:"a faster runner with an open lane"});
     }
    }
   }
@@ -355,8 +522,61 @@ class ComputerCoach {
  }
  chooseAction(g){
   let best=null;const analyses=new Map(),foulCache=new Map();
-  const analyze=p=>{if(!analyses.has(p.id)){const routes=this.routes(g,p),context=this.positionContext(g,p),chances=new Map(),chance=n=>{if(!chances.has(n))chances.set(n,this.routeChance(g,p,n,context));return chances.get(n);};context.chance=chance;const values=new Map(routes.map(n=>[n,this.positionValue(g,p,n,context)]));analyses.set(p.id,{routes,context,values,base:values.get(routes[0]),chance});}return analyses.get(p.id);};
   const strategy=this.strategy(g),goal=g.right(this.team)?25:0;
+  const carrier=strategy.carrier,dir=g.right(this.team)?1:-1;
+  const carrierRoutes=carrier?.team===this.team&&g.canStart(carrier)?this.routes(g,carrier):null;
+  const carrierContext=carrierRoutes&&this.positionContext(g,carrier);
+  const laneBaseline=carrierRoutes&&this.forwardOutlook(g,carrier);
+  const timeLeft=8-strategy.turn,needScore=strategy.lead<=0;
+  const ownCarrier=carrier?.team===this.team?carrier:null;
+  const currentExposure=ownCarrier&&Math.abs(goal-carrier.x)<=g.movementAllowance(carrier)?this.blitzExposure(g,carrier):0;
+  const forwardCages=carrierRoutes?.filter(n=>(n.x-carrier.x)*dir>=2&&n.x!==goal&&n.risk===0&&g.markingAt(carrier,n.x,n.y)===0&&this.routeChance(g,carrier,n,carrierContext)===1);
+  const landings=timeLeft&&forwardCages?forwardCages.filter(n=>Math.abs(goal-n.x)<=g.movementAllowance(carrier))
+   .sort((a,b)=>(b.x-a.x)*dir||a.path.length-b.path.length).slice(0,3).map(square=>{
+    const {view,runner}=this.projectedRunner(g,carrier,square);
+    return {square,exposure:this.blitzExposure(view,runner),scoring:this.forwardOutlook(view,runner).scoring};
+   }):[];
+  const bestLanding=Math.max(0,...landings.map(n=>n.scoring*(1-n.exposure)));
+  const screenSetup=(p,n)=>{
+   if(p===carrier||n.x===p.x&&n.y===p.y)return 0;
+   const gain=(square,exposure)=>{
+    if(!exposure||g.distance(square,n)>2)return 0;
+    const {view,runner}=this.projectedRunner(g,carrier,square);
+    Object.assign(view.players.find(q=>q.id===p.id),{x:n.x,y:n.y,status:"standing",distracted:false});
+    return exposure-this.blitzExposure(view,runner);
+   };
+   let value=Math.max(0,gain(carrier,currentExposure))*10;
+   for(const {square,exposure,scoring} of landings){
+    if(!scoring||square.path.some(step=>step.x===n.x&&step.y===n.y))continue;
+    const screened=scoring*(1-exposure+gain(square,exposure));
+    value=Math.max(value,32*(screened-bestLanding));
+   }
+   return value;
+  };
+  const scoringSetup=(p,n)=>{
+   if(!ownCarrier||!timeLeft)return 0;
+   const remaining=Math.abs(goal-n.x),inRange=remaining<=g.movementAllowance(p)+g.rushLimit(p);
+   if(p!==carrier)return inRange?this.receiverReward(g,carrier,p,n,goal,laneBaseline?.scoring||0):0;
+   if(g.markingAt(p,n.x,n.y)>0)return 0;
+   const lateral=Math.abs(n.y-p.y)>=2&&(n.x-p.x)*dir>=0;
+   const switchFlank=lateral&&timeLeft>=2&&laneBaseline?.progress<2.5&&n.risk===0;
+   if(!inRange&&!switchFlank)return 0;
+   const {view,runner}=this.projectedRunner(g,p,n);
+   const outlook=this.forwardOutlook(view,runner),exposure=this.blitzExposure(view,runner);
+   const scoring=outlook.scoring*(timeLeft<=2&&needScore?18:12);
+   const flank=switchFlank?Math.max(0,outlook.progress-laneBaseline.progress-1)*3:0;
+   return (scoring+flank)*(1-exposure);
+  };
+  const analyze=p=>{
+   if(analyses.has(p.id))return analyses.get(p.id);
+   const routes=p===carrier&&carrierRoutes?carrierRoutes:this.routes(g,p),context=p===carrier&&carrierContext?carrierContext:this.positionContext(g,p);
+   const chances=new Map(),chance=n=>{if(!chances.has(n))chances.set(n,this.routeChance(g,p,n,context));return chances.get(n);};
+   context.chance=chance;context.forwardCages=forwardCages;
+   const values=new Map(routes.map(n=>[n,this.positionValue(g,p,n,context)+scoringSetup(p,n)+screenSetup(p,n)]));
+   const data={routes,context,values,base:values.get(routes[0]),chance};
+   analyses.set(p.id,data);
+   return data;
+  };
   const threatened=!!(strategy.carrier?.team===this.team&&g.marking(strategy.carrier)>0);
   const stopScore=!!(strategy.carrier?.team!==this.team&&strategy.carrier&&Math.abs(strategy.carrier.x-(g.right(strategy.carrier.team)?25:0))<=g.movementAllowance(strategy.carrier));
   const offer=c=>{
@@ -378,7 +598,10 @@ class ComputerCoach {
     const important=this.importantAction(g,p,d);
     if(g.canBlock(p,d)){
      const odds=this.blockOdds(g,p,d);
-     if(odds.own)attacks.push({kind:"block",fit:this.actionFit(g,p,"block",d),p,target:d,score:(odds.count>1?8:3)+odds.knockdown*8+(important?10:0)+this.actionFit(g,p,"block",d),success:blocking*(1-odds.failure),urgent:threatened&&important||(stopScore||strategy.mustSteal)&&d===strategy.carrier});
+     if(odds.own){
+      const lane=this.laneReward(g,carrier,d,p,p,odds,laneBaseline);
+      attacks.push({kind:"block",fit:this.actionFit(g,p,"block",d),lane,p,target:d,score:(odds.count>1?8:3)+odds.knockdown*8+(important?10:0)+this.actionFit(g,p,"block",d)+lane,success:blocking*(1-odds.failure),urgent:threatened&&important||(stopScore||strategy.mustSteal)&&d===strategy.carrier});
+     }
     }
     // A Blitz must leave one MA for the block. Evaluate assists at its landing
     // square with all other players in their current positions.
@@ -386,14 +609,24 @@ class ComputerCoach {
      for(const n of routes)if(g.distance(n,d)===1&&n.spent<g.movementAllowance(p)&&n.risk<=2){
       if(!n.path.length&&p.status==="standing"&&g.canBlock(p,d))continue;
       const odds=this.blockOdds(g,p,d,n,true);
-      if(odds.own)attacks.push({kind:"blitz",fit:this.actionFit(g,p,"blitz",d),p,target:d,route:n,score:(g.ball.carrier===d.id?30:9)+(threatened&&important?12:0)+values.get(n)-base-n.path.length*.08+this.actionFit(g,p,"blitz",d),success:blitzing*chance(n)*(1-odds.failure),urgent:threatened&&important||(stopScore||strategy.mustSteal)&&d===strategy.carrier});
+      if(odds.own){
+       const lane=this.laneReward(g,carrier,d,p,n,odds,laneBaseline);
+       attacks.push({kind:"blitz",fit:this.actionFit(g,p,"blitz",d),lane,p,target:d,route:n,score:(g.ball.carrier===d.id?30:9)+(threatened&&important?12:0)+values.get(n)-base-n.path.length*.08+this.actionFit(g,p,"blitz",d)+lane,success:blitzing*chance(n)*(1-odds.failure),urgent:threatened&&important||(stopScore||strategy.mustSteal)&&d===strategy.carrier});
+      }
      }
     }
    }
-   const reserve=attacks.some(c=>c.fit>=1&&c.success>=.9&&c.score>=10)&&strategy.carrier!==p,attackValue=Math.max(0,...attacks.map(c=>c.score*c.success-(1-c.success)*18));
+   const reserve=attacks.some(c=>(c.fit>=1&&c.success>=.9||c.lane>=6&&c.success>=.85)&&c.score>=10)&&strategy.carrier!==p,attackValue=Math.max(0,...attacks.map(c=>c.score*c.success-(1-c.success)*18));
    for(const n of routes){
-    const score=values.get(n)-base+(p.status==="prone"?5:0);
-    if(score>.75&&(n.path.length||p.status==="prone")&&(!foul||strategy.carrier===p)&&(!reserve||strategy.carrier===p||score>=Math.max(8,attackValue+2)))offer({kind:"move",p,route:n,score,success:moving*chance(n),scoring:strategy.carrier===p&&n.x===goal,urgent:threatened&&strategy.carrier===p&&g.markingAt(p,n.x,n.y)===0});
+    const forward=p===carrier?(n.x-p.x)*dir:0;
+    const racingClock=needScore&&timeLeft>0&&timeLeft<=2&&forward>0&&Math.abs(goal-n.x)<=timeLeft*g.movementAllowance(p);
+    const directScore=p===carrier&&n.x===goal;
+    const nativeChance=chance(n),canSpend=(directScore||racingClock)&&moving===1&&nativeChance<1&&g.canTeamReroll(p)&&!g.parameter(p,"Loner");
+    const success=moving*(canSpend?this.routeChance(g,p,n,context,{teamReroll:true}):nativeChance);
+    if(directScore&&success<.7&&(timeLeft||!needScore))continue;
+    const pickupScore=n.recoveryRun&&n.x===goal&&(success>=.65||!timeLeft&&needScore);
+    const score=values.get(n)-base+(p.status==="prone"?5:0)+(racingClock?forward*2:0)+(pickupScore?170:0);
+    if(score>.75&&(n.path.length||p.status==="prone")&&(!foul||p===carrier||n.recoveryRun)&&(!reserve||p===carrier||n.recoveryRun||score>=Math.max(8,attackValue+2)))offer({kind:"move",p,route:n,score,success,scoring:directScore||pickupScore,urgent:p===carrier&&g.markingAt(p,n.x,n.y)===0&&(threatened||racingClock&&success>=.7)});
    }
    for(const attack of attacks)offer(attack);
   }
@@ -414,6 +647,25 @@ class ComputerCoach {
   for(const key of choices)if(buy(key))return this.act(g,"Buy "+g.resourceSpec(team,key).label,()=>true);
   return this.act(g,"Confirm inducements and preserve treasury",()=>g.lockLeagueInducements(team));
  }
+ receivingSetup(g){
+  if(g.receiving!==this.team)return;
+  const players=g.players.filter(p=>p.team===this.team&&g.onPitch(p));
+  const retrievalValue=p=>this.carrierValue(g,p)+g.marking(p)*2;
+  const retriever=players.filter(p=>!g.has(p,"No Ball")&&(g.skill(p,"Sure Hands")||this.roles(g,p).thrower||this.roles(g,p).runner))
+   .sort((a,b)=>retrievalValue(b)-retrievalValue(a))[0];
+  if(!retriever)return;
+  const line=g.line(this.team);
+  const deep=players.reduce((best,p)=>Math.abs(p.x-line)>Math.abs(best.x-line)?p:best,retriever);
+  if(deep!==retriever)g.placeSetup(retriever.id,deep.x,deep.y);
+  const lineSlots=players.filter(p=>p.x===line).map(p=>({x:p.x,y:p.y}));
+  const lineValue=p=>Number(g.profile(p).st)*3+Number(g.skill(p,"Block"))*2-Number(this.roles(g,p).catcher)*2;
+  const anchors=players.filter(p=>p!==retriever).sort((a,b)=>lineValue(b)-lineValue(a)).slice(0,lineSlots.length);
+  const openSlots=lineSlots.filter(s=>!anchors.includes(g.at(s.x,s.y)));
+  for(const anchor of anchors.filter(p=>p.x!==line)){
+   const slot=openSlots.shift();
+   if(slot)g.placeSetup(anchor.id,slot.x,slot.y);
+  }
+ }
  step(g){
   if(g.phase==="finished"||computerDecisionTeam(g)!==this.team)return false;
   if(g.pending)return this.decide(g);
@@ -431,7 +683,7 @@ class ComputerCoach {
   if(g.league&&g.phase==="leagueSteps"&&g.leaguePurchaseStep<g.leaguePurchaseOrder.length)return this.buyInducements(g);
   if(["fans","weather","leagueSteps","rolloff"].includes(g.phase))return this.act(g,"Continue pre-game",()=>g.advancePregame());
   if(g.phase==="kickChoice")return this.act(g,"Choose to receive",()=>g.chooseKicking(1-this.team));
-  if(g.phase==="setup")return this.act(g,"Confirm a legal formation",()=>{if(g.setupErrors().length)g.autoSetup();return g.confirmSetup();});
+  if(g.phase==="setup")return this.act(g,"Confirm a legal formation",()=>{if(g.setupErrors().length)g.autoSetup();this.receivingSetup(g);return g.confirmSetup();});
   if(g.phase==="kicker")return this.act(g,"Nominate a kicker",()=>g.nominateKicker(g.eligibleKickers()[0].id));
   if(g.phase==="kickAim")return this.act(g,"Kick into the receiving half",()=>g.kick(g.right(g.receiving)?6:19,7));
   if(g.phase==="eventMove"||g.phase==="charge")return this.act(g,"Keep the kickoff formation",()=>g.finishEvent());

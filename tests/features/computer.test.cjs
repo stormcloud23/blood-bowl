@@ -1,5 +1,6 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {MatchGame}=require('../../src/engine/match.cjs');
+const {LeagueStore}=require('../../src/features/league/league.cjs');
 const {ComputerCoach,computerDecisionTeam}=require('../../src/features/computer/computer.cjs');
 const rosters=require('../../src/data/rosters.json');
 function fixture(seed=1,ids=['human','orc']){
@@ -15,6 +16,19 @@ test('planning uses forecasts without mutating state or consuming dice',()=>{
  const g=fixture(),p=position(g);g.ball={x:p.x,y:p.y,carrier:p.id};let rolls=0;g.dice=()=>{rolls++;return 6;};
  const before=JSON.stringify(g),coach=new ComputerCoach(1),action=coach.chooseAction(g);
  assert.equal(action.kind,'move');assert.equal(action.route.x,0);assert.equal(JSON.stringify(g),before);assert.equal(rolls,0);
+});
+test('a computer receiving formation sends its thrower deep and puts a blocker on the line',()=>{
+ const g=fixture(),coach=new ComputerCoach(0);
+ g.phase='kickChoice';assert.ok(g.chooseKicking(1));assert.ok(g.confirmSetup());
+ const thrower=g.players.find(p=>p.team===0&&g.onPitch(p)&&coach.roles(g,p).thrower);
+ const blocker=g.players.find(p=>p.team===0&&g.onPitch(p)&&p!==thrower);
+ assert.ok(thrower);assert.ok(blocker);
+ const line=g.line(0),linePlayer=g.players.find(p=>p.team===0&&p.x===line&&p!==thrower);
+ if(thrower.x!==line)assert.ok(g.placeSetup(thrower.id,linePlayer.x,linePlayer.y));
+ blocker.profileOverride={...g.profile(blocker),st:5};
+ assert.ok(coach.step(g));
+ assert.ok(Math.abs(thrower.x-line)>=6);
+ assert.equal(blocker.x,line);
 });
 test('computer scores an available touchdown and changes direction at halftime',()=>{
  for(const half of [1,2]){
@@ -123,4 +137,56 @@ for(const roster of rosters)test('basic computer pregame and legal setup: '+rost
  const g=fixture(42,[roster.id,'human']),coaches=[new ComputerCoach(0),new ComputerCoach(1)];
  for(let n=0;n<100&&g.phase!=='play';n++)assert.ok(coaches[computerDecisionTeam(g)].step(g),'stalled at '+g.phase);
  assert.equal(g.phase,'play');assert.ok(coaches[computerDecisionTeam(g)].step(g));
+});
+
+const leagueSeeds=process.env.BB_LEAGUE_SEEDS?.split(',').map(seed=>Number(seed.trim()||NaN))
+ ?? (process.env.BB_LEAGUE_SCORE_BATCH==='1'?[7,19,33,42,71,101,137,251,509,927]:[33,71]);
+assert.ok(leagueSeeds.every(seed=>Number.isInteger(seed)&&seed>=0&&seed<=0xffffffff),'Expected unsigned integer league seeds');
+const mixedLeagueRosters=process.env.BB_LEAGUE_MIXED_ROSTERS==='1';
+const leagueLineups={human:[3,4,4,2,2,0,0,0,0,0,0],orc:[2,3,3,4,4,0,0,0,0,0,0]};
+for(const seed of leagueSeeds)test('seeded AI league fixture measures possession and progress toward the end zone: '+seed,{skip:process.env.BB_FULL_MATCH_TESTS!=='1'&&'Opt in with npm run test:computer:full'},t=>{
+ const store=new LeagueStore(rosters),league=store.createLeague('Offense evaluation');
+ const ids=['human','orc'].map(id=>{
+  const club=store.create(id,id);
+  const lineup=mixedLeagueRosters?leagueLineups[id]:Array(11).fill(0);
+  for(const role of lineup)store.hire(club.id,role);
+  if(mixedLeagueRosters)store.setStaff(club.id,'teamRerolls',2);
+  store.submit(club.id);store.enterLeague(league.id,club.id);
+  return club.id;
+ });
+ const {teams}=store.startFixture(...ids),{dice}=fixture(seed);
+ const g=new MatchGame(teams,{dice}),coaches=[new ComputerCoach(0),new ComputerCoach(1)],possessions=new Map();
+ const waitingForOpponent=new Map(),scoringAttempts=new Map(),touchdowns=[];
+ g.individualBlockChoices=true;
+ for(let steps=0;steps<4000&&g.phase!=='finished';steps++){
+  const carrier=g.phase==='play'&&g.players.find(p=>p.id===g.ball.carrier);
+  if(carrier){
+   const key=g.drive+'/'+carrier.team,remaining=Math.abs((g.right(carrier.team)?25:0)-carrier.x);
+   const drive=possessions.get(key)||{start:remaining,closest:remaining,closestTurn:g.turns[carrier.team],survived:0,losses:[]};
+   if(remaining<drive.closest){drive.closest=remaining;drive.closestTurn=g.turns[carrier.team];}
+   possessions.set(key,drive);
+  }
+  const coach=coaches[computerDecisionTeam(g)],pending=g.pending?.kind,plan=coach.plan;
+  const active=g.active,driveId=g.drive,phase=g.phase,score=g.scores[0]+g.scores[1];
+  assert.ok(coach.step(g),'Stalled in '+g.phase);
+  if(g.scores[0]+g.scores[1]>score)touchdowns.push({score:[...g.scores],half:g.half,turns:[...g.turns]});
+  if(coach.plan!==plan&&coach.plan?.scoring){
+   const key=driveId+'/'+coach.team;
+   scoringAttempts.set(key,(scoringAttempts.get(key)||0)+1);
+  }
+  if(phase==='play'&&g.phase==='play'&&active!==g.active){
+   const nextCarrier=g.players.find(p=>p.id===g.ball.carrier);
+   const waiting=waitingForOpponent.get(driveId+'/'+g.active);
+   if(waiting&&nextCarrier?.team===g.active)waiting.survived++;
+   waitingForOpponent.delete(driveId+'/'+g.active);
+   if(nextCarrier?.team===active&&carrier?.team===active)waitingForOpponent.set(driveId+'/'+active,possessions.get(driveId+'/'+active));
+  }
+  if(carrier&&g.phase==='play'&&!g.ball.carrier){
+   const drive=possessions.get(g.drive+'/'+carrier.team);
+   drive?.losses.push({turn:g.turns[carrier.team],action:coach.explanation,...(pending?{check:pending}:{})});
+  }
+ }
+ assert.equal(g.phase,'finished');
+ t.diagnostic(JSON.stringify({scores:g.scores,touchdowns,scoringAttempts:Object.fromEntries(scoringAttempts),possessions:Object.fromEntries(possessions)}));
+ if(seed===33&&!mixedLeagueRosters)assert.ok([...possessions.values()].some(d=>d.start-d.closest>=5&&d.closest<=5)||g.scores.some(Boolean),'Expected a drive to advance into scoring range');
 });
