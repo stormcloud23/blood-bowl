@@ -6,9 +6,10 @@ The computer uses engine forecasts, never samples future dice, and executes ever
 
 - A guaranteed running touchdown wins over adding transfer risk.
 - Scoring transfers include the receiver's ability to activate and reach the end zone this turn. Used receivers are considered only when already standing in the end zone. The combined score probability must improve on the carrier's running option by more than eight percentage points.
-- Ordinary release/catch probability must be at least 78% for a Pass or 80% for a Hand-off. A last-turn scoring attempt while tied or behind can accept 50%/60% respectively when it creates a genuine chance to score.
+- Ordinary release/catch probability must be at least 78% for a Pass or 80% for a Hand-off. A last-turn attempt while tied or behind can accept a 30% combined chance to transfer and score if it improves on running the ball in.
 - Non-scoring transfers require at least 86% release/catch reliability and either a major advance (at least five squares beyond the carrier's reliable running advance), or escape from pressure to an unmarked receiver protected by at least two allies when walking away is substantially less reliable.
-- Estimates include movement, common activation traits, passing and catch targets, weather, marking, native Pass/Catch/Dodge/Sure Feet rerolls, Animosity, current interception candidates and a conservative allowance for nearby On the Ball interception moves. Team rerolls are not assumed. Hail Mary passes are excluded.
+- An 80% hand-off can also reach an unmarked receiver with at least two more squares of movement and a reliable route that gains at least two squares over the carrier's reliable running advance.
+- Estimates include movement, common activation traits, passing and catch targets, weather, marking, native Pass/Catch/Dodge/Sure Feet rerolls, Animosity, current interception candidates and a conservative allowance for nearby On the Ball interception moves. For last-turn scoring transfers with a roll-free approach, the forecast can budget one available team re-roll across the pass and catch. Hail Mary passes are excluded.
 - Pending dice and defensive decisions retain their owning coach. The computer can take interceptions itself and can resolve the existing re-roll prompts. Plans validate action type, target position and endpoint before releasing the ball; completed transfers cannot be replayed.
 
 ## Fouls

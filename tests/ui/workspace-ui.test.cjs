@@ -416,6 +416,18 @@ test('rerender restores the page offset after layout changes and preserves pitch
  assert.equal(f.run('scrollY'),420);assert.equal(f.run('scrollX'),10);assert.equal(f.run('restoredScroll.behavior'),'instant');assert.equal(f.document.activeElement,f.cell(0,0));assert.equal(f.cell(0,0).focusOptions.preventScroll,true);
 });
 function dugoutNodes(e){return [e,...e.children.flatMap(dugoutNodes)];}
+test('dugout cards reuse pitch position shapes and team colors for off-pitch players',()=>{
+ const f=workspaceFixture();
+ f.run('for(const [team,traits,status] of [[0,"Blitzer, Elf","reserve"],[1,"Thrower, Orc","knocked-out"]]){const p=game.players.find(p=>p.team===team);p.profileOverride={...game.profile(p),traits};Object.assign(p,{x:null,y:null,status});}render()');
+ const cards=dugoutNodes(f.get('dugout'));
+ for(const [id,shape,svg] of [['0-1','triangle','polygon'],['1-1','diamond','polygon']]){
+  const card=cards.find(e=>e.dataset.playerId===id),icon=card.children[0];
+  assert.ok(icon.className.includes('role-'+shape));
+  assert.equal(icon.className.includes(' blue'),id==='1-1');
+  assert.ok(icon.children[0].innerHTML.includes('<'+svg));
+  assert.equal(String(icon.children[1].textContent),'1');
+ }
+});
 test('visual dugouts partition reserves, KO, injury, death, send-off and drive-unavailable players',()=>{
  const f=workspaceFixture();f.run('game.players.forEach(p=>Object.assign(p,{x:null,y:null,status:"reserve"}));game.players[1].status="knocked-out";game.players[2].status="casualty";game.players[2].casualty={result:"Smashed knee"};game.players[3].status="casualty";game.players[3].casualty={result:"Dead",dead:true};game.players[4].status="sent-off";game.players[5].heatOut=true;game.players[6].snackOut=true;Object.assign(game.players[7],{x:5,y:7,status:"stunned"});render()');const cards=dugoutNodes(f.get('dugout')).filter(e=>e.dataset.playerId);assert.equal(cards.length,21);for(const [index,state] of [[1,'ko'],[2,'injured'],[3,'dead'],[4,'sent-off'],[5,'unavailable'],[6,'unavailable']])assert.equal(f.run('dugoutState(game.players['+index+'])'),state);assert.equal(f.run('dugoutState(game.players[7])'),'pitch');assert.equal(f.get('dugout').hidden,false);
 });

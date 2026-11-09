@@ -23,8 +23,9 @@ Route estimates use the engine's forecast targets and D6 success rule, weather,
 pickup modifiers, Dodge/Tackle and Sure Hands. A small probability distribution
 tracks remaining once-per-activation Dodge/Sure Feet uses across several checks.
 It also accounts conservatively for Diving Tackle/Tentacles and common
-activation traits. Planning never assumes a team re-roll will be available and
-never consumes or previews actual match dice.
+activation traits. A touchdown run or a late carrier move into scoring range
+can budget one currently available team re-roll. Other forecasts use native
+re-rolls. Planning leaves the actual match dice untouched.
 
 Block estimates use the engine's assists at the proposed attack square,
 strength-based dice selection, unsafe faces and likely knockdowns. These are
@@ -55,11 +56,11 @@ they do not replace current engine rules. In particular, this increment does
 not introduce intentional eight-turn stalling from the older guides. Available
 touchdowns are still taken, and current crowd/stalling rules remain intact.
 
-This is shared coaching logic for Human/Orc computer exhibitions and observed matches.
+This is shared coaching logic for Human/Orc computer exhibitions, observed matches,
+and computer-controlled league fixtures.
 Conservative passing, hand-offs and fouling were added in v0.0.54; see
-[the risk policy](AI-RISK-POLICY.md). It does not unlock other opponent rosters or deliberate
-chain pushes or a complete coordinated cage-advancement planner. Existing
-field coverage and rear cage protection regressions remain in the test suite.
+[the risk policy](AI-RISK-POLICY.md). Existing field coverage and rear cage
+protection regressions remain in the test suite.
 
 `tests/features/computer-strategy.test.cjs` verifies action sequencing, risky
 final-turn scoring, reliability comparisons, re-roll conservation, early central
@@ -68,3 +69,74 @@ The seeded full-match tests remain separate from tactical tests; neither is a
 competitive win-rate benchmark or visual browser review.
 
 Role and skill preferences were extended in v0.0.55; see [role awareness](AI-ROLE-AWARENESS.md) for specialist assignments, contact/receiving positions and movement-risk valuation.
+
+## Scoring and drive evaluation
+
+The coach compares a shortlist of roll-free carrier destinations within
+scoring range. An escort move earns credit when it reduces an opposing Blitz
+threat and improves the projected touchdown chance over the best unscreened
+destination. The coach reassesses the board after the escort moves. Opposing
+Blitz forecasts consider roll-free detours and one-die Both Down sacks. The
+touchdown forecast uses the projected board before the opponent takes a turn.
+Near the end zone, the carrier's route search compares legal paths by their
+forecast success probability. This applies the pathfinding principle from
+the [GrodBot paper](https://ieee-cog.org/2019/papers/paper_177.pdf) to this
+game's own movement and re-roll rules.
+The coach normally requires a 70% forecast for a direct touchdown run.
+It will attempt a lower-probability route on the final turn when it needs
+the score, following the timing principle in the
+[Bot Bowl scripted-bot tutorial](https://njustesen.github.io/botbowl/bots-ii.html).
+
+An unmarked receiver with at least two extra squares of movement can earn a
+hand-off if the catch is reliable and the receiving route gains ground.
+On receiving setups, the coach uses the legal formation's existing squares
+and moves a suitable retriever into the backfield. Strong blockers fill the
+line of scrimmage when the roster has a designated retriever.
+Near the end zone, the route search retains both routes that collect a loose
+ball and routes that leave it in place. On a final turn that needs a score,
+the coach can choose a pickup and touchdown in the same activation.
+
+Set `BB_FULL_MATCH_TESTS=1` and run
+`node --test --test-name-pattern="seeded AI league fixture" tests/features/computer.test.cjs`
+to replay the two default league fixtures. Set `BB_LEAGUE_SCORE_BATCH=1` for
+the ten-seed Human–Orc batch. Set `BB_LEAGUE_MIXED_ROSTERS=1` to replace the
+all-lineman lineups with positional lineups and two team re-rolls per side.
+To replay a custom set, put comma-separated seeds in `BB_LEAGUE_SEEDS`.
+Each result reports the score, touchdown timing, planned touchdown attempts,
+closest approach to the end zone, possession losses, and how often a team
+kept possession through the opponent's turn.
+
+### Seeded league comparison
+
+Scores list Humans first. The original and updated all-lineman runs used
+the same rosters and seeds. The positional run is a separate benchmark
+with mixed lineups and two team re-rolls per team. The table precedes
+the trailing-team adjustment described below.
+
+| Seed | Original all-lineman | Updated all-lineman | Updated positional |
+| ---: | :---: | :---: | :---: |
+| 7 | 0–0 | 0–0 | 0–1 |
+| 19 | 1–0 | 1–0 | 0–0 |
+| 33 | 0–0 | 0–1 | 0–1 |
+| 42 | 0–1 | 0–1 | 0–1 |
+| 71 | 0–0 | 0–0 | 0–1 |
+| 101 | 0–0 | 0–0 | 1–0 |
+| 137 | 0–0 | 0–0 | 1–0 |
+| 251 | 0–0 | 0–0 | 0–0 |
+| 509 | 0–0 | 0–0 | 1–0 |
+| 927 | 0–0 | 0–0 | 1–0 |
+
+Seed 33 recovered a loose ball and scored in the same activation on turn
+eight. The positional games produced four Human wins and four Orc wins.
+In this checkpoint the coaches converted eight of twelve planned scoring attempts. Both
+teams attempted to score in two of the ten games, which points to creating
+more attempts as the next bottleneck in this sample.
+
+The earlier local coach checkpoint scored eight touchdowns from nineteen
+attempts with these same positional rosters and seeds. Its seven scoring
+games included one 1–1 draw. The updated coach spread the same touchdown
+total over eight games, with more late scores and fewer attempts overall.
+
+The follow-up gives the trailing carrier more reason to advance from
+turn three of the second half. In a four-seed positional retest it changed
+seed 7 from a 0–1 loss to a 1–1 draw and kept the other three scores.

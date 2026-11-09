@@ -109,6 +109,20 @@ test('last-turn scoring necessity permits a risk that is rejected early in the h
  assert.notEqual(coach.chooseAction(g)?.kind,'pass');g.turns[1]=8;
  assert.equal(coach.chooseAction(g).kind,'pass');
 });
+test('a last-turn pass can be the only credible way to tie the match',()=>{
+ const {g,p,q,coach}=transfer({half:2,from:8,to:5});
+ Object.assign(p.profileOverride,{ma:1,pa:'4+',skills:[]});q.profileOverride.skills=[];
+ g.scores=[1,0];g.turns=[8,7];g.rerolls=[0,0];
+ assert.notEqual(coach.chooseAction(g)?.kind,'pass');
+ g.turns[1]=8;
+ const action=coach.chooseAction(g);
+ assert.equal(action.kind,'pass');
+ assert.equal(action.scoring,true);
+ assert.ok(action.success>=.3&&action.success<.45);
+ g.rerolls[1]=1;
+ assert.ok(coach.chooseAction(g).success>action.success);
+ assert.equal(g.rerolls[1],1);
+});
 test('a potential On the Ball interception move makes an otherwise worthwhile pass unattractive',()=>{
  const {g,p,coach}=transfer({from:10,to:5});p.profileOverride.ma=1;assert.equal(coach.chooseAction(g).kind,'pass');
  Object.assign(g.players.find(r=>r.team===0),{x:7,y:10,status:'standing',extraSkills:['On the Ball']});
