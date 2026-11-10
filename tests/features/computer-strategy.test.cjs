@@ -168,6 +168,43 @@ test('the coach screens a future scoring route before committing its carrier',()
  assert.equal(setup.kind,'move');
  assert.deepEqual([setup.route.x,setup.route.y],[23,6]);
 });
+test('the coach moves a teammate out of the lane before running in a reply',()=>{
+ const g=board(),coach=new ComputerCoach(0),carrier=field(g,0,0,3,7,{ma:3});carry(g,carrier);
+ g.half=2;g.scores=[0,1];g.turns=[6,6];g.rerolls=[0,0];
+ [[2,6],[2,7],[2,8]].forEach(([x,y],i)=>field(g,0,i+1,x,y));
+ g.dice=()=>{throw Error('The scoring sequence should need no rolls');};
+ const before=JSON.stringify(g),action=coach.chooseAction(g);
+ assert.equal(action.goal,'space that opens a touchdown lane');
+ assert.notEqual(action.p,carrier);
+ assert.equal(JSON.stringify(g),before);
+ for(let i=0;i<15&&!g.scores[0];i++)assert.ok(coach.step(g));
+ assert.deepEqual(g.scores,[1,1]);
+});
+test('a roll-free assist improves the Blitz that clears the touchdown lane',()=>{
+ const g=board(),coach=new ComputerCoach(0),carrier=field(g,0,0,22,7,{ma:3,ag:'4+'});carry(g,carrier);
+ g.scores=[0,1];g.turns=[7,7];g.rerolls=[0,0];
+ const blitzer=field(g,0,1,24,9,{st:3,skills:['Block']});
+ const escort=field(g,0,2,23,4);
+ const defender=field(g,1,0,23,7,{st:4,skills:[]});
+ g.dice=()=>{throw Error('Planning should not roll dice');};
+ const before=JSON.stringify(g);
+ const setup=coach.chooseAction(g);
+ assert.equal(setup.goal,'an assist for the touchdown Blitz');
+ assert.equal(setup.p,escort);
+ assert.equal(JSON.stringify(g),before);
+ g.blitzUsed[0]=true;
+ assert.notEqual(coach.chooseAction(g)?.goal,'an assist for the touchdown Blitz');
+ g.blitzUsed[0]=false;g.dice=()=>6;
+ for(let i=0;i<12&&(!escort.used||g.mover);i++)assert.ok(coach.step(g));
+ const attack=coach.chooseAction(g);
+ assert.equal(attack.kind,'blitz');
+ assert.equal(attack.p,blitzer);
+ assert.equal(attack.target,defender);
+ assert.ok(attack.route.path.length);
+ assert.equal(coach.blockOdds(g,blitzer,defender,attack.route,true).count,2);
+ for(let i=0;i<30&&!g.scores[0];i++)assert.ok(coach.step(g));
+ assert.deepEqual(g.scores,[1,1]);
+});
 test('a blocked carrier switches flanks while time remains to use the opening',()=>{
  const g=board(),coach=new ComputerCoach(0),carrier=field(g,0,0,10,7,{ma:3});carry(g,carrier);
  for(let i=0;i<5;i++)field(g,1,i,12,5+i);
