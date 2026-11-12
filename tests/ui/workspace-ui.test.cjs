@@ -29,6 +29,7 @@ function workspaceFixture(scenario='block',timers={}){
  const document={getElementById:get,createElement:tag=>new Element(tag),querySelectorAll:()=>[],listeners:{},addEventListener(k,f){(this.listeners[k]??=[]).push(f);},activeElement:null};
  get('team-data').textContent=html.match(/type="application\/json">([\s\S]*?)<\/script>/)[1];get('scenario').value=scenario;get('player-details').append(get('profile'));get('coach-panel').append(get('pitch-popup'));get('pitch-popup').hidden=true;
  get('roster-data').textContent=html.match(/id="roster-data" type="application\/json">([\s\S]*?)<\/script>/)[1];
+ get('portrait-data').textContent=html.match(/id="portrait-data" type="application\/json">([\s\S]*?)<\/script>/)[1];
  // Match browser arithmetic without vm global-proxy overhead on the many
  // forecast calculations performed during an entire observed match.
  const storage=new Map();context=vm.createContext({...timers,document,console,Math,Number,JSON,innerWidth:1200,innerHeight:800,addEventListener(){},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)}});
@@ -416,9 +417,9 @@ test('rerender restores the page offset after layout changes and preserves pitch
  assert.equal(f.run('scrollY'),420);assert.equal(f.run('scrollX'),10);assert.equal(f.run('restoredScroll.behavior'),'instant');assert.equal(f.document.activeElement,f.cell(0,0));assert.equal(f.cell(0,0).focusOptions.preventScroll,true);
 });
 function dugoutNodes(e){return [e,...e.children.flatMap(dugoutNodes)];}
-test('dugout cards reuse pitch position shapes and team colors for off-pitch players',()=>{
+test('dugout cards reuse fallback position shapes and team colors for off-pitch players',()=>{
  const f=workspaceFixture();
- f.run('for(const [team,traits,status] of [[0,"Blitzer, Elf","reserve"],[1,"Thrower, Orc","knocked-out"]]){const p=game.players.find(p=>p.team===team);p.profileOverride={...game.profile(p),traits};Object.assign(p,{x:null,y:null,status});}render()');
+ f.run('for(const [team,traits,status] of [[0,"Blitzer, Elf","reserve"],[1,"Thrower, Orc","knocked-out"]]){const p=game.players.find(p=>p.team===team);p.profileOverride={...game.profile(p),id:"no-portrait",traits};Object.assign(p,{x:null,y:null,status});}render()');
  const cards=dugoutNodes(f.get('dugout'));
  for(const [id,shape,svg] of [['0-1','triangle','polygon'],['1-1','diamond','polygon']]){
   const card=cards.find(e=>e.dataset.playerId===id),icon=card.children[0];
@@ -487,8 +488,32 @@ test('positional markers use roster keywords consistently, including hybrid role
  assert.equal(f.get('position-key-items').children.length,8);
 });
 
-test('both teams keep role shapes, shirt numbers, status classes, ball and selected square indicators',()=>{
- const f=workspaceFixture();f.run('globalThis.a=game.players[0];globalThis.b=game.players.find(p=>p.team!==a.team);for(const p of [a,b])p.profileOverride={...game.profile(p),traits:"Blitzer, Human"};Object.assign(a,{x:5,y:7,status:"prone",distracted:true,used:true});Object.assign(b,{x:7,y:7,status:"standing"});selected=a.id;game.ball={x:5,y:7,carrier:a.id};render()');const home=f.cell(5,7),away=f.cell(7,7),a=home.children.find(e=>e.className.includes('token role-')),b=away.children.find(e=>e.className.includes('token role-'));assert.ok(a.className.includes('role-triangle'));assert.ok(b.className.includes('role-triangle'));assert.ok(a.className.includes('prone'));assert.ok(a.className.includes('distracted'));assert.ok(a.className.includes('used'));assert.ok(b.className.includes('blue'));assert.ok(home.className.includes('selected'));assert.ok(home.children.some(e=>e.className==='ball'));assert.equal(String(a.children.find(e=>e.className==='token-number').textContent),String(f.run('a.number')));assert.match(a.children.find(e=>e.className==='token-shape').innerHTML,/<svg.*polygon/);assert.match(home['aria-label'],/Blitzer marker \(triangle\)/);
+test('Nobility and Black Orc portraits reach the pitch, dugout and inspector',()=>{
+ const f=workspaceFixture();
+ assert.equal(f.run(`rosterCatalog.filter(t=>["imperial-nobility","black-orc"].includes(t.id))
+  .flatMap(t=>t.positions.map(p=>playerPortrait(t,p)?.url.startsWith("data:image/jpeg;base64,")))
+  .filter(Boolean).length`),8);
+ f.run(`
+  globalThis.homeOgre=game.players.find(p=>p.team===0);
+  globalThis.awayTroll=game.players.find(p=>p.team===1);
+  Object.assign(homeOgre,{x:5,y:7,profileOverride:rosterCatalog.find(t=>t.id==="imperial-nobility").positions.find(p=>p.id==="ogre")});
+  Object.assign(awayTroll,{x:6,y:7,profileOverride:rosterCatalog.find(t=>t.id==="black-orc").positions.find(p=>p.id==="troll")});
+  render();
+  renderDugouts(false);
+  showProfile(0,0,homeOgre.number);
+ `);
+ const home=f.cell(5,7).children.find(e=>e.className.includes('portrait-token'));
+ const away=f.cell(6,7).children.find(e=>e.className.includes('portrait-token'));
+ assert.equal(home.style,'--portrait-rim:#f07839');
+ assert.ok(away.className.includes('blue'));
+ assert.equal(away.style,'--portrait-rim:#f07839');
+ assert.equal(String(away.children.find(e=>e.className==='token-number').textContent),String(f.run('awayTroll.number')));
+ assert.ok(f.get('dugout').querySelectorAll('button').some(card=>card.children.some(e=>e.className.includes('dugout-icon')&&e.className.includes('portrait-token'))));
+ assert.ok(f.get('profile').children.some(e=>e.className.includes('profile-portrait')));
+});
+
+test('positions without portraits keep role shapes, shirt numbers, status classes, ball and selection',()=>{
+ const f=workspaceFixture();f.run('globalThis.a=game.players[0];globalThis.b=game.players.find(p=>p.team!==a.team);for(const p of [a,b])p.profileOverride={...game.profile(p),id:"no-portrait",traits:"Blitzer, Human"};Object.assign(a,{x:5,y:7,status:"prone",distracted:true,used:true});Object.assign(b,{x:7,y:7,status:"standing"});selected=a.id;game.ball={x:5,y:7,carrier:a.id};render()');const home=f.cell(5,7),away=f.cell(7,7),a=home.children.find(e=>e.className.includes('token role-')),b=away.children.find(e=>e.className.includes('token role-'));assert.ok(a.className.includes('role-triangle'));assert.ok(b.className.includes('role-triangle'));assert.ok(a.className.includes('prone'));assert.ok(a.className.includes('distracted'));assert.ok(a.className.includes('used'));assert.ok(b.className.includes('blue'));assert.ok(home.className.includes('selected'));assert.ok(home.children.some(e=>e.className==='ball'));assert.equal(String(a.children.find(e=>e.className==='token-number').textContent),String(f.run('a.number')));assert.match(a.children.find(e=>e.className==='token-shape').innerHTML,/<svg.*polygon/);assert.match(home['aria-label'],/Blitzer marker \(triangle\)/);
 });
 
 test('repeating an unactivated destination confirms one Move without a separate declaration',()=>{const f=workspaceFixture('dodge');f.run('selected=game.players[0].id;game.dice=()=>6;render();choose(9,6)');assert.equal(f.run('game.mover'),null);assert.equal(f.run('game.players[0].used'),false);assert.ok(f.get('pitch-popup').hidden);f.run('choose(9,6)');assert.equal(f.run('game.players[0].x'),9);assert.equal(f.run('game.players[0].y'),6);assert.equal(f.run('game.players[0].spent'),1);assert.equal(f.run('destination'),null);});

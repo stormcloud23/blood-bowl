@@ -108,6 +108,23 @@ main>aside #matchflow .control{max-width:100%}
 .token.prone,.token.stunned{transform:none;border:0;border-radius:0;box-shadow:none}.token.prone .token-shape{transform:rotate(-12deg)}.token.prone svg>*{stroke-dasharray:4 2}.token.stunned svg>*{stroke:#ff6b70;stroke-width:4}.token.distracted svg>*{stroke:#ce96f0;stroke-width:4}
 .position-key{margin:6px 0}.position-key>summary{padding:6px 0;font-size:12px}.position-key>div{display:flex;flex-wrap:wrap;gap:8px 16px;padding:6px 0}.position-key-item{display:inline-flex;align-items:center;gap:7px;color:#b8c9c7;font-size:12px}.position-key-item .token{width:26px;height:26px;flex-shrink:0;margin:0}
 
+.token.portrait-token{container-type:inline-size;--number-color:#9c1830}
+.token.portrait-token.blue{--number-color:#174eaa}
+.token-portrait{position:absolute;inset:0;overflow:hidden;border:clamp(1.5px,5cqi,4px) solid var(--portrait-rim);border-radius:50%;background:#f8f7f1;box-shadow:0 0 0 1px #101b20;pointer-events:none}
+.token-portrait img{position:absolute;max-width:none}
+.blue .token-portrait{transform:scaleX(-1)}
+.portrait-token .token-number{
+ position:absolute;bottom:-6%;left:50%;transform:translateX(-50%);display:grid;place-content:center;
+ width:max(13px,40%);aspect-ratio:1;border:clamp(1.5px,3cqi,3px) solid var(--portrait-rim);
+ border-radius:50%;background:white;color:var(--number-color);font-size:clamp(8px,27cqi,22px);
+ font-weight:900;font-variant-numeric:tabular-nums;text-shadow:none
+}
+.portrait-token.prone .token-portrait{outline:1px dashed white;outline-offset:1px}
+.portrait-token.stunned .token-portrait{outline:2px solid #ff6b70}
+.portrait-token.distracted .token-portrait{outline:2px solid #ce96f0}
+.portrait-token ~ .ball{top:0;bottom:auto;z-index:2;pointer-events:none}
+.token.profile-portrait{float:right;width:76px;height:76px;margin:4px 0 10px 12px}
+
 .pitch-legend span[style]::before{background:var(--key-color);border-color:var(--key-color)}
 
 .exhibition-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}#exhibition-rosters>summary{font-weight:650}.exhibition-side{display:grid;grid-template-columns:1fr;gap:8px;padding:14px;background:#101b20;border:1px solid #34474d;border-radius:6px}.exhibition-side select{width:100%}.exhibition-side label{font-size:13px;font-weight:650}.exhibition-side .muted{font-size:12px;margin-bottom:8px}@media(max-width:650px){.exhibition-grid{grid-template-columns:1fr}}
