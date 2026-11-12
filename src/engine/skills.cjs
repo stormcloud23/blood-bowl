@@ -712,7 +712,7 @@ class SkillGame extends SkillBase {
     this.blockAction=null;this.nextFrenzyRound=2;const hit=()=>this.rollBlock(a,d,b.blitz);if(b.blitz){a.spent++;if(a.spent>this.profile(a).ma)this.test(a,"Rush",2,hit,()=>this.fall(a,{prevented:hit}));else hit();}else hit();return;
    }
   }if(b&&!b.putridChecked){b.putridChecked=true;if(this.afterRegularBlock(b))return;}
-  if(b&&!b.blitz&&b.attacker.bloodlust){this.feed(b.attacker,()=>this.finishBlock());return;}super.finishBlock();
+  if(b&&b.attacker.bloodlust&&(!b.blitz||b.attacker.status!=="standing"||!this.onPitch(b.attacker))){this.feed(b.attacker,()=>this.finishBlock());return;}super.finishBlock();
  }
  resolveBothDownChoice(choice){
   const b=this.blockAction,players=[b.attacker,b.target];

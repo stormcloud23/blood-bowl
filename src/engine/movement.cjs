@@ -435,7 +435,12 @@ class MovementGame {
  finishBlock(){
   const b=this.blockAction;if(this.finished)return;
   if(b?.turnover){this.blockAction=null;this.action=null;this.endTurn(true);return;}
-  this.note("Block action resolved.");this.blockAction=null;if(b?.blitz){this.action="blitz";this.checkScore();}else this.action=null;
+  this.note("Block action resolved.");this.blockAction=null;
+  if(!b?.blitz){this.action=null;return;}
+  if(b.attacker.status!=="standing"||!this.onPitch(b.attacker)){
+   this.mover=null;this.action=null;this.blitzTarget=null;return;
+  }
+  this.action="blitz";this.checkScore();
  }
  pushSquares(attacker,target,grab=false){
   const dx=Math.sign(target.x-attacker.x),dy=Math.sign(target.y-attacker.y);

@@ -836,8 +836,12 @@ for(const kind of ['movement','block','blitz'])test('outside-range empty click c
 for(const status of ['standing','prone'])test('reachable empty square still previews movement for a '+status+' player',()=>{
  const f=proneFixture();f.run("prone.status='"+status+"';render();");f.cell(8,7).click();f.cell(9,7).click();assert.equal(f.run('selected'),f.run('prone.id'));assert.equal(f.run('destination.x'),9);assert.equal(f.run('prone.status'),status);assert.equal(f.run('prone.used'),false);assert.equal(f.run('rollCount'),0);
 });
-test('outside-range deselection retains an active mover and already spent MA',()=>{
- const f=proneFixture();f.run("prone.status='standing';selected=prone.id;game.start(prone.id,'move');game.step(9,7);render();");f.cell(25,14).click();assert.equal(f.run('selected'),null);assert.equal(f.run('game.mover'),f.run('prone.id'));assert.equal(f.run('prone.spent'),1);assert.equal(f.run('game.action'),'move');assert.equal(f.run('game.active'),0);
+for(const shortcut of ['route','stand'])test('outside-range click ends a Move started by the '+shortcut+' shortcut',()=>{
+ const f=proneFixture();f.run("prone.status='"+(shortcut==='route'?'standing':'prone')+"';render();");
+ f.cell(8,7).click();
+ if(shortcut==='route'){f.cell(9,7).click();f.cell(9,7).click();}else f.cell(8,7).click();
+ assert.equal(f.run('game.mover'),f.run('prone.id'));const spent=f.run('prone.spent');
+ f.cell(25,14).click();assert.equal(f.run('selected'),null);assert.equal(f.run('game.mover'),null);assert.equal(f.run('prone.spent'),spent);assert.equal(f.run('prone.used'),true);assert.equal(f.run('game.action'),null);assert.equal(f.run('game.active'),0);
 });
 test('outside-range clicks deselect used, rooted and opposing inspected players without activating them',()=>{
  for(const change of ['prone.used=true','prone.rooted=true','game.active=1']){

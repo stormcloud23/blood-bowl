@@ -106,6 +106,14 @@ test('defensive block dice and Stand Firm belong to the computer during the huma
 test('empty computer teams finish their turn rather than stalling',()=>{
  const g=fixture();position(g);g.players.forEach(p=>Object.assign(p,{x:null,y:null,status:'casualty'}));assert.ok(new ComputerCoach(1).step(g));assert.notEqual(g.active,1);
 });
+test('a Troll Slayer placed prone by Wrestle immediately ends their Blitz',()=>{
+ const g=fixture(1,['dwarf','gnome']),a=position(g,0),d=g.players.find(p=>p.team===1);
+ Object.assign(a,{x:10,y:7,role:3});Object.assign(d,{x:11,y:7,status:'standing',role:0});g.dice=()=>2;g.rerolls=[0,0];
+ assert.ok(g.startBlitz(a.id,d.id));assert.ok(g.blitzBlock());assert.ok(g.selectBlockDie(0));
+ assert.ok(g.decide('Use Block'));assert.ok(g.decide('Use Wrestle'));
+ assert.equal(a.status,'prone');assert.equal(d.status,'prone');assert.equal(g.mover,null);assert.equal(g.action,null);
+ assert.equal(g.blitzTarget,null);assert.equal(g.active,0);assert.equal(g.blitzUsed[0],true);assert.equal(a.used,true);
+});
 test('a chain-pushed human owns their optional Stand Firm choice',()=>{
  const g=fixture(),a=position(g,1),d=g.players.find(p=>p.team===0),occupant=g.players.find(p=>p.team===0&&p!==d);
  Object.assign(a,{x:10,y:7});Object.assign(d,{x:11,y:7,status:'standing'});Object.assign(occupant,{x:12,y:7,status:'standing',extraSkills:['Stand Firm']});

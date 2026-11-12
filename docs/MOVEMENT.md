@@ -22,7 +22,7 @@ the selected route; the full preview lists checks on earlier steps.
 
 ## Implemented
 
-Declare Move explicitly; one activation per player per team turn, no switching activations mid-action. Inspecting another player does not change the active mover. End Move permits zero movement. Forecast reachable vacant squares and valid jumps, then preview required dice before committing movement.
+Declare Move explicitly or confirm a route to start it. Each player can activate once per team turn. Inspecting another player does not change the active mover. Use End Move or click an empty square outside the remaining movement range to end the Move. Forecast reachable vacant squares and valid jumps, then preview required dice before committing movement.
 
 Version 0.0.4 added a non-mutating movement forecast. Selecting an eligible player shows the lowest-movement-point route to every reachable square, including rush allowance, dodges, jumps, and pickup checks. Version 0.0.5 simplifies movement to two clicks: click a reachable destination once to preview the route and checks, then click it again to commit movement through that square. After arrival, the player can choose another destination while movement remains. A committed route pauses for any re-roll decision; after resolving it, choose a destination again to re-plan from the actual state. Forecasted targets are not dice rolls: dice are generated only on commitment. Choosing a closer destination allows deliberate partial moves.
 

@@ -166,10 +166,12 @@ choose=function(x,y,pushDecision=game.pending){
   const route=previewRoute(planner);
   if(canCommitBlitzRoute(planner,route,target)){executeBlitzRoute(planner,route);return;}
  }
- if(!target&&actor&&!wasTargeting&&(!game.match||["play","charge"].includes(phase))){
-  const previous=actor===planner?previewRoute(planner):null,range=actor===planner?remainingRange(planner,previous):new Map();
+ const activeMove=planner&&game.mover===planner.id&&game.action==="move";
+ if(!target&&(actor||activeMove)&&!wasTargeting&&(!game.match||["play","charge"].includes(phase))){
+  const canRoute=activeMove||actor===planner;
+  const previous=canRoute?previewRoute(planner):null,range=canRoute?remainingRange(planner,previous):new Map();
   const routeSquare=previous?.path.some(step=>step.x===x&&step.y===y);
-  if(!range.has(routeKey(x,y))&&!routeSquare){selected=null;destination=null;throwDestination=null;render();return;}
+  if(!range.has(routeKey(x,y))&&!routeSquare){if(activeMove)game.finish();selected=null;destination=null;throwDestination=null;render();return;}
  }
  if(!game.pending&&!ballMode&&target===planner&&previewRoute(planner)){
   selected=planner.id;blockMode=false;destination=null;
