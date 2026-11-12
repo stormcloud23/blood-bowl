@@ -2,6 +2,7 @@
 "use strict";
 const teams=JSON.parse(document.getElementById("team-data").textContent);
 const rosterCatalog=JSON.parse(document.getElementById("roster-data")?.textContent||document.getElementById("team-data").textContent);
+const portraitCatalog=JSON.parse(document.getElementById("portrait-data")?.textContent||"{}");
 const pitch=document.getElementById("pitch"),coach=document.getElementById("coach"),selection=document.getElementById("selection"),log=document.getElementById("log");
 const money=n=>n.toLocaleString("en-US")+" gp";
 // Presentation roles follow roster keywords, never the player's skills or team.
@@ -21,6 +22,39 @@ function positionMarker(profile){
  return POSITION_MARKERS[role];
 }
 function markerGraphic(marker){const graphic=document.createElement("span");graphic.className="token-shape";graphic.setAttribute("aria-hidden","true");graphic.innerHTML='<svg viewBox="0 0 40 40" focusable="false" aria-hidden="true">'+marker.svg+'</svg>';return graphic;}
+const portraitRims={
+ Lineman:"#bac3cd",Blitzer:"#ffe54c",Blocker:"#c84c68",Special:"#b48ce8",
+ Thrower:"#65b5f6",Catcher:"#b6da62",Runner:"#36c3ad","Big Guy":"#f07839","Star Player":"#e4b84f"
+};
+function playerPortrait(roster,profile,star){
+ return portraitCatalog[star?"star-players":roster.id]?.[profile.id];
+}
+function playerToken(roster,profile,{team,number,star,classes=""}){
+ const marker=positionMarker(profile),portrait=playerPortrait(roster,profile,star);
+ const token=document.createElement("span");
+ token.className="token role-"+marker.shape+(team===1?" blue":"")+(portrait?" portrait-token":"")+(classes?" "+classes:"");
+ token.dataset.role=marker.label;
+ token.setAttribute("aria-hidden","true");
+ if(portrait){
+  token.setAttribute("style","--portrait-rim:"+portraitRims[star?"Star Player":marker.label]);
+  const frame=document.createElement("span"),photo=document.createElement("img");
+  frame.className="token-portrait";
+  photo.alt="";
+  photo.src=portrait.url;
+  photo.setAttribute("style",`width:${portrait.width}%;left:${portrait.left}%;top:${portrait.top}%`);
+  frame.append(photo);
+  token.append(frame);
+ }else{
+  token.append(markerGraphic(marker));
+ }
+ if(number!=null){
+  const badge=document.createElement("span");
+  badge.className="token-number";
+  badge.textContent=number;
+  token.append(badge);
+ }
+ return token;
+}
 let blitzExecution=null,reactionExecution=null,ballExecution=null,foulExecution=null;
 let game,selected=null,destination=null,blockMode=false,ballMode=false,throwDestination=null;
 function reset(){if(globalThis.resetLeagueTeams)globalThis.resetLeagueTeams();const scenario=document.getElementById("scenario").value;game=scenario.startsWith("match")?new MatchGame(teams,{learning:scenario==="match-learning"}):new SkillGame(teams,{scenario});selected=game.practicePlayer;destination=null;blockMode=false;ballMode=false;throwDestination=null;render();const p=game.players.find(p=>p.id===selected);showProfile(p?.team??0,p?.role??0,p?.number??null);}
@@ -35,6 +69,10 @@ function showProfile(team,role,number,roster=null){
  const t=roster||teams[team],live=!roster&&number&&game.players.find(p=>p.team===team&&p.number===number),p=live?game.profile(live):t.positions[role],record=live?.leagueRecord,base=live?.star?p:t.positions[role],escape=escapeTeamText;
  const title=record?.name||p.name||base.name,source=/^https?:\/\//i.test(t.source||"")?t.source:"",cost=record?.value??p.cost??base.cost;
  document.getElementById("profile").innerHTML='<div class="eyebrow">'+escape(t.name)+'</div><h2>'+(number?'#'+number+' · ':'')+escape(title)+'</h2><p class="muted">'+(record?escape(p.name||base.name)+' · ':'')+escape(p.traits)+'</p><div class="stats">'+["ma","st","ag","pa","av"].map(k=>'<div class="stat"><small>'+k.toUpperCase()+'</small>'+escape(p[k])+'</div>').join("")+'</div><div class="profile-skills">'+p.skills.map(name=>'<details class="skill-help"><summary>'+escape(name)+'</summary><p>'+escape(skillHelpText(name))+'</p></details>').join("")+'</div><p class="muted">'+(live?.pairedStar?'Pair fee: ':record?'Current value: ':'Cost: ')+money(cost)+' · Limit: 0–'+escape(base.max)+'<br>Primary: '+escape(p.primary)+' · Secondary: '+escape(p.secondary)+(record?'<br>Saved SPP: '+escape(record.spp)+' · Niggling Injuries: '+escape(live.nigglingInjuries||0):'')+'</p>'+(source?'<a class="muted" href="'+escape(source)+'">2025 roster source</a>':'');
+ if(playerPortrait(t,p,live?.star)){
+  const portrait=playerToken(t,p,{team,number,star:live?.star,classes:"profile-portrait"});
+  document.getElementById("profile").prepend(portrait);
+ }
 }
 
 
@@ -455,7 +493,17 @@ function render(){
   }
   if(y===7&&(x===6||x===19)){const spot=document.createElement("span");spot.className="sweet-spot";spot.setAttribute("aria-hidden","true");cell.append(spot);cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", kick sweet spot");}
   if(game.match&&((x===6&&y===1)||(x===19&&y===13))){cell.className+=" trapdoor";if(game.onTrapdoor({x,y})){cell.className+=" trapdoor-active";cell.title+=" · Trapdoor: falls through on 1";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", trapdoor (2+ to cross)");const marker=document.createElement("span");marker.className="trapdoor-marker";marker.textContent="⊠";marker.setAttribute("aria-hidden","true");cell.append(marker);}else {cell.title+=" · Closed trapdoor";cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", closed trapdoor");}}
-  if(p){const marker=positionMarker(game.profile(p)),available=onTheBall?.players.has(p.id),token=document.createElement("span");token.className="token role-"+marker.shape+(p.team?" blue":"")+(p.used&&p.id!==game.mover&&!available?" used":"")+" "+p.status+(p.distracted?" distracted":"")+(onTheBall?(available?" reaction-available":" reaction-unavailable"):"");token.dataset.role=marker.label;token.append(markerGraphic(marker));const number=document.createElement("span");number.className="token-number";number.textContent=p.number;token.append(number);cell.append(token);cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+marker.label+" marker ("+marker.shape+")"+(onTheBall?(available?", On the Ball reactor":", not available for On the Ball"):""));}
+  if(p){
+   const profile=game.profile(p),marker=positionMarker(profile),available=onTheBall?.players.has(p.id);
+   const classes=[p.status];
+   if(p.used&&p.id!==game.mover&&!available)classes.push("used");
+   if(p.distracted)classes.push("distracted");
+   if(onTheBall)classes.push(available?"reaction-available":"reaction-unavailable");
+   const token=playerToken(game.teams[p.team],profile,{team:p.team,number:p.number,star:p.star,classes:classes.join(" ")});
+   cell.append(token);
+   const markerDescription=playerPortrait(game.teams[p.team],profile,p.star)?" portrait":" marker ("+marker.shape+")";
+   cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", "+marker.label+markerDescription+(onTheBall?(available?", On the Ball reactor":", not available for On the Ball"):""));
+  }
   if(routeIndex){const n=document.createElement("span");n.className="route-index";n.textContent=routeIndex;cell.append(n);}
   if(game.bomb&&game.bomb.x===x&&game.bomb.y===y){const b=document.createElement("span");b.className="ball";b.textContent="●";b.title="Bomb";cell.append(b);cell.setAttribute("aria-label",cell.getAttribute("aria-label")+", bomb");}
   const landingHere=kickLanding?.x===x&&kickLanding?.y===y;

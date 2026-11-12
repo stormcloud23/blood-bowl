@@ -1,0 +1,14 @@
+{
+  "imperial-nobility": {
+    "retainer": { "file": "retainer.jpg", "width": 324, "left": -107, "top": -73 },
+    "thrower": { "file": "thrower.jpg", "width": 205, "left": -47, "top": 0 },
+    "bodyguard": { "file": "bodyguard.jpg", "width": 270, "left": -114, "top": -63 },
+    "blitzer": { "file": "blitzer.jpg", "width": 292, "left": -110, "top": -59 },
+    "ogre": { "file": "ogre.jpg", "width": 294, "left": -113, "top": -24 }
+  },
+  "black-orc": {
+    "goblin": { "file": "goblin.jpg", "width": 279, "left": -75, "top": -35 },
+    "black-orc": { "file": "black-orc.jpg", "width": 229, "left": -77, "top": -36 },
+    "troll": { "file": "troll.jpg", "width": 311, "left": -119, "top": -65 }
+  }
+}

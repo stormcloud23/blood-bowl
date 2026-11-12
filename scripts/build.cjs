@@ -5,12 +5,23 @@ const root=path.resolve(__dirname,'..');
 const read=file=>fs.readFileSync(path.join(root,file),'utf8');
 function build(){
 let html=read('src/index.template.html');
+const portraits=JSON.parse(read('src/data/portraits.json'));
+const portraitMime={'.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.webp':'image/webp'};
+for(const [team,positions] of Object.entries(portraits)){
+ for(const portrait of Object.values(positions)){
+  const mime=portraitMime[path.extname(portrait.file).toLowerCase()];
+  if(!mime)throw new Error('Unsupported portrait file: '+portrait.file);
+  const photo=fs.readFileSync(path.join(root,'portrait-intake',team,portrait.file));
+  portrait.url='data:'+mime+';base64,'+photo.toString('base64');
+ }
+}
 function embed(pattern,content,label){
  const matches=html.match(new RegExp(pattern.source,'g'));
  if(matches?.length!==1)throw new Error('Expected one '+label+' placeholder in src/index.template.html');
  html=html.replace(pattern,()=>content);
 }
 embed(/<script id="roster-data" type="application\/json">[\s\S]*?<\/script>/,'<script id="roster-data" type="application/json">\n'+read('src/data/rosters.json').trimEnd()+'\n</script>','roster data');
+embed(/<script id="portrait-data" type="application\/json">[\s\S]*?<\/script>/,'<script id="portrait-data" type="application/json">'+JSON.stringify(portraits)+'</script>','portrait data');
 for(const [id,file] of [
  ['movement-engine','src/engine/movement.cjs'],
  ['skills-engine','src/engine/skills.cjs'],
