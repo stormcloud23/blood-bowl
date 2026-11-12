@@ -485,7 +485,6 @@ test('pitch actions are a coach-panel region with collapsed information and no f
 test('positional markers use roster keywords consistently, including hybrid roles and unknown specials',()=>{
  const f=workspaceFixture();for(const [traits,shape] of [['Lineman, Human','circle'],['Goblin, Lineman','circle'],['Blitzer, Elf, Runner','triangle'],['Blocker, Undead, Wraith','square'],['Special, Dwarf','star'],['Thrower, Skaven','diamond'],['Catcher, Human, Thrower','hexagon'],['Runner, Snakeman','pentagon'],['Big Guy, Ogre, Thrower','octagon'],['Big Guy, Snotling, Special','octagon'],['Squirrel','star']])assert.equal(f.run('positionMarker({traits:'+JSON.stringify(traits)+'}).shape'),shape,traits);
  assert.equal(f.run('new Set(rosterCatalog.flatMap(t=>t.positions.map(p=>positionMarker(p).shape))).size'),8);
- assert.equal(f.get('position-key-items').children.length,8);
 });
 
 test('Nobility and Black Orc portraits reach the pitch, dugout and inspector',()=>{
@@ -732,9 +731,9 @@ test('blitz difficulty forecasts assists at contact and includes Horns without c
  f.cell(12,7).click();assert.equal(f.run('game.blockAction.aStrength'),5);assert.equal(f.run('game.blockAction.dStrength'),3);assert.equal(f.run('game.blockAction.count'),2);
 });
 
-test('Legend contains shapes and movement, block and throwing color keys',()=>{
+test('Legend contains movement, block and throwing color keys without player shapes',()=>{
  const html=fs.readFileSync(projectPath('index.html'),'utf8'),legend=html.match(/<details id="position-key"[\s\S]*?<\/details>/)[0];
- assert.match(legend,/<summary>Legend<\/summary>/);for(const id of ['position-key-items','pitch-legend','block-legend'])assert.ok(legend.includes('id="'+id+'"'));for(const label of ['3 die block','2 die block','1 die block','2 die uphill','3 die uphill'])assert.ok(legend.includes(label));assert.match(legend,/2\+/);assert.match(legend,/Passing &amp; throwing/);
+ assert.match(legend,/<summary>Legend<\/summary>/);assert.doesNotMatch(legend,/Player shapes|position-key-items/);for(const id of ['pitch-legend','block-legend'])assert.ok(legend.includes('id="'+id+'"'));for(const label of ['3 die block','2 die block','1 die block','2 die uphill','3 die uphill'])assert.ok(legend.includes(label));assert.match(legend,/2\+/);assert.match(legend,/Passing &amp; throwing/);
 });
 for(const [a,d,label] of [[7,3,'3 die block'],[4,3,'2 die block'],[3,3,'1 die block'],[3,4,'2 die uphill'],[3,7,'3 die uphill']])test('coach desk uses concise '+label+' during preview and execution',()=>{
  const f=adjacentBlockFixture();f.run('prone.profileOverride.st='+a+';enemy.profileOverride.st='+d+';render();');f.cell(9,7).click();
