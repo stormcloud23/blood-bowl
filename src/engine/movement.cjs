@@ -459,8 +459,8 @@ class MovementGame {
     this.pending=null;const origin={x:d.x,y:d.y};this.pushPlayer(d,pos,ok=>this.afterPush(origin,knockTarget,ok));
    }};
   };
-  if(d.status==="standing"&&this.has(d,"Stand Firm")&&!d.distracted)this.pending={type:"custom",kind:"Stand Firm",team:d.team,target:d,options:["Stand Firm","Be pushed"],resolve:choice=>{
-   this.pending=null;if(choice==="Stand Firm"){this.note(this.teams[d.team].name+" #"+d.number+" uses Stand Firm.");if(knockTarget)this.fall(d,{turnover:false,mightyBlowBy:a,after:()=>this.finishBlock()});else this.finishBlock();}else proceed();
+  if(d.status==="standing"&&this.has(d,"Stand Firm")&&!d.distracted)this.pending={type:"custom",kind:"Stand Firm",options:["Stand Firm","Be pushed"],resolve:choice=>{
+   this.pending=null;if(choice==="Stand Firm"){this.note("#"+d.number+" uses Stand Firm.");if(knockTarget)this.fall(d,{turnover:false,mightyBlowBy:a,after:()=>this.finishBlock()});else this.finishBlock();}else proceed();
   }};else proceed();
  }
  pushPlayer(victim,destination,done,depth=0){
