@@ -233,8 +233,7 @@ Player markers use the same role shapes for both teams:
 | Runner | Pentagon |
 | Big Guy | Octagon |
 
-The collapsible **Player shapes** key appears below the pitch. Classification
-uses roster positional keywords, not skill names, team identity or player names.
+Fallback shapes use roster positional keywords.
 Big Guy and Special tags take precedence; other hybrid profiles use their first
 recognized positional tag. Unknown profiles fall back to Special. Named stars
 retain their positional shape. Team colours, upright shirt numbers, selection,
