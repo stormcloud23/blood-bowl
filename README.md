@@ -1,6 +1,6 @@
 # Blood Bowl browser game
 
-A self-contained **Blood Bowl 2025 browser game** with local teams and league
+A static **Blood Bowl 2025 browser game** with local teams and league
 progression. Rules behavior follows the selected FFB BB2025 executable sources.
 
 **[Play on GitHub Pages](https://stormcloud23.github.io/blood-bowl/)**, or open
@@ -30,8 +30,9 @@ index.html          Generated, committed GitHub Pages application
 ```
 
 Edit files under `src/`, then rebuild. **Do not edit the generated `index.html`
-directly.** The build embeds the source, data and styles into that one file, so
-GitHub Pages and downloaded copies remain self-contained.
+directly.** The build embeds the rules, data and styles into that file. Keep
+`portrait-intake/` and the two gallery HTML files beside `index.html` for
+offline portraits and galleries.
 
 ## Develop and verify
 

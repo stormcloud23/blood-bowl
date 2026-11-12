@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blood Bowl cropped portraits</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#131c21;color:#edf1f3}
+*{box-sizing:border-box}
+body{margin:0}
+main{max-width:1400px;margin:auto;padding:28px clamp(14px,4vw,48px) 56px;--size:112px;--jersey:#9c1830}
+h1{font-size:clamp(28px,5vw,48px);letter-spacing:-.035em;margin:0}
+p,small{color:#b9c8cd}
+p{margin:6px 0 0;line-height:1.55}
+.controls{display:flex;flex-wrap:wrap;align-items:end;gap:12px;margin:22px 0}
+label{display:grid;gap:5px;font-size:.85rem}
+select{padding:7px 9px;border:1px solid #546873;border-radius:5px;background:#22313a;color:#edf1f3;font:inherit}
+section{border-top:1px solid #3c4e58;padding-top:14px;margin-top:24px}
+h2{margin:0 0 12px;font-size:1.2rem}
+h2 small{font-size:.78rem;font-weight:400;margin-left:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(140px,100%),1fr));gap:8px}
+.card{display:grid;grid-template-rows:auto 1fr;justify-items:center;align-items:start;gap:10px;padding:10px 6px;background:#1b2a30;border:1px solid #354950;border-radius:8px;text-align:center}
+.card:target{outline:2px solid #f0bf68}
+.token{position:relative;width:var(--size);aspect-ratio:1;container-type:inline-size;margin-bottom:4px}
+.frame{position:absolute;inset:0;overflow:hidden;border:clamp(1.5px,5cqi,4px) solid var(--rim);border-radius:50%;background:#f8f7f1;box-shadow:0 0 0 1px #101b20}
+.frame img{position:absolute;max-width:none}
+.number{position:absolute;bottom:-6%;left:50%;transform:translateX(-50%);display:grid;place-content:center;width:max(13px,40%);aspect-ratio:1;border:clamp(1.5px,3cqi,3px) solid var(--rim);border-radius:50%;background:white;color:var(--jersey);font-size:clamp(8px,27cqi,22px);font-weight:900}
+.name{color:#e7eff0;font-size:.83rem;text-decoration:none;overflow-wrap:anywhere}
+.name:hover{text-decoration:underline}
+main[data-size="pitch"]{--size:30px}
+main[data-size="pitch"] .card{background:#29493b}
+main[data-side="blue"]{--jersey:#174eaa}
+main[data-side="blue"] .frame{transform:scaleX(-1)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+<h1>Cropped portrait gallery</h1>
+<p>159 roster positions and 67 Star Players. Click a portrait to see the original photo, or click its name to link to that crop.</p>
+<div class="controls">
+<label>Team<select id="team"><option value="">All teams and Star Players</option><option value="amazon">Amazon</option><option value="black-orc">Black Orcs</option><option value="bretonnian">Bretonnian</option><option value="chaos-chosen">Chaos Chosen</option><option value="chaos-dwarf">Chaos Dwarf</option><option value="chaos-renegades">Chaos Renegades</option><option value="dark-elf">Dark Elf</option><option value="dwarf">Dwarf</option><option value="elven-union">Elven Union</option><option value="gnome">Gnome</option><option value="goblin">Goblin</option><option value="halfling">Halfling</option><option value="high-elf">High Elf</option><option value="human">Human</option><option value="imperial-nobility">Imperial Nobility</option><option value="khorne">Khorne</option><option value="lizardmen">Lizardmen</option><option value="necromantic-horror">Necromantic Horror</option><option value="norse">Norse</option><option value="nurgle">Nurgle</option><option value="ogre">Ogre</option><option value="old-world-alliance">Old World Alliance</option><option value="orc">Orc</option><option value="shambling-undead">Shambling Undead</option><option value="skaven">Skaven</option><option value="snotling">Snotling</option><option value="star-players">Star Players</option><option value="tomb-kings">Tomb Kings</option><option value="underworld-denizens">Underworld Denizens</option><option value="vampire">Vampire</option><option value="wood-elf">Wood Elf</option></select></label>
+<label>Preview<select id="size"><option value="review">Large</option><option value="pitch">Pitch size</option></select></label>
+<label>Team side<select id="side"><option value="red">Red</option><option value="blue">Blue, mirrored</option></select></label>
+</div>
+<section data-team="amazon"><h2>Amazon <small>4</small></h2><div class="grid"><article id="amazon-eagle-warrior" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/amazon/eagle-warrior.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Eagle Warrior">
+<span class="frame"><img src="portrait-intake/amazon/eagle-warrior.jpg" alt="" loading="lazy" style="width:398.86%;left:-154.55%;top:-126.22%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#amazon-eagle-warrior">Eagle Warrior</a></article>
+<article id="amazon-python-warrior" class="card"><a class="token" style="--rim:#65b5f6" href="portrait-intake/amazon/python-warrior.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Python Warrior">
+<span class="frame"><img src="portrait-intake/amazon/python-warrior.jpg" alt="" loading="lazy" style="width:386.76%;left:-138.29%;top:-119.02%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#amazon-python-warrior">Python Warrior</a></article>
+<article id="amazon-piranha-warrior" class="card"><a class="token" style="--rim:#ffe54c" href="portrait-intake/amazon/piranha-warrior.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Piranha Warrior">
+<span class="frame"><img src="portrait-intake/amazon/piranha-warrior.jpg" alt="" loading="lazy" style="width:430.35%;left:-153.51%;top:-158.55%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#amazon-piranha-warrior">Piranha Warrior</a></article>
+<article id="amazon-jaguar-warrior" class="card"><a class="token" style="--rim:#c84c68" href="portrait-intake/amazon/jaguar-warrior.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Jaguar Warrior">
+<span class="frame"><img src="portrait-intake/amazon/jaguar-warrior.jpg" alt="" loading="lazy" style="width:457.44%;left:-206.77%;top:-177.69%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#amazon-jaguar-warrior">Jaguar Warrior</a></article></div></section>
+<section data-team="black-orc"><h2>Black Orcs <small>3</small></h2><div class="grid"><article id="black-orc-goblin" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/black-orc/goblin.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Goblin Bruiser">
+<span class="frame"><img src="portrait-intake/black-orc/goblin.jpg" alt="" loading="lazy" style="width:279%;left:-75%;top:-35%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#black-orc-goblin">Goblin Bruiser</a></article>
+<article id="black-orc-black-orc" class="card"><a class="token" style="--rim:#c84c68" href="portrait-intake/black-orc/black-orc.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Black Orc">
+<span class="frame"><img src="portrait-intake/black-orc/black-orc.jpg" alt="" loading="lazy" style="width:229%;left:-77%;top:-36%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#black-orc-black-orc">Black Orc</a></article>
+<article id="black-orc-troll" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/black-orc/troll.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Trained Troll">
+<span class="frame"><img src="portrait-intake/black-orc/troll.jpg" alt="" loading="lazy" style="width:311%;left:-119%;top:-65%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#black-orc-troll">Trained Troll</a></article></div></section>
+<section data-team="bretonnian"><h2>Bretonnian <small>4</small></h2><div class="grid"><article id="bretonnian-bretonnian-squire" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/bretonnian/bretonnian-squire.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Bretonnian Squire">
+<span class="frame"><img src="portrait-intake/bretonnian/bretonnian-squire.jpg" alt="" loading="lazy" style="width:287.75%;left:-87.51%;top:-52.35%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#bretonnian-bretonnian-squire">Bretonnian Squire</a></article>
+<article id="bretonnian-bretonnian-knight-catcher" class="card"><a class="token" style="--rim:#b6da62" href="portrait-intake/bretonnian/bretonnian-knight-catcher.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Bretonnian Knight Catcher">
+<span class="frame"><img src="portrait-intake/bretonnian/bretonnian-knight-catcher.jpg" alt="" loading="lazy" style="width:212.91%;left:-53.84%;top:-30.77%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#bretonnian-bretonnian-knight-catcher">Bretonnian Knight Catcher</a></article>
+<article id="bretonnian-bretonnian-knight-thrower" class="card"><a class="token" style="--rim:#65b5f6" href="portrait-intake/bretonnian/bretonnian-knight-thrower.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Bretonnian Knight Thrower">
+<span class="frame"><img src="portrait-intake/bretonnian/bretonnian-knight-thrower.jpg" alt="" loading="lazy" style="width:257.38%;left:-58.38%;top:-59.46%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#bretonnian-bretonnian-knight-thrower">Bretonnian Knight Thrower</a></article>
+<article id="bretonnian-grail-knight" class="card"><a class="token" style="--rim:#ffe54c" href="portrait-intake/bretonnian/grail-knight.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Grail Knight">
+<span class="frame"><img src="portrait-intake/bretonnian/grail-knight.jpg" alt="" loading="lazy" style="width:247.61%;left:-88.91%;top:-42.4%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#bretonnian-grail-knight">Grail Knight</a></article></div></section>
+<section data-team="chaos-chosen"><h2>Chaos Chosen <small>5</small></h2><div class="grid"><article id="chaos-chosen-beastman-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/chaos-chosen/beastman-lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Beastman Lineman">
+<span class="frame"><img src="portrait-intake/chaos-chosen/beastman-lineman.jpg" alt="" loading="lazy" style="width:175.73%;left:-53.15%;top:-19.54%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#chaos-chosen-beastman-lineman">Beastman Lineman</a></article>
+<article id="chaos-chosen-chaos-chosen" class="card"><a class="token" style="--rim:#c84c68" href="portrait-intake/chaos-chosen/chaos-chosen.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Chaos Chosen">
+<span class="frame"><img src="portrait-intake/chaos-chosen/chaos-chosen.jpg" alt="" loading="lazy" style="width:159.03%;left:-28%;top:-7.78%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#chaos-chosen-chaos-chosen">Chaos Chosen</a></article>
+<article id="chaos-chosen-troll" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/chaos-chosen/troll.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Troll">
+<span class="frame"><img src="portrait-intake/chaos-chosen/troll.jpg" alt="" loading="lazy" style="width:311%;left:-119%;top:-65%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#chaos-chosen-troll">Troll</a></article>
+<article id="chaos-chosen-ogre" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/chaos-chosen/ogre.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Ogre">
+<span class="frame"><img src="portrait-intake/chaos-chosen/ogre.jpg" alt="" loading="lazy" style="width:294%;left:-113%;top:-24%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#chaos-chosen-ogre">Ogre</a></article>
+<article id="chaos-chosen-minotaur" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/chaos-chosen/minotaur.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Minotaur">
+<span class="frame"><img src="portrait-intake/chaos-chosen/minotaur.jpg" alt="" loading="lazy" style="width:228.81%;left:-66.45%;top:-43.38%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#chaos-chosen-minotaur">Minotaur</a></article></div></section>
+<section data-team="chaos-dwarf"><h2>Chaos Dwarf <small>6</small></h2><div class="grid"><article id="chaos-dwarf-hobgoblin-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/chaos-dwarf/hobgoblin-lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Hobgoblin Lineman">
+<span class="frame"><img src="portrait-intake/chaos-dwarf/hobgoblin-lineman.jpg" alt="" loading="lazy" style="width:264.42%;left:-63.92%;top:-75.34%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#chaos-dwarf-hobgoblin-lineman">Hobgoblin Lineman</a></article>
+<article id="chaos-dwarf-sneaky-stabba" class="card"><a class="token" style="--rim:#b48ce8" href="portrait-intake/chaos-dwarf/sneaky-stabba.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Sneaky Stabba">
+<span class="frame"><img src="portrait-intake/chaos-dwarf/sneaky-stabba.jpg" alt="" loading="lazy" style="width:229.17%;left:-46.69%;top:-44.61%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#chaos-dwarf-sneaky-stabba">Sneaky Stabba</a></article>
+<article id="chaos-dwarf-chaos-dwarf-blocker" class="card"><a class="token" style="--rim:#c84c68" href="portrait-intake/chaos-dwarf/chaos-dwarf-blocker.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Chaos Dwarf Blocker">
+<span class="frame"><img src="portrait-intake/chaos-dwarf/chaos-dwarf-blocker.jpg" alt="" loading="lazy" style="width:219.09%;left:-50.08%;top:-30.08%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#chaos-dwarf-chaos-dwarf-blocker">Chaos Dwarf Blocker</a></article>
+<article id="chaos-dwarf-flamesmith" class="card"><a class="token" style="--rim:#b48ce8" href="portrait-intake/chaos-dwarf/flamesmith.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Flamesmith">
+<span class="frame"><img src="portrait-intake/chaos-dwarf/flamesmith.jpg" alt="" loading="lazy" style="width:229.73%;left:-65.37%;top:-47.92%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#chaos-dwarf-flamesmith">Flamesmith</a></article>
+<article id="chaos-dwarf-bull-centaur" class="card"><a class="token" style="--rim:#ffe54c" href="portrait-intake/chaos-dwarf/bull-centaur.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Bull Centaur">
+<span class="frame"><img src="portrait-intake/chaos-dwarf/bull-centaur.jpg" alt="" loading="lazy" style="width:198.17%;left:-54.53%;top:-24.11%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#chaos-dwarf-bull-centaur">Bull Centaur</a></article>
+<article id="chaos-dwarf-minotaur" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/chaos-dwarf/minotaur.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Minotaur">
+<span class="frame"><img src="portrait-intake/chaos-dwarf/minotaur.jpg" alt="" loading="lazy" style="width:228.81%;left:-66.45%;top:-43.38%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#chaos-dwarf-minotaur">Minotaur</a></article></div></section>
+<section data-team="chaos-renegades"><h2>Chaos Renegades <small>10</small></h2><div class="grid"><article id="chaos-renegades-renegade-human" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/chaos-renegades/renegade-human.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Renegade Human">
+<span class="frame"><img src="portrait-intake/chaos-renegades/renegade-human.jpg" alt="" loading="lazy" style="width:225.64%;left:-56.92%;top:-21.81%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#chaos-renegades-renegade-human">Renegade Human</a></article>
+<article id="chaos-renegades-renegade-goblin" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/chaos-renegades/renegade-goblin.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Renegade Goblin">
+<span class="frame"><img src="portrait-intake/chaos-renegades/renegade-goblin.jpg" alt="" loading="lazy" style="width:261.9%;left:-76%;top:-60.7%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#chaos-renegades-renegade-goblin">Renegade Goblin</a></article>
+<article id="chaos-renegades-renegade-orc" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/chaos-renegades/renegade-orc.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Renegade Orc">
+<span class="frame"><img src="portrait-intake/chaos-renegades/renegade-orc.jpg" alt="" loading="lazy" style="width:234%;left:-66%;top:-40.4%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#chaos-renegades-renegade-orc">Renegade Orc</a></article>
+<article id="chaos-renegades-renegade-skaven" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/chaos-renegades/renegade-skaven.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Renegade Skaven">
+<span class="frame"><img src="portrait-intake/chaos-renegades/renegade-skaven.jpg" alt="" loading="lazy" style="width:258.8%;left:-92.4%;top:-67.6%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#chaos-renegades-renegade-skaven">Renegade Skaven</a></article>
+<article id="chaos-renegades-renegade-dark-elf" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/chaos-renegades/renegade-dark-elf.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Renegade Dark Elf">
+<span class="frame"><img src="portrait-intake/chaos-renegades/renegade-dark-elf.jpg" alt="" loading="lazy" style="width:183.33%;left:-43.33%;top:-10%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#chaos-renegades-renegade-dark-elf">Renegade Dark Elf</a></article>
+<article id="chaos-renegades-renegade-human-thrower" class="card"><a class="token" style="--rim:#65b5f6" href="portrait-intake/chaos-renegades/renegade-human-thrower.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Renegade Human Thrower">
+<span class="frame"><img src="portrait-intake/chaos-renegades/renegade-human-thrower.jpg" alt="" loading="lazy" style="width:216.66%;left:-69.35%;top:-22.31%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#chaos-renegades-renegade-human-thrower">Renegade Human Thrower</a></article>
+<article id="chaos-renegades-troll" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/chaos-renegades/troll.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Troll">
+<span class="frame"><img src="portrait-intake/chaos-renegades/troll.jpg" alt="" loading="lazy" style="width:311%;left:-119%;top:-65%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#chaos-renegades-troll">Troll</a></article>
+<article id="chaos-renegades-ogre" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/chaos-renegades/ogre.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Ogre">
+<span class="frame"><img src="portrait-intake/chaos-renegades/ogre.jpg" alt="" loading="lazy" style="width:294%;left:-113%;top:-24%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#chaos-renegades-ogre">Ogre</a></article>
+<article id="chaos-renegades-minotaur" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/chaos-renegades/minotaur.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Minotaur">
+<span class="frame"><img src="portrait-intake/chaos-renegades/minotaur.jpg" alt="" loading="lazy" style="width:228.81%;left:-66.45%;top:-43.38%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#chaos-renegades-minotaur">Minotaur</a></article>
+<article id="chaos-renegades-rat-ogre" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/chaos-renegades/rat-ogre.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Rat Ogre">
+<span class="frame"><img src="portrait-intake/chaos-renegades/rat-ogre.jpg" alt="" loading="lazy" style="width:255.8%;left:-64%;top:-80.9%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#chaos-renegades-rat-ogre">Rat Ogre</a></article></div></section>
+<section data-team="dark-elf"><h2>Dark Elf <small>5</small></h2><div class="grid"><article id="dark-elf-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/dark-elf/lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Dark Elf Lineman">
+<span class="frame"><img src="portrait-intake/dark-elf/lineman.jpg" alt="" loading="lazy" style="width:183.33%;left:-43.33%;top:-10%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#dark-elf-lineman">Dark Elf Lineman</a></article>
+<article id="dark-elf-runner" class="card"><a class="token" style="--rim:#36c3ad" href="portrait-intake/dark-elf/runner.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Dark Elf Runner">
+<span class="frame"><img src="portrait-intake/dark-elf/runner.jpg" alt="" loading="lazy" style="width:171.08%;left:-29.57%;top:-10.64%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#dark-elf-runner">Dark Elf Runner</a></article>
+<article id="dark-elf-assassin" class="card"><a class="token" style="--rim:#b48ce8" href="portrait-intake/dark-elf/assassin.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Dark Elf Assassin">
+<span class="frame"><img src="portrait-intake/dark-elf/assassin.jpg" alt="" loading="lazy" style="width:180.33%;left:-27.25%;top:-0.82%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#dark-elf-assassin">Dark Elf Assassin</a></article>
+<article id="dark-elf-blitzer" class="card"><a class="token" style="--rim:#ffe54c" href="portrait-intake/dark-elf/blitzer.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Dark Elf Blitzer">
+<span class="frame"><img src="portrait-intake/dark-elf/blitzer.jpg" alt="" loading="lazy" style="width:204.87%;left:-42.65%;top:-14.45%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#dark-elf-blitzer">Dark Elf Blitzer</a></article>
+<article id="dark-elf-witch" class="card"><a class="token" style="--rim:#b48ce8" href="portrait-intake/dark-elf/witch.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Witch Elf">
+<span class="frame"><img src="portrait-intake/dark-elf/witch.jpg" alt="" loading="lazy" style="width:178.48%;left:-34.38%;top:-8.13%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#dark-elf-witch">Witch Elf</a></article></div></section>
+<section data-team="dwarf"><h2>Dwarf <small>5</small></h2><div class="grid"><article id="dwarf-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/dwarf/lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Dwarf Lineman">
+<span class="frame"><img src="portrait-intake/dwarf/lineman.jpg" alt="" loading="lazy" style="width:285.36%;left:-90.29%;top:-57.85%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#dwarf-lineman">Dwarf Lineman</a></article>
+<article id="dwarf-runner" class="card"><a class="token" style="--rim:#36c3ad" href="portrait-intake/dwarf/runner.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Dwarf Runner">
+<span class="frame"><img src="portrait-intake/dwarf/runner.jpg" alt="" loading="lazy" style="width:240.17%;left:-66.89%;top:-42.07%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#dwarf-runner">Dwarf Runner</a></article>
+<article id="dwarf-blitzer" class="card"><a class="token" style="--rim:#ffe54c" href="portrait-intake/dwarf/blitzer.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Dwarf Blitzer">
+<span class="frame"><img src="portrait-intake/dwarf/blitzer.jpg" alt="" loading="lazy" style="width:260.29%;left:-69.96%;top:-48.25%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#dwarf-blitzer">Dwarf Blitzer</a></article>
+<article id="dwarf-slayer" class="card"><a class="token" style="--rim:#b48ce8" href="portrait-intake/dwarf/slayer.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Troll Slayer">
+<span class="frame"><img src="portrait-intake/dwarf/slayer.jpg" alt="" loading="lazy" style="width:203.68%;left:-56.2%;top:-23.4%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#dwarf-slayer">Troll Slayer</a></article>
+<article id="dwarf-deathroller" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/dwarf/deathroller.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Deathroller">
+<span class="frame"><img src="portrait-intake/dwarf/deathroller.jpg" alt="" loading="lazy" style="width:144.74%;left:-18.42%;top:0%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#dwarf-deathroller">Deathroller</a></article></div></section>
+<section data-team="elven-union"><h2>Elven Union <small>4</small></h2><div class="grid"><article id="elven-union-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/elven-union/lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Elf Lineman">
+<span class="frame"><img src="portrait-intake/elven-union/lineman.jpg" alt="" loading="lazy" style="width:186.59%;left:-22.37%;top:-13.31%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#elven-union-lineman">Elf Lineman</a></article>
+<article id="elven-union-thrower" class="card"><a class="token" style="--rim:#65b5f6" href="portrait-intake/elven-union/thrower.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Elf Thrower">
+<span class="frame"><img src="portrait-intake/elven-union/thrower.jpg" alt="" loading="lazy" style="width:159.42%;left:-42.75%;top:0%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#elven-union-thrower">Elf Thrower</a></article>
+<article id="elven-union-catcher" class="card"><a class="token" style="--rim:#b6da62" href="portrait-intake/elven-union/catcher.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Elf Catcher">
+<span class="frame"><img src="portrait-intake/elven-union/catcher.jpg" alt="" loading="lazy" style="width:215.96%;left:-25.1%;top:-30.81%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#elven-union-catcher">Elf Catcher</a></article>
+<article id="elven-union-blitzer" class="card"><a class="token" style="--rim:#ffe54c" href="portrait-intake/elven-union/blitzer.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Elf Blitzer">
+<span class="frame"><img src="portrait-intake/elven-union/blitzer.jpg" alt="" loading="lazy" style="width:174.82%;left:-46.88%;top:-14.88%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#elven-union-blitzer">Elf Blitzer</a></article></div></section>
+<section data-team="gnome"><h2>Gnome <small>5</small></h2><div class="grid"><article id="gnome-gnome-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/gnome/gnome-lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Gnome Lineman">
+<span class="frame"><img src="portrait-intake/gnome/gnome-lineman.jpg" alt="" loading="lazy" style="width:258.8%;left:-79.4%;top:-25.3%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#gnome-gnome-lineman">Gnome Lineman</a></article>
+<article id="gnome-woodland-fox" class="card"><a class="token" style="--rim:#36c3ad" href="portrait-intake/gnome/woodland-fox.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Woodland Fox">
+<span class="frame"><img src="portrait-intake/gnome/woodland-fox.jpg" alt="" loading="lazy" style="width:265.1%;left:-48.8%;top:-70.5%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#gnome-woodland-fox">Woodland Fox</a></article>
+<article id="gnome-gnome-illusionist" class="card"><a class="token" style="--rim:#b48ce8" href="portrait-intake/gnome/gnome-illusionist.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Gnome Illusionist">
+<span class="frame"><img src="portrait-intake/gnome/gnome-illusionist.jpg" alt="" loading="lazy" style="width:268.3%;left:-86.6%;top:-53.7%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#gnome-gnome-illusionist">Gnome Illusionist</a></article>
+<article id="gnome-gnome-beastmaster" class="card"><a class="token" style="--rim:#c84c68" href="portrait-intake/gnome/gnome-beastmaster.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Gnome Beastmaster">
+<span class="frame"><img src="portrait-intake/gnome/gnome-beastmaster.jpg" alt="" loading="lazy" style="width:258.8%;left:-115.9%;top:-54.7%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#gnome-gnome-beastmaster">Gnome Beastmaster</a></article>
+<article id="gnome-altern-forest-treeman" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/gnome/altern-forest-treeman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Altern Forest Treeman">
+<span class="frame"><img src="portrait-intake/gnome/altern-forest-treeman.jpg" alt="" loading="lazy" style="width:194.7%;left:-42%;top:-42.3%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#gnome-altern-forest-treeman">Altern Forest Treeman</a></article></div></section>
+<section data-team="goblin"><h2>Goblin <small>8</small></h2><div class="grid"><article id="goblin-goblin-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/goblin/goblin-lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Goblin Lineman">
+<span class="frame"><img src="portrait-intake/goblin/goblin-lineman.jpg" alt="" loading="lazy" style="width:261.9%;left:-76%;top:-60.7%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#goblin-goblin-lineman">Goblin Lineman</a></article>
+<article id="goblin-looney" class="card"><a class="token" style="--rim:#b48ce8" href="portrait-intake/goblin/looney.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Looney">
+<span class="frame"><img src="portrait-intake/goblin/looney.jpg" alt="" loading="lazy" style="width:165.71%;left:-32.57%;top:-25.9%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#goblin-looney">Looney</a></article>
+<article id="goblin-bomma" class="card"><a class="token" style="--rim:#b48ce8" href="portrait-intake/goblin/bomma.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Bomma">
+<span class="frame"><img src="portrait-intake/goblin/bomma.jpg" alt="" loading="lazy" style="width:233.22%;left:-58.5%;top:-75.89%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#goblin-bomma">Bomma</a></article>
+<article id="goblin--ooligan" class="card"><a class="token" style="--rim:#b48ce8" href="portrait-intake/goblin/-ooligan.jpg" target="_blank" rel="noopener" aria-label="Open original photo of &#39;Ooligan">
+<span class="frame"><img src="portrait-intake/goblin/-ooligan.jpg" alt="" loading="lazy" style="width:296.54%;left:-105.9%;top:-82.86%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#goblin--ooligan">&#39;Ooligan</a></article>
+<article id="goblin-doom-diver" class="card"><a class="token" style="--rim:#b48ce8" href="portrait-intake/goblin/doom-diver.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Doom Diver">
+<span class="frame"><img src="portrait-intake/goblin/doom-diver.jpg" alt="" loading="lazy" style="width:166.05%;left:-33.82%;top:-26.34%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#goblin-doom-diver">Doom Diver</a></article>
+<article id="goblin-fanatic" class="card"><a class="token" style="--rim:#b48ce8" href="portrait-intake/goblin/fanatic.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Fanatic">
+<span class="frame"><img src="portrait-intake/goblin/fanatic.jpg" alt="" loading="lazy" style="width:311.89%;left:-106.91%;top:-89.51%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#goblin-fanatic">Fanatic</a></article>
+<article id="goblin-pogoer" class="card"><a class="token" style="--rim:#b48ce8" href="portrait-intake/goblin/pogoer.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Pogoer">
+<span class="frame"><img src="portrait-intake/goblin/pogoer.jpg" alt="" loading="lazy" style="width:195.87%;left:-63.27%;top:-13.44%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#goblin-pogoer">Pogoer</a></article>
+<article id="goblin-trained-troll" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/goblin/trained-troll.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Trained Troll">
+<span class="frame"><img src="portrait-intake/goblin/trained-troll.jpg" alt="" loading="lazy" style="width:311%;left:-119%;top:-65%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#goblin-trained-troll">Trained Troll</a></article></div></section>
+<section data-team="halfling"><h2>Halfling <small>4</small></h2><div class="grid"><article id="halfling-halfling-hopeful" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/halfling/halfling-hopeful.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Halfling Hopeful">
+<span class="frame"><img src="portrait-intake/halfling/halfling-hopeful.jpg" alt="" loading="lazy" style="width:182.73%;left:-36.58%;top:-20.69%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#halfling-halfling-hopeful">Halfling Hopeful</a></article>
+<article id="halfling-halfling-hefty" class="card"><a class="token" style="--rim:#c84c68" href="portrait-intake/halfling/halfling-hefty.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Halfling Hefty">
+<span class="frame"><img src="portrait-intake/halfling/halfling-hefty.jpg" alt="" loading="lazy" style="width:186.59%;left:-44.24%;top:-18.92%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#halfling-halfling-hefty">Halfling Hefty</a></article>
+<article id="halfling-halfling-catcher" class="card"><a class="token" style="--rim:#b6da62" href="portrait-intake/halfling/halfling-catcher.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Halfling Catcher">
+<span class="frame"><img src="portrait-intake/halfling/halfling-catcher.jpg" alt="" loading="lazy" style="width:173.71%;left:-34.65%;top:-14.48%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#halfling-halfling-catcher">Halfling Catcher</a></article>
+<article id="halfling-athel-forest-treeman" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/halfling/athel-forest-treeman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Athel Forest Treeman">
+<span class="frame"><img src="portrait-intake/halfling/athel-forest-treeman.jpg" alt="" loading="lazy" style="width:148.65%;left:-25.68%;top:-28.01%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#halfling-athel-forest-treeman">Athel Forest Treeman</a></article></div></section>
+<section data-team="high-elf"><h2>High Elf <small>4</small></h2><div class="grid"><article id="high-elf-high-elf-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/high-elf/high-elf-lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of High Elf Lineman">
+<span class="frame"><img src="portrait-intake/high-elf/high-elf-lineman.jpg" alt="" loading="lazy" style="width:222.32%;left:-61.03%;top:-34.75%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#high-elf-high-elf-lineman">High Elf Lineman</a></article>
+<article id="high-elf-phoenix-warrior" class="card"><a class="token" style="--rim:#65b5f6" href="portrait-intake/high-elf/phoenix-warrior.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Phoenix Warrior">
+<span class="frame"><img src="portrait-intake/high-elf/phoenix-warrior.jpg" alt="" loading="lazy" style="width:225.65%;left:-48.89%;top:-53.49%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#high-elf-phoenix-warrior">Phoenix Warrior</a></article>
+<article id="high-elf-dragon-prince" class="card"><a class="token" style="--rim:#ffe54c" href="portrait-intake/high-elf/dragon-prince.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Dragon Prince">
+<span class="frame"><img src="portrait-intake/high-elf/dragon-prince.jpg" alt="" loading="lazy" style="width:203.93%;left:-59.06%;top:-29.3%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#high-elf-dragon-prince">Dragon Prince</a></article>
+<article id="high-elf-white-lion" class="card"><a class="token" style="--rim:#ffe54c" href="portrait-intake/high-elf/white-lion.jpg" target="_blank" rel="noopener" aria-label="Open original photo of White Lion">
+<span class="frame"><img src="portrait-intake/high-elf/white-lion.jpg" alt="" loading="lazy" style="width:290.3%;left:-71.12%;top:-94.97%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#high-elf-white-lion">White Lion</a></article></div></section>
+<section data-team="human"><h2>Human <small>6</small></h2><div class="grid"><article id="human-human-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/human/human-lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Human Lineman">
+<span class="frame"><img src="portrait-intake/human/human-lineman.jpg" alt="" loading="lazy" style="width:225.64%;left:-56.92%;top:-21.81%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#human-human-lineman">Human Lineman</a></article>
+<article id="human-halfling-hopeful" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/human/halfling-hopeful.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Halfling Hopeful">
+<span class="frame"><img src="portrait-intake/human/halfling-hopeful.jpg" alt="" loading="lazy" style="width:182.73%;left:-36.58%;top:-20.69%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#human-halfling-hopeful">Halfling Hopeful</a></article>
+<article id="human-human-catcher" class="card"><a class="token" style="--rim:#b6da62" href="portrait-intake/human/human-catcher.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Human Catcher">
+<span class="frame"><img src="portrait-intake/human/human-catcher.jpg" alt="" loading="lazy" style="width:200.53%;left:-38.66%;top:-22.05%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#human-human-catcher">Human Catcher</a></article>
+<article id="human-human-thrower" class="card"><a class="token" style="--rim:#65b5f6" href="portrait-intake/human/human-thrower.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Human Thrower">
+<span class="frame"><img src="portrait-intake/human/human-thrower.jpg" alt="" loading="lazy" style="width:216.66%;left:-69.35%;top:-22.31%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#human-human-thrower">Human Thrower</a></article>
+<article id="human-human-blitzer" class="card"><a class="token" style="--rim:#ffe54c" href="portrait-intake/human/human-blitzer.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Human Blitzer">
+<span class="frame"><img src="portrait-intake/human/human-blitzer.jpg" alt="" loading="lazy" style="width:209.52%;left:-61.48%;top:-37.88%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#human-human-blitzer">Human Blitzer</a></article>
+<article id="human-ogre" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/human/ogre.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Ogre">
+<span class="frame"><img src="portrait-intake/human/ogre.jpg" alt="" loading="lazy" style="width:294%;left:-113%;top:-24%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#human-ogre">Ogre</a></article></div></section>
+<section data-team="imperial-nobility"><h2>Imperial Nobility <small>5</small></h2><div class="grid"><article id="imperial-nobility-retainer" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/imperial-nobility/retainer.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Imperial Retainer">
+<span class="frame"><img src="portrait-intake/imperial-nobility/retainer.jpg" alt="" loading="lazy" style="width:324%;left:-107%;top:-73%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#imperial-nobility-retainer">Imperial Retainer</a></article>
+<article id="imperial-nobility-thrower" class="card"><a class="token" style="--rim:#65b5f6" href="portrait-intake/imperial-nobility/thrower.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Imperial Thrower">
+<span class="frame"><img src="portrait-intake/imperial-nobility/thrower.jpg" alt="" loading="lazy" style="width:205%;left:-47%;top:0%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#imperial-nobility-thrower">Imperial Thrower</a></article>
+<article id="imperial-nobility-bodyguard" class="card"><a class="token" style="--rim:#c84c68" href="portrait-intake/imperial-nobility/bodyguard.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Bodyguard">
+<span class="frame"><img src="portrait-intake/imperial-nobility/bodyguard.jpg" alt="" loading="lazy" style="width:270%;left:-114%;top:-63%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#imperial-nobility-bodyguard">Bodyguard</a></article>
+<article id="imperial-nobility-blitzer" class="card"><a class="token" style="--rim:#ffe54c" href="portrait-intake/imperial-nobility/blitzer.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Noble Blitzer">
+<span class="frame"><img src="portrait-intake/imperial-nobility/blitzer.jpg" alt="" loading="lazy" style="width:292%;left:-110%;top:-59%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#imperial-nobility-blitzer">Noble Blitzer</a></article>
+<article id="imperial-nobility-ogre" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/imperial-nobility/ogre.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Ogre">
+<span class="frame"><img src="portrait-intake/imperial-nobility/ogre.jpg" alt="" loading="lazy" style="width:294%;left:-113%;top:-24%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#imperial-nobility-ogre">Ogre</a></article></div></section>
+<section data-team="khorne"><h2>Khorne <small>4</small></h2><div class="grid"><article id="khorne-bloodborn-marauder" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/khorne/bloodborn-marauder.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Bloodborn Marauder">
+<span class="frame"><img src="portrait-intake/khorne/bloodborn-marauder.jpg" alt="" loading="lazy" style="width:198.17%;left:-43.68%;top:-17.82%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#khorne-bloodborn-marauder">Bloodborn Marauder</a></article>
+<article id="khorne-khorngor" class="card"><a class="token" style="--rim:#36c3ad" href="portrait-intake/khorne/khorngor.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Khorngor">
+<span class="frame"><img src="portrait-intake/khorne/khorngor.jpg" alt="" loading="lazy" style="width:225.65%;left:-61.54%;top:-63.41%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#khorne-khorngor">Khorngor</a></article>
+<article id="khorne-bloodseeker" class="card"><a class="token" style="--rim:#c84c68" href="portrait-intake/khorne/bloodseeker.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Bloodseeker">
+<span class="frame"><img src="portrait-intake/khorne/bloodseeker.jpg" alt="" loading="lazy" style="width:183.29%;left:-30.34%;top:-9.69%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#khorne-bloodseeker">Bloodseeker</a></article>
+<article id="khorne-bloodspawn" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/khorne/bloodspawn.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Bloodspawn">
+<span class="frame"><img src="portrait-intake/khorne/bloodspawn.jpg" alt="" loading="lazy" style="width:166.67%;left:-28.79%;top:-20.58%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#khorne-bloodspawn">Bloodspawn</a></article></div></section>
+<section data-team="lizardmen"><h2>Lizardmen <small>4</small></h2><div class="grid"><article id="lizardmen-skink" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/lizardmen/skink.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Skink Lineman">
+<span class="frame"><img src="portrait-intake/lizardmen/skink.jpg" alt="" loading="lazy" style="width:190.17%;left:-65.61%;top:-28.18%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#lizardmen-skink">Skink Lineman</a></article>
+<article id="lizardmen-chameleon" class="card"><a class="token" style="--rim:#65b5f6" href="portrait-intake/lizardmen/chameleon.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Chameleon Skink">
+<span class="frame"><img src="portrait-intake/lizardmen/chameleon.jpg" alt="" loading="lazy" style="width:243.85%;left:-71.21%;top:-44.97%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#lizardmen-chameleon">Chameleon Skink</a></article>
+<article id="lizardmen-saurus" class="card"><a class="token" style="--rim:#c84c68" href="portrait-intake/lizardmen/saurus.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Saurus Blocker">
+<span class="frame"><img src="portrait-intake/lizardmen/saurus.jpg" alt="" loading="lazy" style="width:209.69%;left:-30.72%;top:-36.8%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#lizardmen-saurus">Saurus Blocker</a></article>
+<article id="lizardmen-kroxigor" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/lizardmen/kroxigor.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Kroxigor">
+<span class="frame"><img src="portrait-intake/lizardmen/kroxigor.jpg" alt="" loading="lazy" style="width:169.23%;left:-48.46%;top:-9.94%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#lizardmen-kroxigor">Kroxigor</a></article></div></section>
+<section data-team="necromantic-horror"><h2>Necromantic Horror <small>5</small></h2><div class="grid"><article id="necromantic-horror-zombie-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/necromantic-horror/zombie-lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Zombie Lineman">
+<span class="frame"><img src="portrait-intake/necromantic-horror/zombie-lineman.jpg" alt="" loading="lazy" style="width:265.1%;left:-104.2%;top:-21.1%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#necromantic-horror-zombie-lineman">Zombie Lineman</a></article>
+<article id="necromantic-horror-ghoul-runner" class="card"><a class="token" style="--rim:#36c3ad" href="portrait-intake/necromantic-horror/ghoul-runner.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Ghoul Runner">
+<span class="frame"><img src="portrait-intake/necromantic-horror/ghoul-runner.jpg" alt="" loading="lazy" style="width:239.1%;left:-71.7%;top:-22.8%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#necromantic-horror-ghoul-runner">Ghoul Runner</a></article>
+<article id="necromantic-horror-wraith" class="card"><a class="token" style="--rim:#c84c68" href="portrait-intake/necromantic-horror/wraith.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Wraith">
+<span class="frame"><img src="portrait-intake/necromantic-horror/wraith.jpg" alt="" loading="lazy" style="width:215.7%;left:-52.9%;top:-30.4%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#necromantic-horror-wraith">Wraith</a></article>
+<article id="necromantic-horror-flesh-golem" class="card"><a class="token" style="--rim:#c84c68" href="portrait-intake/necromantic-horror/flesh-golem.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Flesh Golem">
+<span class="frame"><img src="portrait-intake/necromantic-horror/flesh-golem.jpg" alt="" loading="lazy" style="width:220%;left:-48%;top:-6%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#necromantic-horror-flesh-golem">Flesh Golem</a></article>
+<article id="necromantic-horror-werewolf" class="card"><a class="token" style="--rim:#ffe54c" href="portrait-intake/necromantic-horror/werewolf.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Werewolf">
+<span class="frame"><img src="portrait-intake/necromantic-horror/werewolf.jpg" alt="" loading="lazy" style="width:282.1%;left:-143.6%;top:-55.1%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#necromantic-horror-werewolf">Werewolf</a></article></div></section>
+<section data-team="norse"><h2>Norse <small>6</small></h2><div class="grid"><article id="norse-norse-raider" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/norse/norse-raider.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Norse Raider">
+<span class="frame"><img src="portrait-intake/norse/norse-raider.jpg" alt="" loading="lazy" style="width:366.7%;left:-88.3%;top:-86.7%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#norse-norse-raider">Norse Raider</a></article>
+<article id="norse-beer-boar" class="card"><a class="token" style="--rim:#b48ce8" href="portrait-intake/norse/beer-boar.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Beer Boar">
+<span class="frame"><img src="portrait-intake/norse/beer-boar.jpg" alt="" loading="lazy" style="width:338.5%;left:-123.8%;top:-113.1%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#norse-beer-boar">Beer Boar</a></article>
+<article id="norse-norse-berserker" class="card"><a class="token" style="--rim:#ffe54c" href="portrait-intake/norse/norse-berserker.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Norse Berserker">
+<span class="frame"><img src="portrait-intake/norse/norse-berserker.jpg" alt="" loading="lazy" style="width:372.9%;left:-139.8%;top:-94.1%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#norse-norse-berserker">Norse Berserker</a></article>
+<article id="norse-valkyrie" class="card"><a class="token" style="--rim:#b6da62" href="portrait-intake/norse/valkyrie.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Valkyrie">
+<span class="frame"><img src="portrait-intake/norse/valkyrie.jpg" alt="" loading="lazy" style="width:354.8%;left:-127.4%;top:-85.5%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#norse-valkyrie">Valkyrie</a></article>
+<article id="norse-ulfwerener" class="card"><a class="token" style="--rim:#c84c68" href="portrait-intake/norse/ulfwerener.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Ulfwerener">
+<span class="frame"><img src="portrait-intake/norse/ulfwerener.jpg" alt="" loading="lazy" style="width:372.9%;left:-138.1%;top:-97.5%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#norse-ulfwerener">Ulfwerener</a></article>
+<article id="norse-yhetee" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/norse/yhetee.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Yhetee">
+<span class="frame"><img src="portrait-intake/norse/yhetee.jpg" alt="" loading="lazy" style="width:209.5%;left:-42.4%;top:-28.7%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#norse-yhetee">Yhetee</a></article></div></section>
+<section data-team="nurgle"><h2>Nurgle <small>4</small></h2><div class="grid"><article id="nurgle-rotter" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/nurgle/rotter.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Rotter">
+<span class="frame"><img src="portrait-intake/nurgle/rotter.jpg" alt="" loading="lazy" style="width:169.23%;left:-30%;top:-2.31%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#nurgle-rotter">Rotter</a></article>
+<article id="nurgle-pestigor" class="card"><a class="token" style="--rim:#36c3ad" href="portrait-intake/nurgle/pestigor.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Pestigor">
+<span class="frame"><img src="portrait-intake/nurgle/pestigor.jpg" alt="" loading="lazy" style="width:164.18%;left:-44.57%;top:-30.6%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#nurgle-pestigor">Pestigor</a></article>
+<article id="nurgle-bloater" class="card"><a class="token" style="--rim:#c84c68" href="portrait-intake/nurgle/bloater.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Bloater">
+<span class="frame"><img src="portrait-intake/nurgle/bloater.jpg" alt="" loading="lazy" style="width:164.18%;left:-39.55%;top:-5.22%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#nurgle-bloater">Bloater</a></article>
+<article id="nurgle-rotspawn" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/nurgle/rotspawn.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Rotspawn">
+<span class="frame"><img src="portrait-intake/nurgle/rotspawn.jpg" alt="" loading="lazy" style="width:157.14%;left:-10%;top:-45.33%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#nurgle-rotspawn">Rotspawn</a></article></div></section>
+<section data-team="ogre"><h2>Ogre <small>3</small></h2><div class="grid"><article id="ogre-gnoblar-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/ogre/gnoblar-lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Gnoblar Lineman">
+<span class="frame"><img src="portrait-intake/ogre/gnoblar-lineman.jpg" alt="" loading="lazy" style="width:196.43%;left:-42.86%;top:-37.57%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#ogre-gnoblar-lineman">Gnoblar Lineman</a></article>
+<article id="ogre-ogre-blocker" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/ogre/ogre-blocker.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Ogre Blocker">
+<span class="frame"><img src="portrait-intake/ogre/ogre-blocker.jpg" alt="" loading="lazy" style="width:172.03%;left:-46.13%;top:-20.18%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#ogre-ogre-blocker">Ogre Blocker</a></article>
+<article id="ogre-ogre-runt-punter" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/ogre/ogre-runt-punter.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Ogre Runt Punter">
+<span class="frame"><img src="portrait-intake/ogre/ogre-runt-punter.jpg" alt="" loading="lazy" style="width:142.86%;left:-20.13%;top:-8.13%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#ogre-ogre-runt-punter">Ogre Runt Punter</a></article></div></section>
+<section data-team="old-world-alliance"><h2>Old World Alliance <small>11</small></h2><div class="grid"><article id="old-world-alliance-human-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/old-world-alliance/human-lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Human Lineman">
+<span class="frame"><img src="portrait-intake/old-world-alliance/human-lineman.jpg" alt="" loading="lazy" style="width:330.37%;left:-122.49%;top:-84.92%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#old-world-alliance-human-lineman">Human Lineman</a></article>
+<article id="old-world-alliance-halfling-hopeful" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/old-world-alliance/halfling-hopeful.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Halfling Hopeful">
+<span class="frame"><img src="portrait-intake/old-world-alliance/halfling-hopeful.jpg" alt="" loading="lazy" style="width:182.73%;left:-36.58%;top:-20.69%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#old-world-alliance-halfling-hopeful">Halfling Hopeful</a></article>
+<article id="old-world-alliance-human-catcher" class="card"><a class="token" style="--rim:#b6da62" href="portrait-intake/old-world-alliance/human-catcher.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Human Catcher">
+<span class="frame"><img src="portrait-intake/old-world-alliance/human-catcher.jpg" alt="" loading="lazy" style="width:273.33%;left:-87.19%;top:-56.43%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#old-world-alliance-human-catcher">Human Catcher</a></article>
+<article id="old-world-alliance-dwarf-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/old-world-alliance/dwarf-lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Dwarf Lineman">
+<span class="frame"><img src="portrait-intake/old-world-alliance/dwarf-lineman.jpg" alt="" loading="lazy" style="width:181.04%;left:-32.48%;top:-21.42%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#old-world-alliance-dwarf-lineman">Dwarf Lineman</a></article>
+<article id="old-world-alliance-human-thrower" class="card"><a class="token" style="--rim:#65b5f6" href="portrait-intake/old-world-alliance/human-thrower.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Human Thrower">
+<span class="frame"><img src="portrait-intake/old-world-alliance/human-thrower.jpg" alt="" loading="lazy" style="width:341.88%;left:-114.63%;top:-90.84%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#old-world-alliance-human-thrower">Human Thrower</a></article>
+<article id="old-world-alliance-dwarf-runner" class="card"><a class="token" style="--rim:#36c3ad" href="portrait-intake/old-world-alliance/dwarf-runner.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Dwarf Runner">
+<span class="frame"><img src="portrait-intake/old-world-alliance/dwarf-runner.jpg" alt="" loading="lazy" style="width:431.3%;left:-160.9%;top:-148.2%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#old-world-alliance-dwarf-runner">Dwarf Runner</a></article>
+<article id="old-world-alliance-human-blitzer" class="card"><a class="token" style="--rim:#ffe54c" href="portrait-intake/old-world-alliance/human-blitzer.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Human Blitzer">
+<span class="frame"><img src="portrait-intake/old-world-alliance/human-blitzer.jpg" alt="" loading="lazy" style="width:327.94%;left:-115.44%;top:-84.56%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#old-world-alliance-human-blitzer">Human Blitzer</a></article>
+<article id="old-world-alliance-dwarf-blitzer" class="card"><a class="token" style="--rim:#ffe54c" href="portrait-intake/old-world-alliance/dwarf-blitzer.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Dwarf Blitzer">
+<span class="frame"><img src="portrait-intake/old-world-alliance/dwarf-blitzer.jpg" alt="" loading="lazy" style="width:431.3%;left:-170.26%;top:-149.87%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#old-world-alliance-dwarf-blitzer">Dwarf Blitzer</a></article>
+<article id="old-world-alliance-troll-slayer" class="card"><a class="token" style="--rim:#b48ce8" href="portrait-intake/old-world-alliance/troll-slayer.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Troll Slayer">
+<span class="frame"><img src="portrait-intake/old-world-alliance/troll-slayer.jpg" alt="" loading="lazy" style="width:359.68%;left:-130.24%;top:-104.03%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#old-world-alliance-troll-slayer">Troll Slayer</a></article>
+<article id="old-world-alliance-ogre" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/old-world-alliance/ogre.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Ogre">
+<span class="frame"><img src="portrait-intake/old-world-alliance/ogre.jpg" alt="" loading="lazy" style="width:294%;left:-113%;top:-24%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#old-world-alliance-ogre">Ogre</a></article>
+<article id="old-world-alliance-altern-forest-treeman" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/old-world-alliance/altern-forest-treeman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Altern Forest Treeman">
+<span class="frame"><img src="portrait-intake/old-world-alliance/altern-forest-treeman.jpg" alt="" loading="lazy" style="width:194.7%;left:-42%;top:-42.3%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#old-world-alliance-altern-forest-treeman">Altern Forest Treeman</a></article></div></section>
+<section data-team="orc"><h2>Orc <small>6</small></h2><div class="grid"><article id="orc-orc-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/orc/orc-lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Orc Lineman">
+<span class="frame"><img src="portrait-intake/orc/orc-lineman.jpg" alt="" loading="lazy" style="width:234%;left:-66%;top:-40.4%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#orc-orc-lineman">Orc Lineman</a></article>
+<article id="orc-goblin-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/orc/goblin-lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Goblin Lineman">
+<span class="frame"><img src="portrait-intake/orc/goblin-lineman.jpg" alt="" loading="lazy" style="width:261.9%;left:-76%;top:-60.7%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#orc-goblin-lineman">Goblin Lineman</a></article>
+<article id="orc-orc-thrower" class="card"><a class="token" style="--rim:#65b5f6" href="portrait-intake/orc/orc-thrower.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Orc Thrower">
+<span class="frame"><img src="portrait-intake/orc/orc-thrower.jpg" alt="" loading="lazy" style="width:207.5%;left:-41.5%;top:-17.9%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#orc-orc-thrower">Orc Thrower</a></article>
+<article id="orc-orc-blitzer" class="card"><a class="token" style="--rim:#ffe54c" href="portrait-intake/orc/orc-blitzer.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Orc Blitzer">
+<span class="frame"><img src="portrait-intake/orc/orc-blitzer.jpg" alt="" loading="lazy" style="width:203.7%;left:-64.8%;top:-25.9%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#orc-orc-blitzer">Orc Blitzer</a></article>
+<article id="orc-big-un-blocker" class="card"><a class="token" style="--rim:#c84c68" href="portrait-intake/orc/big-un-blocker.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Big Un Blocker">
+<span class="frame"><img src="portrait-intake/orc/big-un-blocker.jpg" alt="" loading="lazy" style="width:244.4%;left:-40%;top:-47.8%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#orc-big-un-blocker">Big Un Blocker</a></article>
+<article id="orc-troll" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/orc/troll.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Troll">
+<span class="frame"><img src="portrait-intake/orc/troll.jpg" alt="" loading="lazy" style="width:311%;left:-119%;top:-65%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#orc-troll">Troll</a></article></div></section>
+<section data-team="shambling-undead"><h2>Shambling Undead <small>5</small></h2><div class="grid"><article id="shambling-undead-skeleton-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/shambling-undead/skeleton-lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Skeleton Lineman">
+<span class="frame"><img src="portrait-intake/shambling-undead/skeleton-lineman.jpg" alt="" loading="lazy" style="width:154.93%;left:-28.87%;top:-7%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#shambling-undead-skeleton-lineman">Skeleton Lineman</a></article>
+<article id="shambling-undead-zombie-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/shambling-undead/zombie-lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Zombie Lineman">
+<span class="frame"><img src="portrait-intake/shambling-undead/zombie-lineman.jpg" alt="" loading="lazy" style="width:169.8%;left:-38.07%;top:0%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#shambling-undead-zombie-lineman">Zombie Lineman</a></article>
+<article id="shambling-undead-ghoul-runner" class="card"><a class="token" style="--rim:#36c3ad" href="portrait-intake/shambling-undead/ghoul-runner.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Ghoul Runner">
+<span class="frame"><img src="portrait-intake/shambling-undead/ghoul-runner.jpg" alt="" loading="lazy" style="width:186.59%;left:-21.16%;top:-23.04%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#shambling-undead-ghoul-runner">Ghoul Runner</a></article>
+<article id="shambling-undead-wight-blitzer" class="card"><a class="token" style="--rim:#ffe54c" href="portrait-intake/shambling-undead/wight-blitzer.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Wight Blitzer">
+<span class="frame"><img src="portrait-intake/shambling-undead/wight-blitzer.jpg" alt="" loading="lazy" style="width:169.13%;left:-44.89%;top:-8.71%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#shambling-undead-wight-blitzer">Wight Blitzer</a></article>
+<article id="shambling-undead-mummy" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/shambling-undead/mummy.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Mummy">
+<span class="frame"><img src="portrait-intake/shambling-undead/mummy.jpg" alt="" loading="lazy" style="width:159.03%;left:-32.97%;top:-3.4%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#shambling-undead-mummy">Mummy</a></article></div></section>
+<section data-team="skaven"><h2>Skaven <small>5</small></h2><div class="grid"><article id="skaven-clanrat" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/skaven/clanrat.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Skaven Clanrat">
+<span class="frame"><img src="portrait-intake/skaven/clanrat.jpg" alt="" loading="lazy" style="width:258.8%;left:-92.4%;top:-67.6%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#skaven-clanrat">Skaven Clanrat</a></article>
+<article id="skaven-thrower" class="card"><a class="token" style="--rim:#65b5f6" href="portrait-intake/skaven/thrower.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Skaven Thrower">
+<span class="frame"><img src="portrait-intake/skaven/thrower.jpg" alt="" loading="lazy" style="width:271.6%;left:-89.5%;top:-79.6%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#skaven-thrower">Skaven Thrower</a></article>
+<article id="skaven-gutter-runner" class="card"><a class="token" style="--rim:#36c3ad" href="portrait-intake/skaven/gutter-runner.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Gutter Runner">
+<span class="frame"><img src="portrait-intake/skaven/gutter-runner.jpg" alt="" loading="lazy" style="width:271.6%;left:-130.2%;top:-79.6%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#skaven-gutter-runner">Gutter Runner</a></article>
+<article id="skaven-blitzer" class="card"><a class="token" style="--rim:#ffe54c" href="portrait-intake/skaven/blitzer.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Skaven Blitzer">
+<span class="frame"><img src="portrait-intake/skaven/blitzer.jpg" alt="" loading="lazy" style="width:250%;left:-54.5%;top:-53.4%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#skaven-blitzer">Skaven Blitzer</a></article>
+<article id="skaven-rat-ogre" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/skaven/rat-ogre.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Rat Ogre">
+<span class="frame"><img src="portrait-intake/skaven/rat-ogre.jpg" alt="" loading="lazy" style="width:255.8%;left:-64%;top:-80.9%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#skaven-rat-ogre">Rat Ogre</a></article></div></section>
+<section data-team="snotling"><h2>Snotling <small>6</small></h2><div class="grid"><article id="snotling-snotling-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/snotling/snotling-lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Snotling Lineman">
+<span class="frame"><img src="portrait-intake/snotling/snotling-lineman.jpg" alt="" loading="lazy" style="width:193.78%;left:-48.85%;top:-46.2%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#snotling-snotling-lineman">Snotling Lineman</a></article>
+<article id="snotling-fun-hoppa" class="card"><a class="token" style="--rim:#b48ce8" href="portrait-intake/snotling/fun-hoppa.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Fun-hoppa">
+<span class="frame"><img src="portrait-intake/snotling/fun-hoppa.jpg" alt="" loading="lazy" style="width:209.95%;left:-43.73%;top:-31.78%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#snotling-fun-hoppa">Fun-hoppa</a></article>
+<article id="snotling-stilty-runna" class="card"><a class="token" style="--rim:#36c3ad" href="portrait-intake/snotling/stilty-runna.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Stilty Runna">
+<span class="frame"><img src="portrait-intake/snotling/stilty-runna.jpg" alt="" loading="lazy" style="width:176.18%;left:-32.42%;top:-8.58%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#snotling-stilty-runna">Stilty Runna</a></article>
+<article id="snotling-fungus-flinga" class="card"><a class="token" style="--rim:#b48ce8" href="portrait-intake/snotling/fungus-flinga.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Fungus Flinga">
+<span class="frame"><img src="portrait-intake/snotling/fungus-flinga.jpg" alt="" loading="lazy" style="width:260.29%;left:-97.72%;top:-71.59%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#snotling-fungus-flinga">Fungus Flinga</a></article>
+<article id="snotling-pump-wagon" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/snotling/pump-wagon.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Pump Wagon">
+<span class="frame"><img src="portrait-intake/snotling/pump-wagon.jpg" alt="" loading="lazy" style="width:230.96%;left:-79.76%;top:-44.3%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#snotling-pump-wagon">Pump Wagon</a></article>
+<article id="snotling-trained-troll" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/snotling/trained-troll.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Trained Troll">
+<span class="frame"><img src="portrait-intake/snotling/trained-troll.jpg" alt="" loading="lazy" style="width:311%;left:-119%;top:-65%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#snotling-trained-troll">Trained Troll</a></article></div></section>
+<section data-team="star-players"><h2>Star Players <small>67</small></h2><div class="grid"><article id="star-players-akhorne" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/akhorne.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Akhorne The Squirrel">
+<span class="frame"><img src="portrait-intake/star-players/akhorne.jpg" alt="" loading="lazy" style="width:183.33%;left:-35%;top:-14.35%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-akhorne">Akhorne The Squirrel</a></article>
+<article id="star-players-anqi-panqi" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/anqi-panqi.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Anqi Panqi">
+<span class="frame"><img src="portrait-intake/star-players/anqi-panqi.jpg" alt="" loading="lazy" style="width:167.23%;left:-40.28%;top:-19.89%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-anqi-panqi">Anqi Panqi</a></article>
+<article id="star-players-barik-farblast" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/barik-farblast.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Barik Farblast">
+<span class="frame"><img src="portrait-intake/star-players/barik-farblast.jpg" alt="" loading="lazy" style="width:162.71%;left:-33.27%;top:-34.22%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-barik-farblast">Barik Farblast</a></article>
+<article id="star-players-bilerot-vomitflesh" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/bilerot-vomitflesh.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Bilerot Vomitflesh">
+<span class="frame"><img src="portrait-intake/star-players/bilerot-vomitflesh.jpg" alt="" loading="lazy" style="width:164.18%;left:-39.55%;top:-10.57%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-bilerot-vomitflesh">Bilerot Vomitflesh</a></article>
+<article id="star-players-boa-konssstriktr" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/boa-konssstriktr.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Boa Kon&#39;ssstriktr">
+<span class="frame"><img src="portrait-intake/star-players/boa-konssstriktr.jpg" alt="" loading="lazy" style="width:161.45%;left:-37.32%;top:-23.75%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-boa-konssstriktr">Boa Kon&#39;ssstriktr</a></article>
+<article id="star-players-bomber-dribblesnot" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/bomber-dribblesnot.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Bomber Dribblesnot">
+<span class="frame"><img src="portrait-intake/star-players/bomber-dribblesnot.jpg" alt="" loading="lazy" style="width:206.42%;left:-55.27%;top:-50.54%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-bomber-dribblesnot">Bomber Dribblesnot</a></article>
+<article id="star-players-captain-karina" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/captain-karina.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Captain Karina von Riesz">
+<span class="frame"><img src="portrait-intake/star-players/captain-karina.jpg" alt="" loading="lazy" style="width:173.68%;left:-45.88%;top:-17.22%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-captain-karina">Captain Karina von Riesz</a></article>
+<article id="star-players-cindy-piewhistle" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/cindy-piewhistle.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Cindy Piewhistle">
+<span class="frame"><img src="portrait-intake/star-players/cindy-piewhistle.jpg" alt="" loading="lazy" style="width:379.72%;left:-131.04%;top:-119.23%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-cindy-piewhistle">Cindy Piewhistle</a></article>
+<article id="star-players-count-luthor" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/count-luthor.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Count Luthor von Drakenborg">
+<span class="frame"><img src="portrait-intake/star-players/count-luthor.jpg" alt="" loading="lazy" style="width:160.32%;left:-31.91%;top:-6.84%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-count-luthor">Count Luthor von Drakenborg</a></article>
+<article id="star-players-crumbleberry" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/crumbleberry.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Crumbleberry">
+<span class="frame"><img src="portrait-intake/star-players/crumbleberry.jpg" alt="" loading="lazy" style="width:160.53%;left:-30.27%;top:0%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-crumbleberry">Crumbleberry</a></article>
+<article id="star-players-red-gobbo-squigmobile" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/red-gobbo-squigmobile.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Da Red Gobbo&#39;s Squigmobile">
+<span class="frame"><img src="portrait-intake/star-players/red-gobbo-squigmobile.jpg" alt="" loading="lazy" style="width:193.15%;left:-44.62%;top:-40.07%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-red-gobbo-squigmobile">Da Red Gobbo&#39;s Squigmobile</a></article>
+<article id="star-players-deeproot-strongbranch" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/deeproot-strongbranch.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Deeproot Strongbranch">
+<span class="frame"><img src="portrait-intake/star-players/deeproot-strongbranch.jpg" alt="" loading="lazy" style="width:144.74%;left:-26.32%;top:-8.85%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-deeproot-strongbranch">Deeproot Strongbranch</a></article>
+<article id="star-players-dribl" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/dribl.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Dribl">
+<span class="frame"><img src="portrait-intake/star-players/dribl.jpg" alt="" loading="lazy" style="width:295.99%;left:-84.15%;top:-73.59%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-dribl">Dribl</a></article>
+<article id="star-players-drull" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/drull.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Drull">
+<span class="frame"><img src="portrait-intake/star-players/drull.jpg" alt="" loading="lazy" style="width:293.42%;left:-87.17%;top:-98.68%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-drull">Drull</a></article>
+<article id="star-players-eldril-sidewinder" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/eldril-sidewinder.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Eldril Sidewinder">
+<span class="frame"><img src="portrait-intake/star-players/eldril-sidewinder.jpg" alt="" loading="lazy" style="width:171.88%;left:-36.13%;top:-13.41%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-eldril-sidewinder">Eldril Sidewinder</a></article>
+<article id="star-players-estelle-la-veneaux" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/estelle-la-veneaux.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Estelle la Veneaux">
+<span class="frame"><img src="portrait-intake/star-players/estelle-la-veneaux.jpg" alt="" loading="lazy" style="width:186.04%;left:-51.49%;top:-19.6%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-estelle-la-veneaux">Estelle la Veneaux</a></article>
+<article id="star-players-fungus-the-loon" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/fungus-the-loon.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Fungus the Loon">
+<span class="frame"><img src="portrait-intake/star-players/fungus-the-loon.jpg" alt="" loading="lazy" style="width:175.83%;left:-10.64%;top:-16.52%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-fungus-the-loon">Fungus the Loon</a></article>
+<article id="star-players-glart-smashrip" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/glart-smashrip.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Glart Smashrip">
+<span class="frame"><img src="portrait-intake/star-players/glart-smashrip.jpg" alt="" loading="lazy" style="width:176.56%;left:-19.36%;top:-35.17%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-glart-smashrip">Glart Smashrip</a></article>
+<article id="star-players-gloriel-summerbloom" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/gloriel-summerbloom.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Gloriel Summerbloom">
+<span class="frame"><img src="portrait-intake/star-players/gloriel-summerbloom.jpg" alt="" loading="lazy" style="width:157.14%;left:-28.57%;top:-16.37%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-gloriel-summerbloom">Gloriel Summerbloom</a></article>
+<article id="star-players-glotl-stop" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/glotl-stop.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Glotl Stop">
+<span class="frame"><img src="portrait-intake/star-players/glotl-stop.jpg" alt="" loading="lazy" style="width:155.39%;left:-34.72%;top:-29.9%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-glotl-stop">Glotl Stop</a></article>
+<article id="star-players-grak" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/grak.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Grak">
+<span class="frame"><img src="portrait-intake/star-players/grak.jpg" alt="" loading="lazy" style="width:178.73%;left:-12.8%;top:-14.42%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-grak">Grak</a></article>
+<article id="star-players-grashnak-blackhoof" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/grashnak-blackhoof.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Grashnak Blackhoof">
+<span class="frame"><img src="portrait-intake/star-players/grashnak-blackhoof.jpg" alt="" loading="lazy" style="width:148.65%;left:-24.32%;top:-7.74%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-grashnak-blackhoof">Grashnak Blackhoof</a></article>
+<article id="star-players-gretchen-wachter" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/gretchen-wachter.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Gretchen Wächter">
+<span class="frame"><img src="portrait-intake/star-players/gretchen-wachter.jpg" alt="" loading="lazy" style="width:159.42%;left:-19.57%;top:-5.91%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-gretchen-wachter">Gretchen Wächter</a></article>
+<article id="star-players-griff-oberwald" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/griff-oberwald.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Griff Oberwald">
+<span class="frame"><img src="portrait-intake/star-players/griff-oberwald.jpg" alt="" loading="lazy" style="width:169.23%;left:-28.46%;top:-24.97%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-griff-oberwald">Griff Oberwald</a></article>
+<article id="star-players-grim-ironjaw" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/grim-ironjaw.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Grim Ironjaw">
+<span class="frame"><img src="portrait-intake/star-players/grim-ironjaw.jpg" alt="" loading="lazy" style="width:164.18%;left:-23.13%;top:-26.99%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-grim-ironjaw">Grim Ironjaw</a></article>
+<article id="star-players-grombrindal" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/grombrindal.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Grombrindal">
+<span class="frame"><img src="portrait-intake/star-players/grombrindal.jpg" alt="" loading="lazy" style="width:212.55%;left:-50.42%;top:-43.45%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-grombrindal">Grombrindal</a></article>
+<article id="star-players-guffle-pusmaw" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/guffle-pusmaw.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Guffle Pusmaw">
+<span class="frame"><img src="portrait-intake/star-players/guffle-pusmaw.jpg" alt="" loading="lazy" style="width:163.02%;left:-30.67%;top:-23.89%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-guffle-pusmaw">Guffle Pusmaw</a></article>
+<article id="star-players-hthark" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/hthark.jpg" target="_blank" rel="noopener" aria-label="Open original photo of H&#39;thark the Unstoppable">
+<span class="frame"><img src="portrait-intake/star-players/hthark.jpg" alt="" loading="lazy" style="width:163.36%;left:-21.83%;top:-13.05%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-hthark">H&#39;thark the Unstoppable</a></article>
+<article id="star-players-hakflem-skuttlespike" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/hakflem-skuttlespike.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Hakflem Skuttlespike">
+<span class="frame"><img src="portrait-intake/star-players/hakflem-skuttlespike.jpg" alt="" loading="lazy" style="width:137.5%;left:-18.75%;top:-3.7%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-hakflem-skuttlespike">Hakflem Skuttlespike</a></article>
+<article id="star-players-helmut-wulf" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/helmut-wulf.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Helmut Wulf">
+<span class="frame"><img src="portrait-intake/star-players/helmut-wulf.jpg" alt="" loading="lazy" style="width:166.67%;left:-39.39%;top:-9.97%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-helmut-wulf">Helmut Wulf</a></article>
+<article id="star-players-ivan-deathshroud" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/ivan-deathshroud.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Ivan &#39;the Animal&#39; Deathshroud">
+<span class="frame"><img src="portrait-intake/star-players/ivan-deathshroud.jpg" alt="" loading="lazy" style="width:164.18%;left:-30.6%;top:-10.79%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-ivan-deathshroud">Ivan &#39;the Animal&#39; Deathshroud</a></article>
+<article id="star-players-ivar-eriksson" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/ivar-eriksson.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Ivar Eriksson">
+<span class="frame"><img src="portrait-intake/star-players/ivar-eriksson.jpg" alt="" loading="lazy" style="width:172.61%;left:-36.76%;top:-9.11%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-ivar-eriksson">Ivar Eriksson</a></article>
+<article id="star-players-jeremiah-kool" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/jeremiah-kool.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Jeremiah Kool">
+<span class="frame"><img src="portrait-intake/star-players/jeremiah-kool.jpg" alt="" loading="lazy" style="width:175.74%;left:-38.24%;top:-17.82%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-jeremiah-kool">Jeremiah Kool</a></article>
+<article id="star-players-jordell-freshbreeze" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/jordell-freshbreeze.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Jordell Freshbreeze">
+<span class="frame"><img src="portrait-intake/star-players/jordell-freshbreeze.jpg" alt="" loading="lazy" style="width:188.7%;left:-43.87%;top:-29.55%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-jordell-freshbreeze">Jordell Freshbreeze</a></article>
+<article id="star-players-josef-bugman" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/josef-bugman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Josef Bugman">
+<span class="frame"><img src="portrait-intake/star-players/josef-bugman.jpg" alt="" loading="lazy" style="width:179.92%;left:-38.6%;top:-29.09%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-josef-bugman">Josef Bugman</a></article>
+<article id="star-players-karla-von-kill" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/karla-von-kill.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Karla von Kill">
+<span class="frame"><img src="portrait-intake/star-players/karla-von-kill.jpg" alt="" loading="lazy" style="width:164.18%;left:-33.58%;top:0%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-karla-von-kill">Karla von Kill</a></article>
+<article id="star-players-kiroth-krakeneye" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/kiroth-krakeneye.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Kiroth Krakeneye">
+<span class="frame"><img src="portrait-intake/star-players/kiroth-krakeneye.jpg" alt="" loading="lazy" style="width:164.18%;left:-36.57%;top:-7.58%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-kiroth-krakeneye">Kiroth Krakeneye</a></article>
+<article id="star-players-kreek-rustgouger" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/kreek-rustgouger.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Kreek Rustgouger">
+<span class="frame"><img src="portrait-intake/star-players/kreek-rustgouger.jpg" alt="" loading="lazy" style="width:141.62%;left:-22.15%;top:-0.03%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-kreek-rustgouger">Kreek Rustgouger</a></article>
+<article id="star-players-lord-borak" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/lord-borak.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Lord Borak the Despoiler">
+<span class="frame"><img src="portrait-intake/star-players/lord-borak.jpg" alt="" loading="lazy" style="width:157.14%;left:-27.14%;top:-3.9%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-lord-borak">Lord Borak the Despoiler</a></article>
+<article id="star-players-lucien-swift" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/lucien-swift.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Lucien Swift">
+<span class="frame"><img src="portrait-intake/star-players/lucien-swift.jpg" alt="" loading="lazy" style="width:172.49%;left:-26.67%;top:-6.02%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-lucien-swift">Lucien Swift</a></article>
+<article id="star-players-maple-highgrove" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/maple-highgrove.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Maple Highgrove">
+<span class="frame"><img src="portrait-intake/star-players/maple-highgrove.jpg" alt="" loading="lazy" style="width:177.4%;left:-38.57%;top:-20.29%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-maple-highgrove">Maple Highgrove</a></article>
+<article id="star-players-max-spleenripper" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/max-spleenripper.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Max Spleenripper">
+<span class="frame"><img src="portrait-intake/star-players/max-spleenripper.jpg" alt="" loading="lazy" style="width:150.68%;left:-23.97%;top:-13.81%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-max-spleenripper">Max Spleenripper</a></article>
+<article id="star-players-morg-n-thorg" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/morg-n-thorg.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Morg &#39;n&#39; Thorg">
+<span class="frame"><img src="portrait-intake/star-players/morg-n-thorg.jpg" alt="" loading="lazy" style="width:159.4%;left:-28.18%;top:-21.03%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-morg-n-thorg">Morg &#39;n&#39; Thorg</a></article>
+<article id="star-players-nobbla-blackwart" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/nobbla-blackwart.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Nobbla Blackwart">
+<span class="frame"><img src="portrait-intake/star-players/nobbla-blackwart.jpg" alt="" loading="lazy" style="width:166.67%;left:-31.82%;top:-69.53%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-nobbla-blackwart">Nobbla Blackwart</a></article>
+<article id="star-players-puggy-baconbreath" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/puggy-baconbreath.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Puggy Baconbreath">
+<span class="frame"><img src="portrait-intake/star-players/puggy-baconbreath.jpg" alt="" loading="lazy" style="width:294.48%;left:-104.62%;top:-75.3%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-puggy-baconbreath">Puggy Baconbreath</a></article>
+<article id="star-players-rashnak-backstabber" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/rashnak-backstabber.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Rashnak Backstabber">
+<span class="frame"><img src="portrait-intake/star-players/rashnak-backstabber.jpg" alt="" loading="lazy" style="width:171.09%;left:-30.6%;top:-31.14%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-rashnak-backstabber">Rashnak Backstabber</a></article>
+<article id="star-players-ripper-bolgrot" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/ripper-bolgrot.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Ripper Bolgrot">
+<span class="frame"><img src="portrait-intake/star-players/ripper-bolgrot.jpg" alt="" loading="lazy" style="width:156.03%;left:-18.68%;top:-15.39%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-ripper-bolgrot">Ripper Bolgrot</a></article>
+<article id="star-players-rodney-roachbait" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/rodney-roachbait.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Rodney Roachbait">
+<span class="frame"><img src="portrait-intake/star-players/rodney-roachbait.jpg" alt="" loading="lazy" style="width:169.23%;left:-28.46%;top:-29.94%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-rodney-roachbait">Rodney Roachbait</a></article>
+<article id="star-players-rowana-forestfoot" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/rowana-forestfoot.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Rowana Forestfoot">
+<span class="frame"><img src="portrait-intake/star-players/rowana-forestfoot.jpg" alt="" loading="lazy" style="width:169.23%;left:-34.62%;top:-14.2%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-rowana-forestfoot">Rowana Forestfoot</a></article>
+<article id="star-players-roxanna-darknail" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/roxanna-darknail.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Roxanna Darknail">
+<span class="frame"><img src="portrait-intake/star-players/roxanna-darknail.jpg" alt="" loading="lazy" style="width:161.76%;left:-30.18%;top:-19.06%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-roxanna-darknail">Roxanna Darknail</a></article>
+<article id="star-players-rumbelow-sheepskin" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/rumbelow-sheepskin.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Rumbelow Sheepskin">
+<span class="frame"><img src="portrait-intake/star-players/rumbelow-sheepskin.jpg" alt="" loading="lazy" style="width:162.94%;left:-33.56%;top:-31.94%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-rumbelow-sheepskin">Rumbelow Sheepskin</a></article>
+<article id="star-players-scrappa-sorehead" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/scrappa-sorehead.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Scrappa Sorehead">
+<span class="frame"><img src="portrait-intake/star-players/scrappa-sorehead.jpg" alt="" loading="lazy" style="width:157.14%;left:-33.57%;top:-61.81%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-scrappa-sorehead">Scrappa Sorehead</a></article>
+<article id="star-players-scyla-anfingrimm" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/scyla-anfingrimm.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Scyla Anfingrimm">
+<span class="frame"><img src="portrait-intake/star-players/scyla-anfingrimm.jpg" alt="" loading="lazy" style="width:146.67%;left:-22%;top:-16.3%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-scyla-anfingrimm">Scyla Anfingrimm</a></article>
+<article id="star-players-skitter-stab-stab" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/skitter-stab-stab.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Skitter Stab-Stab">
+<span class="frame"><img src="portrait-intake/star-players/skitter-stab-stab.jpg" alt="" loading="lazy" style="width:163.76%;left:-14.29%;top:-23.38%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-skitter-stab-stab">Skitter Stab-Stab</a></article>
+<article id="star-players-skrorg-snowpelt" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/skrorg-snowpelt.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Skrorg Snowpelt">
+<span class="frame"><img src="portrait-intake/star-players/skrorg-snowpelt.jpg" alt="" loading="lazy" style="width:143.66%;left:-16.56%;top:-6.13%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-skrorg-snowpelt">Skrorg Snowpelt</a></article>
+<article id="star-players-skrull-halfheight" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/skrull-halfheight.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Skrull Halfheight">
+<span class="frame"><img src="portrait-intake/star-players/skrull-halfheight.jpg" alt="" loading="lazy" style="width:165.2%;left:-34.72%;top:-27.52%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-skrull-halfheight">Skrull Halfheight</a></article>
+<article id="star-players-swiftvine-glimmershard" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/swiftvine-glimmershard.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Swiftvine Glimmershard">
+<span class="frame"><img src="portrait-intake/star-players/swiftvine-glimmershard.jpg" alt="" loading="lazy" style="width:277.02%;left:-84.27%;top:-82.81%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-swiftvine-glimmershard">Swiftvine Glimmershard</a></article>
+<article id="star-players-black-gobbo" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/black-gobbo.jpg" target="_blank" rel="noopener" aria-label="Open original photo of The Black Gobbo">
+<span class="frame"><img src="portrait-intake/star-players/black-gobbo.jpg" alt="" loading="lazy" style="width:224.39%;left:-56.12%;top:-51.62%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-black-gobbo">The Black Gobbo</a></article>
+<article id="star-players-mighty-zug" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/mighty-zug.jpg" target="_blank" rel="noopener" aria-label="Open original photo of The Mighty Zug">
+<span class="frame"><img src="portrait-intake/star-players/mighty-zug.jpg" alt="" loading="lazy" style="width:157.14%;left:-27.14%;top:0%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-mighty-zug">The Mighty Zug</a></article>
+<article id="star-players-thorsson-stoutmead" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/thorsson-stoutmead.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Thorsson Stoutmead">
+<span class="frame"><img src="portrait-intake/star-players/thorsson-stoutmead.jpg" alt="" loading="lazy" style="width:153.64%;left:-23.94%;top:-10.03%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-thorsson-stoutmead">Thorsson Stoutmead</a></article>
+<article id="star-players-valen-swift" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/valen-swift.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Valen Swift">
+<span class="frame"><img src="portrait-intake/star-players/valen-swift.jpg" alt="" loading="lazy" style="width:174.55%;left:-28.25%;top:-12.07%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-valen-swift">Valen Swift</a></article>
+<article id="star-players-varag-ghoul-chewer" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/varag-ghoul-chewer.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Varag Ghoul-Chewer">
+<span class="frame"><img src="portrait-intake/star-players/varag-ghoul-chewer.jpg" alt="" loading="lazy" style="width:150.68%;left:-23.97%;top:-21.31%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-varag-ghoul-chewer">Varag Ghoul-Chewer</a></article>
+<article id="star-players-wilhelm-chaney" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/wilhelm-chaney.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Wilhelm Chaney">
+<span class="frame"><img src="portrait-intake/star-players/wilhelm-chaney.jpg" alt="" loading="lazy" style="width:158.03%;left:-26.57%;top:-4.6%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-wilhelm-chaney">Wilhelm Chaney</a></article>
+<article id="star-players-willow-rosebark" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/willow-rosebark.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Willow Rosebark">
+<span class="frame"><img src="portrait-intake/star-players/willow-rosebark.jpg" alt="" loading="lazy" style="width:161.76%;left:-19.12%;top:-12.27%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-willow-rosebark">Willow Rosebark</a></article>
+<article id="star-players-withergrasp-doubledrool" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/withergrasp-doubledrool.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Withergrasp Doubledrool">
+<span class="frame"><img src="portrait-intake/star-players/withergrasp-doubledrool.jpg" alt="" loading="lazy" style="width:144.74%;left:-15.21%;top:-12.61%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-withergrasp-doubledrool">Withergrasp Doubledrool</a></article>
+<article id="star-players-zolcath" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/zolcath.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Zolcath the Zoat">
+<span class="frame"><img src="portrait-intake/star-players/zolcath.jpg" alt="" loading="lazy" style="width:148.65%;left:-13.51%;top:-12.63%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-zolcath">Zolcath the Zoat</a></article>
+<article id="star-players-zzharg-madeye" class="card"><a class="token" style="--rim:#e4b84f" href="portrait-intake/star-players/zzharg-madeye.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Zzharg Madeye">
+<span class="frame"><img src="portrait-intake/star-players/zzharg-madeye.jpg" alt="" loading="lazy" style="width:163.66%;left:-22.43%;top:-32.25%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#star-players-zzharg-madeye">Zzharg Madeye</a></article></div></section>
+<section data-team="tomb-kings"><h2>Tomb Kings <small>4</small></h2><div class="grid"><article id="tomb-kings-skeleton-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/tomb-kings/skeleton-lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Skeleton Lineman">
+<span class="frame"><img src="portrait-intake/tomb-kings/skeleton-lineman.jpg" alt="" loading="lazy" style="width:264.79%;left:-80.68%;top:-64.35%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#tomb-kings-skeleton-lineman">Skeleton Lineman</a></article>
+<article id="tomb-kings-tomb-kings-thrower" class="card"><a class="token" style="--rim:#65b5f6" href="portrait-intake/tomb-kings/tomb-kings-thrower.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Tomb Kings Thrower">
+<span class="frame"><img src="portrait-intake/tomb-kings/tomb-kings-thrower.jpg" alt="" loading="lazy" style="width:242.09%;left:-59.64%;top:-49.67%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#tomb-kings-tomb-kings-thrower">Tomb Kings Thrower</a></article>
+<article id="tomb-kings-tomb-kings-blitzer" class="card"><a class="token" style="--rim:#ffe54c" href="portrait-intake/tomb-kings/tomb-kings-blitzer.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Tomb Kings Blitzer">
+<span class="frame"><img src="portrait-intake/tomb-kings/tomb-kings-blitzer.jpg" alt="" loading="lazy" style="width:251.74%;left:-64.1%;top:-56.05%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#tomb-kings-tomb-kings-blitzer">Tomb Kings Blitzer</a></article>
+<article id="tomb-kings-tomb-guardian" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/tomb-kings/tomb-guardian.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Tomb Guardian">
+<span class="frame"><img src="portrait-intake/tomb-kings/tomb-guardian.jpg" alt="" loading="lazy" style="width:222.98%;left:-59.43%;top:-43.67%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#tomb-kings-tomb-guardian">Tomb Guardian</a></article></div></section>
+<section data-team="underworld-denizens"><h2>Underworld Denizens <small>8</small></h2><div class="grid"><article id="underworld-denizens-goblin-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/underworld-denizens/goblin-lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Goblin Lineman">
+<span class="frame"><img src="portrait-intake/underworld-denizens/goblin-lineman.jpg" alt="" loading="lazy" style="width:261.9%;left:-94%;top:-60.7%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#underworld-denizens-goblin-lineman">Goblin Lineman</a></article>
+<article id="underworld-denizens-snotling-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/underworld-denizens/snotling-lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Snotling Lineman">
+<span class="frame"><img src="portrait-intake/underworld-denizens/snotling-lineman.jpg" alt="" loading="lazy" style="width:193.78%;left:-56.85%;top:-46.2%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#underworld-denizens-snotling-lineman">Snotling Lineman</a></article>
+<article id="underworld-denizens-skaven-clanrat" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/underworld-denizens/skaven-clanrat.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Skaven Clanrat">
+<span class="frame"><img src="portrait-intake/underworld-denizens/skaven-clanrat.jpg" alt="" loading="lazy" style="width:366.12%;left:-139.81%;top:-112.95%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#underworld-denizens-skaven-clanrat">Skaven Clanrat</a></article>
+<article id="underworld-denizens-skaven-thrower" class="card"><a class="token" style="--rim:#65b5f6" href="portrait-intake/underworld-denizens/skaven-thrower.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Skaven Thrower">
+<span class="frame"><img src="portrait-intake/underworld-denizens/skaven-thrower.jpg" alt="" loading="lazy" style="width:307.01%;left:-112.55%;top:-77.82%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#underworld-denizens-skaven-thrower">Skaven Thrower</a></article>
+<article id="underworld-denizens-gutter-runner" class="card"><a class="token" style="--rim:#36c3ad" href="portrait-intake/underworld-denizens/gutter-runner.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Gutter Runner">
+<span class="frame"><img src="portrait-intake/underworld-denizens/gutter-runner.jpg" alt="" loading="lazy" style="width:381.2%;left:-140.99%;top:-128.48%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#underworld-denizens-gutter-runner">Gutter Runner</a></article>
+<article id="underworld-denizens-skaven-blitzer" class="card"><a class="token" style="--rim:#ffe54c" href="portrait-intake/underworld-denizens/skaven-blitzer.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Skaven Blitzer">
+<span class="frame"><img src="portrait-intake/underworld-denizens/skaven-blitzer.jpg" alt="" loading="lazy" style="width:378.84%;left:-122.93%;top:-120.85%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#underworld-denizens-skaven-blitzer">Skaven Blitzer</a></article>
+<article id="underworld-denizens-troll" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/underworld-denizens/troll.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Troll">
+<span class="frame"><img src="portrait-intake/underworld-denizens/troll.jpg" alt="" loading="lazy" style="width:311%;left:-119%;top:-65%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#underworld-denizens-troll">Troll</a></article>
+<article id="underworld-denizens-rat-ogre" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/underworld-denizens/rat-ogre.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Rat Ogre">
+<span class="frame"><img src="portrait-intake/underworld-denizens/rat-ogre.jpg" alt="" loading="lazy" style="width:255.8%;left:-64%;top:-80.9%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#underworld-denizens-rat-ogre">Rat Ogre</a></article></div></section>
+<section data-team="vampire"><h2>Vampire <small>5</small></h2><div class="grid"><article id="vampire-thrall-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/vampire/thrall-lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Thrall Lineman">
+<span class="frame"><img src="portrait-intake/vampire/thrall-lineman.jpg" alt="" loading="lazy" style="width:338.5%;left:-117.7%;top:-77.7%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#vampire-thrall-lineman">Thrall Lineman</a></article>
+<article id="vampire-vampire-runner" class="card"><a class="token" style="--rim:#36c3ad" href="portrait-intake/vampire/vampire-runner.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Vampire Runner">
+<span class="frame"><img src="portrait-intake/vampire/vampire-runner.jpg" alt="" loading="lazy" style="width:265.1%;left:-98.2%;top:-48.3%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#vampire-vampire-runner">Vampire Runner</a></article>
+<article id="vampire-vampire-thrower" class="card"><a class="token" style="--rim:#65b5f6" href="portrait-intake/vampire/vampire-thrower.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Vampire Thrower">
+<span class="frame"><img src="portrait-intake/vampire/vampire-thrower.jpg" alt="" loading="lazy" style="width:309.9%;left:-100.7%;top:-68.3%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#vampire-vampire-thrower">Vampire Thrower</a></article>
+<article id="vampire-vampire-blitzer" class="card"><a class="token" style="--rim:#ffe54c" href="portrait-intake/vampire/vampire-blitzer.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Vampire Blitzer">
+<span class="frame"><img src="portrait-intake/vampire/vampire-blitzer.jpg" alt="" loading="lazy" style="width:176%;left:-38.8%;top:-14.4%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#vampire-vampire-blitzer">Vampire Blitzer</a></article>
+<article id="vampire-vargheist" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/vampire/vargheist.jpeg" target="_blank" rel="noopener" aria-label="Open original photo of Vargheist">
+<span class="frame"><img src="portrait-intake/vampire/vargheist.jpeg" alt="" loading="lazy" style="width:241.8%;left:-41.2%;top:-39%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#vampire-vargheist">Vargheist</a></article></div></section>
+<section data-team="wood-elf"><h2>Wood Elf <small>5</small></h2><div class="grid"><article id="wood-elf-wood-elf-lineman" class="card"><a class="token" style="--rim:#bac3cd" href="portrait-intake/wood-elf/wood-elf-lineman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Wood Elf Lineman">
+<span class="frame"><img src="portrait-intake/wood-elf/wood-elf-lineman.jpg" alt="" loading="lazy" style="width:171.88%;left:-23.44%;top:-4.69%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#wood-elf-wood-elf-lineman">Wood Elf Lineman</a></article>
+<article id="wood-elf-wood-elf-thrower" class="card"><a class="token" style="--rim:#65b5f6" href="portrait-intake/wood-elf/wood-elf-thrower.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Wood Elf Thrower">
+<span class="frame"><img src="portrait-intake/wood-elf/wood-elf-thrower.jpg" alt="" loading="lazy" style="width:157.67%;left:-15.71%;top:0%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#wood-elf-wood-elf-thrower">Wood Elf Thrower</a></article>
+<article id="wood-elf-wood-elf-catcher" class="card"><a class="token" style="--rim:#b6da62" href="portrait-intake/wood-elf/wood-elf-catcher.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Wood Elf Catcher">
+<span class="frame"><img src="portrait-intake/wood-elf/wood-elf-catcher.jpg" alt="" loading="lazy" style="width:188.93%;left:-17.68%;top:-13.96%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#wood-elf-wood-elf-catcher">Wood Elf Catcher</a></article>
+<article id="wood-elf-wardancer" class="card"><a class="token" style="--rim:#ffe54c" href="portrait-intake/wood-elf/wardancer.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Wardancer">
+<span class="frame"><img src="portrait-intake/wood-elf/wardancer.jpg" alt="" loading="lazy" style="width:167.23%;left:-23.1%;top:-5.11%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#wood-elf-wardancer">Wardancer</a></article>
+<article id="wood-elf-loren-forest-treeman" class="card"><a class="token" style="--rim:#f07839" href="portrait-intake/wood-elf/loren-forest-treeman.jpg" target="_blank" rel="noopener" aria-label="Open original photo of Loren Forest Treeman">
+<span class="frame"><img src="portrait-intake/wood-elf/loren-forest-treeman.jpg" alt="" loading="lazy" style="width:144.74%;left:-28.95%;top:-29.91%"></span><span class="number" aria-hidden="true">14</span></a>
+<a class="name" href="#wood-elf-loren-forest-treeman">Loren Forest Treeman</a></article></div></section>
+</main>
+<script id="portrait-crops" type="application/json">{"imperial-nobility":{"retainer":{"file":"retainer.jpg","width":324,"left":-107,"top":-73},"thrower":{"file":"thrower.jpg","width":205,"left":-47,"top":0},"bodyguard":{"file":"bodyguard.jpg","width":270,"left":-114,"top":-63},"blitzer":{"file":"blitzer.jpg","width":292,"left":-110,"top":-59},"ogre":{"file":"ogre.jpg","width":294,"left":-113,"top":-24}},"black-orc":{"goblin":{"file":"goblin.jpg","width":279,"left":-75,"top":-35},"black-orc":{"file":"black-orc.jpg","width":229,"left":-77,"top":-36},"troll":{"file":"troll.jpg","width":311,"left":-119,"top":-65}},"skaven":{"clanrat":{"file":"clanrat.jpg","width":258.8,"left":-92.4,"top":-67.6},"thrower":{"file":"thrower.jpg","width":271.6,"left":-89.5,"top":-79.6},"gutter-runner":{"file":"gutter-runner.jpg","width":271.6,"left":-130.2,"top":-79.6},"blitzer":{"file":"blitzer.jpg","width":250,"left":-54.5,"top":-53.4},"rat-ogre":{"file":"rat-ogre.jpg","width":255.8,"left":-64,"top":-80.9}},"dwarf":{"lineman":{"file":"lineman.jpg","width":285.36,"left":-90.29,"top":-57.85},"runner":{"file":"runner.jpg","width":240.17,"left":-66.89,"top":-42.07},"blitzer":{"file":"blitzer.jpg","width":260.29,"left":-69.96,"top":-48.25},"slayer":{"file":"slayer.jpg","width":203.68,"left":-56.2,"top":-23.4},"deathroller":{"file":"deathroller.jpg","width":144.74,"left":-18.42,"top":0}},"lizardmen":{"skink":{"file":"skink.jpg","width":190.17,"left":-65.61,"top":-28.18},"chameleon":{"file":"chameleon.jpg","width":243.85,"left":-71.21,"top":-44.97},"saurus":{"file":"saurus.jpg","width":209.69,"left":-30.72,"top":-36.8},"kroxigor":{"file":"kroxigor.jpg","width":169.23,"left":-48.46,"top":-9.94}},"elven-union":{"lineman":{"file":"lineman.jpg","width":186.59,"left":-22.37,"top":-13.31},"thrower":{"file":"thrower.jpg","width":159.42,"left":-42.75,"top":0},"catcher":{"file":"catcher.jpg","width":215.96,"left":-25.1,"top":-30.81},"blitzer":{"file":"blitzer.jpg","width":174.82,"left":-46.88,"top":-14.88}},"nurgle":{"rotter":{"file":"rotter.jpg","width":169.23,"left":-30,"top":-2.31},"pestigor":{"file":"pestigor.jpg","width":164.18,"left":-44.57,"top":-30.6},"bloater":{"file":"bloater.jpg","width":164.18,"left":-39.55,"top":-5.22},"rotspawn":{"file":"rotspawn.jpg","width":157.14,"left":-10,"top":-45.33}},"dark-elf":{"lineman":{"file":"lineman.jpg","width":183.33,"left":-43.33,"top":-10},"runner":{"file":"runner.jpg","width":171.08,"left":-29.57,"top":-10.64},"assassin":{"file":"assassin.jpg","width":180.33,"left":-27.25,"top":-0.82},"blitzer":{"file":"blitzer.jpg","width":204.87,"left":-42.65,"top":-14.45},"witch":{"file":"witch.jpg","width":178.48,"left":-34.38,"top":-8.13}},"amazon":{"eagle-warrior":{"file":"eagle-warrior.jpg","width":398.86,"left":-154.55,"top":-126.22},"python-warrior":{"file":"python-warrior.jpg","width":386.76,"left":-138.29,"top":-119.02},"piranha-warrior":{"file":"piranha-warrior.jpg","width":430.35,"left":-153.51,"top":-158.55},"jaguar-warrior":{"file":"jaguar-warrior.jpg","width":457.44,"left":-206.77,"top":-177.69}},"bretonnian":{"bretonnian-squire":{"file":"bretonnian-squire.jpg","width":287.75,"left":-87.51,"top":-52.35},"bretonnian-knight-catcher":{"file":"bretonnian-knight-catcher.jpg","width":212.91,"left":-53.84,"top":-30.77},"bretonnian-knight-thrower":{"file":"bretonnian-knight-thrower.jpg","width":257.38,"left":-58.38,"top":-59.46},"grail-knight":{"file":"grail-knight.jpg","width":247.61,"left":-88.91,"top":-42.4}},"chaos-chosen":{"beastman-lineman":{"file":"beastman-lineman.jpg","width":175.73,"left":-53.15,"top":-19.54},"chaos-chosen":{"file":"chaos-chosen.jpg","width":159.03,"left":-28,"top":-7.78},"troll":{"file":"troll.jpg","width":311,"left":-119,"top":-65},"ogre":{"file":"ogre.jpg","width":294,"left":-113,"top":-24},"minotaur":{"file":"minotaur.jpg","width":228.81,"left":-66.45,"top":-43.38}},"chaos-dwarf":{"hobgoblin-lineman":{"file":"hobgoblin-lineman.jpg","width":264.42,"left":-63.92,"top":-75.34},"sneaky-stabba":{"file":"sneaky-stabba.jpg","width":229.17,"left":-46.69,"top":-44.61},"chaos-dwarf-blocker":{"file":"chaos-dwarf-blocker.jpg","width":219.09,"left":-50.08,"top":-30.08},"flamesmith":{"file":"flamesmith.jpg","width":229.73,"left":-65.37,"top":-47.92},"bull-centaur":{"file":"bull-centaur.jpg","width":198.17,"left":-54.53,"top":-24.11},"minotaur":{"file":"minotaur.jpg","width":228.81,"left":-66.45,"top":-43.38}},"chaos-renegades":{"renegade-human":{"file":"renegade-human.jpg","width":225.64,"left":-56.92,"top":-21.81},"renegade-goblin":{"file":"renegade-goblin.jpg","width":261.9,"left":-76,"top":-60.7},"renegade-orc":{"file":"renegade-orc.jpg","width":234,"left":-66,"top":-40.4},"renegade-skaven":{"file":"renegade-skaven.jpg","width":258.8,"left":-92.4,"top":-67.6},"renegade-dark-elf":{"file":"renegade-dark-elf.jpg","width":183.33,"left":-43.33,"top":-10},"renegade-human-thrower":{"file":"renegade-human-thrower.jpg","width":216.66,"left":-69.35,"top":-22.31},"troll":{"file":"troll.jpg","width":311,"left":-119,"top":-65},"ogre":{"file":"ogre.jpg","width":294,"left":-113,"top":-24},"minotaur":{"file":"minotaur.jpg","width":228.81,"left":-66.45,"top":-43.38},"rat-ogre":{"file":"rat-ogre.jpg","width":255.8,"left":-64,"top":-80.9}},"gnome":{"gnome-lineman":{"file":"gnome-lineman.jpg","width":258.8,"left":-79.4,"top":-25.3},"woodland-fox":{"file":"woodland-fox.jpg","width":265.1,"left":-48.8,"top":-70.5},"gnome-illusionist":{"file":"gnome-illusionist.jpg","width":268.3,"left":-86.6,"top":-53.7},"gnome-beastmaster":{"file":"gnome-beastmaster.jpg","width":258.8,"left":-115.9,"top":-54.7},"altern-forest-treeman":{"file":"altern-forest-treeman.jpg","width":194.7,"left":-42,"top":-42.3}},"goblin":{"goblin-lineman":{"file":"goblin-lineman.jpg","width":261.9,"left":-76,"top":-60.7},"looney":{"file":"looney.jpg","width":165.71,"left":-32.57,"top":-25.9},"bomma":{"file":"bomma.jpg","width":233.22,"left":-58.5,"top":-75.89},"-ooligan":{"file":"-ooligan.jpg","width":296.54,"left":-105.9,"top":-82.86},"doom-diver":{"file":"doom-diver.jpg","width":166.05,"left":-33.82,"top":-26.34},"fanatic":{"file":"fanatic.jpg","width":311.89,"left":-106.91,"top":-89.51},"pogoer":{"file":"pogoer.jpg","width":195.87,"left":-63.27,"top":-13.44},"trained-troll":{"file":"trained-troll.jpg","width":311,"left":-119,"top":-65}},"halfling":{"halfling-hopeful":{"file":"halfling-hopeful.jpg","width":182.73,"left":-36.58,"top":-20.69},"halfling-hefty":{"file":"halfling-hefty.jpg","width":186.59,"left":-44.24,"top":-18.92},"halfling-catcher":{"file":"halfling-catcher.jpg","width":173.71,"left":-34.65,"top":-14.48},"athel-forest-treeman":{"file":"athel-forest-treeman.jpg","width":148.65,"left":-25.68,"top":-28.01}},"high-elf":{"high-elf-lineman":{"file":"high-elf-lineman.jpg","width":222.32,"left":-61.03,"top":-34.75},"phoenix-warrior":{"file":"phoenix-warrior.jpg","width":225.65,"left":-48.89,"top":-53.49},"dragon-prince":{"file":"dragon-prince.jpg","width":203.93,"left":-59.06,"top":-29.3},"white-lion":{"file":"white-lion.jpg","width":290.3,"left":-71.12,"top":-94.97}},"human":{"human-lineman":{"file":"human-lineman.jpg","width":225.64,"left":-56.92,"top":-21.81},"halfling-hopeful":{"file":"halfling-hopeful.jpg","width":182.73,"left":-36.58,"top":-20.69},"human-catcher":{"file":"human-catcher.jpg","width":200.53,"left":-38.66,"top":-22.05},"human-thrower":{"file":"human-thrower.jpg","width":216.66,"left":-69.35,"top":-22.31},"human-blitzer":{"file":"human-blitzer.jpg","width":209.52,"left":-61.48,"top":-37.88},"ogre":{"file":"ogre.jpg","width":294,"left":-113,"top":-24}},"khorne":{"bloodborn-marauder":{"file":"bloodborn-marauder.jpg","width":198.17,"left":-43.68,"top":-17.82},"khorngor":{"file":"khorngor.jpg","width":225.65,"left":-61.54,"top":-63.41},"bloodseeker":{"file":"bloodseeker.jpg","width":183.29,"left":-30.34,"top":-9.69},"bloodspawn":{"file":"bloodspawn.jpg","width":166.67,"left":-28.79,"top":-20.58}},"necromantic-horror":{"zombie-lineman":{"file":"zombie-lineman.jpg","width":265.1,"left":-104.2,"top":-21.1},"ghoul-runner":{"file":"ghoul-runner.jpg","width":239.1,"left":-71.7,"top":-22.8},"wraith":{"file":"wraith.jpg","width":215.7,"left":-52.9,"top":-30.4},"flesh-golem":{"file":"flesh-golem.jpg","width":220,"left":-48,"top":-6},"werewolf":{"file":"werewolf.jpg","width":282.1,"left":-143.6,"top":-55.1}},"norse":{"norse-raider":{"file":"norse-raider.jpg","width":366.7,"left":-88.3,"top":-86.7},"beer-boar":{"file":"beer-boar.jpg","width":338.5,"left":-123.8,"top":-113.1},"norse-berserker":{"file":"norse-berserker.jpg","width":372.9,"left":-139.8,"top":-94.1},"valkyrie":{"file":"valkyrie.jpg","width":354.8,"left":-127.4,"top":-85.5},"ulfwerener":{"file":"ulfwerener.jpg","width":372.9,"left":-138.1,"top":-97.5},"yhetee":{"file":"yhetee.jpg","width":209.5,"left":-42.4,"top":-28.7}},"ogre":{"gnoblar-lineman":{"file":"gnoblar-lineman.jpg","width":196.43,"left":-42.86,"top":-37.57},"ogre-blocker":{"file":"ogre-blocker.jpg","width":172.03,"left":-46.13,"top":-20.18},"ogre-runt-punter":{"file":"ogre-runt-punter.jpg","width":142.86,"left":-20.13,"top":-8.13}},"old-world-alliance":{"human-lineman":{"file":"human-lineman.jpg","width":330.37,"left":-122.49,"top":-84.92},"halfling-hopeful":{"file":"halfling-hopeful.jpg","width":182.73,"left":-36.58,"top":-20.69},"human-catcher":{"file":"human-catcher.jpg","width":273.33,"left":-87.19,"top":-56.43},"dwarf-lineman":{"file":"dwarf-lineman.jpg","width":181.04,"left":-32.48,"top":-21.42},"human-thrower":{"file":"human-thrower.jpg","width":341.88,"left":-114.63,"top":-90.84},"dwarf-runner":{"file":"dwarf-runner.jpg","width":431.3,"left":-160.9,"top":-148.2},"human-blitzer":{"file":"human-blitzer.jpg","width":327.94,"left":-115.44,"top":-84.56},"dwarf-blitzer":{"file":"dwarf-blitzer.jpg","width":431.3,"left":-170.26,"top":-149.87},"troll-slayer":{"file":"troll-slayer.jpg","width":359.68,"left":-130.24,"top":-104.03},"ogre":{"file":"ogre.jpg","width":294,"left":-113,"top":-24},"altern-forest-treeman":{"file":"altern-forest-treeman.jpg","width":194.7,"left":-42,"top":-42.3}},"orc":{"orc-lineman":{"file":"orc-lineman.jpg","width":234,"left":-66,"top":-40.4},"goblin-lineman":{"file":"goblin-lineman.jpg","width":261.9,"left":-76,"top":-60.7},"orc-thrower":{"file":"orc-thrower.jpg","width":207.5,"left":-41.5,"top":-17.9},"orc-blitzer":{"file":"orc-blitzer.jpg","width":203.7,"left":-64.8,"top":-25.9},"big-un-blocker":{"file":"big-un-blocker.jpg","width":244.4,"left":-40,"top":-47.8},"troll":{"file":"troll.jpg","width":311,"left":-119,"top":-65}},"shambling-undead":{"skeleton-lineman":{"file":"skeleton-lineman.jpg","width":154.93,"left":-28.87,"top":-7},"zombie-lineman":{"file":"zombie-lineman.jpg","width":169.8,"left":-38.07,"top":0},"ghoul-runner":{"file":"ghoul-runner.jpg","width":186.59,"left":-21.16,"top":-23.04},"wight-blitzer":{"file":"wight-blitzer.jpg","width":169.13,"left":-44.89,"top":-8.71},"mummy":{"file":"mummy.jpg","width":159.03,"left":-32.97,"top":-3.4}},"snotling":{"snotling-lineman":{"file":"snotling-lineman.jpg","width":193.78,"left":-48.85,"top":-46.2},"fun-hoppa":{"file":"fun-hoppa.jpg","width":209.95,"left":-43.73,"top":-31.78},"stilty-runna":{"file":"stilty-runna.jpg","width":176.18,"left":-32.42,"top":-8.58},"fungus-flinga":{"file":"fungus-flinga.jpg","width":260.29,"left":-97.72,"top":-71.59},"pump-wagon":{"file":"pump-wagon.jpg","width":230.96,"left":-79.76,"top":-44.3},"trained-troll":{"file":"trained-troll.jpg","width":311,"left":-119,"top":-65}},"tomb-kings":{"skeleton-lineman":{"file":"skeleton-lineman.jpg","width":264.79,"left":-80.68,"top":-64.35},"tomb-kings-thrower":{"file":"tomb-kings-thrower.jpg","width":242.09,"left":-59.64,"top":-49.67},"tomb-kings-blitzer":{"file":"tomb-kings-blitzer.jpg","width":251.74,"left":-64.1,"top":-56.05},"tomb-guardian":{"file":"tomb-guardian.jpg","width":222.98,"left":-59.43,"top":-43.67}},"underworld-denizens":{"goblin-lineman":{"file":"goblin-lineman.jpg","width":261.9,"left":-94,"top":-60.7},"snotling-lineman":{"file":"snotling-lineman.jpg","width":193.78,"left":-56.85,"top":-46.2},"skaven-clanrat":{"file":"skaven-clanrat.jpg","width":366.12,"left":-139.81,"top":-112.95},"skaven-thrower":{"file":"skaven-thrower.jpg","width":307.01,"left":-112.55,"top":-77.82},"gutter-runner":{"file":"gutter-runner.jpg","width":381.2,"left":-140.99,"top":-128.48},"skaven-blitzer":{"file":"skaven-blitzer.jpg","width":378.84,"left":-122.93,"top":-120.85},"troll":{"file":"troll.jpg","width":311,"left":-119,"top":-65},"rat-ogre":{"file":"rat-ogre.jpg","width":255.8,"left":-64,"top":-80.9}},"vampire":{"thrall-lineman":{"file":"thrall-lineman.jpg","width":338.5,"left":-117.7,"top":-77.7},"vampire-runner":{"file":"vampire-runner.jpg","width":265.1,"left":-98.2,"top":-48.3},"vampire-thrower":{"file":"vampire-thrower.jpg","width":309.9,"left":-100.7,"top":-68.3},"vampire-blitzer":{"file":"vampire-blitzer.jpg","width":176,"left":-38.8,"top":-14.4},"vargheist":{"file":"vargheist.jpeg","width":241.8,"left":-41.2,"top":-39}},"wood-elf":{"wood-elf-lineman":{"file":"wood-elf-lineman.jpg","width":171.88,"left":-23.44,"top":-4.69},"wood-elf-thrower":{"file":"wood-elf-thrower.jpg","width":157.67,"left":-15.71,"top":0},"wood-elf-catcher":{"file":"wood-elf-catcher.jpg","width":188.93,"left":-17.68,"top":-13.96},"wardancer":{"file":"wardancer.jpg","width":167.23,"left":-23.1,"top":-5.11},"loren-forest-treeman":{"file":"loren-forest-treeman.jpg","width":144.74,"left":-28.95,"top":-29.91}},"star-players":{"akhorne":{"file":"akhorne.jpg","width":183.33,"left":-35,"top":-14.35},"anqi-panqi":{"file":"anqi-panqi.jpg","width":167.23,"left":-40.28,"top":-19.89},"barik-farblast":{"file":"barik-farblast.jpg","width":162.71,"left":-33.27,"top":-34.22},"bilerot-vomitflesh":{"file":"bilerot-vomitflesh.jpg","width":164.18,"left":-39.55,"top":-10.57},"boa-konssstriktr":{"file":"boa-konssstriktr.jpg","width":161.45,"left":-37.32,"top":-23.75},"bomber-dribblesnot":{"file":"bomber-dribblesnot.jpg","width":206.42,"left":-55.27,"top":-50.54},"captain-karina":{"file":"captain-karina.jpg","width":173.68,"left":-45.88,"top":-17.22},"cindy-piewhistle":{"file":"cindy-piewhistle.jpg","width":379.72,"left":-131.04,"top":-119.23},"count-luthor":{"file":"count-luthor.jpg","width":160.32,"left":-31.91,"top":-6.84},"crumbleberry":{"file":"crumbleberry.jpg","width":160.53,"left":-30.27,"top":0},"red-gobbo-squigmobile":{"file":"red-gobbo-squigmobile.jpg","width":193.15,"left":-44.62,"top":-40.07},"deeproot-strongbranch":{"file":"deeproot-strongbranch.jpg","width":144.74,"left":-26.32,"top":-8.85},"dribl":{"file":"dribl.jpg","width":295.99,"left":-84.15,"top":-73.59},"drull":{"file":"drull.jpg","width":293.42,"left":-87.17,"top":-98.68},"eldril-sidewinder":{"file":"eldril-sidewinder.jpg","width":171.88,"left":-36.13,"top":-13.41},"estelle-la-veneaux":{"file":"estelle-la-veneaux.jpg","width":186.04,"left":-51.49,"top":-19.6},"fungus-the-loon":{"file":"fungus-the-loon.jpg","width":175.83,"left":-10.64,"top":-16.52},"glart-smashrip":{"file":"glart-smashrip.jpg","width":176.56,"left":-19.36,"top":-35.17},"gloriel-summerbloom":{"file":"gloriel-summerbloom.jpg","width":157.14,"left":-28.57,"top":-16.37},"glotl-stop":{"file":"glotl-stop.jpg","width":155.39,"left":-34.72,"top":-29.9},"grak":{"file":"grak.jpg","width":178.73,"left":-12.8,"top":-14.42},"grashnak-blackhoof":{"file":"grashnak-blackhoof.jpg","width":148.65,"left":-24.32,"top":-7.74},"gretchen-wachter":{"file":"gretchen-wachter.jpg","width":159.42,"left":-19.57,"top":-5.91},"griff-oberwald":{"file":"griff-oberwald.jpg","width":169.23,"left":-28.46,"top":-24.97},"grim-ironjaw":{"file":"grim-ironjaw.jpg","width":164.18,"left":-23.13,"top":-26.99},"grombrindal":{"file":"grombrindal.jpg","width":212.55,"left":-50.42,"top":-43.45},"guffle-pusmaw":{"file":"guffle-pusmaw.jpg","width":163.02,"left":-30.67,"top":-23.89},"hthark":{"file":"hthark.jpg","width":163.36,"left":-21.83,"top":-13.05},"hakflem-skuttlespike":{"file":"hakflem-skuttlespike.jpg","width":137.5,"left":-18.75,"top":-3.7},"helmut-wulf":{"file":"helmut-wulf.jpg","width":166.67,"left":-39.39,"top":-9.97},"ivan-deathshroud":{"file":"ivan-deathshroud.jpg","width":164.18,"left":-30.6,"top":-10.79},"ivar-eriksson":{"file":"ivar-eriksson.jpg","width":172.61,"left":-36.76,"top":-9.11},"jeremiah-kool":{"file":"jeremiah-kool.jpg","width":175.74,"left":-38.24,"top":-17.82},"jordell-freshbreeze":{"file":"jordell-freshbreeze.jpg","width":188.7,"left":-43.87,"top":-29.55},"josef-bugman":{"file":"josef-bugman.jpg","width":179.92,"left":-38.6,"top":-29.09},"karla-von-kill":{"file":"karla-von-kill.jpg","width":164.18,"left":-33.58,"top":0},"kiroth-krakeneye":{"file":"kiroth-krakeneye.jpg","width":164.18,"left":-36.57,"top":-7.58},"kreek-rustgouger":{"file":"kreek-rustgouger.jpg","width":141.62,"left":-22.15,"top":-0.03},"lord-borak":{"file":"lord-borak.jpg","width":157.14,"left":-27.14,"top":-3.9},"lucien-swift":{"file":"lucien-swift.jpg","width":172.49,"left":-26.67,"top":-6.02},"maple-highgrove":{"file":"maple-highgrove.jpg","width":177.4,"left":-38.57,"top":-20.29},"max-spleenripper":{"file":"max-spleenripper.jpg","width":150.68,"left":-23.97,"top":-13.81},"morg-n-thorg":{"file":"morg-n-thorg.jpg","width":159.4,"left":-28.18,"top":-21.03},"nobbla-blackwart":{"file":"nobbla-blackwart.jpg","width":166.67,"left":-31.82,"top":-69.53},"puggy-baconbreath":{"file":"puggy-baconbreath.jpg","width":294.48,"left":-104.62,"top":-75.3},"rashnak-backstabber":{"file":"rashnak-backstabber.jpg","width":171.09,"left":-30.6,"top":-31.14},"ripper-bolgrot":{"file":"ripper-bolgrot.jpg","width":156.03,"left":-18.68,"top":-15.39},"rodney-roachbait":{"file":"rodney-roachbait.jpg","width":169.23,"left":-28.46,"top":-29.94},"rowana-forestfoot":{"file":"rowana-forestfoot.jpg","width":169.23,"left":-34.62,"top":-14.2},"roxanna-darknail":{"file":"roxanna-darknail.jpg","width":161.76,"left":-30.18,"top":-19.06},"rumbelow-sheepskin":{"file":"rumbelow-sheepskin.jpg","width":162.94,"left":-33.56,"top":-31.94},"scrappa-sorehead":{"file":"scrappa-sorehead.jpg","width":157.14,"left":-33.57,"top":-61.81},"scyla-anfingrimm":{"file":"scyla-anfingrimm.jpg","width":146.67,"left":-22,"top":-16.3},"skitter-stab-stab":{"file":"skitter-stab-stab.jpg","width":163.76,"left":-14.29,"top":-23.38},"skrorg-snowpelt":{"file":"skrorg-snowpelt.jpg","width":143.66,"left":-16.56,"top":-6.13},"skrull-halfheight":{"file":"skrull-halfheight.jpg","width":165.2,"left":-34.72,"top":-27.52},"swiftvine-glimmershard":{"file":"swiftvine-glimmershard.jpg","width":277.02,"left":-84.27,"top":-82.81},"black-gobbo":{"file":"black-gobbo.jpg","width":224.39,"left":-56.12,"top":-51.62},"mighty-zug":{"file":"mighty-zug.jpg","width":157.14,"left":-27.14,"top":0},"thorsson-stoutmead":{"file":"thorsson-stoutmead.jpg","width":153.64,"left":-23.94,"top":-10.03},"valen-swift":{"file":"valen-swift.jpg","width":174.55,"left":-28.25,"top":-12.07},"varag-ghoul-chewer":{"file":"varag-ghoul-chewer.jpg","width":150.68,"left":-23.97,"top":-21.31},"wilhelm-chaney":{"file":"wilhelm-chaney.jpg","width":158.03,"left":-26.57,"top":-4.6},"willow-rosebark":{"file":"willow-rosebark.jpg","width":161.76,"left":-19.12,"top":-12.27},"withergrasp-doubledrool":{"file":"withergrasp-doubledrool.jpg","width":144.74,"left":-15.21,"top":-12.61},"zolcath":{"file":"zolcath.jpg","width":148.65,"left":-13.51,"top":-12.63},"zzharg-madeye":{"file":"zzharg-madeye.jpg","width":163.66,"left":-22.43,"top":-32.25}}}</script>
+<script>
+const main=document.querySelector('main');
+const team=document.getElementById('team');
+const size=document.getElementById('size');
+const side=document.getElementById('side');
+const teams=[...document.querySelectorAll('section[data-team]')];
+function update(){
+ main.dataset.size=size.value;
+ main.dataset.side=side.value;
+ for(const section of teams)section.hidden=Boolean(team.value&&section.dataset.team!==team.value);
+}
+for(const select of [team,size,side])select.addEventListener('change',update);
+update();
+</script>
+</body>
+</html>

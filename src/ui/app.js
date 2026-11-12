@@ -40,10 +40,14 @@ function playerToken(roster,profile,{team,number,star,classes=""}){
   const frame=document.createElement("span"),photo=document.createElement("img");
   frame.className="token-portrait";
   photo.alt="";
-  photo.src=portrait.url;
   photo.setAttribute("style",`width:${portrait.width}%;left:${portrait.left}%;top:${portrait.top}%`);
   frame.append(photo);
   token.append(frame);
+  photo.addEventListener("error",()=>{
+   token.classList.remove("portrait-token");
+   frame.replaceWith(markerGraphic(marker));
+  },{once:true});
+  photo.src=portrait.url;
  }else{
   token.append(markerGraphic(marker));
  }

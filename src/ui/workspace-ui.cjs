@@ -1,6 +1,6 @@
 "use strict";
 // Presentation only. Engine guards remain the authority for every offered action.
-const workspaceTabs=["play","teams","rosters","testing","reference"];
+const workspaceTabs=["play","teams","rosters","testing","portraits","reference"];
 const workspaceScroll={};
 let workspaceView="play",pitchFocus=0,popupAnchor=null,popupEpoch=0,hoverSquare=null,staffDetailsOpen=false,economicsOpen=false,popoverTransition=false;
 let setupSelectionContext=null,suppressPitchHover=false;
@@ -50,9 +50,19 @@ function switchWorkspace(view,focus=false){
  workspaceScroll[workspaceView]=globalThis.scrollY||0;closePitchPopup();hidePitchTooltip();workspaceView=view;
  if(globalThis.history?.replaceState)history.replaceState(null,"","#"+view);
  for(const key of workspaceTabs){const tab=document.getElementById("tab-"+key),panel=document.getElementById(key==="rosters"?key:key+"-view");tab.setAttribute("aria-selected",String(key===view));tab.tabIndex=key===view?0:-1;panel.hidden=key!==view;}
+ if(view==="portraits")showPortraitGallery();
  if(focus)document.getElementById("tab-"+view).focus({preventScroll:true});
  globalThis.scrollTo?.({top:workspaceScroll[view]||0,behavior:"instant"});
 }
+const portraitGallerySelect=document.getElementById("portrait-gallery-select");
+const portraitGalleryFrame=document.getElementById("portrait-gallery-frame");
+function showPortraitGallery(){
+ const gallery=portraitGallerySelect.value==="review"?"review":"crop";
+ const source="portrait-"+gallery+"-gallery.html";
+ if(portraitGalleryFrame.getAttribute("src")!==source)portraitGalleryFrame.setAttribute("src",source);
+ portraitGalleryFrame.setAttribute("title",gallery==="review"?"Original photo gallery":"Cropped portrait gallery");
+}
+portraitGallerySelect.addEventListener("change",showPortraitGallery);
 for(const view of workspaceTabs){
  const tab=document.getElementById("tab-"+view);
  tab.addEventListener("click",()=>switchWorkspace(view));
