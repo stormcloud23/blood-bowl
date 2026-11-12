@@ -558,7 +558,7 @@ function render(){
  if(game.pending){
   const q=game.pending;
   if(q.type==="blockSelect"){
-   const actor=game.blockAction.attacker,chooser=teams[game.blockAction.chooserTeam],p=document.createElement("p");p.textContent=chooser.name+" · #"+actor.number;choices.append(p);
+   const {attacker:actor,target,chooserTeam}=game.blockAction,p=document.createElement("p");p.textContent=teams[chooserTeam].name+" chooses · "+teams[actor.team].name+" #"+actor.number+" blocks "+teams[target.team].name+" #"+target.number;choices.append(p);
    game.blockAction.dice.forEach((die,i)=>choices.append(button("Die "+(i+1)+" · "+game.blockFace(die),()=>{if(game.pending!==q)return;game.selectBlockDie(i);destination=null;render();})));
    if(!game.blockAction.poolLocked){
     for(const source of game.rerollSources(actor))choices.append(button(source==="Team"?"Team re-roll":"Re-roll · "+source,()=>{if(game.pending!==q)return;game.rerollBlock(source);render();}));
@@ -574,7 +574,7 @@ function render(){
    const p=document.createElement("p");p.textContent=(q.kind==="Chain push"?"Chain push: ":"")+"Push #"+q.target.number;choices.append(p);
    q.options.filter(pos=>pos.standFirm||!game.inside(pos.x,pos.y)).forEach(pos=>{const label=pos.standFirm?"Use Stand Firm":"Push into the Crowd — "+(pos.y<0?"top":pos.y>14?"bottom":pos.x<0?"left":"right")+" edge";choices.append(button(label,()=>resolvePushChoice(q,pos)));});
   }else if(q.type==="custom"){
-   const targets=pendingPitchChoices(q),p=document.createElement("p");p.textContent=deskDecisionTitle(q);if(!onTheBallMove())choices.append(p);
+   const targets=pendingPitchChoices(q),p=document.createElement("p");p.textContent=q.kind==="Stand Firm"&&q.target?"Stand Firm · "+teams[q.target.team].name+" #"+q.target.number+" "+playerLabel(q.target):deskDecisionTitle(q);if(!onTheBallMove())choices.append(p);
    q.options.filter(option=>!targets.some(pos=>pos.option===option)).forEach(option=>choices.append(button(option.replace(/ \(\d+-\d+\)/g,""),()=>{if(game.pending!==q)return;game.decide(option);destination=null;render();})));
   }else{
    const p=document.createElement("p");p.textContent=q.kind+" · roll "+q.roll+" / "+Math.min(6,Math.max(2,q.target))+"+ · "+(q.lookAhead?"Diving Tackle pending":"failed");choices.append(p);

@@ -435,7 +435,12 @@ class MovementGame {
  finishBlock(){
   const b=this.blockAction;if(this.finished)return;
   if(b?.turnover){this.blockAction=null;this.action=null;this.endTurn(true);return;}
-  this.note("Block action resolved.");this.blockAction=null;if(b?.blitz){this.action="blitz";this.checkScore();}else this.action=null;
+  this.note("Block action resolved.");this.blockAction=null;
+  if(!b?.blitz){this.action=null;return;}
+  if(b.attacker.status!=="standing"||!this.onPitch(b.attacker)){
+   this.mover=null;this.action=null;this.blitzTarget=null;return;
+  }
+  this.action="blitz";this.checkScore();
  }
  pushSquares(attacker,target,grab=false){
   const dx=Math.sign(target.x-attacker.x),dy=Math.sign(target.y-attacker.y);
@@ -454,8 +459,8 @@ class MovementGame {
     this.pending=null;const origin={x:d.x,y:d.y};this.pushPlayer(d,pos,ok=>this.afterPush(origin,knockTarget,ok));
    }};
   };
-  if(d.status==="standing"&&this.has(d,"Stand Firm")&&!d.distracted)this.pending={type:"custom",kind:"Stand Firm",options:["Stand Firm","Be pushed"],resolve:choice=>{
-   this.pending=null;if(choice==="Stand Firm"){this.note("#"+d.number+" uses Stand Firm.");if(knockTarget)this.fall(d,{turnover:false,mightyBlowBy:a,after:()=>this.finishBlock()});else this.finishBlock();}else proceed();
+  if(d.status==="standing"&&this.has(d,"Stand Firm")&&!d.distracted)this.pending={type:"custom",kind:"Stand Firm",team:d.team,target:d,options:["Stand Firm","Be pushed"],resolve:choice=>{
+   this.pending=null;if(choice==="Stand Firm"){this.note(this.teams[d.team].name+" #"+d.number+" uses Stand Firm.");if(knockTarget)this.fall(d,{turnover:false,mightyBlowBy:a,after:()=>this.finishBlock()});else this.finishBlock();}else proceed();
   }};else proceed();
  }
  pushPlayer(victim,destination,done,depth=0){
