@@ -10,5 +10,281 @@
     "goblin": { "file": "goblin.jpg", "width": 279, "left": -75, "top": -35 },
     "black-orc": { "file": "black-orc.jpg", "width": 229, "left": -77, "top": -36 },
     "troll": { "file": "troll.jpg", "width": 311, "left": -119, "top": -65 }
+  },
+  "skaven": {
+    "clanrat": { "file": "clanrat.jpg", "width": 258.8, "left": -92.4, "top": -67.6 },
+    "thrower": { "file": "thrower.jpg", "width": 271.6, "left": -89.5, "top": -79.6 },
+    "gutter-runner": { "file": "gutter-runner.jpg", "width": 271.6, "left": -130.2, "top": -79.6 },
+    "blitzer": { "file": "blitzer.jpg", "width": 250, "left": -54.5, "top": -53.4 },
+    "rat-ogre": { "file": "rat-ogre.jpg", "width": 255.8, "left": -64, "top": -80.9 }
+  },
+  "dwarf": {
+    "lineman": { "file": "lineman.jpg", "width": 285.36, "left": -90.29, "top": -57.85 },
+    "runner": { "file": "runner.jpg", "width": 240.17, "left": -66.89, "top": -42.07 },
+    "blitzer": { "file": "blitzer.jpg", "width": 260.29, "left": -69.96, "top": -48.25 },
+    "slayer": { "file": "slayer.jpg", "width": 203.68, "left": -56.2, "top": -23.4 },
+    "deathroller": { "file": "deathroller.jpg", "width": 144.74, "left": -18.42, "top": 0 }
+  },
+  "lizardmen": {
+    "skink": { "file": "skink.jpg", "width": 190.17, "left": -65.61, "top": -28.18 },
+    "chameleon": { "file": "chameleon.jpg", "width": 243.85, "left": -71.21, "top": -44.97 },
+    "saurus": { "file": "saurus.jpg", "width": 209.69, "left": -30.72, "top": -36.8 },
+    "kroxigor": { "file": "kroxigor.jpg", "width": 169.23, "left": -48.46, "top": -9.94 }
+  },
+  "elven-union": {
+    "lineman": { "file": "lineman.jpg", "width": 186.59, "left": -22.37, "top": -13.31 },
+    "thrower": { "file": "thrower.jpg", "width": 159.42, "left": -42.75, "top": 0 },
+    "catcher": { "file": "catcher.jpg", "width": 215.96, "left": -25.1, "top": -30.81 },
+    "blitzer": { "file": "blitzer.jpg", "width": 174.82, "left": -46.88, "top": -14.88 }
+  },
+  "nurgle": {
+    "rotter": { "file": "rotter.jpg", "width": 169.23, "left": -30, "top": -2.31 },
+    "pestigor": { "file": "pestigor.jpg", "width": 164.18, "left": -44.57, "top": -30.6 },
+    "bloater": { "file": "bloater.jpg", "width": 164.18, "left": -39.55, "top": -5.22 },
+    "rotspawn": { "file": "rotspawn.jpg", "width": 157.14, "left": -10, "top": -45.33 }
+  },
+  "dark-elf": {
+    "lineman": { "file": "lineman.jpg", "width": 183.33, "left": -43.33, "top": -10 },
+    "runner": { "file": "runner.jpg", "width": 171.08, "left": -29.57, "top": -10.64 },
+    "assassin": { "file": "assassin.jpg", "width": 180.33, "left": -27.25, "top": -0.82 },
+    "blitzer": { "file": "blitzer.jpg", "width": 204.87, "left": -42.65, "top": -14.45 },
+    "witch": { "file": "witch.jpg", "width": 178.48, "left": -34.38, "top": -8.13 }
+  },
+  "amazon": {
+    "eagle-warrior": { "file": "eagle-warrior.jpg", "width": 398.86, "left": -154.55, "top": -126.22 },
+    "python-warrior": { "file": "python-warrior.jpg", "width": 386.76, "left": -138.29, "top": -119.02 },
+    "piranha-warrior": { "file": "piranha-warrior.jpg", "width": 430.35, "left": -153.51, "top": -158.55 },
+    "jaguar-warrior": { "file": "jaguar-warrior.jpg", "width": 457.44, "left": -206.77, "top": -177.69 }
+  },
+  "bretonnian": {
+    "bretonnian-squire": { "file": "bretonnian-squire.jpg", "width": 287.75, "left": -87.51, "top": -52.35 },
+    "bretonnian-knight-catcher": { "file": "bretonnian-knight-catcher.jpg", "width": 212.91, "left": -53.84, "top": -30.77 },
+    "bretonnian-knight-thrower": { "file": "bretonnian-knight-thrower.jpg", "width": 257.38, "left": -58.38, "top": -59.46 },
+    "grail-knight": { "file": "grail-knight.jpg", "width": 247.61, "left": -88.91, "top": -42.4 }
+  },
+  "chaos-chosen": {
+    "beastman-lineman": { "file": "beastman-lineman.jpg", "width": 175.73, "left": -53.15, "top": -19.54 },
+    "chaos-chosen": { "file": "chaos-chosen.jpg", "width": 159.03, "left": -28, "top": -7.78 },
+    "troll": { "file": "troll.jpg", "width": 311, "left": -119, "top": -65 },
+    "ogre": { "file": "ogre.jpg", "width": 294, "left": -113, "top": -24 },
+    "minotaur": { "file": "minotaur.jpg", "width": 228.81, "left": -66.45, "top": -43.38 }
+  },
+  "chaos-dwarf": {
+    "hobgoblin-lineman": { "file": "hobgoblin-lineman.jpg", "width": 264.42, "left": -63.92, "top": -75.34 },
+    "sneaky-stabba": { "file": "sneaky-stabba.jpg", "width": 229.17, "left": -46.69, "top": -44.61 },
+    "chaos-dwarf-blocker": { "file": "chaos-dwarf-blocker.jpg", "width": 219.09, "left": -50.08, "top": -30.08 },
+    "flamesmith": { "file": "flamesmith.jpg", "width": 229.73, "left": -65.37, "top": -47.92 },
+    "bull-centaur": { "file": "bull-centaur.jpg", "width": 198.17, "left": -54.53, "top": -24.11 },
+    "minotaur": { "file": "minotaur.jpg", "width": 228.81, "left": -66.45, "top": -43.38 }
+  },
+  "chaos-renegades": {
+    "renegade-human": { "file": "renegade-human.jpg", "width": 225.64, "left": -56.92, "top": -21.81 },
+    "renegade-goblin": { "file": "renegade-goblin.jpg", "width": 261.9, "left": -76, "top": -60.7 },
+    "renegade-orc": { "file": "renegade-orc.jpg", "width": 234, "left": -66, "top": -40.4 },
+    "renegade-skaven": { "file": "renegade-skaven.jpg", "width": 258.8, "left": -92.4, "top": -67.6 },
+    "renegade-dark-elf": { "file": "renegade-dark-elf.jpg", "width": 183.33, "left": -43.33, "top": -10 },
+    "renegade-human-thrower": { "file": "renegade-human-thrower.jpg", "width": 216.66, "left": -69.35, "top": -22.31 },
+    "troll": { "file": "troll.jpg", "width": 311, "left": -119, "top": -65 },
+    "ogre": { "file": "ogre.jpg", "width": 294, "left": -113, "top": -24 },
+    "minotaur": { "file": "minotaur.jpg", "width": 228.81, "left": -66.45, "top": -43.38 },
+    "rat-ogre": { "file": "rat-ogre.jpg", "width": 255.8, "left": -64, "top": -80.9 }
+  },
+  "gnome": {
+    "gnome-lineman": { "file": "gnome-lineman.jpg", "width": 258.8, "left": -79.4, "top": -25.3 },
+    "woodland-fox": { "file": "woodland-fox.jpg", "width": 265.1, "left": -48.8, "top": -70.5 },
+    "gnome-illusionist": { "file": "gnome-illusionist.jpg", "width": 268.3, "left": -86.6, "top": -53.7 },
+    "gnome-beastmaster": { "file": "gnome-beastmaster.jpg", "width": 258.8, "left": -115.9, "top": -54.7 },
+    "altern-forest-treeman": { "file": "altern-forest-treeman.jpg", "width": 194.7, "left": -42, "top": -42.3 }
+  },
+  "goblin": {
+    "goblin-lineman": { "file": "goblin-lineman.jpg", "width": 261.9, "left": -76, "top": -60.7 },
+    "looney": { "file": "looney.jpg", "width": 165.71, "left": -32.57, "top": -25.9 },
+    "bomma": { "file": "bomma.jpg", "width": 233.22, "left": -58.5, "top": -75.89 },
+    "-ooligan": { "file": "-ooligan.jpg", "width": 296.54, "left": -105.9, "top": -82.86 },
+    "doom-diver": { "file": "doom-diver.jpg", "width": 166.05, "left": -33.82, "top": -26.34 },
+    "fanatic": { "file": "fanatic.jpg", "width": 311.89, "left": -106.91, "top": -89.51 },
+    "pogoer": { "file": "pogoer.jpg", "width": 195.87, "left": -63.27, "top": -13.44 },
+    "trained-troll": { "file": "trained-troll.jpg", "width": 311, "left": -119, "top": -65 }
+  },
+  "halfling": {
+    "halfling-hopeful": { "file": "halfling-hopeful.jpg", "width": 182.73, "left": -36.58, "top": -20.69 },
+    "halfling-hefty": { "file": "halfling-hefty.jpg", "width": 186.59, "left": -44.24, "top": -18.92 },
+    "halfling-catcher": { "file": "halfling-catcher.jpg", "width": 173.71, "left": -34.65, "top": -14.48 },
+    "athel-forest-treeman": { "file": "athel-forest-treeman.jpg", "width": 148.65, "left": -25.68, "top": -28.01 }
+  },
+  "high-elf": {
+    "high-elf-lineman": { "file": "high-elf-lineman.jpg", "width": 222.32, "left": -61.03, "top": -34.75 },
+    "phoenix-warrior": { "file": "phoenix-warrior.jpg", "width": 225.65, "left": -48.89, "top": -53.49 },
+    "dragon-prince": { "file": "dragon-prince.jpg", "width": 203.93, "left": -59.06, "top": -29.3 },
+    "white-lion": { "file": "white-lion.jpg", "width": 290.3, "left": -71.12, "top": -94.97 }
+  },
+  "human": {
+    "human-lineman": { "file": "human-lineman.jpg", "width": 225.64, "left": -56.92, "top": -21.81 },
+    "halfling-hopeful": { "file": "halfling-hopeful.jpg", "width": 182.73, "left": -36.58, "top": -20.69 },
+    "human-catcher": { "file": "human-catcher.jpg", "width": 200.53, "left": -38.66, "top": -22.05 },
+    "human-thrower": { "file": "human-thrower.jpg", "width": 216.66, "left": -69.35, "top": -22.31 },
+    "human-blitzer": { "file": "human-blitzer.jpg", "width": 209.52, "left": -61.48, "top": -37.88 },
+    "ogre": { "file": "ogre.jpg", "width": 294, "left": -113, "top": -24 }
+  },
+  "khorne": {
+    "bloodborn-marauder": { "file": "bloodborn-marauder.jpg", "width": 198.17, "left": -43.68, "top": -17.82 },
+    "khorngor": { "file": "khorngor.jpg", "width": 225.65, "left": -61.54, "top": -63.41 },
+    "bloodseeker": { "file": "bloodseeker.jpg", "width": 183.29, "left": -30.34, "top": -9.69 },
+    "bloodspawn": { "file": "bloodspawn.jpg", "width": 166.67, "left": -28.79, "top": -20.58 }
+  },
+  "necromantic-horror": {
+    "zombie-lineman": { "file": "zombie-lineman.jpg", "width": 265.1, "left": -104.2, "top": -21.1 },
+    "ghoul-runner": { "file": "ghoul-runner.jpg", "width": 239.1, "left": -71.7, "top": -22.8 },
+    "wraith": { "file": "wraith.jpg", "width": 215.7, "left": -52.9, "top": -30.4 },
+    "flesh-golem": { "file": "flesh-golem.jpg", "width": 220, "left": -48, "top": -6 },
+    "werewolf": { "file": "werewolf.jpg", "width": 282.1, "left": -143.6, "top": -55.1 }
+  },
+  "norse": {
+    "norse-raider": { "file": "norse-raider.jpg", "width": 366.7, "left": -88.3, "top": -86.7 },
+    "beer-boar": { "file": "beer-boar.jpg", "width": 338.5, "left": -123.8, "top": -113.1 },
+    "norse-berserker": { "file": "norse-berserker.jpg", "width": 372.9, "left": -139.8, "top": -94.1 },
+    "valkyrie": { "file": "valkyrie.jpg", "width": 354.8, "left": -127.4, "top": -85.5 },
+    "ulfwerener": { "file": "ulfwerener.jpg", "width": 372.9, "left": -138.1, "top": -97.5 },
+    "yhetee": { "file": "yhetee.jpg", "width": 209.5, "left": -42.4, "top": -28.7 }
+  },
+  "ogre": {
+    "gnoblar-lineman": { "file": "gnoblar-lineman.jpg", "width": 196.43, "left": -42.86, "top": -37.57 },
+    "ogre-blocker": { "file": "ogre-blocker.jpg", "width": 172.03, "left": -46.13, "top": -20.18 },
+    "ogre-runt-punter": { "file": "ogre-runt-punter.jpg", "width": 142.86, "left": -20.13, "top": -8.13 }
+  },
+  "old-world-alliance": {
+    "human-lineman": { "file": "human-lineman.jpg", "width": 330.37, "left": -122.49, "top": -84.92 },
+    "halfling-hopeful": { "file": "halfling-hopeful.jpg", "width": 182.73, "left": -36.58, "top": -20.69 },
+    "human-catcher": { "file": "human-catcher.jpg", "width": 273.33, "left": -87.19, "top": -56.43 },
+    "dwarf-lineman": { "file": "dwarf-lineman.jpg", "width": 181.04, "left": -32.48, "top": -21.42 },
+    "human-thrower": { "file": "human-thrower.jpg", "width": 341.88, "left": -114.63, "top": -90.84 },
+    "dwarf-runner": { "file": "dwarf-runner.jpg", "width": 431.3, "left": -160.9, "top": -148.2 },
+    "human-blitzer": { "file": "human-blitzer.jpg", "width": 327.94, "left": -115.44, "top": -84.56 },
+    "dwarf-blitzer": { "file": "dwarf-blitzer.jpg", "width": 431.3, "left": -170.26, "top": -149.87 },
+    "troll-slayer": { "file": "troll-slayer.jpg", "width": 359.68, "left": -130.24, "top": -104.03 },
+    "ogre": { "file": "ogre.jpg", "width": 294, "left": -113, "top": -24 },
+    "altern-forest-treeman": { "file": "altern-forest-treeman.jpg", "width": 194.7, "left": -42, "top": -42.3 }
+  },
+  "orc": {
+    "orc-lineman": { "file": "orc-lineman.jpg", "width": 234, "left": -66, "top": -40.4 },
+    "goblin-lineman": { "file": "goblin-lineman.jpg", "width": 261.9, "left": -76, "top": -60.7 },
+    "orc-thrower": { "file": "orc-thrower.jpg", "width": 207.5, "left": -41.5, "top": -17.9 },
+    "orc-blitzer": { "file": "orc-blitzer.jpg", "width": 203.7, "left": -64.8, "top": -25.9 },
+    "big-un-blocker": { "file": "big-un-blocker.jpg", "width": 244.4, "left": -40, "top": -47.8 },
+    "troll": { "file": "troll.jpg", "width": 311, "left": -119, "top": -65 }
+  },
+  "shambling-undead": {
+    "skeleton-lineman": { "file": "skeleton-lineman.jpg", "width": 154.93, "left": -28.87, "top": -7 },
+    "zombie-lineman": { "file": "zombie-lineman.jpg", "width": 169.8, "left": -38.07, "top": 0 },
+    "ghoul-runner": { "file": "ghoul-runner.jpg", "width": 186.59, "left": -21.16, "top": -23.04 },
+    "wight-blitzer": { "file": "wight-blitzer.jpg", "width": 169.13, "left": -44.89, "top": -8.71 },
+    "mummy": { "file": "mummy.jpg", "width": 159.03, "left": -32.97, "top": -3.4 }
+  },
+  "snotling": {
+    "snotling-lineman": { "file": "snotling-lineman.jpg", "width": 193.78, "left": -48.85, "top": -46.2 },
+    "fun-hoppa": { "file": "fun-hoppa.jpg", "width": 209.95, "left": -43.73, "top": -31.78 },
+    "stilty-runna": { "file": "stilty-runna.jpg", "width": 176.18, "left": -32.42, "top": -8.58 },
+    "fungus-flinga": { "file": "fungus-flinga.jpg", "width": 260.29, "left": -97.72, "top": -71.59 },
+    "pump-wagon": { "file": "pump-wagon.jpg", "width": 230.96, "left": -79.76, "top": -44.3 },
+    "trained-troll": { "file": "trained-troll.jpg", "width": 311, "left": -119, "top": -65 }
+  },
+  "tomb-kings": {
+    "skeleton-lineman": { "file": "skeleton-lineman.jpg", "width": 264.79, "left": -80.68, "top": -64.35 },
+    "tomb-kings-thrower": { "file": "tomb-kings-thrower.jpg", "width": 242.09, "left": -59.64, "top": -49.67 },
+    "tomb-kings-blitzer": { "file": "tomb-kings-blitzer.jpg", "width": 251.74, "left": -64.1, "top": -56.05 },
+    "tomb-guardian": { "file": "tomb-guardian.jpg", "width": 222.98, "left": -59.43, "top": -43.67 }
+  },
+  "underworld-denizens": {
+    "goblin-lineman": { "file": "goblin-lineman.jpg", "width": 261.9, "left": -94, "top": -60.7 },
+    "snotling-lineman": { "file": "snotling-lineman.jpg", "width": 193.78, "left": -56.85, "top": -46.2 },
+    "skaven-clanrat": { "file": "skaven-clanrat.jpg", "width": 366.12, "left": -139.81, "top": -112.95 },
+    "skaven-thrower": { "file": "skaven-thrower.jpg", "width": 307.01, "left": -112.55, "top": -77.82 },
+    "gutter-runner": { "file": "gutter-runner.jpg", "width": 381.2, "left": -140.99, "top": -128.48 },
+    "skaven-blitzer": { "file": "skaven-blitzer.jpg", "width": 378.84, "left": -122.93, "top": -120.85 },
+    "troll": { "file": "troll.jpg", "width": 311, "left": -119, "top": -65 },
+    "rat-ogre": { "file": "rat-ogre.jpg", "width": 255.8, "left": -64, "top": -80.9 }
+  },
+  "vampire": {
+    "thrall-lineman": { "file": "thrall-lineman.jpg", "width": 338.5, "left": -117.7, "top": -77.7 },
+    "vampire-runner": { "file": "vampire-runner.jpg", "width": 265.1, "left": -98.2, "top": -48.3 },
+    "vampire-thrower": { "file": "vampire-thrower.jpg", "width": 309.9, "left": -100.7, "top": -68.3 },
+    "vampire-blitzer": { "file": "vampire-blitzer.jpg", "width": 176, "left": -38.8, "top": -14.4 },
+    "vargheist": { "file": "vargheist.jpeg", "width": 241.8, "left": -41.2, "top": -39 }
+  },
+  "wood-elf": {
+    "wood-elf-lineman": { "file": "wood-elf-lineman.jpg", "width": 171.88, "left": -23.44, "top": -4.69 },
+    "wood-elf-thrower": { "file": "wood-elf-thrower.jpg", "width": 157.67, "left": -15.71, "top": 0 },
+    "wood-elf-catcher": { "file": "wood-elf-catcher.jpg", "width": 188.93, "left": -17.68, "top": -13.96 },
+    "wardancer": { "file": "wardancer.jpg", "width": 167.23, "left": -23.1, "top": -5.11 },
+    "loren-forest-treeman": { "file": "loren-forest-treeman.jpg", "width": 144.74, "left": -28.95, "top": -29.91 }
+  },
+  "star-players": {
+    "akhorne": { "file": "akhorne.jpg", "width": 183.33, "left": -35, "top": -14.35 },
+    "anqi-panqi": { "file": "anqi-panqi.jpg", "width": 167.23, "left": -40.28, "top": -19.89 },
+    "barik-farblast": { "file": "barik-farblast.jpg", "width": 162.71, "left": -33.27, "top": -34.22 },
+    "bilerot-vomitflesh": { "file": "bilerot-vomitflesh.jpg", "width": 164.18, "left": -39.55, "top": -10.57 },
+    "boa-konssstriktr": { "file": "boa-konssstriktr.jpg", "width": 161.45, "left": -37.32, "top": -23.75 },
+    "bomber-dribblesnot": { "file": "bomber-dribblesnot.jpg", "width": 206.42, "left": -55.27, "top": -50.54 },
+    "captain-karina": { "file": "captain-karina.jpg", "width": 173.68, "left": -45.88, "top": -17.22 },
+    "cindy-piewhistle": { "file": "cindy-piewhistle.jpg", "width": 379.72, "left": -131.04, "top": -119.23 },
+    "count-luthor": { "file": "count-luthor.jpg", "width": 160.32, "left": -31.91, "top": -6.84 },
+    "crumbleberry": { "file": "crumbleberry.jpg", "width": 160.53, "left": -30.27, "top": 0 },
+    "red-gobbo-squigmobile": { "file": "red-gobbo-squigmobile.jpg", "width": 193.15, "left": -44.62, "top": -40.07 },
+    "deeproot-strongbranch": { "file": "deeproot-strongbranch.jpg", "width": 144.74, "left": -26.32, "top": -8.85 },
+    "dribl": { "file": "dribl.jpg", "width": 295.99, "left": -84.15, "top": -73.59 },
+    "drull": { "file": "drull.jpg", "width": 293.42, "left": -87.17, "top": -98.68 },
+    "eldril-sidewinder": { "file": "eldril-sidewinder.jpg", "width": 171.88, "left": -36.13, "top": -13.41 },
+    "estelle-la-veneaux": { "file": "estelle-la-veneaux.jpg", "width": 186.04, "left": -51.49, "top": -19.6 },
+    "fungus-the-loon": { "file": "fungus-the-loon.jpg", "width": 175.83, "left": -10.64, "top": -16.52 },
+    "glart-smashrip": { "file": "glart-smashrip.jpg", "width": 176.56, "left": -19.36, "top": -35.17 },
+    "gloriel-summerbloom": { "file": "gloriel-summerbloom.jpg", "width": 157.14, "left": -28.57, "top": -16.37 },
+    "glotl-stop": { "file": "glotl-stop.jpg", "width": 155.39, "left": -34.72, "top": -29.9 },
+    "grak": { "file": "grak.jpg", "width": 178.73, "left": -12.8, "top": -14.42 },
+    "grashnak-blackhoof": { "file": "grashnak-blackhoof.jpg", "width": 148.65, "left": -24.32, "top": -7.74 },
+    "gretchen-wachter": { "file": "gretchen-wachter.jpg", "width": 159.42, "left": -19.57, "top": -5.91 },
+    "griff-oberwald": { "file": "griff-oberwald.jpg", "width": 169.23, "left": -28.46, "top": -24.97 },
+    "grim-ironjaw": { "file": "grim-ironjaw.jpg", "width": 164.18, "left": -23.13, "top": -26.99 },
+    "grombrindal": { "file": "grombrindal.jpg", "width": 212.55, "left": -50.42, "top": -43.45 },
+    "guffle-pusmaw": { "file": "guffle-pusmaw.jpg", "width": 163.02, "left": -30.67, "top": -23.89 },
+    "hthark": { "file": "hthark.jpg", "width": 163.36, "left": -21.83, "top": -13.05 },
+    "hakflem-skuttlespike": { "file": "hakflem-skuttlespike.jpg", "width": 137.5, "left": -18.75, "top": -3.7 },
+    "helmut-wulf": { "file": "helmut-wulf.jpg", "width": 166.67, "left": -39.39, "top": -9.97 },
+    "ivan-deathshroud": { "file": "ivan-deathshroud.jpg", "width": 164.18, "left": -30.6, "top": -10.79 },
+    "ivar-eriksson": { "file": "ivar-eriksson.jpg", "width": 172.61, "left": -36.76, "top": -9.11 },
+    "jeremiah-kool": { "file": "jeremiah-kool.jpg", "width": 175.74, "left": -38.24, "top": -17.82 },
+    "jordell-freshbreeze": { "file": "jordell-freshbreeze.jpg", "width": 188.7, "left": -43.87, "top": -29.55 },
+    "josef-bugman": { "file": "josef-bugman.jpg", "width": 179.92, "left": -38.6, "top": -29.09 },
+    "karla-von-kill": { "file": "karla-von-kill.jpg", "width": 164.18, "left": -33.58, "top": 0 },
+    "kiroth-krakeneye": { "file": "kiroth-krakeneye.jpg", "width": 164.18, "left": -36.57, "top": -7.58 },
+    "kreek-rustgouger": { "file": "kreek-rustgouger.jpg", "width": 141.62, "left": -22.15, "top": -0.03 },
+    "lord-borak": { "file": "lord-borak.jpg", "width": 157.14, "left": -27.14, "top": -3.9 },
+    "lucien-swift": { "file": "lucien-swift.jpg", "width": 172.49, "left": -26.67, "top": -6.02 },
+    "maple-highgrove": { "file": "maple-highgrove.jpg", "width": 177.4, "left": -38.57, "top": -20.29 },
+    "max-spleenripper": { "file": "max-spleenripper.jpg", "width": 150.68, "left": -23.97, "top": -13.81 },
+    "morg-n-thorg": { "file": "morg-n-thorg.jpg", "width": 159.4, "left": -28.18, "top": -21.03 },
+    "nobbla-blackwart": { "file": "nobbla-blackwart.jpg", "width": 166.67, "left": -31.82, "top": -69.53 },
+    "puggy-baconbreath": { "file": "puggy-baconbreath.jpg", "width": 294.48, "left": -104.62, "top": -75.3 },
+    "rashnak-backstabber": { "file": "rashnak-backstabber.jpg", "width": 171.09, "left": -30.6, "top": -31.14 },
+    "ripper-bolgrot": { "file": "ripper-bolgrot.jpg", "width": 156.03, "left": -18.68, "top": -15.39 },
+    "rodney-roachbait": { "file": "rodney-roachbait.jpg", "width": 169.23, "left": -28.46, "top": -29.94 },
+    "rowana-forestfoot": { "file": "rowana-forestfoot.jpg", "width": 169.23, "left": -34.62, "top": -14.2 },
+    "roxanna-darknail": { "file": "roxanna-darknail.jpg", "width": 161.76, "left": -30.18, "top": -19.06 },
+    "rumbelow-sheepskin": { "file": "rumbelow-sheepskin.jpg", "width": 162.94, "left": -33.56, "top": -31.94 },
+    "scrappa-sorehead": { "file": "scrappa-sorehead.jpg", "width": 157.14, "left": -33.57, "top": -61.81 },
+    "scyla-anfingrimm": { "file": "scyla-anfingrimm.jpg", "width": 146.67, "left": -22, "top": -16.3 },
+    "skitter-stab-stab": { "file": "skitter-stab-stab.jpg", "width": 163.76, "left": -14.29, "top": -23.38 },
+    "skrorg-snowpelt": { "file": "skrorg-snowpelt.jpg", "width": 143.66, "left": -16.56, "top": -6.13 },
+    "skrull-halfheight": { "file": "skrull-halfheight.jpg", "width": 165.2, "left": -34.72, "top": -27.52 },
+    "swiftvine-glimmershard": { "file": "swiftvine-glimmershard.jpg", "width": 277.02, "left": -84.27, "top": -82.81 },
+    "black-gobbo": { "file": "black-gobbo.jpg", "width": 224.39, "left": -56.12, "top": -51.62 },
+    "mighty-zug": { "file": "mighty-zug.jpg", "width": 157.14, "left": -27.14, "top": 0 },
+    "thorsson-stoutmead": { "file": "thorsson-stoutmead.jpg", "width": 153.64, "left": -23.94, "top": -10.03 },
+    "valen-swift": { "file": "valen-swift.jpg", "width": 174.55, "left": -28.25, "top": -12.07 },
+    "varag-ghoul-chewer": { "file": "varag-ghoul-chewer.jpg", "width": 150.68, "left": -23.97, "top": -21.31 },
+    "wilhelm-chaney": { "file": "wilhelm-chaney.jpg", "width": 158.03, "left": -26.57, "top": -4.6 },
+    "willow-rosebark": { "file": "willow-rosebark.jpg", "width": 161.76, "left": -19.12, "top": -12.27 },
+    "withergrasp-doubledrool": { "file": "withergrasp-doubledrool.jpg", "width": 144.74, "left": -15.21, "top": -12.61 },
+    "zolcath": { "file": "zolcath.jpg", "width": 148.65, "left": -13.51, "top": -12.63 },
+    "zzharg-madeye": { "file": "zzharg-madeye.jpg", "width": 163.66, "left": -22.43, "top": -32.25 }
   }
 }

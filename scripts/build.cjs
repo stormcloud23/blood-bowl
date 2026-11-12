@@ -11,8 +11,9 @@ for(const [team,positions] of Object.entries(portraits)){
  for(const portrait of Object.values(positions)){
   const mime=portraitMime[path.extname(portrait.file).toLowerCase()];
   if(!mime)throw new Error('Unsupported portrait file: '+portrait.file);
-  const photo=fs.readFileSync(path.join(root,'portrait-intake',team,portrait.file));
-  portrait.url='data:'+mime+';base64,'+photo.toString('base64');
+  const photo=path.join(root,'portrait-intake',team,portrait.file);
+  if(!fs.statSync(photo).isFile())throw new Error('Invalid portrait file: '+photo);
+  portrait.url=['portrait-intake',team,portrait.file].map(encodeURIComponent).join('/');
  }
 }
 function embed(pattern,content,label){

@@ -491,7 +491,7 @@ test('positional markers use roster keywords consistently, including hybrid role
 test('Nobility and Black Orc portraits reach the pitch, dugout and inspector',()=>{
  const f=workspaceFixture();
  assert.equal(f.run(`rosterCatalog.filter(t=>["imperial-nobility","black-orc"].includes(t.id))
-  .flatMap(t=>t.positions.map(p=>playerPortrait(t,p)?.url.startsWith("data:image/jpeg;base64,")))
+  .flatMap(t=>t.positions.map(p=>playerPortrait(t,p)?.url.startsWith("portrait-intake/")))
   .filter(Boolean).length`),8);
  f.run(`
   globalThis.homeOgre=game.players.find(p=>p.team===0);
@@ -510,6 +510,34 @@ test('Nobility and Black Orc portraits reach the pitch, dugout and inspector',()
  assert.equal(String(away.children.find(e=>e.className==='token-number').textContent),String(f.run('awayTroll.number')));
  assert.ok(f.get('dugout').querySelectorAll('button').some(card=>card.children.some(e=>e.className.includes('dugout-icon')&&e.className.includes('portrait-token'))));
  assert.ok(f.get('profile').children.some(e=>e.className.includes('profile-portrait')));
+});
+
+test('every roster position and Star Player points to an available portrait',()=>{
+ const f=workspaceFixture();
+ const urls=JSON.parse(f.run(`JSON.stringify([
+  ...rosterCatalog.flatMap(roster=>roster.positions.map(profile=>playerPortrait(roster,profile)?.url)),
+  ...MATCH_STARS.flatMap(star=>(star.players??[star]).map(profile=>playerPortrait(null,profile,true)?.url))
+ ])`));
+ assert.equal(urls.length,226);
+ for(const url of urls){
+  assert.match(url,/^portrait-intake\//);
+  assert.ok(fs.existsSync(projectPath(decodeURIComponent(url))),url);
+ }
+});
+
+test('the Portraits tab opens both galleries without resetting the match',()=>{
+ const f=workspaceFixture();
+ const frame=f.get('portrait-gallery-frame');
+ assert.equal(frame.getAttribute('src'),null);
+ f.run('globalThis.previousGame=game');
+ f.get('tab-portraits').click();
+ assert.equal(f.get('portraits-view').hidden,false);
+ assert.equal(frame.getAttribute('src'),'portrait-crop-gallery.html');
+ const select=f.get('portrait-gallery-select');
+ select.value='review';
+ select.emit('change');
+ assert.equal(frame.getAttribute('src'),'portrait-review-gallery.html');
+ assert.equal(f.run('game===previousGame'),true);
 });
 
 test('positions without portraits keep role shapes, shirt numbers, status classes, ball and selection',()=>{
