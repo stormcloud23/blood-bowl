@@ -50,20 +50,19 @@ for(const profile of weaponProfiles)for(const team of [0,1])test(profile.name+' 
  const bomb=profile.skills.includes('Bombardier'),label=bomb?'Throw Bomb':'Move Ball & Chain',old=f.action(label);
  assert.equal(f.run('weapon.used'),false);
  old.click();old.click();
- assert.equal(f.run('game.mover===weapon.id'),true);
+ assert.equal(f.run('game.mover===weapon.id'),!bomb);
  if(bomb){
-  assert.equal(f.run('game.action'),'bomb');
-  assert.equal(f.run('weapon.spent'),0);
-  // Decline Cindy's optional commitment, then throw accurately at empty turf.
-  f.run('if(game.pending)game.decide("Keep All You Can Eat");game.dice=()=>6;render();');
-  assert.equal(f.run('!!game.bombActor()'),true);
+  assert.equal(f.run('!!bombForecastBoard()'),true);assert.equal(f.run('weapon.used'),false);
+  f.run('game.dice=()=>6;render();');
   f.cell(13,7).click();f.cell(13,7).click();
+  // Cindy's commitment prompt happens only after confirming the throw.
+  f.run('if(game.pending?.kind==="All You Can Eat")game.decide("Keep All You Can Eat");render();');
   assert.equal(f.run('game.bombContext'),null);
   assert.equal(f.run('game.bombUsed['+team+']'),true);
   assert.equal(f.run('game.passUsed['+team+']'),false);
  }else{
   assert.match(f.run('game.pending.kind'),/Ball & Chain/);
-  const east=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Aim East');assert.ok(east);east.click();east.click();
+  const east=f.cell(11,7);assert.match(east.className,/tile-choice/);east.click();east.click();
   if(f.run('game.pending?.kind.startsWith("Whirling Dervish")'))f.run('game.decide("Keep direction roll 3");render();');
   assert.equal(f.run('weapon.x'),11);assert.equal(f.run('weapon.spent'),1);
   assert.match(f.run('game.pending.kind'),/Ball & Chain/);
@@ -75,6 +74,96 @@ function proneFixture(team=0){
  f.run(`game.phase='play';game.active=${team};game.turns=[1,1];game.players.forEach(p=>Object.assign(p,{x:null,y:null,status:'reserve'}));globalThis.prone=game.players.find(p=>p.team===${team});Object.assign(prone,{x:8,y:7,status:'prone',used:false});prone.profileOverride={...game.profile(prone),ma:6,skills:[],traits:'Lineman, Human'};selected=null;globalThis.rollCount=0;game.dice=()=>{rollCount++;return 6;};render();`);
  return f;
 }
+for(const cancel of ['button','finish','escape','actor'])test('bomb preview cancel via '+cancel+' leaves activation, allowance, dice and blast history untouched',()=>{
+ const f=proneFixture();f.run('prone.status="standing";prone.extraSkills=["Bombardier"];game.bombBlasts=[{x:0,y:0}];selected=null;render();globalThis.before=JSON.stringify([game.players,game.bombUsed,game.passUsed,game.turnActionStarted,game.bombBlasts]);');
+ f.cell(8,7).click();f.action('Throw Bomb').click();f.cell(12,7).click();
+ assert.equal(f.run('game.mover'),null);assert.equal(f.run('game.pending'),null);assert.equal(f.run('rollCount'),0);
+ if(cancel==='button')f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Cancel preview').click();
+ else if(cancel==='finish')f.get('finish').click();else if(cancel==='escape')f.key('Escape');else f.cell(8,7).click();
+ assert.equal(f.run('bombPreviewState'),null);assert.equal(f.run('JSON.stringify([game.players,game.bombUsed,game.passUsed,game.turnActionStarted,game.bombBlasts])===before'),true);
+ assert.equal(f.run('rollCount'),0);assert.equal(f.run('game.canBomb(prone)'),true);
+ assert.ok(f.run('game.start(prone.id)'));assert.equal(f.run('game.start(prone.id,"bomb")'),false);
+});
+test('confirming a bomb preview commits a failed activation trait exactly once',()=>{
+ const f=proneFixture();f.run('prone.status="standing";prone.extraSkills=["Bombardier","Bone Head"];game.rerolls=[0,0];game.dice=()=>{rollCount++;return 1;};selected=null;render();');
+ f.cell(8,7).click();f.action('Throw Bomb').click();f.cell(12,7).click();
+ const confirm=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Confirm Throw Bomb');confirm.click();confirm.click();
+ assert.equal(f.run('rollCount'),1);assert.equal(f.run('prone.used'),true);assert.equal(f.run('bombPreviewState'),null);assert.equal(f.run('!!game.bombContext'),false);
+});
+test('confirmed bomb target resumes once after a successful activation reroll',()=>{
+ const f=proneFixture();f.run('prone.status="standing";prone.extraSkills=["Bombardier","Bone Head"];game.rerolls=[1,0];globalThis.rolls=[1,6,6,2];game.dice=()=>rolls.shift();selected=null;render();');
+ f.cell(8,7).click();f.action('Throw Bomb').click();f.cell(12,7).click();
+ const confirm=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Confirm Throw Bomb');confirm.click();confirm.click();
+ assert.equal(f.run('game.pending.kind'),'Bone Head');assert.equal(f.run('rolls.length'),3);
+ const reroll=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Use team re-roll');reroll.click();reroll.click();
+ assert.equal(f.run('bombPreviewState'),null);assert.equal(f.run('game.bombContext'),null);assert.equal(f.run('rolls.length'),0);assert.equal(f.run('game.bombBlasts.length'),1);
+});
+for(const [direction,dx,dy,fan] of [
+ ['North',0,-1,[[-1,-1],[0,-1],[1,-1]]],['East',1,0,[[1,-1],[1,0],[1,1]]],
+ ['South',0,1,[[1,1],[0,1],[-1,1]]],['West',-1,0,[[-1,1],[-1,0],[-1,-1]]]
+])for(const roll of [1,3,5])test('Ball & Chain pitch aim '+direction+' retains random fan result '+roll,()=>{
+ const f=proneFixture();f.run('prone.status="standing";prone.extraSkills=["Ball & Chain"];game.dice=()=>{rollCount++;return '+roll+';};game.start(prone.id);render();');
+ assert.equal(f.run('rollCount'),0);assert.equal(f.get('pitch').children.filter(c=>c.className.includes('tile-choice')).length,4);
+ const arrow=f.cell(8+dx,7+dy);assert.match(arrow.getAttribute('aria-label'),new RegExp('Aim '+direction));
+ f.cell(10,10).click();assert.equal(f.run('rollCount'),0);assert.equal(f.run('prone.spent'),0);
+ arrow.click();arrow.click();
+ assert.equal(f.run('rollCount'),1);assert.equal(f.run('prone.spent'),1);
+ const [rx,ry]=fan[(roll-1)/2];assert.equal(f.run('prone.x'),8+rx);assert.equal(f.run('prone.y'),7+ry);
+ assert.match(f.run('game.pending.kind'),/Ball & Chain/);
+ f.get('choices').querySelectorAll('button').find(b=>b.textContent==='End activation').click();
+ assert.equal(f.get('pitch').children.some(c=>c.className.includes('tile-choice')),false);
+});
+test('bomb targeting colors all passing bands without dice and respects bomb modifiers and PA dash',()=>{
+ const f=proneFixture();f.run('Object.assign(prone,{status:"standing",x:10,extraSkills:["Bombardier"]});prone.profileOverride.pa="3+";game.start(prone.id,"bomb");render();');
+ for(const [x,band,roll] of [[13,'Q',3],[16,'S',4],[20,'L',5],[23,'B',6]]){
+  const c=f.cell(x,7);assert.equal(c.dataset.throwRange,band);assert.equal(c.dataset.throwDifficulty,String(roll));assert.match(c.className,new RegExp('risk-'+roll));assert.match(c.getAttribute('aria-label'),/Accurate bomb/);
+ }
+ assert.equal(f.run('rollCount'),0);
+ f.run('prone.extraSkills.push("Accurate","Cannoneer");game.weather="Very Sunny";render();');
+ assert.equal(f.cell(13,7).dataset.throwDifficulty,'3');assert.equal(f.cell(20,7).dataset.throwDifficulty,'5');
+ f.run('prone.profileOverride.pa="-";render();');assert.equal(f.cell(13,7).dataset.throwDifficulty,'6');assert.match(f.cell(13,7).getAttribute('aria-label'),/automatic fumble/);assert.equal(f.run('rollCount'),0);
+});
+test('a thrown bomb outlines the actual bounced blast through inspection until the next activation',()=>{
+ const f=proneFixture();f.run('prone.status="standing";prone.extraSkills=["Bombardier"];globalThis.rolls=[6,2];game.dice=()=>rolls.shift();game.start(prone.id,"bomb");render();');
+ f.cell(12,7).click();f.cell(12,7).click();
+ assert.equal(f.run('game.bombContext'),null);assert.equal(f.run('rolls.length'),0);
+ const blast=f.get('pitch').children.filter(c=>c.className.split(' ').includes('bomb-blast'));assert.equal(blast.length,9);
+ assert.match(f.cell(12,6).getAttribute('aria-label'),/last bomb blast area/);
+ assert.equal(f.cell(12,8).className.includes('bomb-blast'),false);
+ f.cell(8,7).click();f.run('render();');assert.equal(f.get('pitch').children.filter(c=>c.className.includes('bomb-blast')).length,9);
+ f.run('game.start(prone.id);render();');assert.equal(f.get('pitch').children.filter(c=>c.className.includes('bomb-blast')).length,9); // Rejected activation preserves history.
+ f.run('globalThis.next=game.players.find(p=>p.team===0&&p!==prone);Object.assign(next,{status:"standing",x:5,y:5});game.start(next.id);render();');
+ assert.equal(f.get('pitch').children.some(c=>c.className.includes('bomb-blast')),false);
+});
+test('bomb blast outlines clip at pitch edges and clear for a direct Block activation',()=>{
+ const f=proneFixture();f.run('prone.status="standing";game.bombBlasts=[{x:0,y:0}];render();');
+ assert.equal(f.get('pitch').children.filter(c=>c.className.includes('bomb-blast')).length,4);
+ f.run('globalThis.victim=game.players.find(p=>p.team===1);Object.assign(victim,{status:"standing",x:9,y:7});game.block(prone.id,victim.id);render();');
+ assert.equal(f.get('pitch').children.some(c=>c.className.includes('bomb-blast')),false);
+});
+test('fumbled bomb marks the thrower blast and keeps its outline across the turnover',()=>{
+ const f=proneFixture();f.run('prone.status="standing";prone.extraSkills=["Bombardier"];globalThis.opponent=game.players.find(p=>p.team===1);Object.assign(opponent,{x:20,y:7,status:"standing"});game.rerolls=[0,0];game.dice=()=>1;game.start(prone.id,"bomb");game.throwBomb(12,7);render();');
+ assert.equal(f.run('game.active'),1);assert.equal(f.run('game.bombContext'),null);
+ assert.equal(f.get('pitch').children.filter(c=>c.className.includes('bomb-blast')).length,9);
+ assert.match(f.cell(8,7).getAttribute('aria-label'),/last bomb blast area/);
+ assert.equal(f.cell(12,7).className.includes('bomb-blast'),false);
+});
+test('caught bomb range colors follow the opposing rethrower profile',()=>{
+ const f=proneFixture();f.run('prone.status="standing";prone.extraSkills=["Bombardier"];globalThis.receiver=game.players.find(p=>p.team===1);Object.assign(receiver,{x:12,y:7,status:"standing",profileOverride:{...game.profile(prone),pa:"4+",skills:[]}});game.dice=()=>6;game.start(prone.id,"bomb");game.throwBomb(12,7);render();');
+ assert.equal(f.run('game.bombActor()===receiver'),true);assert.equal(f.cell(15,7).dataset.throwDifficulty,'4');assert.match(f.cell(15,7).getAttribute('aria-label'),/Accurate bomb 4\+/);
+ assert.equal(f.get('pitch').children.some(c=>c.className.includes('bomb-blast')),false);
+});
+test('Ball & Chain corner aiming retains crowd directions as buttons without off-pitch targets',()=>{
+ const f=proneFixture();f.run('Object.assign(prone,{status:"standing",x:0,y:0,extraSkills:["Ball & Chain"]});game.start(prone.id);render();');
+ assert.equal(f.get('pitch').children.filter(c=>c.className.includes('tile-choice')).length,2);
+ for(const direction of ['North','West'])assert.ok(f.get('choices').querySelectorAll('button').some(b=>b.textContent==='Aim '+direction));
+ assert.match(f.get('pitch-hint').textContent,/three squares/);assert.equal(f.run('rollCount'),0);
+});
+test('Ball & Chain pitch aim can select an occupied square and continues into collision dice',()=>{
+ const f=proneFixture();f.run('prone.status="standing";prone.extraSkills=["Ball & Chain"];globalThis.victim=game.players.find(p=>p.team===1);Object.assign(victim,{x:9,y:7,status:"standing"});game.dice=()=>3;game.start(prone.id);render();');
+ const east=f.cell(9,7);assert.match(east.className,/tile-choice/);east.click();east.click();
+ assert.equal(f.run('game.blockAction.target===victim'),true);assert.equal(f.run('prone.spent'),1);assert.equal(f.run('game.pending.type'),'blockSelect');
+});
 for(const team of [0,1])test('a prone player is selected first and stands in place on the second click: coach '+team,()=>{
  const f=proneFixture(team);f.run('globalThis.limitedBefore=JSON.stringify([game.blitzUsed,game.passUsed,game.handoffUsed,game.foulUsed,game.secureUsed,game.throwUsed]);');
  f.cell(8,7).click();assert.equal(f.run('selected'),f.run('prone.id'));assert.equal(f.run('prone.status'),'prone');assert.equal(f.run('prone.used'),false);assert.equal(f.run('game.mover'),null);assert.equal(f.run('rollCount'),0);assert.ok(f.popup().some(b=>b.textContent==='Stand up in place'));

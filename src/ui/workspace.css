@@ -134,6 +134,7 @@ main>aside #matchflow .control{max-width:100%}
 
 /* Keep the movement palette; range letters remain readable without color. */
 .square.throw-range{box-shadow:inset 0 0 0 1px #dcebe780}
+.bomb-blast-outline{position:absolute;inset:1px;border:3px solid #000;z-index:4;pointer-events:none}
 .throw-range-label{position:absolute;left:1px;bottom:1px;padding:0 2px;border-radius:2px;background:#101b20df;color:#fff;font-size:clamp(7px,.65vw,10px);line-height:1.3;z-index:2;pointer-events:none}
 .square.throw-range .token{width:78%;height:78%;margin-top:0}
 #throwing-key{font-size:12px;line-height:1.5;margin:8px 0}
