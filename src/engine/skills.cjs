@@ -83,6 +83,8 @@ class SkillGame extends SkillBase {
  rethrowBomb(p){const c=this.bombContext;c.thrower=p;c.rethrows=(c.rethrows||0)+1;c.stage="aim";this.bomb={x:p.x,y:p.y,carrier:p.id};this.mover=p.id;this.action="bomb";this.note(this.teams[p.team].name+" #"+p.number+" catches the bomb and must throw it again.");}
  explodeBomb(x,y){
   const c=this.bombContext;c.stage="blast";this.bomb={x,y,carrier:null};
+  // Presentation history survives bomb cleanup, including multiple Cindy blasts.
+  (this.bombBlasts||=[]).push({x,y});
   const victims=this.players.filter(p=>this.onPitch(p)&&this.distance(p,{x,y})<=1).sort((a,b)=>a.y-b.y||a.x-b.x);let i=0;
   this.note("Bomb explodes at "+(x+1)+", "+(y+1)+".");
   const next=()=>{

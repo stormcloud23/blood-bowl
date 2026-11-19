@@ -121,7 +121,7 @@ function standInPlace(p){
 function playerContextActions(p){
  if(game.pending||game.finished||!p||p.id!==selected||game.mover&&game.mover!==p.id)return [];
  const actions=playerActionIds.filter(id=>id!=="start"||game.has(p,"Ball & Chain")).map(id=>document.getElementById(id)).filter(b=>!b.disabled).map(b=>({label:b.textContent,run:()=>b.click()}));
- if(game.canBomb(p))actions.unshift({label:"Throw Bomb",run:()=>{game.start(p.id,"bomb");destination=null;ballMode=false;throwDestination=null;render();}});
+ if(game.canBomb(p))actions.unshift({label:"Throw Bomb",run:()=>beginBombPreview(p)});
  if(canStandInPlace(p))actions.unshift({label:"Stand up in place",run:()=>standInPlace(p)});
  return actions;
 }
@@ -214,6 +214,7 @@ popup.addEventListener("keydown",event=>{
 });
 document.addEventListener("keydown",event=>{
  if(event.key!=="Escape")return;hidePitchTooltip();
+ if(bombForecastBoard()){cancelBombPreview();return;}
  if(!popup.hidden){closePitchPopup(true);return;}
  if(["play","testing"].includes(workspaceView)&&(!game.pending||onTheBallMove())&&(blockMode||ballMode||destination)){blockMode=false;ballMode=false;destination=null;throwDestination=null;render();}
 });
@@ -267,8 +268,10 @@ function refreshWorkspace(){
  document.getElementById("end").hidden=document.getElementById("end").disabled;
  document.getElementById("action-disclosure").hidden=game.match&&!["play","charge"].includes(game.phase)||!!game.pending;
  const hint=document.getElementById("pitch-hint");
+ // Direction markers choose the template, never the exact random destination.
  hint.textContent=pendingPitchChoices().length?"Click a highlighted pitch target to resolve "+game.pending.kind+".":game.pending?"Decision required — resolve the coach’s desk before continuing.":blockMode==="blitz"?"Choose a highlighted Blitz target, then plan your own movement. Escape cancels targeting.":blockMode?"Click a highlighted opponent to declare the action. Escape cancels targeting.":ballMode?"Click a highlighted target to preview; click it again to commit. Escape returns to movement.":destination?.blockTarget?"Block preview: click the highlighted target again to block, or your player to cancel. Choose Declare Blitz to block and move.":destination?.blitzTarget?"Blitz preview: click the highlighted target again to move and block. Escape clears the preview.":destination?"Click another highlighted square to extend the route, then Confirm Move or repeat the destination to commit. Escape clears the preview.":game.action==="blitz"&&!game.blitzBlocked?"Move toward the declared target, then choose Blitz Block (1 MA) when adjacent.":game.match&&game.phase==="setup"?"Select a player, then click an empty square to move or a team-mate to swap. Select reserves from Dugouts or the roster.":"Click a player for legal actions. Player details are in the coach’s desk profile.";
  if(kickTargetSelection())hint.textContent="Aim in the highlighted "+(game.ownHalf(game.receiving,0)?"left":"right")+" half ("+teams[game.receiving].name+"). Click once to preview; click the same square again to kick.";
+ if(game.pending?.kind==="Ball & Chain — aim the movement template")hint.textContent="Ball & Chain: click a highlighted arrow to aim. The direction roll chooses one of the three squares ahead. Aim buttons also allow directions toward the crowd.";
  if(game.action==="blitz"&&destination){
   const player=planningPlayer(),target=game.players.find(p=>p.id===game.blitzTarget);
   if(canCommitBlitzRoute(player,previewRoute(player),target))hint.textContent="Click the declared Blitz target to follow your planned route and block.";

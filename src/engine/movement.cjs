@@ -326,7 +326,7 @@ class MovementGame {
  block(attackerId,targetId){
   const attacker=this.players.find(p=>p.id===attackerId),target=this.players.find(p=>p.id===targetId);
   if(!this.canBlock(attacker,target))return false;
-  attacker.used=true;attacker.distracted=false;this.action="block";this.mover=attacker.id;
+  this.bombBlasts=null;attacker.used=true;attacker.distracted=false;this.action="block";this.mover=attacker.id;
   const perform=()=>{this.mover=null;this.rollBlock(attacker,target,false);},failed=()=>{attacker.distracted=true;this.mover=null;this.action=null;this.note("Block activation trait failed; activation ends without turnover.");this.blockActivationFailed?.();},ready=()=>this.activationExtra(attacker,"block",perform,failed);
   if(this.has(attacker,"Bone Head"))this.test(attacker,"Bone Head",2,ready,failed);
   else if(this.has(attacker,"Really Stupid")){const helper=this.players.some(q=>q.id!==attacker.id&&q.team===attacker.team&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&!this.has(q,"Really Stupid")&&this.distance(q,attacker)===1);this.test(attacker,"Really Stupid",helper?2:4,ready,failed);}
@@ -504,7 +504,7 @@ class MovementGame {
   const p=this.players.find(p=>p.id===id);if(!this.canStart(p))return false;
   if(action==="secure"&&!this.canSecure(p))return false;
   if(["pass","handoff"].includes(action)&&!this.canBallAction(p,action))return false;
-  this.mover=id;p.used=true;p.spent=0;p.distracted=false;
+  this.bombBlasts=null;this.mover=id;p.used=true;p.spent=0;p.distracted=false;
   this.action=action;
   this.ballActionDone=false;if(action==="pass")this.passUsed[p.team]=true;if(action==="handoff")this.handoffUsed[p.team]=true;
   if(action==="secure")this.secureUsed[p.team]=true;
