@@ -596,7 +596,7 @@ function render(){
  document.getElementById("transfer").textContent=ballMode?"Return to movement":"Choose ball target";
  document.getElementById("special").disabled=!game.specialActions(mover||inspected).length;
  document.getElementById("start").disabled=!game.canStart(inspected);
- document.getElementById("start").textContent="Activate in place";
+ document.getElementById("start").textContent=inspected&&game.has(inspected,"Ball & Chain")?"Move Ball & Chain":"Activate in place";
  document.getElementById("blitz").disabled=!game.players.some(p=>game.canBlitz(inspected,p));
  document.getElementById("blitz").textContent=blockMode==="blitz"?"Cancel Blitz":"Declare Blitz";
  document.getElementById("block").disabled=game.action==="blitz"?!game.canBlitzBlock():!game.canStart(inspected)||!game.players.some(p=>game.canBlock(inspected,p));
