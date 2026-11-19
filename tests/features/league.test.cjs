@@ -28,7 +28,32 @@ test('earned Journeyman SPP can be retained by hiring at base cost without Loner
 test('storage schema rejects unsupported backups, duplicate teams and invalid roster allowances',()=>{assert.throws(()=>new LeagueStore(rosters,{version:2}));const {s}=setup();s.data.teams.push(s.data.teams[0]);assert.throws(()=>new LeagueStore(rosters,s.data),/Duplicate/);});
 test('all committed league scripts match source and all browser JavaScript compiles',()=>{for(const id of ['league-engine','league-ui']){const script=html.match(new RegExp('<script id="'+id+'">([\\s\\S]*?)<\\/script>'))[1];assert.equal(script.trim(),fs.readFileSync(projectPath(id==='league-engine'?'src/features/league/league.cjs':'src/features/league/league-ui.cjs'),'utf8').trim());}new vm.Script([...html.matchAll(/<script(?: id="[^"]+")?>([\s\S]*?)<\/script>/g)].map(m=>m[1]).join('\n'));});
 test('touchdown hook credits scorer once before ending the drive',()=>{const g=new MatchGame(rosters);g.phase='play';const p=g.players[0];Object.assign(p,{x:25,y:7,status:'standing'});g.ball={x:25,y:7,carrier:p.id};g.checkScore();g.checkScore();assert.equal(g.playerStats[p.id].touchdown,1);});
+test('real completed pass earns one SPP when recorded and survives league reload',()=>{
+ const {s,g,nominations}=played(),p=g.players[0],receiver=g.players[1];
+ g.players.forEach(q=>Object.assign(q,{x:null,y:null,status:'reserve'}));
+ Object.assign(p,{x:5,y:7,status:'standing'});Object.assign(receiver,{x:7,y:7,status:'standing'});
+ g.phase='play';g.active=0;g.ball={x:5,y:7,carrier:p.id};g.rerolls=[0,0];
+ assert.ok(g.start(p.id,'pass'));assert.ok(g.pass(7,7));
+ assert.equal(g.ball.carrier,receiver.id);assert.equal(g.playerStats[p.id].completion,1);
+ g.phase='finished';s.finishFixture(g,nominations);
+ const saved=new LeagueStore(rosters,JSON.parse(JSON.stringify(s.data))).data.teams[0].players.find(q=>q.id===p.leaguePlayerId);
+ assert.equal(saved.stats.completion,1);assert.equal(saved.spp,1);assert.equal(saved.earnedSpp,1);
+ assert.throws(()=>s.finishFixture(g,nominations));assert.equal(s.data.teams[0].players[0].spp,1);
+});
 test('accurate pass awards a completion before a scoring catch clears the action',()=>{const g=new MatchGame(rosters,{dice:()=>6});g.phase='play';const p=g.players[0],catcher=g.players[1];Object.assign(catcher,{x:25,y:7,status:'standing'});g.passContext={p};g.landBall(25,7,false,()=>{},true,{kind:'pass',accurate:true,accurateToPlayer:true,target:{x:25,y:7}});assert.equal(g.playerStats[p.id].completion,1);assert.equal(g.playerStats[catcher.id].touchdown,1);});
+for(const superb of [false,true])test('Throw Team-mate saves landing SPP independently of Superb Throw: '+superb,()=>{
+ const {s,g,nominations}=played(),thrower=g.players[0],passenger=g.players[1],rolls=[superb?6:2,5,5,5,6];
+ g.players.forEach(p=>Object.assign(p,{x:null,y:null,status:'reserve'}));
+ Object.assign(thrower,{x:5,y:7,status:'standing',extraSkills:['Throw Team-mate']});
+ Object.assign(passenger,{x:6,y:7,status:'standing',extraSkills:['Right Stuff']});
+ g.phase='play';g.active=0;g.rerolls=[0,0];g.ball={x:20,y:14,carrier:null};g.dice=()=>rolls.shift();
+ assert.ok(g.start(thrower.id,'throw-team-mate'));assert.ok(g.selectThrowMate(passenger.id));assert.ok(g.throwTeamMate(8,7));
+ assert.equal(g.playerStats[passenger.id].landing,1);assert.equal(g.playerStats[thrower.id]?.completion,superb?1:undefined);assert.equal(rolls.length,0);
+ g.phase='finished';s.finishFixture(g,nominations);
+ const saved=new LeagueStore(rosters,JSON.parse(JSON.stringify(s.data))).data.teams[0].players;
+ assert.equal(saved.find(p=>p.id===passenger.leaguePlayerId).spp,1);
+ assert.equal(saved.find(p=>p.id===thrower.leaguePlayerId).spp,superb?1:0);
+});
 test('inaccurate catches and bounced passes do not award completions',()=>{const g=new MatchGame(rosters,{dice:()=>6}),p=g.players[0],c=g.players[1];g.phase='play';Object.assign(c,{x:10,y:7,status:'standing'});g.passContext={p};g.landBall(10,7,false,()=>{},true,{kind:'pass',accurate:false,target:{x:10,y:7}});assert.equal(g.playerStats[p.id]?.completion,undefined);g.landBall(10,7,false,()=>{},false,{kind:'bounce'});assert.equal(g.playerStats[p.id]?.completion,undefined);});
 test('successful interception credits two-SPP statistic',()=>{const g=new MatchGame(rosters,{dice:()=>6}),p=g.players[0],q=g.players[11];g.phase='play';g.interceptionCandidates=()=>[q];g.interceptPass(p,{x:20,y:7},true,()=>assert.fail('Intercepted'));g.decide('Intercept with #'+q.number);assert.equal(g.playerStats[q.id].interception,1);});
 test('a successful Superb Throw credits thrower and passenger; failed landing credits neither',()=>{const {SkillGame}=require('../../src/engine/skills.cjs');for(const [rolls,successful] of [[[6,5,5,5,6],true],[[2,5,5,5,1,1,2],false]]){const queue=[...rolls],g=new SkillGame(rosters,{scenario:'pickup',dice:()=>queue.shift()}),a=g.players[0],p=g.players[1];g.rerolls=[0,0];a.extraSkills=['Throw Team-mate'];p.extraSkills=['Right Stuff'];Object.assign(p,{x:9,y:7});g.start(a.id,'throw-team-mate');g.selectThrowMate(p.id);g.throwTeamMate(12,7);assert.equal(g.playerStats?.[a.id]?.completion,successful?1:undefined);assert.equal(g.playerStats?.[p.id]?.landing,successful?1:undefined);}});

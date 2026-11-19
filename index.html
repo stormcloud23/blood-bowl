@@ -9170,7 +9170,7 @@ function render(){
  document.getElementById("transfer").textContent=ballMode?"Return to movement":"Choose ball target";
  document.getElementById("special").disabled=!game.specialActions(mover||inspected).length;
  document.getElementById("start").disabled=!game.canStart(inspected);
- document.getElementById("start").textContent="Activate in place";
+ document.getElementById("start").textContent=inspected&&game.has(inspected,"Ball & Chain")?"Move Ball & Chain":"Activate in place";
  document.getElementById("blitz").disabled=!game.players.some(p=>game.canBlitz(inspected,p));
  document.getElementById("blitz").textContent=blockMode==="blitz"?"Cancel Blitz":"Declare Blitz";
  document.getElementById("block").disabled=game.action==="blitz"?!game.canBlitzBlock():!game.canStart(inspected)||!game.players.some(p=>game.canBlock(inspected,p));
@@ -9591,7 +9591,8 @@ function standInPlace(p){
 }
 function playerContextActions(p){
  if(game.pending||game.finished||!p||p.id!==selected||game.mover&&game.mover!==p.id)return [];
- const actions=playerActionIds.filter(id=>id!=="start").map(id=>document.getElementById(id)).filter(b=>!b.disabled).map(b=>({label:b.textContent,run:()=>b.click()}));
+ const actions=playerActionIds.filter(id=>id!=="start"||game.has(p,"Ball & Chain")).map(id=>document.getElementById(id)).filter(b=>!b.disabled).map(b=>({label:b.textContent,run:()=>b.click()}));
+ if(game.canBomb(p))actions.unshift({label:"Throw Bomb",run:()=>{game.start(p.id,"bomb");destination=null;ballMode=false;throwDestination=null;render();}});
  if(canStandInPlace(p))actions.unshift({label:"Stand up in place",run:()=>standInPlace(p)});
  return actions;
 }

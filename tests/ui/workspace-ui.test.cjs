@@ -38,6 +38,38 @@ function workspaceFixture(scenario='block',timers={}){
  return {get,run,document,popup,action,key:key=>document.listeners.keydown.forEach(fn=>fn({key})),cell:(x,y)=>get('pitch').children[y*26+x]};
 }
 
+// Discover native profiles so newly added positions/stars inherit this coverage.
+const weaponProfiles=[
+ ...require('../../src/data/rosters.json').flatMap(t=>t.positions.map(p=>({...p,name:t.name+' '+p.name}))),
+ ...require('../../src/engine/match.cjs').MATCH_STARS
+].filter(p=>p.skills?.some(s=>s==='Bombardier'||s==='Ball & Chain'));
+for(const profile of weaponProfiles)for(const team of [0,1])test(profile.name+' has a working direct weapon action for coach '+team,()=>{
+ const f=workspaceFixture('match');
+ f.run('game.players.forEach(p=>Object.assign(p,{status:"reserve",x:null,y:null}));globalThis.weapon=game.players.find(p=>p.team==='+team+');weapon.profileOverride='+JSON.stringify(profile)+';Object.assign(weapon,{status:"standing",x:10,y:7,extraSkills:[]});game.phase="play";game.active='+team+';game.rerolls=[0,0];game.ball={x:20,y:14,carrier:null};game.dice=()=>3;selected=null;render();');
+ f.cell(10,7).click();
+ const bomb=profile.skills.includes('Bombardier'),label=bomb?'Throw Bomb':'Move Ball & Chain',old=f.action(label);
+ assert.equal(f.run('weapon.used'),false);
+ old.click();old.click();
+ assert.equal(f.run('game.mover===weapon.id'),true);
+ if(bomb){
+  assert.equal(f.run('game.action'),'bomb');
+  assert.equal(f.run('weapon.spent'),0);
+  // Decline Cindy's optional commitment, then throw accurately at empty turf.
+  f.run('if(game.pending)game.decide("Keep All You Can Eat");game.dice=()=>6;render();');
+  assert.equal(f.run('!!game.bombActor()'),true);
+  f.cell(13,7).click();f.cell(13,7).click();
+  assert.equal(f.run('game.bombContext'),null);
+  assert.equal(f.run('game.bombUsed['+team+']'),true);
+  assert.equal(f.run('game.passUsed['+team+']'),false);
+ }else{
+  assert.match(f.run('game.pending.kind'),/Ball & Chain/);
+  const east=f.get('choices').querySelectorAll('button').find(b=>b.textContent==='Aim East');assert.ok(east);east.click();east.click();
+  if(f.run('game.pending?.kind.startsWith("Whirling Dervish")'))f.run('game.decide("Keep direction roll 3");render();');
+  assert.equal(f.run('weapon.x'),11);assert.equal(f.run('weapon.spent'),1);
+  assert.match(f.run('game.pending.kind'),/Ball & Chain/);
+ }
+});
+
 function proneFixture(team=0){
  const f=workspaceFixture('match');
  f.run(`game.phase='play';game.active=${team};game.turns=[1,1];game.players.forEach(p=>Object.assign(p,{x:null,y:null,status:'reserve'}));globalThis.prone=game.players.find(p=>p.team===${team});Object.assign(prone,{x:8,y:7,status:'prone',used:false});prone.profileOverride={...game.profile(prone),ma:6,skills:[],traits:'Lineman, Human'};selected=null;globalThis.rollCount=0;game.dice=()=>{rollCount++;return 6;};render();`);

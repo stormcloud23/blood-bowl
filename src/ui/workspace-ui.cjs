@@ -120,7 +120,8 @@ function standInPlace(p){
 }
 function playerContextActions(p){
  if(game.pending||game.finished||!p||p.id!==selected||game.mover&&game.mover!==p.id)return [];
- const actions=playerActionIds.filter(id=>id!=="start").map(id=>document.getElementById(id)).filter(b=>!b.disabled).map(b=>({label:b.textContent,run:()=>b.click()}));
+ const actions=playerActionIds.filter(id=>id!=="start"||game.has(p,"Ball & Chain")).map(id=>document.getElementById(id)).filter(b=>!b.disabled).map(b=>({label:b.textContent,run:()=>b.click()}));
+ if(game.canBomb(p))actions.unshift({label:"Throw Bomb",run:()=>{game.start(p.id,"bomb");destination=null;ballMode=false;throwDestination=null;render();}});
  if(canStandInPlace(p))actions.unshift({label:"Stand up in place",run:()=>standInPlace(p)});
  return actions;
 }
