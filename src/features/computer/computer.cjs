@@ -745,14 +745,7 @@ class ComputerCoach {
   const line=g.line(this.team);
   const deep=players.reduce((best,p)=>Math.abs(p.x-line)>Math.abs(best.x-line)?p:best,retriever);
   if(deep!==retriever)g.placeSetup(retriever.id,deep.x,deep.y);
-  const lineSlots=players.filter(p=>p.x===line).map(p=>({x:p.x,y:p.y}));
-  const lineValue=p=>Number(g.profile(p).st)*3+Number(g.skill(p,"Block"))*2-Number(this.roles(g,p).catcher)*2;
-  const anchors=players.filter(p=>p!==retriever).sort((a,b)=>lineValue(b)-lineValue(a)).slice(0,lineSlots.length);
-  const openSlots=lineSlots.filter(s=>!anchors.includes(g.at(s.x,s.y)));
-  for(const anchor of anchors.filter(p=>p.x!==line)){
-   const slot=openSlots.shift();
-   if(slot)g.placeSetup(anchor.id,slot.x,slot.y);
-  }
+
  }
  step(g){
   if(g.phase==="finished"||computerDecisionTeam(g)!==this.team)return false;

@@ -1236,3 +1236,9 @@ test('Night Goblin roster reference, default exhibition team and intake have par
  const intake=JSON.parse(fs.readFileSync(projectPath('portrait-intake/night-goblin/intake.json'),'utf8'));
  assert.deepEqual(intake.positions.map(p=>p.id),r.positions.map(p=>p.id));
 });
+
+test('Use suggested formation restores role-based positions through the bundled setup controls',()=>{
+ const f=workspaceFixture('match');f.run(`const r=rosterCatalog.find(r=>r.id==='skaven');game=new MatchGame([r,r],{dice:()=>6});game.prepareDrive(0);globalThis.anchor=game.players.find(p=>p.team===0&&game.formationRole(p)==='big');game.placeSetup(anchor.id,3,7);render();`);
+ const button=f.get('matchflow').querySelectorAll('button').find(b=>b.textContent==='Use suggested formation');assert.ok(button);button.click();
+ assert.equal(f.run('anchor.x'),12);assert.equal(f.run('anchor.y'),7);assert.equal(f.run('game.formationRole(game.at(10,2))'),'blitzer');assert.equal(f.run('game.formationRole(game.at(8,2))'),'runner');assert.equal(f.run('game.formationRole(game.at(5,6))'),'thrower');assert.equal(f.run('game.setupErrors().length'),0);
+});

@@ -62,7 +62,7 @@ test("TIME-OUT moves both markers forwards early and backwards late",()=>{
 });
 test("Solid Defence allows limited eligible redeployment and enforces final formation",()=>{
  const g=setup(fixture([1,5,1,3,1],false));g.kick(25,7);assert.equal(g.phase,"eventMove");assert.equal(g.eventState.limit,4);
- const id=g.eventState.eligible[0];assert.ok(id);const p=g.players.find(p=>p.id===id);assert.ok(g.eventPlace(id,10,0));const id2=g.eventState.eligible[1],p2=g.players.find(p=>p.id===id2),old={x:p2.x,y:p2.y};assert.ok(g.eventPlace(id2,11,1));assert.ok(g.setupErrors(0).length);assert.equal(g.finishEvent(),false);assert.ok(g.eventPlace(id2,old.x,old.y));assert.ok(g.finishEvent());assert.equal(g.phase,"touchback");
+ g.eventState.eligible.sort((a,b)=>Number(g.players.find(p=>p.id===b).x===g.line(0))-Number(g.players.find(p=>p.id===a).x===g.line(0)));const id=g.eventState.eligible[0];assert.ok(id);const p=g.players.find(p=>p.id===id),firstSpot={x:p.x,y:p.y};assert.ok(g.eventPlace(id,10,0));const id2=g.eventState.eligible[1],p2=g.players.find(p=>p.id===id2),old={x:p2.x,y:p2.y};assert.ok(g.eventPlace(id2,11,1));assert.ok(g.setupErrors(0).length);assert.equal(g.finishEvent(),false);assert.ok(g.eventPlace(id2,old.x,old.y));assert.ok(g.eventPlace(id,firstSpot.x,firstSpot.y));assert.ok(g.finishEvent());assert.equal(g.phase,"touchback");
 });
 test("High Kick moves one Open receiver beneath the airborne ball",()=>{
  const g=setup(fixture([1,5,2,3,3],false));g.kick(20,7);assert.equal(g.pending.kind,"High Kick");g.decide(g.pending.options[0]);assert.equal(g.phase,"play");assert.ok(g.ball.carrier);
