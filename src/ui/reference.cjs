@@ -99,6 +99,8 @@ const SKILL_DESCRIPTIONS={
  "Really Stupid":"Test before acting, with better odds if a suitable standing team-mate is adjacent; failure removes the tackle zone.",
  "Regeneration":"After a casualty, a 4+ roll can return the player to Reserves and avoid that casualty's lasting effects.",
  "Right Stuff":"A suitable team-mate can throw or kick this player; landing requires a test.",
+ "Squig Rage":"Before declaring an action, roll 3+ unless restrained. Failure forces an adjacent enemy Block (including Jump Up and Ball & Chain). Otherwise choose an adjacent team-mate to knock down and continue, or become Distracted. A team-mate carrying the ball causes a turnover.",
+ "Squig Restraint":"Team-mates within 3 squares of this Standing player skip their Squig Rage roll, even when the herder is Distracted.",
  "Secret Weapon":"The referee sends this player off at the end of a drive they participated in, unless a legal remedy saves them.",
  "Stab":"Replace a block with an unmodified Armour roll; breaking armour leads to an Injury roll.",
  "Stunty":"Ignore destination marking penalties when dodging, but suffer special interception and injury disadvantages.",

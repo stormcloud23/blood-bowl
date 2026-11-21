@@ -107,7 +107,7 @@ Choose a mode and press **Start testing mode**. Switching workspace tabs preserv
 the current game; starting another game or mode replaces it.
 
 Reference includes the current playing guide, a BB2025 rules cheat sheet and
-searchable explanations for all 108 skills and traits. All reference content is
+searchable explanations for all 110 skills and traits. All reference content is
 bundled for offline use.
 
 ## Current scope

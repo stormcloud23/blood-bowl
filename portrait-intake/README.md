@@ -26,6 +26,7 @@ The Imperial Nobility folder includes the example `ogre.jpg`. Shared position na
 - [Khorne](khorne/README.md)
 - [Lizardmen](lizardmen/README.md)
 - [Necromantic Horror](necromantic-horror/README.md)
+- [Night Goblin](night-goblin/README.md)
 - [Norse](norse/README.md)
 - [Nurgle](nurgle/README.md)
 - [Ogre](ogre/README.md)

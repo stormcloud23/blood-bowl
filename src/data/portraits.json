@@ -1,4 +1,42 @@
 {
+  "night-goblin": {
+    "trained-troll": {
+      "file": "trained-troll.jpg",
+      "width": 311,
+      "left": -119,
+      "top": -65
+    },
+    "squig-herder": {
+      "file": "squig-herder.webp",
+      "width": 264.98,
+      "left": -78.07,
+      "top": -12.71
+    },
+    "night-goblin-lineman": {
+      "file": "night-goblin-lineman.webp",
+      "width": 400,
+      "left": -160,
+      "top": -31.33
+    },
+    "squig-hopper": {
+      "file": "squig-hopper.png",
+      "width": 233.93,
+      "left": -94.26,
+      "top": -19.01
+    },
+    "cave-squig": {
+      "file": "cave-squig.png",
+      "width": 250,
+      "left": -87.5,
+      "top": -2.92
+    },
+    "squig-wrangler": {
+      "file": "squig-wrangler.png",
+      "width": 226.67,
+      "left": -97.34,
+      "top": 1.64
+    }
+  },
   "imperial-nobility": {
     "retainer": { "file": "retainer.jpg", "width": 324, "left": -107, "top": -73 },
     "thrower": { "file": "thrower.jpg", "width": 205, "left": -47, "top": 0 },

@@ -506,7 +506,7 @@ test('the dock never uses native popovers and closing restores pitch focus witho
 });
 
 test('exhibition roster selectors create exactly two teams and practice reset restores original fixtures',()=>{
- const f=workspaceFixture('match');assert.equal(f.get('exhibition-home').children.length,30);f.get('exhibition-home').value='lizardmen';f.get('exhibition-away').value='dwarf';f.get('exhibition-home').emit('change');f.get('start-exhibition').click();assert.equal(f.run('teams.length'),2);assert.equal(f.run('game.teams[0].id'),'lizardmen');assert.equal(f.run('game.teams[1].id'),'dwarf');f.get('scenario').value='block';f.get('scenario').emit('change');assert.equal(f.run('teams[0].id'),'imperial-nobility');assert.equal(f.run('teams[1].id'),'black-orc');assert.equal(f.get('exhibition-rosters').hidden,false);
+ const f=workspaceFixture('match');assert.equal(f.get('exhibition-home').children.length,31);f.get('exhibition-home').value='lizardmen';f.get('exhibition-away').value='dwarf';f.get('exhibition-home').emit('change');f.get('start-exhibition').click();assert.equal(f.run('teams.length'),2);assert.equal(f.run('game.teams[0].id'),'lizardmen');assert.equal(f.run('game.teams[1].id'),'dwarf');f.get('scenario').value='block';f.get('scenario').emit('change');assert.equal(f.run('teams[0].id'),'imperial-nobility');assert.equal(f.run('teams[1].id'),'black-orc');assert.equal(f.get('exhibition-rosters').hidden,false);
 });
 test('exhibition league/alignment choices affect only the selected side and expose legal options',()=>{
  const f=workspaceFixture('match');f.get('exhibition-home').value='chaos-chosen';f.get('exhibition-home').emit('change');f.get('start-exhibition').click();assert.equal(f.get('exhibition-home-alignment').children.length,6);f.get('exhibition-home-alignment').value='Nurgle';f.get('exhibition-home-alignment').emit('change');f.get('start-exhibition').click();assert.equal(f.run('game.hasTeamRule(0,"Favoured of Nurgle")'),true);assert.equal(f.run('game.hasTeamRule(1,"Favoured of Nurgle")'),false);f.get('exhibition-home').value='norse';f.get('exhibition-home').emit('change');f.get('start-exhibition').click();f.get('exhibition-home-league').value='Chaos Clash';f.get('exhibition-home-league').emit('change');f.get('start-exhibition').click();assert.equal(f.run('game.hasTeamRule(0,"Favoured of Khorne")'),true);
@@ -632,17 +632,20 @@ test('Nobility and Black Orc portraits reach the pitch, dugout and inspector',()
  assert.ok(f.get('profile').children.some(e=>e.className.includes('profile-portrait')));
 });
 
-test('every roster position and Star Player points to an available portrait',()=>{
- const f=workspaceFixture();
- const urls=JSON.parse(f.run(`JSON.stringify([
-  ...rosterCatalog.flatMap(roster=>roster.positions.map(profile=>playerPortrait(roster,profile)?.url)),
-  ...MATCH_STARS.flatMap(star=>(star.players??[star]).map(profile=>playerPortrait(null,profile,true)?.url))
+test('every roster position and Star Player has a portrait or an explicit intake record',()=>{
+ const f=workspaceFixture(),intake=JSON.parse(fs.readFileSync(projectPath('portrait-intake/night-goblin/intake.json'),'utf8'));
+ const entries=JSON.parse(f.run(`JSON.stringify([
+  ...rosterCatalog.flatMap(roster=>roster.positions.map(profile=>({team:roster.id,id:profile.id,url:playerPortrait(roster,profile)?.url}))),
+  ...MATCH_STARS.flatMap(star=>(star.players??[star]).map(profile=>({team:'star-players',id:profile.id,url:playerPortrait(null,profile,true)?.url})))
  ])`));
- assert.equal(urls.length,226);
- for(const url of urls){
-  assert.match(url,/^portrait-intake\//);
-  assert.ok(fs.existsSync(projectPath(decodeURIComponent(url))),url);
+ assert.equal(entries.length,232);let pending=0;
+ for(const entry of entries){if(entry.url){assert.match(entry.url,/^portrait-intake\//);assert.ok(fs.existsSync(projectPath(decodeURIComponent(entry.url))),entry.url);continue;}
+  assert.equal(entry.team,intake.team);assert.ok(intake.positions.some(p=>p.id===entry.id&&p.status==='awaiting-source'));pending++;
  }
+ assert.equal(pending,0);
+ assert.deepEqual(require("../../src/data/portraits.json")["night-goblin"]["trained-troll"],require("../../src/data/portraits.json").goblin["trained-troll"]);
+ assert.ok(fs.readFileSync(projectPath("portrait-intake/night-goblin/trained-troll.jpg")).equals(fs.readFileSync(projectPath("portrait-intake/goblin/trained-troll.jpg"))));
+ for(const p of intake.positions){for(const gallery of ['portrait-review-gallery.html','portrait-crop-gallery.html'])assert.ok(fs.readFileSync(projectPath(gallery),'utf8').includes('id="night-goblin-'+p.id+'"'));}
 });
 
 test('the Portraits tab opens both galleries without resetting the match',()=>{
@@ -727,8 +730,8 @@ test('preset and custom selectors stay separate and selecting a preset clears th
 
 test('Reference explains every catalogue ability and searches names, categories and effects without coverage metadata',()=>{
  const f=workspaceFixture('match'),panel=f.get('skillcoverage'),rows=panel.querySelectorAll('tr');
- assert.equal(rows.length,109);assert.deepEqual(rows[0].children.map(c=>c.textContent),['Skill / Trait','Category','What it does']);
- const names=rows.slice(1).map(row=>row.children[0].textContent);assert.equal(new Set(names).size,108);assert.equal(f.run('SKILL_CATALOG.every(s=>typeof SKILL_DESCRIPTIONS[s.name]==="string"&&SKILL_DESCRIPTIONS[s.name].length>15)'),true);
+ assert.equal(rows.length,111);assert.deepEqual(rows[0].children.map(c=>c.textContent),['Skill / Trait','Category','What it does']);
+ const names=rows.slice(1).map(row=>row.children[0].textContent);assert.equal(new Set(names).size,110);assert.equal(f.run('SKILL_CATALOG.every(s=>typeof SKILL_DESCRIPTIONS[s.name]==="string"&&SKILL_DESCRIPTIONS[s.name].length>15)'),true);
  for(const row of rows.slice(1)){assert.equal(row.children.length,3);assert.ok(row.children[2].textContent.length>15);assert.doesNotMatch(row.children.map(c=>c.textContent).join(' '),/Implemented|Deferred|Supported in the available actions|Coverage \/ next dependency/);row.textContent=row.children.map(c=>c.textContent).join(' ');}
  const input=panel.children.find(c=>c.className==='skill-search').children[0];input.value='casualty';input.emit('input');assert.ok(rows.slice(1).some(r=>!r.hidden&&r.children[0].textContent==='Violent Innovator'));assert.ok(rows.slice(1).some(r=>r.hidden));input.value='a word with no skill match';input.emit('input');assert.ok(rows.slice(1).every(r=>r.hidden));input.value='';input.emit('input');assert.ok(rows.slice(1).every(r=>!r.hidden));
  assert.equal(f.run('game.match'),true);assert.equal(f.run('game.phase'),'fans');
@@ -1209,4 +1212,27 @@ test('league AI timer controller handles purchases without a fault or repeated-s
  const f=observerFixture();f.run(`globalThis.clubs=['human','orc'].map((id,i)=>{const t=leagueStore.create(id,'League '+i);for(let n=0;n<11;n++)leagueStore.hire(t.id,0);leagueStore.submit(t.id);return t;});globalThis.l=leagueStore.createLeague('Inducements');clubs.forEach(t=>leagueStore.enterLeague(l.id,t.id));globalThis.fixture=leagueStore.startFixture(clubs[0].id,clubs[1].id);fixture.computerControl='both';startLeagueMatch(fixture);game.phase='leagueSteps';game.teams[0].ctv=1000000;game.teams[1].ctv=1500000;game.leaguePurchaseOrder=[1,0];render();`);
  for(let n=0;n<40&&f.run('game.leaguePurchaseStep')<2;n++)f.tick();
  assert.equal(f.run('game.leaguePurchaseStep'),2);assert.equal(f.run('computerFault'),'');assert.equal(f.run('computerPaused'),false);assert.ok(f.run('game.resourceCosts(0).inducements')>0);
+});
+
+test('Night Goblin bundled UI offers a forced Wrangler Block on the pitch',()=>{
+ const f=workspaceFixture('match');
+ f.run(`const r=rosterCatalog.find(r=>r.id==='night-goblin');game=new MatchGame([r,r],{dice:()=>6});game.phase='play';game.active=0;game.rerolls=[0,0];game.players.forEach(p=>Object.assign(p,{x:null,y:null,status:'reserve',used:false}));globalThis.squig=game.players.find(p=>p.team===0&&p.role===3);globalThis.enemy=game.players.find(p=>p.team===1&&p.role===0);Object.assign(squig,{x:10,y:7,status:'standing'});Object.assign(enemy,{x:11,y:7,status:'standing'});let rolls=[1,6,6,6];game.dice=()=>rolls.shift();selected=squig.id;game.start(squig.id);render();`);
+ assert.match(f.run('game.pending.kind'),/Squig Rage/);
+ assert.ok(f.run('game.pending.pitchChoices.some(c=>c.x===11&&c.y===7)'));
+ const cell=f.cell(11,7);assert.ok(cell.className.includes('tile-choice'));cell.click();cell.click();
+ assert.equal(f.run('game.blockAction.attacker.id===squig.id'),true);
+ assert.equal(f.run('game.pending.type'),'blockSelect');
+});
+
+test('Night Goblin roster reference, default exhibition team and intake have parity',()=>{
+ const f=workspaceFixture('match');
+ const content=f.get('roster-list').innerHTML;
+ for(const label of ['Night Goblin','Squig Herder','Squig Hopper','Squig Wrangler','Cave Squig','Squig Rage','Squig Restraint','860,000','70,000'])assert.ok(content.includes(label),label);
+ f.get('exhibition-home').value='night-goblin';f.get('exhibition-home').emit('change');f.get('start-exhibition').click();
+ assert.equal(f.run('game.teams[0].id'),'night-goblin');assert.equal(f.run('game.players.filter(p=>p.team===0).length'),11);
+ assert.equal(f.run('game.resourceChoices[0].teamRerolls'),2);assert.equal(f.run('game.resourceSpec(0,"teamRerolls").cost'),70000);
+ assert.equal(f.run('game.teamValues(0).tv'),860000);
+ const r=require('../../src/data/rosters.json').find(r=>r.id==='night-goblin');
+ const intake=JSON.parse(fs.readFileSync(projectPath('portrait-intake/night-goblin/intake.json'),'utf8'));
+ assert.deepEqual(intake.positions.map(p=>p.id),r.positions.map(p=>p.id));
 });

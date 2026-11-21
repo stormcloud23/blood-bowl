@@ -2,6 +2,8 @@
 
 Updated October 30, 2026 using the owner's requested FFB BB2025 baseline. FFB code takes priority where it conflicts with earlier browser behavior. See [the comparison and remaining gaps](FFB-AUDIT.md), [all 108 FFB skill definitions](FFB-SKILL-MAP.md), and [FFB attribution](../THIRD_PARTY_NOTICES.md). This is a targeted port, not a claim of complete FFB parity.
 
+Night Goblin adds Squig Rage and Squig Restraint from the [current trait definitions](https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/#squig-rage-passive), reviewed November 21, 2026. Rage resolves before declaring an action or spending its allowance, including forced Jump Up and Wrangler Blocks, optional team-mate knockdowns and distraction. Standing Herders suppress the roll within three squares even while Distracted. These new rules extend the earlier FFB baseline.
+
 The latest exhibition batch implements Kick Team-mate, Swoop, Lethal Flight, Animal Savagery, Trickster, Hit and Run, Dump-off, Punt, Monstrous Mouth, Pile Driver, On the Ball and Saboteur, and completes Chainsaw foul use. These share guarded decisions, attack/pass suspension, bounded reaction movement, per-Block knockdown outcomes, damage attribution and relocation restrictions. See [special actions and reaction contexts](SPECIAL-ACTIONS.md) for implementation boundaries, source paths, defaults and tests.
 
 Diving Catch offers the active coach a catcher choice before the opposing coach, retaining delivery mode through re-rolls and bouncing failed adjacent catches from the catcher. Safe Pair of Hands offers an empty adjacent placement before eligible falls and prone placements, preserving actual knockdown turnovers while avoiding the Wrestle carrier-drop turnover. See [ball landing and placement](CATCH-PLACEMENT.md) for the pinned FFB differences and [the exhibition backlog](EXHIBITION-PARITY.md).
@@ -16,7 +18,7 @@ Build with `npm run build` and verify all suites with `npm test`. This includes 
 
 Reviewed October 28, 2026 against the full [Blood Bowl 2025 Skills & Traits list](https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/), [current FAQ](https://bloodbowlbase.ru/bb2025/core_rules/latest_faq/), [Foul / Argue the Call rules](https://bloodbowlbase.ru/bb2025/core_rules/the_game_of_blood_bowl/#foul-actions), and [Bribes](https://bloodbowlbase.ru/bb2025/core_rules/inducements/#0-3-bribes-0-6-for-teams-with-the-bribery-and-corruption-special-rule).
 
-All 108 entries are accounted for: **108 implemented**, **0 partial**, **0 deferred**. Implemented describes support within the available actions, roster builder and local league progression. It does not certify complete FFB parity or every future roster interaction. Insignificant and Violent Innovator now have focused roster/SPP coverage; see [league skills](LEAGUE-SKILLS.md). This table and the app inventory share the same registry in src/engine/skills.cjs.
+All 110 entries are accounted for: **110 implemented**, **0 partial**, **0 deferred**. Implemented describes support within the available actions, roster builder and local league progression. It does not certify complete FFB parity or every future roster interaction. Insignificant and Violent Innovator now have focused roster/SPP coverage; see [league skills](LEAGUE-SKILLS.md). This table and the app inventory share the same registry in src/engine/skills.cjs.
 
 ## How to try them
 
@@ -134,6 +136,8 @@ Sources: [Throw Team-mate and landing](https://bloodbowlbase.ru/bb2025/core_rule
 | Regeneration | Traits | Passive | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Right Stuff | Traits | Passive * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Secret Weapon | Traits | Passive * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
+| Squig Rage | Traits | Passive * | Implemented | Pre-declaration 3+ test; forced enemy Block (including Jump Up and Ball & Chain), optional adjacent team-mate knockdown or distraction. Team action allowances are spent only on the final declaration. |
+| Squig Restraint | Traits | Passive * | Implemented | Standing Herders suppress allied Squig Rage within three squares, including while Distracted. Prone and off-pitch Herders provide no restraint. |
 | Stab | Traits | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Stunty | Traits | Passive * | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
 | Swoop | Traits | Active | Implemented | Supported in the available actions. Optional abilities may be disabled before action resolution. |
