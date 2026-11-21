@@ -1,0 +1,52 @@
+{
+  "team": "night-goblin",
+  "positions": [
+    {
+      "id": "night-goblin-lineman",
+      "name": "Night Goblin Lineman",
+      "stem": "night-goblin-lineman",
+      "status": "cropped",
+      "source": "codex-clipboard-eac567f0-3951-475a-802a-94cb59cb2d2e.webp",
+      "file": "night-goblin-lineman.webp"
+    },
+    {
+      "id": "squig-herder",
+      "name": "Squig Herder",
+      "stem": "squig-herder",
+      "status": "cropped",
+      "source": "codex-clipboard-85766d8a-dbee-4c3b-bf65-22d926d0c932.webp",
+      "file": "squig-herder.webp"
+    },
+    {
+      "id": "squig-hopper",
+      "name": "Squig Hopper",
+      "stem": "squig-hopper",
+      "status": "cropped",
+      "source": "codex-clipboard-9a5eee8a-f776-4961-a71e-8b31cea9a192.png",
+      "file": "squig-hopper.png"
+    },
+    {
+      "id": "squig-wrangler",
+      "name": "Squig Wrangler",
+      "stem": "squig-wrangler",
+      "status": "cropped",
+      "source": "codex-clipboard-90a53582-c8aa-40db-a4d3-0c958a14b4cb.png",
+      "file": "squig-wrangler.png"
+    },
+    {
+      "id": "cave-squig",
+      "name": "Cave Squig",
+      "stem": "cave-squig",
+      "status": "cropped",
+      "source": "codex-clipboard-ab1c6e8e-e3b7-473a-8601-ff949944bd04.png",
+      "file": "cave-squig.png"
+    },
+    {
+      "id": "trained-troll",
+      "name": "Trained Troll",
+      "stem": "trained-troll",
+      "status": "reused",
+      "source": "goblin/trained-troll.jpg"
+    }
+  ]
+}

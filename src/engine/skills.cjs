@@ -7,17 +7,19 @@ const SKILL_GROUPS={
  Mutation:["Big Hand","Claws","Disturbing Presence","Extra Arms","Foul Appearance","Horns","Iron Hard Skin","Monstrous Mouth","Prehensile Tail","Tentacles","Two Heads","Very Long Legs"],
  Passing:["Accurate","Cannoneer","Cloud Burster","Dump-off","Give and Go","Hail Mary Pass","Leader","Nerves of Steel","On the Ball","Pass","Punt","Safe Pass"],
  Strength:["Arm Bar","Brawler","Break Tackle","Bullseye","Grab","Guard","Juggernaut","Mighty Blow","Multiple Block","Stand Firm","Strong Arm","Thick Skull"],
- Traits:["Always Hungry","Animal Savagery","Animosity (X)","Ball & Chain","Bloodlust (X+)","Bombardier","Bone Head","Breathe Fire","Chainsaw","Decay","Drunkard","Hatred (X)","Hypnotic Gaze","Insignificant","Kick Team-mate","Loner (X+)","My Ball","No Ball","Pick-me-up","Plague Ridden","Pogo","Projectile Vomit","Really Stupid","Regeneration","Right Stuff","Secret Weapon","Stab","Stunty","Swoop","Take Root","Throw Team-mate","Timmm-ber!","Titchy","Trickster","Unchannelled Fury","Unsteady"]
+ Traits:["Always Hungry","Animal Savagery","Animosity (X)","Ball & Chain","Bloodlust (X+)","Bombardier","Bone Head","Breathe Fire","Chainsaw","Decay","Drunkard","Hatred (X)","Hypnotic Gaze","Insignificant","Kick Team-mate","Loner (X+)","My Ball","No Ball","Pick-me-up","Plague Ridden","Pogo","Projectile Vomit","Really Stupid","Regeneration","Right Stuff","Secret Weapon","Squig Rage","Squig Restraint","Stab","Stunty","Swoop","Take Root","Throw Team-mate","Timmm-ber!","Titchy","Trickster","Unchannelled Fury","Unsteady"]
 };
 const SPECIAL_ACTION_TRAITS=["Breathe Fire","Chainsaw","Stab","Projectile Vomit","Bombardier","Ball & Chain","Hypnotic Gaze","Kick Team-mate"];
 const SKILL_DEFERRED={};
 const SKILL_NOTES={
+ "Squig Rage":"Pre-declaration 3+ test; forced enemy Block (including Jump Up and Ball & Chain), optional adjacent team-mate knockdown or distraction. Team action allowances are spent only on the final declaration.",
+ "Squig Restraint":"Standing Herders suppress allied Squig Rage within three squares, including while Distracted. Prone and off-pitch Herders provide no restraint.",
  "Violent Innovator":"Special-action casualty SPP, including Kick Team-mate collisions and shared Lethal Flight credit. Requires a special-action trait; pinned Projectile Vomit grants no SPP. See LEAGUE-SKILLS.md.",
  "Insignificant":"A rookie Team Draft List cannot contain more Insignificant players than other players. Enforced on roster submission; no in-match effect. See LEAGUE-SKILLS.md."
 };
 const SKILL_PARTIAL={};
-const PASSIVES=new Set(["Claws","Disturbing Presence","Foul Appearance","Iron Hard Skin","Violent Innovator","Leader","Thick Skull","Animal Savagery","Bloodlust (X+)","Bone Head","Decay","Drunkard","Hatred (X)","Insignificant","Kick Team-mate","Loner (X+)","My Ball","No Ball","Plague Ridden","Really Stupid","Regeneration","Right Stuff","Secret Weapon","Stunty","Take Root","Timmm-ber!","Titchy","Unchannelled Fury","Unsteady"]);
-const MANDATORY=new Set(["Frenzy","Disturbing Presence","Foul Appearance","Always Hungry","Animal Savagery","Animosity (X)","Ball & Chain","Bloodlust (X+)","Bone Head","Chainsaw","Decay","Drunkard","Hatred (X)","Insignificant","Loner (X+)","My Ball","No Ball","Really Stupid","Right Stuff","Secret Weapon","Stunty","Take Root","Titchy","Unchannelled Fury","Unsteady"]);
+const PASSIVES=new Set(["Claws","Disturbing Presence","Foul Appearance","Iron Hard Skin","Violent Innovator","Leader","Thick Skull","Animal Savagery","Bloodlust (X+)","Bone Head","Decay","Drunkard","Hatred (X)","Insignificant","Kick Team-mate","Loner (X+)","My Ball","No Ball","Plague Ridden","Really Stupid","Regeneration","Right Stuff","Secret Weapon","Squig Rage","Squig Restraint","Stunty","Take Root","Timmm-ber!","Titchy","Unchannelled Fury","Unsteady"]);
+const MANDATORY=new Set(["Frenzy","Disturbing Presence","Foul Appearance","Always Hungry","Animal Savagery","Animosity (X)","Ball & Chain","Bloodlust (X+)","Bone Head","Chainsaw","Decay","Drunkard","Hatred (X)","Insignificant","Loner (X+)","My Ball","No Ball","Really Stupid","Right Stuff","Secret Weapon","Squig Rage","Squig Restraint","Stunty","Take Root","Titchy","Unchannelled Fury","Unsteady"]);
 const SKILL_CATALOG=Object.entries(SKILL_GROUPS).flatMap(([category,names])=>names.map(name=>({name,category,kind:PASSIVES.has(name)?"Passive":"Active",mandatory:MANDATORY.has(name),status:SKILL_DEFERRED[name]?"Deferred":SKILL_PARTIAL[name]?"Partial":"Implemented",notes:SKILL_DEFERRED[name]||SKILL_PARTIAL[name]||SKILL_NOTES[name]||"Supported in the available actions. Optional abilities may be disabled before action resolution.",source:"https://bloodbowlbase.ru/bb2025/core_rules/skills_and_traits/#"+name.toLowerCase().replace(/[^a-z0-9 ]/g,"").replaceAll(" ","-")})));
 class SkillGame extends SkillBase {
  canBomb(p){return !!p&&this.canStart(p)&&p.status==="standing"&&this.has(p,"Bombardier")&&!this.has(p,"Ball & Chain")&&!this.bombUsed?.[p.team];}
@@ -191,6 +193,7 @@ class SkillGame extends SkillBase {
  multipleBlock(id,ids){
   const a=this.players.find(p=>p.id===id),targets=ids?.map(id=>this.players.find(p=>p.id===id));
   if(!this.canMultipleBlock(a)||targets?.length!==2||targets[0]===targets[1]||targets.some(d=>!this.multipleTargets(a).includes(d)))return false;
+  if(this.squigActivation(a,()=>this.multipleBlock(id,ids)))return true;
   this.multipleContext={attacker:a,targets,pools:[],injuries:[],stage:"activation",index:0,turnover:false,targetSquares:targets.map(d=>({x:d.x,y:d.y})),ball:null};
   this.scoreDeferrals=(this.scoreDeferrals||0)+1;this.note("Multiple Block: two committed attacks; -2 attacker ST, no follow-ups.");
   return this.block(a.id,targets[0].id);
@@ -444,9 +447,9 @@ class SkillGame extends SkillBase {
  stand(p,after=null){if(this.has(p,"Jump Up")){p.status="standing";p.spent=0;this.note("Jump Up: stands for free.");if(after)after();return;}super.stand(p,after);}
  canSecure(p){return !!p&&!this.has(p,"Ball & Chain")&&!this.has(p,"Unsteady")&&!this.has(p,"No Ball")&&super.canSecure(p);}
  canBallAction(p,kind){return !!p&&!this.has(p,"Ball & Chain")&&!this.has(p,"My Ball")&&super.canBallAction(p,kind);}
- canBlock(a,d){if(typeof a==="string")a=this.players.find(p=>p.id===a);if(typeof d==="string")d=this.players.find(p=>p.id===d);if(a&&this.has(a,"Ball & Chain"))return false;return super.canBlock(a,d)||!!(this.canStart(a)&&a.status==="prone"&&this.has(a,"Jump Up")&&d&&d.team!==a.team&&d.status==="standing"&&this.onPitch(d)&&this.distance(a,d)===1);}
+ canBlock(a,d){if(typeof a==="string")a=this.players.find(p=>p.id===a);if(typeof d==="string")d=this.players.find(p=>p.id===d);if(a&&this.has(a,"Ball & Chain")&&this.squigDeclaration!==a.id)return false;return super.canBlock(a,d)||!!(this.canStart(a)&&a.status==="prone"&&this.has(a,"Jump Up")&&d&&d.team!==a.team&&d.status==="standing"&&this.onPitch(d)&&this.distance(a,d)===1);}
  activationExtra(p,action,ready,failed){
-  const complete=()=>this.bloodlustActivation(p,action,()=>{ready();if(this.has(p,"Ball & Chain"))this.offerChain();else if(action==="bomb"&&this.action==="bomb"&&!this.pending&&!this.bombContext)this.beginBomb(p);});
+  const complete=()=>this.bloodlustActivation(p,action,()=>{ready();if(action==="move"&&this.has(p,"Ball & Chain"))this.offerChain();else if(action==="bomb"&&this.action==="bomb"&&!this.pending&&!this.bombContext)this.beginBomb(p);});
   const root=()=>{if(this.has(p,"Take Root")&&p.status==="standing"&&!p.rooted)this.test(p,"Take Root",2,complete,()=>{p.rooted=true;this.note("#"+p.number+" is Rooted.");complete();});else complete();};
   const fury=()=>{if(this.has(p,"Unchannelled Fury"))this.test(p,"Unchannelled Fury",["block","blitz"].includes(action)?2:4,root,()=>this.failedFury(p,action,root,()=>{this.mover=null;this.action=null;this.note("Unchannelled Fury ends the activation.");this.blockActivationFailed();}));else root();};
   if(!this.has(p,"Animal Savagery")){fury();return;}
@@ -460,10 +463,32 @@ class SkillGame extends SkillBase {
  canFoul(p){return !this.foulUsed[p.team];}
  spendBribe(team){this.bribes[team]--;}
  failedFury(p,action,ready,failed){failed();}
+ squigRestrained(p){return this.players.some(q=>q!==p&&q.team===p.team&&this.onPitch(q)&&q.status==="standing"&&this.has(q,"Squig Restraint")&&this.distance(p,q)<=3);}
+ // Resolve the new trait before committing a declared action or its team allowance.
+ squigActivation(p,resume){
+  if(this.squigDeclaration===p.id||!this.has(p,"Squig Rage")||this.squigRestrained(p))return false;
+  const declare=fn=>{this.squigDeclaration=p.id;try{fn();}finally{this.squigDeclaration=null;}};
+  const fail=()=>{p.used=true;p.distracted=true;this.mover=null;this.action=null;this.note("Squig Rage: #"+p.number+" becomes Distracted; activation ends.");};
+  this.test(p,"Squig Rage",3,()=>declare(resume),()=>{
+   const enemies=this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&q.status==="standing"&&this.distance(p,q)===1&&(p.status==="standing"||p.status==="prone"&&this.has(p,"Jump Up")));
+   if(enemies.length){const options=enemies.map(q=>"Block #"+q.number+" ("+q.id+")");this.pitchChoice("Squig Rage — forced Block",p.team,enemies,options,choice=>declare(()=>this.block(p.id,enemies[options.indexOf(choice)].id)),p);return;}
+   const mates=this.players.filter(q=>q!==p&&q.team===p.team&&this.onPitch(q)&&this.distance(p,q)===1),options=mates.map(q=>"Knock down #"+q.number+" ("+q.id+")");
+   if(!mates.length){fail();return;}
+   this.pitchChoice("Squig Rage — choose a team-mate or become Distracted",p.team,mates,[...options,"Become Distracted"],choice=>{
+    const q=mates[options.indexOf(choice)];if(!q){fail();return;}
+    const carrier=this.ball.carrier===q.id,team=this.active;
+    const next=()=>{if(carrier||this.active!==team||this.finished){p.used=true;return;}declare(resume);};
+    this.fall(q,{turnover:carrier,after:next,prevented:()=>declare(resume)});
+   },p);
+  });return true;
+ }
+ startBlitz(id,targetId){const p=this.players.find(q=>q.id===id),target=this.players.find(q=>q.id===targetId);if(!this.canBlitz(p,target))return false;if(this.squigActivation(p,()=>this.startBlitz(id,targetId)))return true;return super.startBlitz(id,targetId);}
  start(id,action="move"){
   this.refreshChomps();
   if(action==="special:Punt")action="punt";if(action==="special:Throw Bomb")action="bomb";
-  const p=this.players.find(q=>q.id===id);if(!this.canStart(p))return false;if(this.has(p,"Ball & Chain")&&(action!=="move"||p.status!=="standing"))return false;if(action==="bomb"){if(!this.canBomb(p))return false;this.bombUsed||=[false,false];this.bombUsed[p.team]=true;}p.bloodlustChecked=false;p.bloodlust=false;if(action==="foul"&&!this.canFoul(p))return false;
+  const p=this.players.find(q=>q.id===id);if(!this.canStart(p))return false;if(this.has(p,"Ball & Chain")&&(action!=="move"||p.status!=="standing"))return false;if(action==="secure"&&!this.canSecure(p)||["pass","handoff"].includes(action)&&!this.canBallAction(p,action)||action==="bomb"&&!this.canBomb(p)||action==="foul"&&!this.canFoul(p)||action==="throw-team-mate"&&!this.canThrowTeamMate(p)||action==="kick-team-mate"&&!this.canKickTeamMate(p)||action==="punt"&&!this.canPunt(p)||p.rooted&&["move","blitz"].includes(action))return false;
+  if(action.startsWith("special:")){const name=action.slice(8);if(!this.skill(p,name==="Chomp"?"Monstrous Mouth":name)&&!(p.status==="prone"&&name==="Hypnotic Gaze"&&this.has(p,name)))return false;}
+  if(this.squigActivation(p,()=>this.start(id,action)))return true;if(action==="bomb"){if(!this.canBomb(p))return false;this.bombUsed||=[false,false];this.bombUsed[p.team]=true;}p.bloodlustChecked=false;p.bloodlust=false;if(action==="foul"&&!this.canFoul(p))return false;
   if(action==="throw-team-mate"){if(!this.canThrowTeamMate(p))return false;this.throwUsed||=[false,false];this.throwUsed[p.team]=true;this.throwMate=null;this.note("#"+p.number+" declares Throw Team-mate.");}
   if(action==="kick-team-mate"){if(!this.canKickTeamMate(p))return false;this.kickUsed||=[false,false];this.kickUsed[p.team]=true;this.throwMate=null;this.note("#"+p.number+" declares Kick Team-mate.");}
   if(action==="punt"){if(!this.canPunt(p))return false;this.puntUsed||=[false,false];this.puntUsed[p.team]=true;}
@@ -473,13 +498,13 @@ class SkillGame extends SkillBase {
   p.gouged=false;this.preactivation={p,action};return super.start(id,action);
  }
  // Block declarations retain the base activation-trait order, including prone Jump Up declarations.
- block(a,d){this.refreshChomps();const p=this.players.find(q=>q.id===a);if(!this.canBlock(p,d))return false;p.bloodlustChecked=false;p.bloodlust=false;p.gouged=false;
+ block(a,d){this.refreshChomps();const p=this.players.find(q=>q.id===a);if(!this.canBlock(p,d))return false;if(this.squigActivation(p,()=>this.block(a,d)))return true;p.bloodlustChecked=false;p.bloodlust=false;p.gouged=false;
   return super.block(a,d);
  }
  options(p,kind){let result=super.options(p,kind);if(this.bombContext?.catchTest===p.id)result=result.filter(s=>s!=="Catch"&&s!=="Monstrous Mouth");if(kind==="Dodge"&&this.departureMarkers(p).some(q=>this.skill(q,"Tackle")))result=result.filter(s=>s!=="Dodge");
   if(kind==="Rush"&&this.skill(p,"Sure Feet")&&!this.used(p,"Sure Feet"))result.push("Sure Feet");if(kind==="Pick up"&&this.skill(p,"Sure Hands"))result.push("Sure Hands");
   if(kind==="Landing"&&p.swooping&&this.skill(p,"Swoop")&&!this.used(p,"Swoop landing"))result.push("Swoop");
-  if((this.mover===p.id||this.attackRoller===p.id||this.blockAction?.attacker.id===p.id)&&this.skill(p,"Pro")&&!p.proUsed&&!result.includes("Pro"))result.push("Pro");if(this.canTeamReroll(p)&&!result.includes("Team"))result.push("Team");if(this.dumpContext||this.moveContext)result=result.filter(s=>s!=="Pro");return result;
+  if((kind==="Squig Rage"||this.mover===p.id||this.attackRoller===p.id||this.blockAction?.attacker.id===p.id)&&this.skill(p,"Pro")&&!p.proUsed&&!result.includes("Pro"))result.push("Pro");if(this.canTeamReroll(p)&&!result.includes("Team"))result.push("Team");if(this.dumpContext||this.moveContext)result=result.filter(s=>s!=="Pro");return result;
  }
  departureMarkers(p){const o=this.departureOrigin||p;return this.players.filter(q=>q.team!==p.team&&this.onPitch(q)&&q.status==="standing"&&!q.distracted&&this.distance(q,o)===1);}
  checkTarget(p,kind,target){

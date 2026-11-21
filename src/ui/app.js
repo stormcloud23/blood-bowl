@@ -777,6 +777,7 @@ function renderMatch(){
 }
 function rosterRuleSummary(t){const rules=[...t.special];if(t.alignments?.length)rules.push("Favoured alignment: "+t.alignments.join(" / "));for(const [league,names] of Object.entries(t.leagueRules||{}))rules.push(league+": "+names.join(", "));for(const group of t.groupLimits||[])rules.push(group.label+": combined maximum "+group.max);return rules.length?rules.join(" · "):"No team special rules listed";}
 const rosterPlayNotes={
+ "night-goblin": {strength:"Keep Squigs near Standing Herders to suppress Squig Rage, then use their strength and Pogo to break through.",weakness:"Herders are fragile. Unrestrained Squigs can be forced to Block, knock down a team-mate or lose their activation."},
  "imperial-nobility": {"strength":"Hold running lanes with Stand Firm Bodyguards and Fend Retainers.","weakness":"Slow Bodyguards struggle to recover when the attack switches flanks."},
  "black-orc": {"strength":"Use Grab to pull opponents into favorable blocks or away from your Goblins.","weakness":"Slow Black Orcs struggle to switch flanks, leaving fragile Goblins exposed."},
  "skaven": {"strength":"Use MA9 Gutter Runners to turn a small opening into a touchdown.","weakness":"Most players have light armor, so prolonged contact can leave you short-handed."},

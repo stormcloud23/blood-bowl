@@ -1,6 +1,6 @@
 # BB2025 roster catalogue
 
-All **30 rosters** in the checked BB2025 team index are available for local
+All **31 rosters** in the checked BB2025 team index are available for local
 league drafting, roster inspection and home/away exhibition selection. Use
 **Find a roster** in the Rosters tab to filter the catalogue. Changing an
 exhibition roster, roster league or alignment restarts that exhibition.
@@ -9,7 +9,17 @@ The original eight rosters and their IDs remain unchanged. The new additions
 are Amazon, Bretonnian, Chaos Chosen, Chaos Dwarf, Chaos Renegades, Gnome,
 Goblin, Halfling, High Elf, Human, Khorne, Necromantic Horror, Norse, Ogre,
 Old World Alliance, Orc, Shambling Undead, Snotling, Tomb Kings,
-Underworld Denizens, Vampire and Wood Elf.
+Underworld Denizens, Vampire, Wood Elf and Night Goblin.
+
+Night Goblin profiles and Squig traits were checked November 21, 2026.
+Official Night Goblin tier is unknown. Keep tier 4 as a provisional local
+classification and update the roster and catalogue when the official tier is announced.
+The Night Goblin default has four Linemen, two Herders, two Hoppers, one Wrangler,
+one Cave Squig and one Trained Troll: 720K for eleven players, or 860K with two
+re-rolls. Portrait intake for all six positions is listed in
+[the team checklist](../portrait-intake/night-goblin/README.md); both galleries
+show all six portraits, including wider action crops for Herder, Hopper and Wrangler. The Trained Troll photo and
+crop are shared from Goblin; the other five originals were supplied by the owner.
 
 ## Data and sources
 
@@ -39,6 +49,7 @@ Player, and Loner parameter spacing is normalized.
 | [Khorne](https://bloodbowlbase.ru/bb2025/teams/Khorne/) | 3 | 4 | 60K | 50K |
 | [Lizardmen](https://bloodbowlbase.ru/bb2025/teams/Lizardmen/) | 1 | 4 | 70K | 50K |
 | [Necromantic Horror](https://bloodbowlbase.ru/bb2025/teams/Necromantic_Horror/) | 2 | 5 | 70K | Unavailable |
+| [Night Goblin](https://bloodbowlbase.ru/bb2025/teams/Night_Goblin/) | 4 | 6 | 70K | 50K |
 | [Norse](https://bloodbowlbase.ru/bb2025/teams/Norse/) | 1 | 6 | 60K | 50K |
 | [Nurgle](https://bloodbowlbase.ru/bb2025/teams/Nurgle/) | 3 | 4 | 60K | Unavailable |
 | [Ogre](https://bloodbowlbase.ru/bb2025/teams/Ogre/) | 4 | 3 | 70K | 50K |

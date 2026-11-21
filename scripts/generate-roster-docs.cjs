@@ -4,7 +4,7 @@ const fs=require('node:fs'),rosters=JSON.parse(fs.readFileSync(projectPath('src/
 const table=[...rosters].sort((a,b)=>a.name.localeCompare(b.name)).map(r=>'| ['+r.name+']('+r.source+') | '+r.tier+' | '+r.positions.length+' | '+(r.reroll/1000)+'K | '+(r.staff.apothecary?'50K':'Unavailable')+' |').join('\n');
 const doc=`# BB2025 roster catalogue
 
-All **30 rosters** in the checked BB2025 team index are available for local
+All **${rosters.length} rosters** in the checked BB2025 team index are available for local
 league drafting, roster inspection and home/away exhibition selection. Use
 **Find a roster** in the Rosters tab to filter the catalogue. Changing an
 exhibition roster, roster league or alignment restarts that exhibition.
@@ -13,7 +13,17 @@ The original eight rosters and their IDs remain unchanged. The new additions
 are Amazon, Bretonnian, Chaos Chosen, Chaos Dwarf, Chaos Renegades, Gnome,
 Goblin, Halfling, High Elf, Human, Khorne, Necromantic Horror, Norse, Ogre,
 Old World Alliance, Orc, Shambling Undead, Snotling, Tomb Kings,
-Underworld Denizens, Vampire and Wood Elf.
+Underworld Denizens, Vampire, Wood Elf and Night Goblin.
+
+Night Goblin profiles and Squig traits were checked November 21, 2026.
+Official Night Goblin tier is unknown. Keep tier 4 as a provisional local
+classification and update the roster and catalogue when the official tier is announced.
+The Night Goblin default has four Linemen, two Herders, two Hoppers, one Wrangler,
+one Cave Squig and one Trained Troll: 720K for eleven players, or 860K with two
+re-rolls. Portrait intake for all six positions is listed in
+[the team checklist](../portrait-intake/night-goblin/README.md); both galleries
+show all six portraits, including wider action crops for Herder, Hopper and Wrangler. The Trained Troll photo and
+crop are shared from Goblin; the other five originals were supplied by the owner.
 
 ## Data and sources
 

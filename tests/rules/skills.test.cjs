@@ -117,9 +117,9 @@ test("Leader re-roll disappears when the last Leader leaves the pitch",()=>{cons
 test("failed Stab replacement on Blitz still spends one MA and ends the activation",()=>{
  const g=fixture([1,2],"dodge"),p=g.players[0],d=g.players[11];grant(p,"Stab");g.startBlitz(p.id,d.id);assert.ok(g.performSpecial(d.id,"Stab"));assert.equal(p.spent,1);assert.equal(g.mover,null);assert.ok(g.blitzUsed[0]);
 });
-test("all 108 source entries have an explicit coverage status and dependency note",()=>{
- assert.equal(SKILL_CATALOG.length,108);assert.equal(new Set(SKILL_CATALOG.map(s=>s.name)).size,108);
- for(const [category,names] of Object.entries(SKILL_GROUPS))assert.equal(names.length,category==="Traits"?36:12);
+test("all 110 source entries have an explicit coverage status and dependency note",()=>{
+ assert.equal(SKILL_CATALOG.length,110);assert.equal(new Set(SKILL_CATALOG.map(s=>s.name)).size,110);
+ for(const [category,names] of Object.entries(SKILL_GROUPS))assert.equal(names.length,category==="Traits"?38:12);
  for(const s of SKILL_CATALOG){assert.ok(["Implemented","Partial","Deferred"].includes(s.status));assert.ok(s.notes.length>15);}
  assert.equal(SKILL_CATALOG.filter(s=>s.status==="Deferred").length,0);
 });

@@ -4113,5 +4113,164 @@
       "assistantCoach": 10000,
       "cheerleader": 10000
     }
+  },
+  {
+    "id": "night-goblin",
+    "name": "Night Goblin",
+    "tier": 4,
+    "league": "Underworld Challenge",
+    "special": [
+      "Bribery and Corruption"
+    ],
+    "source": "https://bloodbowlbase.ru/bb2025/teams/Night_Goblin/",
+    "reroll": 70000,
+    "positions": [
+      {
+        "id": "night-goblin-lineman",
+        "name": "Night Goblin Lineman",
+        "traits": "Goblin, Lineman",
+        "max": 16,
+        "ma": 6,
+        "st": 2,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Dodge",
+          "Right Stuff",
+          "Shadowing",
+          "Stunty",
+          "Taunt"
+        ],
+        "primary": "A D",
+        "secondary": "G P S",
+        "cost": 45000
+      },
+      {
+        "id": "squig-herder",
+        "name": "Squig Herder",
+        "traits": "Goblin, Special",
+        "max": 2,
+        "ma": 6,
+        "st": 2,
+        "ag": "3+",
+        "pa": "5+",
+        "av": "8+",
+        "skills": [
+          "Dodge",
+          "Disturbing Presence",
+          "Fend",
+          "Squig Restraint",
+          "Stunty"
+        ],
+        "primary": "A D",
+        "secondary": "G P S",
+        "cost": 55000
+      },
+      {
+        "id": "squig-hopper",
+        "name": "Squig Hopper",
+        "traits": "Goblin, Special, Squig",
+        "max": 2,
+        "ma": 7,
+        "st": 3,
+        "ag": "3+",
+        "pa": "4+",
+        "av": "8+",
+        "skills": [
+          "Dodge",
+          "Jump Up",
+          "Monstrous Mouth",
+          "Pogo",
+          "Squig Rage"
+        ],
+        "primary": "A D",
+        "secondary": "G P S",
+        "cost": 80000
+      },
+      {
+        "id": "squig-wrangler",
+        "name": "Squig Wrangler",
+        "traits": "Goblin, Special, Squig",
+        "max": 2,
+        "ma": 3,
+        "st": 7,
+        "ag": "3+",
+        "pa": "-",
+        "av": "8+",
+        "skills": [
+          "Ball & Chain",
+          "No Ball",
+          "Squig Rage",
+          "Stunty"
+        ],
+        "primary": "D S",
+        "secondary": "A G",
+        "cost": 70000
+      },
+      {
+        "id": "cave-squig",
+        "name": "Cave Squig",
+        "traits": "Special, Squig",
+        "max": 2,
+        "ma": 6,
+        "st": 4,
+        "ag": "3+",
+        "pa": "-",
+        "av": "9+",
+        "skills": [
+          "Frenzy",
+          "Jump Up",
+          "Monstrous Mouth",
+          "No Ball",
+          "Pogo",
+          "Squig Rage"
+        ],
+        "primary": "-",
+        "secondary": "A D G S",
+        "cost": 85000
+      },
+      {
+        "id": "trained-troll",
+        "name": "Trained Troll",
+        "traits": "Big Guy, Troll",
+        "max": 1,
+        "ma": 4,
+        "st": 5,
+        "ag": "5+",
+        "pa": "5+",
+        "av": "10+",
+        "skills": [
+          "Always Hungry",
+          "Mighty Blow",
+          "Projectile Vomit",
+          "Really Stupid",
+          "Regeneration",
+          "Throw Team-mate"
+        ],
+        "primary": "S",
+        "secondary": "A G P",
+        "cost": 115000
+      }
+    ],
+    "lineup": [
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      2,
+      2,
+      3,
+      4,
+      5
+    ],
+    "reviewed": "2026-11-21",
+    "staff": {
+      "apothecary": 50000,
+      "assistantCoach": 10000,
+      "cheerleader": 10000
+    }
   }
 ]
