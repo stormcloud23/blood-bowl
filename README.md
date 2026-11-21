@@ -65,6 +65,13 @@ Play starts full exhibition matches or opens Teams & leagues for league fixtures
 Each exhibition side has separate preset and submitted custom team dropdowns.
 A custom choice overrides the preset; selecting a preset switches back.
 
+Suggested formations use player roles across all rosters: Big Guys anchor the
+central line, linemen flank them, blitzers deploy forward on the wings, runners
+and catchers support those wings, and throwers stay deep. Teams with multiple
+Big Guys use a wider central line. Placement mirrors after halftime and adapts
+to casualties while retaining an available captain. Use **Use suggested formation**
+to restore the arrangement during setup; you can still adjust it manually.
+
 During drive setup, select a player and click a team-mate to swap their positions.
 A selected reserve replaces the clicked fielded player; empty squares still move
 the selected player normally.

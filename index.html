@@ -7207,11 +7207,48 @@ class MatchGame extends MatchBase {
   if(list.filter(p=>p.x===this.line(team)&&this.centre(p.y)).length<Math.min(3,needed))errors.push("Place at least "+Math.min(3,needed)+" player(s) on the central Line of Scrimmage.");
   if(list.filter(p=>p.y<4).length>2||list.filter(p=>p.y>10).length>2)errors.push("At most two players in each Wide Zone.");if(this.available(team).some(p=>p.captain&&!this.onPitch(p)))errors.push("Field your Team Captain if able.");return errors;
  }
+ formationRole(p){
+  const profile=this.profile(p),tags=this.keywords(p);
+  if(tags.includes("big guy"))return "big";
+  if(tags.includes("thrower")&&!this.has(p,"No Ball"))return "thrower";
+  if(tags.includes("runner"))return "runner";
+  if(tags.includes("blitzer"))return "blitzer";
+  if(tags.includes("catcher"))return "catcher";
+  if(tags.includes("lineman"))return "lineman";
+  if(tags.includes("blocker")||profile.st>=4)return "blocker";
+  if(profile.ma>=7&&!this.has(p,"No Ball"))return "runner";
+  return "special";
+ }
  autoSetup(team=this.setupTeam){
   if(this.phase!=="setup"||team!==this.setupTeam)return false;
-  const list=this.available(team).sort((a,b)=>Number(!!b.captain)-Number(!!a.captain));list.forEach(p=>Object.assign(p,{x:null,y:null,status:"reserve"}));const line=this.line(team),back=this.right(team)?-1:1;
-  const spots=[[line,6],[line,7],[line,8],[line+back*3,5],[line+back*3,9],[line+back*4,2],[line+back*4,12],[line+back*6,4],[line+back*6,10],[line+back*7,6],[line+back*7,8]];
-  list.slice(0,11).forEach((p,i)=>Object.assign(p,{x:spots[i][0],y:spots[i][1],status:"standing"}));return true;
+  const available=this.available(team).sort((a,b)=>Number(!!b.captain)-Number(!!a.captain)),selected=available.slice(0,11);
+  available.forEach(p=>Object.assign(p,{x:null,y:null,status:"reserve"}));
+  const line=this.line(team),back=this.right(team)?-1:1,role=p=>this.formationRole(p);
+  const big=selected.filter(p=>role(p)==="big").sort((a,b)=>this.profile(b).st-this.profile(a).st);
+  const count=Math.min(selected.length,7,Math.max(3,big.length+Math.min(2,selected.length-big.length)));
+  // Keep central muscle together, with expendable linemen on either side.
+  const lineRank=p=>({lineman:100,blocker:70,special:40,blitzer:20,runner:10,catcher:5,thrower:0}[role(p)]||0)-(this.has(p,"Bombardier")?80:0);
+  const front=[...big,...selected.filter(p=>role(p)!=="big").sort((a,b)=>lineRank(b)-lineRank(a))].slice(0,count);
+  const ys=Array.from({length:count},(_,i)=>7-Math.floor(count/2)+i).sort((a,b)=>Math.abs(a-7)-Math.abs(b-7)||a-b);
+  const place=(p,depth,y)=>Object.assign(p,{x:line+back*depth,y,status:"standing"});
+  front.forEach((p,i)=>place(p,0,ys[i]));
+  const remaining=selected.filter(p=>!front.includes(p));
+  const slots=[{depth:7,y:6,kind:"deep"},{depth:2,y:2,kind:"wing"},{depth:2,y:12,kind:"wing"},{depth:4,y:2,kind:"runner"},{depth:4,y:12,kind:"runner"},{depth:2,y:5,kind:"support"},{depth:2,y:9,kind:"support"},{depth:7,y:9,kind:"deep"}].slice(0,remaining.length);
+  const weights={
+   deep:{thrower:120,catcher:35,runner:25,lineman:15,special:10,blocker:0,blitzer:0},
+   wing:{blitzer:120,runner:45,catcher:35,blocker:30,special:20,lineman:10,thrower:0},
+   runner:{runner:110,catcher:100,blitzer:35,special:25,lineman:20,blocker:10,thrower:0},
+   support:{blocker:100,special:70,lineman:40,blitzer:20,runner:10,catcher:5,thrower:0}
+  };
+  const score=(p,slot)=>(weights[slot.kind][role(p)]??0)+(slot.kind==="deep"&&slot.y===6&&role(p)==="thrower"?1:0)+(slot.kind==="deep"?(this.has(p,"No Ball")?-100:this.has(p,"Sure Hands")?30:0):0)+(slot.kind==="support"&&this.has(p,"Squig Restraint")?40:0);
+  // Match all backfield roles together so a generic player cannot consume a specialist's best slot.
+  const memo=new Map(),assign=mask=>{
+   const i=mask.toString(2).replaceAll("0","").length;if(i===remaining.length)return {score:0,order:[]};
+   if(memo.has(mask))return memo.get(mask);let best={score:-Infinity,order:[]};
+   for(let j=0;j<remaining.length;j++)if(!(mask&(1<<j))){const next=assign(mask|(1<<j)),value=score(remaining[j],slots[i])+next.score;if(value>best.score)best={score:value,order:[j,...next.order]};}
+   memo.set(mask,best);return best;
+  };
+  assign(0).order.forEach((j,i)=>place(remaining[j],slots[i].depth,slots[i].y));return true;
  }
  canPlaceSetup(id,x,y){
   const p=this.players.find(p=>p.id===id),available=this.available(this.setupTeam);if(this.phase!=="setup"||this.pending||!p||p.team!==this.setupTeam||!available.includes(p)||!this.inside(x,y)||!this.ownHalf(p.team,x))return false;
@@ -8486,14 +8523,7 @@ class ComputerCoach {
   const line=g.line(this.team);
   const deep=players.reduce((best,p)=>Math.abs(p.x-line)>Math.abs(best.x-line)?p:best,retriever);
   if(deep!==retriever)g.placeSetup(retriever.id,deep.x,deep.y);
-  const lineSlots=players.filter(p=>p.x===line).map(p=>({x:p.x,y:p.y}));
-  const lineValue=p=>Number(g.profile(p).st)*3+Number(g.skill(p,"Block"))*2-Number(this.roles(g,p).catcher)*2;
-  const anchors=players.filter(p=>p!==retriever).sort((a,b)=>lineValue(b)-lineValue(a)).slice(0,lineSlots.length);
-  const openSlots=lineSlots.filter(s=>!anchors.includes(g.at(s.x,s.y)));
-  for(const anchor of anchors.filter(p=>p.x!==line)){
-   const slot=openSlots.shift();
-   if(slot)g.placeSetup(anchor.id,slot.x,slot.y);
-  }
+
  }
  step(g){
   if(g.phase==="finished"||computerDecisionTeam(g)!==this.team)return false;
