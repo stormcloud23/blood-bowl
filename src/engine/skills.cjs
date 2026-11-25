@@ -701,7 +701,7 @@ class SkillGame extends SkillBase {
   if(this.skill(b.attacker,"Frenzy")){q.resolve("Follow up");return;}
   if(this.skill(b.target,"Taunt")){q.options.push("Defender uses Taunt");const old=q.resolve;q.resolve=option=>old(option==="Defender uses Taunt"?"Follow up":option);}
  }
- afterFollow(a,d,knock,done){if(this.ball.carrier===d.id&&this.skill(a,"Strip Ball")&&!this.skill(d,"Sure Hands")&&!this.skill(d,"Monstrous Mouth")){this.ball={x:d.x,y:d.y,carrier:null};this.note("Strip Ball: ball drops after follow-up.");this.bounce(d.x,d.y,done);}else done();}
+ afterFollow(a,d,knock,done){super.afterFollow(a,d,knock,()=>{if(this.ball.carrier===d.id&&this.skill(a,"Strip Ball")&&!this.skill(d,"Sure Hands")&&!this.skill(d,"Monstrous Mouth")){this.ball={x:d.x,y:d.y,carrier:null};this.note("Strip Ball: ball drops after follow-up.");this.bounce(d.x,d.y,done);}else done();});}
  applyBlockResult(result){const b=this.blockAction;if(result==="Both Down"&&b.blitz&&this.skill(b.attacker,"Juggernaut")){this.pending={type:"custom",kind:"Juggernaut",options:["Treat as Push Back","Apply Both Down"],resolve:choice=>{this.pending=null;super.applyBlockResult(choice==="Treat as Push Back"?"Push Back":"Both Down");}};return;}super.applyBlockResult(result);}
  afterRegularBlock(b){return false;}
  finishBlock(){

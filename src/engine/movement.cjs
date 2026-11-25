@@ -179,7 +179,10 @@ class MovementGame {
   }};this.pending=q;
  }
  activationExtra(p,action,ready,failed){ready();}
- afterFollow(a,d,knock,done){done();}
+ afterFollow(a,d,knock,done){
+  // A follow-up is involuntary movement: a loose ball bounces, with no pickup roll.
+  if(!this.ball.carrier&&this.ball.x===a.x&&this.ball.y===a.y)this.bounce(a.x,a.y,done);else done();
+ }
  onBlockRolled(p){}
  onPitch(p){return Number.isInteger(p.x)&&Number.isInteger(p.y);}
  at(x,y){return this.players.find(p=>this.onPitch(p)&&p.x===x&&p.y===y);}

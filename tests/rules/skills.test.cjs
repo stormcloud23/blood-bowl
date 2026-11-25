@@ -227,6 +227,35 @@ test("Frenzy mandates follow-up and a second Block but never a third",()=>{
 test("Strip Ball drops after follow-up; Sure Hands prevents it",()=>{
  const g=fixture([3,3,2],"block"),a=g.players[15],d=g.players[5];grant(a,"Strip Ball");d.disabledSkills=["Stand Firm"];g.ball.carrier=d.id;g.block(a.id,d.id);g.selectBlockDie(0);g.pending.resolve({x:12,y:7});choose(g,"Stay");assert.equal(g.ball.carrier,null);assert.equal(g.active,1);
 });
+for(const follow of [true,false])test(`loose ball rebounding into the follow-up square ${follow?"bounces when entered":"stays when follow-up is declined"}`,()=>{
+ const g=fixture(follow?[3,3,4,2]:[3,3,4],"block"),a=g.players[15],d=g.players[5];
+ d.disabledSkills=["Stand Firm"];g.ball={x:12,y:7,carrier:null};
+ assert.ok(g.block(a.id,d.id));g.selectBlockDie(0);g.pending.resolve({x:12,y:7});
+ assert.equal(g.pending.kind,"Follow-up");assert.deepEqual(g.ball,{x:11,y:7,carrier:null});
+ choose(g,follow?"Follow up":"Stay");
+ assert.equal(a.x,follow?11:10);assert.deepEqual(g.ball,{x:11,y:follow?6:7,carrier:null});
+ assert.equal(g.blockAction,null);assert.equal(g.pending,null);assert.equal(g.active,1);
+});
+
+test("crowd throw-in returning to the vacated carrier square bounces after follow-up",()=>{
+ const g=fixture([3,3,1,1,3,1,1,1,5,2],"block"),a=g.players[15],d=g.players[5],r=g.players[11];
+ Object.assign(a,{x:24,y:7});Object.assign(d,{x:25,y:7});Object.assign(r,{x:24,y:6});
+ d.disabledSkills=["Stand Firm"];g.ball={x:25,y:7,carrier:d.id};
+ g.block(a.id,d.id);g.selectBlockDie(0);g.pending.resolve({x:26,y:7});
+ // The throw-in rebounds off the blocker after a failed catch, before follow-up.
+ assert.equal(g.pending.kind,"Follow-up");assert.deepEqual(g.ball,{x:25,y:7,carrier:null});
+ choose(g,"Follow up");assert.deepEqual(g.ball,{x:25,y:6,carrier:null});
+ assert.equal(a.x,25);assert.equal(g.blockAction,null);assert.equal(g.active,1);
+});
+
+test("follow-up ball bounce waits for catch decisions before completing the block",()=>{
+ const g=fixture([3,3,4,2,1,6],"block"),a=g.players[15],d=g.players[5],r=g.players[11];
+ d.disabledSkills=["Stand Firm"];Object.assign(r,{x:11,y:6});grant(r,"Catch");g.ball={x:12,y:7,carrier:null};
+ g.block(a.id,d.id);g.selectBlockDie(0);g.pending.resolve({x:12,y:7});choose(g,"Follow up");
+ assert.ok(g.blockAction);assert.ok(g.pending.options.includes("Catch"));
+ choose(g,"Catch");assert.equal(g.ball.carrier,r.id);assert.equal(g.blockAction,null);assert.equal(g.active,1);
+});
+
 test("Hatred rerolls a Player Down once and locks the pool against further rerolls",()=>{
  const g=fixture([1,3,6],"block"),a=g.players[15];grant(a,"Hatred (Human)");g.block(a.id,g.players[5].id);assert.deepEqual(g.blockAction.dice,[6,3]);assert.ok(g.blockAction.poolLocked);
 });
