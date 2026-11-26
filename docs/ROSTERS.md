@@ -12,8 +12,7 @@ Old World Alliance, Orc, Shambling Undead, Snotling, Tomb Kings,
 Underworld Denizens, Vampire, Wood Elf and Night Goblin.
 
 Night Goblin profiles and Squig traits were checked November 21, 2026.
-Official Night Goblin tier is unknown. Keep tier 4 as a provisional local
-classification and update the roster and catalogue when the official tier is announced.
+Night Goblin is officially tier 3, confirmed November 26, 2026.
 The Night Goblin default has four Linemen, two Herders, two Hoppers, one Wrangler,
 one Cave Squig and one Trained Troll: 720K for eleven players, or 860K with two
 re-rolls. Portrait intake for all six positions is listed in
@@ -49,7 +48,7 @@ Player, and Loner parameter spacing is normalized.
 | [Khorne](https://bloodbowlbase.ru/bb2025/teams/Khorne/) | 3 | 4 | 60K | 50K |
 | [Lizardmen](https://bloodbowlbase.ru/bb2025/teams/Lizardmen/) | 1 | 4 | 70K | 50K |
 | [Necromantic Horror](https://bloodbowlbase.ru/bb2025/teams/Necromantic_Horror/) | 2 | 5 | 70K | Unavailable |
-| [Night Goblin](https://bloodbowlbase.ru/bb2025/teams/Night_Goblin/) | 4 | 6 | 70K | 50K |
+| [Night Goblin](https://bloodbowlbase.ru/bb2025/teams/Night_Goblin/) | 3 | 6 | 70K | 50K |
 | [Norse](https://bloodbowlbase.ru/bb2025/teams/Norse/) | 1 | 6 | 60K | 50K |
 | [Nurgle](https://bloodbowlbase.ru/bb2025/teams/Nurgle/) | 3 | 4 | 60K | Unavailable |
 | [Ogre](https://bloodbowlbase.ru/bb2025/teams/Ogre/) | 4 | 3 | 70K | 50K |

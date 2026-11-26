@@ -16,8 +16,7 @@ Old World Alliance, Orc, Shambling Undead, Snotling, Tomb Kings,
 Underworld Denizens, Vampire, Wood Elf and Night Goblin.
 
 Night Goblin profiles and Squig traits were checked November 21, 2026.
-Official Night Goblin tier is unknown. Keep tier 4 as a provisional local
-classification and update the roster and catalogue when the official tier is announced.
+Night Goblin is officially tier 3, confirmed November 26, 2026.
 The Night Goblin default has four Linemen, two Herders, two Hoppers, one Wrangler,
 one Cave Squig and one Trained Troll: 720K for eleven players, or 860K with two
 re-rolls. Portrait intake for all six positions is listed in
